@@ -1,0 +1,446 @@
+#include "Common/precompiled.h"
+#include "napi.h"
+
+#include "curl/curl.h"
+#include "Cafe/IOSU/legacy/iosu_crypto.h"
+
+#include "Cemu/ncrypto/ncrypto.h"
+#include "napi_helper.h"
+#include "util/highresolutiontimer/HighResolutionTimer.h"
+#include "config/ActiveSettings.h"
+#include "config/NetworkSettings.h"
+#include "config/LaunchSettings.h"
+#include "pugixml.hpp"
+#include <charconv>
+
+#include"openssl/bn.h"
+#include"openssl/x509.h"
+#include"openssl/ssl.h"
+
+CURLcode _sslctx_function_NUS(CURL* curl, void* sslctx, void* param)
+{
+	if (iosuCrypto_addCACertificate(sslctx, 102) == false)
+	{
+		cemuLog_log(LogType::Force, "Invalid CA certificate (102)");
+	}
+	if (iosuCrypto_addCACertificate(sslctx, 105) == false)
+	{
+		cemuLog_log(LogType::Force, "Invalid CA certificate (105)");
+	}
+
+	if (iosuCrypto_addClientCertificate(sslctx, 3) == false)
+	{
+		cemuLog_log(LogType::Force, "Certificate error");
+	}
+	SSL_CTX_set_mode((SSL_CTX*)sslctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth((SSL_CTX*)sslctx, 2);
+	SSL_CTX_set_verify((SSL_CTX*)sslctx, SSL_VERIFY_PEER, nullptr);
+	return CURLE_OK;
+}
+
+CURLcode _sslctx_function_IDBE(CURL* curl, void* sslctx, void* param)
+{
+	if (iosuCrypto_addCACertificate(sslctx, 105) == false)
+	{
+		cemuLog_log(LogType::Force, "Invalid CA certificate (105)");
+	}
+	SSL_CTX_set_mode((SSL_CTX*)sslctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth((SSL_CTX*)sslctx, 2);
+
+	return CURLE_OK;
+}
+
+CURLcode _sslctx_function_SOAP(CURL* curl, void* sslctx, void* param)
+{
+	if (iosuCrypto_addCACertificate(sslctx, 102) == false)
+	{
+		cemuLog_log(LogType::Force, "Invalid CA certificate (102)");
+		cemuLog_log(LogType::Force, "Certificate error");
+	}
+	if (iosuCrypto_addClientCertificate(sslctx, 1) == false)
+	{
+		cemuLog_log(LogType::Force, "Certificate error");
+	}
+	SSL_CTX_set_mode((SSL_CTX*)sslctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth((SSL_CTX*)sslctx, 2);
+	SSL_CTX_set_verify((SSL_CTX*)sslctx, SSL_VERIFY_PEER, nullptr);
+	return CURLE_OK;
+}
+
+CURLcode _sslctx_function_OLIVE(CURL* curl, void* sslctx, void* param)
+{
+	if (iosuCrypto_addCACertificate(sslctx, 105) == false)
+	{
+		cemuLog_log(LogType::Force, "Invalid CA certificate (105)");
+		cemuLog_log(LogType::Force, "Certificate error");
+	}
+	if (iosuCrypto_addClientCertificate(sslctx, 7) == false)
+	{
+		cemuLog_log(LogType::Force, "Olive client certificate error");
+	}
+
+	{
+		std::vector<sint16> certGroups = {
+			100,  101,  102,   103,  104,  105,
+			1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
+			1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019,
+			1020, 1021, 1022, 1023, 1024, 1025, 1026, 1027, 1028, 1029,
+			1030, 1031, 1032, 1033
+		};
+
+		for (auto& certId : certGroups)
+			iosuCrypto_addCACertificate(sslctx, certId);
+	}
+
+	SSL_CTX_set_mode((SSL_CTX*)sslctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth((SSL_CTX*)sslctx, 2);
+	SSL_CTX_set_verify((SSL_CTX*)sslctx, SSL_VERIFY_PEER, nullptr);
+	return CURLE_OK;
+}
+
+CURLcode _sslctx_function_CUSTOM(CURL* curl, void* sslctx, void* param)
+{
+	CurlRequestHelper* requestHelper = (CurlRequestHelper*)param;
+	for (auto& caCertId : requestHelper->GetCaCertIds())
+	{
+		if (iosuCrypto_addCACertificate(sslctx, caCertId) == false)
+		{
+			cemuLog_log(LogType::Force, "Invalid CA certificate ({})", caCertId);
+		}
+	}
+	for (auto& clientCertId : requestHelper->GetClientCertIds())
+	{
+		if (iosuCrypto_addCACertificate(sslctx, clientCertId) == false)
+		{
+			cemuLog_log(LogType::Force, "Invalid client certificate ({})", clientCertId);
+		}
+	}
+	SSL_CTX_set_mode((SSL_CTX*)sslctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth((SSL_CTX*)sslctx, 2);
+	if (requestHelper->GetClientCertIds().empty())
+		SSL_CTX_set_verify((SSL_CTX*)sslctx, SSL_VERIFY_NONE, nullptr);
+	else
+		SSL_CTX_set_verify((SSL_CTX*)sslctx, SSL_VERIFY_PEER, nullptr);
+	return CURLE_OK;
+}
+
+CurlRequestHelper::CurlRequestHelper()
+{
+	m_curl = curl_easy_init();
+	curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, __curlWriteCallback);
+	curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, this);
+
+	curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(m_curl, CURLOPT_MAXREDIRS, 2);
+	curl_easy_setopt(m_curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+	if(GetConfig().proxy_server.GetValue() != "")
+	{
+		curl_easy_setopt(m_curl, CURLOPT_PROXY, GetConfig().proxy_server.GetValue().c_str());
+	}
+}
+
+CurlRequestHelper::~CurlRequestHelper()
+{
+	curl_easy_cleanup(m_curl);
+}
+
+void CurlRequestHelper::initate(NetworkService service, std::string url, SERVER_SSL_CONTEXT sslContext)
+{
+	m_headerExtraFields.clear();
+	m_postData.clear();
+	m_cbWriteCallback = nullptr;
+
+	curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(m_curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_DEFAULT);
+	curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, 60);
+	curl_easy_setopt(m_curl, CURLOPT_CONNECTTIMEOUT, 10L);
+
+	curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 1L);
+	if (IsNetworkServiceSSLDisabled(service))
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	}
+	else if (service == NetworkService::Custom && !ActiveSettings::HasRequiredOnlineFiles())
+	{
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::ACT || sslContext == SERVER_SSL_CONTEXT::TAGAYA)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_NUS);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::IDBE)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_IDBE);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::IAS || sslContext == SERVER_SSL_CONTEXT::ECS)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_SOAP);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::CCS)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_SOAP);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::OLIVE)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_OLIVE);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+	}
+	else if (sslContext == SERVER_SSL_CONTEXT::CUSTOM)
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_CUSTOM);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, this);
+	}
+	else
+	{
+		cemu_assert(false);
+	}
+}
+
+void CurlRequestHelper::addHeaderField(const char* fieldName, std::string_view value)
+{
+	m_headerExtraFields.emplace_back(fieldName, value);
+}
+
+void CurlRequestHelper::addPostField(const char* fieldName, std::string_view value)
+{
+	if (!m_postData.empty())
+		m_postData.emplace_back('&');
+	m_postData.insert(m_postData.end(), (uint8*)fieldName, (uint8*)fieldName + strlen(fieldName));
+	m_postData.emplace_back('=');
+	m_postData.insert(m_postData.end(), (uint8*)value.data(), (uint8*)value.data() + value.size());
+}
+
+void CurlRequestHelper::setWriteCallback(bool(*cbWriteCallback)(void* userData, const void* ptr, size_t len, bool isLast), void* userData)
+{
+	m_cbWriteCallback = cbWriteCallback;
+	m_writeCallbackUserData = userData;
+}
+
+void CurlRequestHelper::setTimeout(sint32 time)
+{
+	curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, time);
+}
+
+size_t CurlRequestHelper::__curlWriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+	size_t writeByteSize = (size_t)(size * nmemb);
+	CurlRequestHelper* curlHelper = (CurlRequestHelper*)userdata;
+	if (curlHelper->m_cbWriteCallback)
+	{
+		if (!curlHelper->m_cbWriteCallback(curlHelper->m_writeCallbackUserData, ptr, writeByteSize, false))
+			return 0;
+		return writeByteSize;
+	}
+	curlHelper->m_receiveBuffer.insert(curlHelper->m_receiveBuffer.end(), ptr, ptr + writeByteSize);
+	return writeByteSize;
+}
+
+bool CurlRequestHelper::submitRequest(bool isPost)
+{
+	struct curl_slist* headers = nullptr;
+	for (auto& itr : m_headerExtraFields)
+		headers = curl_slist_append(headers, itr.data.c_str());
+	curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
+
+	if (isPost)
+	{
+		if (!m_isUsingMultipartFormData)
+		{
+			curl_easy_setopt(m_curl, CURLOPT_POST, 1);
+			curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, m_postData.data());
+			curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, m_postData.size());
+		}
+	}
+	else
+		curl_easy_setopt(m_curl, CURLOPT_POST, 0);
+
+	int res = curl_easy_perform(m_curl);
+	if (res == CURLE_SSL_CONNECT_ERROR || res == CURLE_SSL_CERTPROBLEM || res == CURLE_PEER_FAILED_VERIFICATION || res == CURLE_SSL_CACERT_BADFILE)
+	{
+		static std::atomic_bool s_loggedTlsFailure{false};
+		if (!s_loggedTlsFailure.exchange(true))
+			cemuLog_log(LogType::Force, "CURL web request failed with TLS error {} (online files missing or invalid). Not retrying; further TLS failures are not logged", res);
+		return false;
+	}
+	if (res != CURLE_OK)
+	{
+		cemuLog_log(LogType::Force, "CURL web request failed with error {}. Retrying...", res);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		res = curl_easy_perform(m_curl);
+		if (res != CURLE_OK)
+			return false;
+	}
+
+	long httpCode = 0;
+	curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &httpCode);
+	m_httpStatusCode = httpCode;
+	if (httpCode != 200)
+	{
+		cemuLog_log(LogType::Force, "HTTP request received response {} but expected 200", httpCode);
+		char* effectiveUrl = nullptr;
+		curl_easy_getinfo(m_curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+		if (effectiveUrl)
+			cemuLog_log(LogType::Force, "Request: {}", effectiveUrl);
+		if (httpCode >= 400 && httpCode <= 599 && httpCode != 400)
+			return false;
+		if(m_receiveBuffer.empty())
+			return false;
+	}
+
+	if (m_cbWriteCallback)
+		m_cbWriteCallback(m_writeCallbackUserData, nullptr, 0, true);
+
+	return true;
+}
+
+CurlSOAPHelper::CurlSOAPHelper(NetworkService service)
+{
+	m_curl = curl_easy_init();
+	curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, __curlWriteCallback);
+	curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, this);
+	curl_easy_setopt(m_curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+	if (!IsNetworkServiceSSLDisabled(service))
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_FUNCTION, _sslctx_function_SOAP);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_CTX_DATA, NULL);
+		curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 1L);
+	}
+	else
+	{
+		curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	}
+	if (GetConfig().proxy_server.GetValue() != "")
+	{
+		curl_easy_setopt(m_curl, CURLOPT_PROXY, GetConfig().proxy_server.GetValue().c_str());
+	}
+}
+
+CurlSOAPHelper::~CurlSOAPHelper()
+{
+	curl_easy_cleanup(m_curl);
+}
+
+void CurlSOAPHelper::SOAP_initate(std::string_view serviceType, std::string url, std::string_view requestMethod, std::string_view requestVersion)
+{
+	curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
+	m_serviceType = serviceType;
+	m_requestMethod = requestMethod;
+	m_requestVersion = requestVersion;
+
+	m_envelopeExtraParam.reserve(512);
+	m_envelopeExtraParam.clear();
+}
+
+void CurlSOAPHelper::SOAP_addRequestField(const char* fieldName, std::string_view value)
+{
+	m_envelopeExtraParam.append(fmt::format("<{}:{}>{}</{}:{}>", m_serviceType, fieldName, value, m_serviceType, fieldName));
+}
+
+void CurlSOAPHelper::SOAP_generateEnvelope()
+{
+	m_envelopeStr.reserve(4096);
+	m_envelopeStr.clear();
+
+	m_envelopeStr.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+
+	m_envelopeStr.append("<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n");
+	m_envelopeStr.append(" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\"\n");
+	m_envelopeStr.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+	m_envelopeStr.append(" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
+	m_envelopeStr.append(fmt::format(" xmlns:{}=\"urn:{}.wsapi.broadon.com\">\n", m_serviceType, m_serviceType));
+	m_envelopeStr.append("<SOAP-ENV:Body>\n");
+	m_envelopeStr.append(fmt::format("<{}:{} xsi:type=\"{}:{}RequestType\">\n", m_serviceType, m_requestMethod, m_serviceType, m_requestMethod));
+	m_envelopeStr.append(fmt::format("<{}:Version>{}</{}:Version>\n", m_serviceType, m_requestVersion, m_serviceType));
+
+	static uint64 s_msgHigh = 1 + (uint64)HighResolutionTimer::now().getTick()/7;
+	uint64 msgId_high = s_msgHigh;
+	uint64 msgId_low = (uint64)HighResolutionTimer::now().getTick();
+	m_envelopeStr.append(fmt::format("<{}:MessageId>EC-{}-{}</{}:MessageId>", m_serviceType, msgId_high, msgId_low, m_serviceType));
+
+	m_envelopeStr.append(m_envelopeExtraParam);
+
+	m_envelopeStr.append(fmt::format("</{}:{}>\n", m_serviceType, m_requestMethod));
+
+	m_envelopeStr.append("</SOAP-ENV:Body>\n");
+	m_envelopeStr.append("</SOAP-ENV:Envelope>\n");
+
+}
+
+sint32 iosuCrypto_getDeviceCertificateBase64Encoded(char* output);
+
+bool CurlSOAPHelper::submitRequest()
+{
+	SOAP_generateEnvelope();
+	curl_easy_setopt(m_curl, CURLOPT_POST, 1);
+	curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, m_envelopeStr.c_str());
+	curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, m_envelopeStr.size());
+	struct curl_slist* headers = NULL;
+	headers = curl_slist_append(headers, "Content-Type: text/xml; charset=utf-8");
+	headers = curl_slist_append(headers, "Accept-Charset: UTF-8");
+	headers = curl_slist_append(headers, fmt::format("SOAPAction: urn:{}.wsapi.broadon.com/{}", m_serviceType, m_requestMethod).c_str());
+	headers = curl_slist_append(headers, "Accept: */*");
+	curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "EVL NUP 040800 Sep 18 2012 20:20:02");
+
+	auto res = curl_easy_perform(m_curl);
+	return res == CURLE_OK;
+}
+
+namespace NAPI
+{
+	bool _findXmlNode(pugi::xml_node& doc, pugi::xml_node& nodeOut, const char* name)
+	{
+		for (auto& itr : doc.children())
+		{
+			if (boost::iequals(itr.name(), name))
+			{
+				nodeOut = itr;
+				return true;
+			}
+			if (_findXmlNode(itr, nodeOut, name))
+				return true;
+		}
+		return false;
+	}
+
+	bool _parseResponseInit(const CurlSOAPHelper& soapHelper, const char* responseNodeName, pugi::xml_node& node, _NAPI_CommonResultSOAP& result, pugi::xml_document& doc, pugi::xml_node& responseNode)
+	{
+		if (!doc.load_buffer(soapHelper.getReceivedData().data(), soapHelper.getReceivedData().size()))
+		{
+			cemuLog_log(LogType::Force, "Failed to parse GetRegistrationInfo() response");
+			result.apiError = NAPI_RESULT::XML_ERROR;
+			return false;
+		}
+		if (!_findXmlNode(doc, node, responseNodeName))
+		{
+			result.apiError = NAPI_RESULT::XML_ERROR;
+			return false;
+		}
+		auto errorCodeStr = node.child_value("ErrorCode");
+		if (!errorCodeStr)
+		{
+			result.apiError = NAPI_RESULT::XML_ERROR;
+			return false;
+		}
+		int parsedErrorCode = 0;
+		std::from_chars_result fcr = std::from_chars(errorCodeStr, errorCodeStr + strlen(errorCodeStr), parsedErrorCode);
+		if (fcr.ec == std::errc::invalid_argument || fcr.ec == std::errc::result_out_of_range)
+		{
+			result.apiError = NAPI_RESULT::XML_ERROR;
+			return false;
+		}
+		if (parsedErrorCode != 0)
+		{
+			result.serviceError = (EC_ERROR_CODE)parsedErrorCode;
+			result.apiError = NAPI_RESULT::SERVICE_ERROR;
+			return false;
+		}
+		result.apiError = NAPI_RESULT::SUCCESS;
+		return true;
+	}
+};

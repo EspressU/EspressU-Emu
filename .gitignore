@@ -1,0 +1,62 @@
+# --- Build outputs ---
+build/
+build-*/
+cmake-build-*/
+out/
+.cache/
+.vcpkg-archives/
+*.o
+*.a
+*.dylib
+*.gch
+*.pch
+*.app
+*.ipa
+*.dSYM/
+DerivedData/
+
+# XcodeGen output (generated from src/ios/project.yml)
+src/ios/*.xcodeproj/
+
+# Built by ci/build-stikjit.sh
+dependencies/StikJIT.xcframework/
+dependencies/.stikjit-commit
+dependencies/idevice/
+
+# --- Never commit: keys, firmware, games, signing material ---
+keys.txt
+otp.bin
+seeprom.bin
+*.wua
+*.wud
+*.wux
+*.rpx
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+signing/
+
+# --- Runtime data created when running the core from bin/ ---
+bin/log.txt
+bin/settings.xml
+bin/network_services.xml
+bin/title_list_cache.xml
+bin/mlc01/*
+bin/sdcard/*
+bin/screenshots/*
+bin/dump/*
+bin/portable/*
+bin/shaderCache/*
+!bin/shaderCache/info.txt
+bin/controllerProfiles/*
+bin/graphicPacks/*
+bin/gameProfiles/*
+!bin/gameProfiles/default/
+
+# --- Editors and OS ---
+.vscode/
+.idea/
+.DS_Store
+._*
+__pycache__/

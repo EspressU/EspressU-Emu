@@ -1,0 +1,544 @@
+{
+ "source": "Wii_U_controller_illustration.webp",
+ "image": [
+  600,
+  353
+ ],
+ "body_bbox_px": [
+  0,
+  19,
+  599,
+  332
+ ],
+ "note": "front face only - L/R/ZL/ZR are on the top edge and absent from this view",
+ "elements": {
+  "screen": {
+   "shape": "rect",
+   "center_px": [
+    298.5,
+    176.0
+   ],
+   "bbox_px": [
+    137,
+    84,
+    460,
+    268
+   ],
+   "size_px": [
+    324,
+    185
+   ],
+   "center_img": [
+    0.4975,
+    0.4986
+   ],
+   "center_body": [
+    0.4975,
+    0.5
+   ]
+  },
+  "lstick": {
+   "shape": "circle",
+   "center_px": [
+    55,
+    95
+   ],
+   "bbox_px": [
+    30.5,
+    70.5,
+    79.5,
+    119.5
+   ],
+   "size_px": [
+    50.0,
+    50.0
+   ],
+   "center_img": [
+    0.0917,
+    0.2691
+   ],
+   "center_body": [
+    0.0917,
+    0.242
+   ],
+   "r_px": 24.5,
+   "r_body_w": 0.0408
+  },
+  "rstick": {
+   "shape": "circle",
+   "center_px": [
+    549.5,
+    95
+   ],
+   "bbox_px": [
+    525.0,
+    70.5,
+    574.0,
+    119.5
+   ],
+   "size_px": [
+    50.0,
+    50.0
+   ],
+   "center_img": [
+    0.9158,
+    0.2691
+   ],
+   "center_body": [
+    0.9158,
+    0.242
+   ],
+   "r_px": 24.5,
+   "r_body_w": 0.0408
+  },
+  "dpad": {
+   "shape": "rect",
+   "center_px": [
+    79.0,
+    160.5
+   ],
+   "bbox_px": [
+    51,
+    133,
+    107,
+    188
+   ],
+   "size_px": [
+    57,
+    56
+   ],
+   "center_img": [
+    0.1317,
+    0.4547
+   ],
+   "center_body": [
+    0.1317,
+    0.4506
+   ]
+  },
+  "X": {
+   "shape": "circle",
+   "center_px": [
+    524,
+    136.5
+   ],
+   "bbox_px": [
+    511.5,
+    124.0,
+    536.5,
+    149.0
+   ],
+   "size_px": [
+    26.0,
+    26.0
+   ],
+   "center_img": [
+    0.8733,
+    0.3867
+   ],
+   "center_body": [
+    0.8733,
+    0.3742
+   ],
+   "r_px": 12.5,
+   "r_body_w": 0.0208
+  },
+  "Y": {
+   "shape": "circle",
+   "center_px": [
+    500,
+    160.5
+   ],
+   "bbox_px": [
+    487.5,
+    148.0,
+    512.5,
+    173.0
+   ],
+   "size_px": [
+    26.0,
+    26.0
+   ],
+   "center_img": [
+    0.8333,
+    0.4547
+   ],
+   "center_body": [
+    0.8333,
+    0.4506
+   ],
+   "r_px": 12.5,
+   "r_body_w": 0.0208
+  },
+  "A": {
+   "shape": "circle",
+   "center_px": [
+    548,
+    160.5
+   ],
+   "bbox_px": [
+    535.5,
+    148.0,
+    560.5,
+    173.0
+   ],
+   "size_px": [
+    26.0,
+    26.0
+   ],
+   "center_img": [
+    0.9133,
+    0.4547
+   ],
+   "center_body": [
+    0.9133,
+    0.4506
+   ],
+   "r_px": 12.5,
+   "r_body_w": 0.0208
+  },
+  "B": {
+   "shape": "circle",
+   "center_px": [
+    524,
+    184
+   ],
+   "bbox_px": [
+    511.5,
+    171.5,
+    536.5,
+    196.5
+   ],
+   "size_px": [
+    26.0,
+    26.0
+   ],
+   "center_img": [
+    0.8733,
+    0.5212
+   ],
+   "center_body": [
+    0.8733,
+    0.5255
+   ],
+   "r_px": 12.5,
+   "r_body_w": 0.0208
+  },
+  "PLUS": {
+   "shape": "circle",
+   "center_px": [
+    497,
+    221
+   ],
+   "bbox_px": [
+    488.5,
+    212.5,
+    505.5,
+    229.5
+   ],
+   "size_px": [
+    18.0,
+    18.0
+   ],
+   "center_img": [
+    0.8283,
+    0.6261
+   ],
+   "center_body": [
+    0.8283,
+    0.6433
+   ],
+   "r_px": 8.5,
+   "r_body_w": 0.0142
+  },
+  "MINUS": {
+   "shape": "circle",
+   "center_px": [
+    497,
+    252
+   ],
+   "bbox_px": [
+    488.5,
+    243.5,
+    505.5,
+    260.5
+   ],
+   "size_px": [
+    18.0,
+    18.0
+   ],
+   "center_img": [
+    0.8283,
+    0.7139
+   ],
+   "center_body": [
+    0.8283,
+    0.742
+   ],
+   "r_px": 8.5,
+   "r_body_w": 0.0142
+  },
+  "HOME": {
+   "shape": "circle",
+   "center_px": [
+    298.5,
+    302
+   ],
+   "bbox_px": [
+    285.5,
+    289,
+    311.5,
+    315
+   ],
+   "size_px": [
+    27.0,
+    27
+   ],
+   "center_img": [
+    0.4975,
+    0.8555
+   ],
+   "center_body": [
+    0.4975,
+    0.9013
+   ],
+   "r_px": 13,
+   "r_body_w": 0.0217
+  },
+  "TV": {
+   "shape": "circle",
+   "center_px": [
+    425.5,
+    302.5
+   ],
+   "bbox_px": [
+    417.5,
+    294.5,
+    433.5,
+    310.5
+   ],
+   "size_px": [
+    17.0,
+    17.0
+   ],
+   "center_img": [
+    0.7092,
+    0.8569
+   ],
+   "center_body": [
+    0.7092,
+    0.9029
+   ],
+   "r_px": 8,
+   "r_body_w": 0.0133
+  },
+  "POWER": {
+   "shape": "circle",
+   "center_px": [
+    455.5,
+    303
+   ],
+   "bbox_px": [
+    447.5,
+    295,
+    463.5,
+    311
+   ],
+   "size_px": [
+    17.0,
+    17
+   ],
+   "center_img": [
+    0.7592,
+    0.8584
+   ],
+   "center_body": [
+    0.7592,
+    0.9045
+   ],
+   "r_px": 8,
+   "r_body_w": 0.0133
+  },
+  "nfc_rect": {
+   "shape": "rect",
+   "center_px": [
+    78.5,
+    234.5
+   ],
+   "bbox_px": [
+    66,
+    226,
+    91,
+    243
+   ],
+   "size_px": [
+    26,
+    18
+   ],
+   "center_img": [
+    0.1308,
+    0.6643
+   ],
+   "center_body": [
+    0.1308,
+    0.6863
+   ]
+  },
+  "mic": {
+   "shape": "circle",
+   "center_px": [
+    263,
+    302
+   ],
+   "bbox_px": [
+    261.5,
+    300.5,
+    264.5,
+    303.5
+   ],
+   "size_px": [
+    4.0,
+    4.0
+   ],
+   "center_img": [
+    0.4383,
+    0.8555
+   ],
+   "center_body": [
+    0.4383,
+    0.9013
+   ],
+   "r_px": 1.5,
+   "r_body_w": 0.0025
+  },
+  "batt_led": {
+   "shape": "circle",
+   "center_px": [
+    394,
+    302.5
+   ],
+   "bbox_px": [
+    392,
+    300.5,
+    396,
+    304.5
+   ],
+   "size_px": [
+    5,
+    5.0
+   ],
+   "center_img": [
+    0.6567,
+    0.8569
+   ],
+   "center_body": [
+    0.6567,
+    0.9029
+   ],
+   "r_px": 2,
+   "r_body_w": 0.0033
+  },
+  "spk_L": {
+   "shape": "rect",
+   "center_px": [
+    101.0,
+    302.5
+   ],
+   "bbox_px": [
+    95,
+    300,
+    107,
+    305
+   ],
+   "size_px": [
+    13,
+    6
+   ],
+   "center_img": [
+    0.1683,
+    0.8569
+   ],
+   "center_body": [
+    0.1683,
+    0.9029
+   ]
+  },
+  "spk_R": {
+   "shape": "rect",
+   "center_px": [
+    497.5,
+    302.5
+   ],
+   "bbox_px": [
+    492,
+    300,
+    503,
+    305
+   ],
+   "size_px": [
+    12,
+    6
+   ],
+   "center_img": [
+    0.8292,
+    0.8569
+   ],
+   "center_body": [
+    0.8292,
+    0.9029
+   ]
+  },
+  "camera": {
+   "shape": "circle",
+   "center_px": [
+    299.5,
+    44.5
+   ],
+   "bbox_px": [
+    292.5,
+    37.5,
+    306.5,
+    51.5
+   ],
+   "size_px": [
+    15.0,
+    15.0
+   ],
+   "center_img": [
+    0.4992,
+    0.1261
+   ],
+   "center_body": [
+    0.4992,
+    0.0812
+   ],
+   "r_px": 7,
+   "r_body_w": 0.0117
+  },
+  "sensor_bar": {
+   "shape": "rect",
+   "center_px": [
+    300.0,
+    45.5
+   ],
+   "bbox_px": [
+    217,
+    36,
+    383,
+    55
+   ],
+   "size_px": [
+    167,
+    20
+   ],
+   "center_img": [
+    0.5,
+    0.1289
+   ],
+   "center_body": [
+    0.5,
+    0.0844
+   ]
+  }
+ }
+}

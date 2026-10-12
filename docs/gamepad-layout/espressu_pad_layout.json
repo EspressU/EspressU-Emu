@@ -1,0 +1,3122 @@
+{
+ "unit_mm": 10.625,
+ "geometry_D": {
+  "faceDiameter": 1.0,
+  "faceHalfX": 0.96,
+  "faceHalfY": 0.95,
+  "dpadW": 2.28,
+  "dpadH": 2.24,
+  "dpadArm": 0.76,
+  "stickBase": 1.96,
+  "stickKnob": 1.12,
+  "stickArm": 2.7902,
+  "stickArmAngleDeg": 69.8737,
+  "systemDiameter": 0.68,
+  "homeDiameter": 1.04,
+  "menuDiameter": 0.64,
+  "bodyW": 24.0,
+  "bodyH": 12.56,
+  "screenW": 12.92235,
+  "screenH": 7.26588,
+  "screenCentreY": 6.28,
+  "dpadFromBodyLeft": 3.16,
+  "abxyFromBodyRight": 3.04,
+  "clusterFromTop": 5.66,
+  "homeFromBodyTop": 11.32,
+  "tvFromHome": 5.08047,
+  "powerFromHome": 6.28047,
+  "plusFromABXY": [
+   -1.08,
+   2.42
+  ],
+  "minusFromABXY": [
+   -1.08,
+   3.66
+  ],
+  "shoulderW": 1.151,
+  "shoulderH": 0.874,
+  "shoulderCorner": 0.235,
+  "shoulderSpread": 0.675,
+  "shoulderGap": 0.2,
+  "systemElbow": [
+   1.414,
+   -1.414
+  ],
+  "shoulderDy": -1.617
+ },
+ "constants": {
+  "edgeMargin": 0.35,
+  "clearance": 0.35,
+  "realScreenMm": 137.3,
+  "touchFloorPt": 44.0,
+  "rakeMinDeg": 45.0
+ },
+ "devices": [
+  {
+   "device": "iPhone SE (3rd gen)",
+   "container": [
+    667,
+    375
+   ],
+   "safe": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "ppi_pt": 163.0,
+   "mode": "overlay",
+   "D": 54.95,
+   "D_life": 68.18,
+   "pct_life": 81,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 8.56,
+   "clusters": {
+    "leftAnchor": [
+     140.7,
+     276.1
+    ],
+    "rightAnchor": [
+     526.3,
+     276.1
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 3.508
+   },
+   "video": [
+    0.2,
+    0.0,
+    666.7,
+    375
+   ],
+   "video_mm": [
+    103.9,
+    58.4
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.0,
+     "y": 132.1,
+     "d": 107.7
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.0,
+     "y": 132.1,
+     "d": 61.5
+    },
+    "L": {
+     "kind": "pill",
+     "x": 50.9,
+     "y": 43.2,
+     "w": 63.3,
+     "h": 48.0,
+     "r": 12.9
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.0,
+     "y": 43.2,
+     "w": 63.3,
+     "h": 48.0,
+     "r": 12.9
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 579.0,
+     "y": 132.1,
+     "d": 107.7
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 579.0,
+     "y": 132.1,
+     "d": 61.5
+    },
+    "R": {
+     "kind": "pill",
+     "x": 616.1,
+     "y": 43.2,
+     "w": 63.3,
+     "h": 48.0,
+     "r": 12.9
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 542.0,
+     "y": 43.2,
+     "w": 63.3,
+     "h": 48.0,
+     "r": 12.9
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 140.7,
+     "y": 276.1,
+     "w": 125.3,
+     "h": 123.1,
+     "arm": 41.8
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 140.7,
+     "y": 276.1,
+     "d": 38.8
+    },
+    "X": {
+     "kind": "circle",
+     "x": 526.3,
+     "y": 223.9,
+     "d": 55.0
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 473.5,
+     "y": 276.1,
+     "d": 55.0
+    },
+    "A": {
+     "kind": "circle",
+     "x": 579.0,
+     "y": 276.1,
+     "d": 55.0
+    },
+    "B": {
+     "kind": "circle",
+     "x": 526.3,
+     "y": 328.3,
+     "d": 55.0
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 526.3,
+     "y": 276.1,
+     "d": 38.8
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 448.6,
+     "y": 198.4,
+     "d": 37.4
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 218.4,
+     "y": 198.4,
+     "d": 37.4
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 333.5,
+     "y": 327.2,
+     "d": 57.2
+    }
+   },
+   "notes": [
+    "D reduced to 81% of life-size to fit",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPhone 13 mini",
+   "container": [
+    780,
+    360
+   ],
+   "safe": [
+    50,
+    0,
+    680,
+    339
+   ],
+   "ppi_pt": 158.67,
+   "mode": "overlay",
+   "D": 49.68,
+   "D_life": 66.37,
+   "pct_life": 75,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 7.95,
+   "clusters": {
+    "leftAnchor": [
+     177.2,
+     249.6
+    ],
+    "rightAnchor": [
+     602.8,
+     249.6
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 5.059
+   },
+   "video": [
+    88.7,
+    0.0,
+    602.7,
+    339
+   ],
+   "video_mm": [
+    96.5,
+    54.3
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 129.5,
+     "y": 119.4,
+     "d": 97.4
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 129.5,
+     "y": 119.4,
+     "d": 55.6
+    },
+    "L": {
+     "kind": "pill",
+     "x": 96.0,
+     "y": 39.1,
+     "w": 57.2,
+     "h": 43.4,
+     "r": 11.7
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 163.0,
+     "y": 39.1,
+     "w": 57.2,
+     "h": 43.4,
+     "r": 11.7
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 650.5,
+     "y": 119.4,
+     "d": 97.4
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 650.5,
+     "y": 119.4,
+     "d": 55.6
+    },
+    "R": {
+     "kind": "pill",
+     "x": 684.0,
+     "y": 39.1,
+     "w": 57.2,
+     "h": 43.4,
+     "r": 11.7
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 617.0,
+     "y": 39.1,
+     "w": 57.2,
+     "h": 43.4,
+     "r": 11.7
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 177.2,
+     "y": 249.6,
+     "w": 113.3,
+     "h": 111.3,
+     "arm": 37.8
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 177.2,
+     "y": 249.6,
+     "d": 35.1
+    },
+    "X": {
+     "kind": "circle",
+     "x": 602.8,
+     "y": 202.4,
+     "d": 49.7
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 555.1,
+     "y": 249.6,
+     "d": 49.7
+    },
+    "A": {
+     "kind": "circle",
+     "x": 650.5,
+     "y": 249.6,
+     "d": 49.7
+    },
+    "B": {
+     "kind": "circle",
+     "x": 602.8,
+     "y": 296.8,
+     "d": 49.7
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 602.8,
+     "y": 249.6,
+     "d": 35.1
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 532.5,
+     "y": 179.3,
+     "d": 33.8
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 247.5,
+     "y": 179.3,
+     "d": 33.8
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 390.0,
+     "y": 295.8,
+     "d": 51.7
+    }
+   },
+   "notes": [
+    "D reduced to 75% of life-size to fit",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPhone 15 / 16",
+   "container": [
+    852,
+    393
+   ],
+   "safe": [
+    59,
+    0,
+    734,
+    372
+   ],
+   "ppi_pt": 153.33,
+   "mode": "overlay",
+   "D": 54.51,
+   "D_life": 64.14,
+   "pct_life": 85,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 9.03,
+   "clusters": {
+    "leftAnchor": [
+     198.6,
+     273.9
+    ],
+    "rightAnchor": [
+     653.4,
+     273.9
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 4.835
+   },
+   "video": [
+    95.3,
+    0.0,
+    661.3,
+    372
+   ],
+   "video_mm": [
+    109.6,
+    61.6
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 146.3,
+     "y": 131.1,
+     "d": 106.8
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 146.3,
+     "y": 131.1,
+     "d": 61.1
+    },
+    "L": {
+     "kind": "pill",
+     "x": 109.5,
+     "y": 42.9,
+     "w": 62.7,
+     "h": 47.6,
+     "r": 12.8
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 183.0,
+     "y": 42.9,
+     "w": 62.7,
+     "h": 47.6,
+     "r": 12.8
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 705.7,
+     "y": 131.1,
+     "d": 106.8
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 705.7,
+     "y": 131.1,
+     "d": 61.1
+    },
+    "R": {
+     "kind": "pill",
+     "x": 742.5,
+     "y": 42.9,
+     "w": 62.7,
+     "h": 47.6,
+     "r": 12.8
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 669.0,
+     "y": 42.9,
+     "w": 62.7,
+     "h": 47.6,
+     "r": 12.8
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 198.6,
+     "y": 273.9,
+     "w": 124.3,
+     "h": 122.1,
+     "arm": 41.4
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 198.6,
+     "y": 273.9,
+     "d": 38.5
+    },
+    "X": {
+     "kind": "circle",
+     "x": 653.4,
+     "y": 222.1,
+     "d": 54.5
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 601.1,
+     "y": 273.9,
+     "d": 54.5
+    },
+    "A": {
+     "kind": "circle",
+     "x": 705.7,
+     "y": 273.9,
+     "d": 54.5
+    },
+    "B": {
+     "kind": "circle",
+     "x": 653.4,
+     "y": 325.7,
+     "d": 54.5
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 653.4,
+     "y": 273.9,
+     "d": 38.5
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 576.3,
+     "y": 196.8,
+     "d": 37.1
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 275.7,
+     "y": 196.8,
+     "d": 37.1
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 426.0,
+     "y": 324.6,
+     "d": 56.7
+    }
+   },
+   "notes": [
+    "D reduced to 85% of life-size to fit",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPhone 16 Pro",
+   "container": [
+    874,
+    402
+   ],
+   "safe": [
+    62,
+    0,
+    750,
+    381
+   ],
+   "ppi_pt": 153.33,
+   "mode": "overlay",
+   "D": 55.83,
+   "D_life": 64.14,
+   "pct_life": 87,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 9.25,
+   "clusters": {
+    "leftAnchor": [
+     205.0,
+     280.5
+    ],
+    "rightAnchor": [
+     669.0,
+     280.5
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 4.804
+   },
+   "video": [
+    98.3,
+    0.0,
+    677.3,
+    381
+   ],
+   "video_mm": [
+    112.2,
+    63.1
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 151.4,
+     "y": 134.2,
+     "d": 109.4
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 151.4,
+     "y": 134.2,
+     "d": 62.5
+    },
+    "L": {
+     "kind": "pill",
+     "x": 113.7,
+     "y": 43.9,
+     "w": 64.3,
+     "h": 48.8,
+     "r": 13.1
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 189.0,
+     "y": 43.9,
+     "w": 64.3,
+     "h": 48.8,
+     "r": 13.1
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 722.6,
+     "y": 134.2,
+     "d": 109.4
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 722.6,
+     "y": 134.2,
+     "d": 62.5
+    },
+    "R": {
+     "kind": "pill",
+     "x": 760.3,
+     "y": 43.9,
+     "w": 64.3,
+     "h": 48.8,
+     "r": 13.1
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 685.0,
+     "y": 43.9,
+     "w": 64.3,
+     "h": 48.8,
+     "r": 13.1
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 205.0,
+     "y": 280.5,
+     "w": 127.3,
+     "h": 125.1,
+     "arm": 42.4
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 205.0,
+     "y": 280.5,
+     "d": 39.4
+    },
+    "X": {
+     "kind": "circle",
+     "x": 669.0,
+     "y": 227.5,
+     "d": 55.8
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 615.4,
+     "y": 280.5,
+     "d": 55.8
+    },
+    "A": {
+     "kind": "circle",
+     "x": 722.6,
+     "y": 280.5,
+     "d": 55.8
+    },
+    "B": {
+     "kind": "circle",
+     "x": 669.0,
+     "y": 333.5,
+     "d": 55.8
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 669.0,
+     "y": 280.5,
+     "d": 39.4
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 590.1,
+     "y": 201.6,
+     "d": 38.0
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 283.9,
+     "y": 201.6,
+     "d": 38.0
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 437.0,
+     "y": 332.4,
+     "d": 58.1
+    }
+   },
+   "notes": [
+    "D reduced to 87% of life-size to fit",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPhone 16 Pro Max",
+   "container": [
+    956,
+    440
+   ],
+   "safe": [
+    62,
+    0,
+    832,
+    419
+   ],
+   "ppi_pt": 153.33,
+   "mode": "overlay",
+   "D": 61.4,
+   "D_life": 64.14,
+   "pct_life": 96,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 10.17,
+   "clusters": {
+    "leftAnchor": [
+     219.2,
+     308.5
+    ],
+    "rightAnchor": [
+     736.8,
+     308.5
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 4.921
+   },
+   "video": [
+    105.6,
+    0.0,
+    744.9,
+    419
+   ],
+   "video_mm": [
+    123.4,
+    69.4
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 160.3,
+     "y": 147.6,
+     "d": 120.3
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 160.3,
+     "y": 147.6,
+     "d": 68.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 118.8,
+     "y": 48.3,
+     "w": 70.7,
+     "h": 53.7,
+     "r": 14.4
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 201.7,
+     "y": 48.3,
+     "w": 70.7,
+     "h": 53.7,
+     "r": 14.4
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 795.7,
+     "y": 147.6,
+     "d": 120.3
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 795.7,
+     "y": 147.6,
+     "d": 68.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 837.2,
+     "y": 48.3,
+     "w": 70.7,
+     "h": 53.7,
+     "r": 14.4
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 754.3,
+     "y": 48.3,
+     "w": 70.7,
+     "h": 53.7,
+     "r": 14.4
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 219.2,
+     "y": 308.5,
+     "w": 140.0,
+     "h": 137.5,
+     "arm": 46.7
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 219.2,
+     "y": 308.5,
+     "d": 43.4
+    },
+    "X": {
+     "kind": "circle",
+     "x": 736.8,
+     "y": 250.1,
+     "d": 61.4
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 677.8,
+     "y": 308.5,
+     "d": 61.4
+    },
+    "A": {
+     "kind": "circle",
+     "x": 795.7,
+     "y": 308.5,
+     "d": 61.4
+    },
+    "B": {
+     "kind": "circle",
+     "x": 736.8,
+     "y": 366.8,
+     "d": 61.4
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 736.8,
+     "y": 308.5,
+     "d": 43.4
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 650.0,
+     "y": 221.7,
+     "d": 41.8
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 306.0,
+     "y": 221.7,
+     "d": 41.8
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 478.0,
+     "y": 365.6,
+     "d": 63.9
+    }
+   },
+   "notes": [
+    "D reduced to 96% of life-size to fit",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad mini (A17 Pro)",
+   "container": [
+    1133,
+    744
+   ],
+   "safe": [
+    0,
+    0,
+    1133,
+    724
+   ],
+   "ppi_pt": 163.0,
+   "mode": "overlay",
+   "D": 68.18,
+   "D_life": 68.18,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     174.6,
+     427.4
+    ],
+    "rightAnchor": [
+     958.4,
+     427.4
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 8.896
+   },
+   "video": [
+    0.0,
+    43.3,
+    1133.0,
+    637.3
+   ],
+   "video_mm": [
+    176.6,
+    99.3
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 109.1,
+     "y": 248.8,
+     "d": 133.6
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 109.1,
+     "y": 248.8,
+     "d": 76.4
+    },
+    "L": {
+     "kind": "pill",
+     "x": 63.1,
+     "y": 138.5,
+     "w": 78.5,
+     "h": 59.6,
+     "r": 16.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 155.2,
+     "y": 138.5,
+     "w": 78.5,
+     "h": 59.6,
+     "r": 16.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1023.9,
+     "y": 248.8,
+     "d": 133.6
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1023.9,
+     "y": 248.8,
+     "d": 76.4
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1069.9,
+     "y": 138.5,
+     "w": 78.5,
+     "h": 59.6,
+     "r": 16.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 977.8,
+     "y": 138.5,
+     "w": 78.5,
+     "h": 59.6,
+     "r": 16.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 174.6,
+     "y": 427.4,
+     "w": 155.5,
+     "h": 152.7,
+     "arm": 51.8
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 174.6,
+     "y": 427.4,
+     "d": 48.1
+    },
+    "X": {
+     "kind": "circle",
+     "x": 958.4,
+     "y": 362.6,
+     "d": 68.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 893.0,
+     "y": 427.4,
+     "d": 68.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1023.9,
+     "y": 427.4,
+     "d": 68.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 958.4,
+     "y": 492.2,
+     "d": 68.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 958.4,
+     "y": 427.4,
+     "d": 48.1
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 884.8,
+     "y": 592.4,
+     "d": 46.4
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 884.8,
+     "y": 677.0,
+     "d": 46.4
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 566.5,
+     "y": 664.7,
+     "d": 70.9
+    }
+   },
+   "notes": [
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad (A16) / Air 11\"",
+   "container": [
+    1180,
+    820
+   ],
+   "safe": [
+    0,
+    0,
+    1180,
+    800
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     365.8
+    ],
+    "rightAnchor": [
+     1038.6,
+     365.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 13.649
+   },
+   "video": [
+    223.7,
+    198.9,
+    715.0,
+    402.2
+   ],
+   "video_mm": [
+    137.6,
+    77.4
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 221.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 221.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 131.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 131.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1091.6,
+     "y": 221.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1091.6,
+     "y": 221.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1128.9,
+     "y": 131.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1054.4,
+     "y": 131.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 365.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 365.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1038.6,
+     "y": 313.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 985.6,
+     "y": 365.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1091.6,
+     "y": 365.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1038.6,
+     "y": 418.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1038.6,
+     "y": 365.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 979.0,
+     "y": 499.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 979.0,
+     "y": 567.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 581.2,
+     "y": 678.3,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 861.7,
+     "y": 678.3,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 928.0,
+     "y": 678.3,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 11\" (M4)",
+   "container": [
+    1210,
+    834
+   ],
+   "safe": [
+    0,
+    0,
+    1210,
+    814
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     372.8
+    ],
+    "rightAnchor": [
+     1068.6,
+     372.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 14.193
+   },
+   "video": [
+    223.7,
+    197.5,
+    745.0,
+    419.1
+   ],
+   "video_mm": [
+    143.4,
+    80.6
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 228.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 228.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1121.6,
+     "y": 228.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1121.6,
+     "y": 228.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1158.9,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1084.4,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 372.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 372.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1068.6,
+     "y": 320.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 1015.6,
+     "y": 372.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1121.6,
+     "y": 372.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1068.6,
+     "y": 425.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1068.6,
+     "y": 372.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 1009.0,
+     "y": 506.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 1009.0,
+     "y": 574.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 596.2,
+     "y": 685.3,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 876.7,
+     "y": 685.3,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 943.0,
+     "y": 685.3,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 11\" (2020, A12Z)",
+   "container": [
+    1194,
+    834
+   ],
+   "safe": [
+    0,
+    0,
+    1194,
+    814
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     372.8
+    ],
+    "rightAnchor": [
+     1052.6,
+     372.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 13.903
+   },
+   "video": [
+    223.7,
+    202.0,
+    729.0,
+    410.1
+   ],
+   "video_mm": [
+    140.3,
+    78.9
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 228.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 228.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1105.6,
+     "y": 228.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1105.6,
+     "y": 228.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1142.9,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1068.4,
+     "y": 138.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 372.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 372.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1052.6,
+     "y": 320.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 999.6,
+     "y": 372.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1105.6,
+     "y": 372.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1052.6,
+     "y": 425.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1052.6,
+     "y": 372.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 993.0,
+     "y": 506.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 993.0,
+     "y": 574.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 588.2,
+     "y": 685.3,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 868.7,
+     "y": 685.3,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 935.0,
+     "y": 685.3,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 12.9\" (2020, A12Z)",
+   "container": [
+    1366,
+    1024
+   ],
+   "safe": [
+    0,
+    0,
+    1366,
+    1004
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     467.8
+    ],
+    "rightAnchor": [
+     1224.6,
+     467.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 17.018
+   },
+   "video": [
+    223.7,
+    248.6,
+    901.0,
+    506.8
+   ],
+   "video_mm": [
+    173.4,
+    97.5
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 323.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 323.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 323.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 323.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1314.9,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1240.4,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 467.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 467.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 415.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 1171.6,
+     "y": 467.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 467.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 520.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 467.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 1165.0,
+     "y": 601.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 1165.0,
+     "y": 669.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 674.2,
+     "y": 803.4,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 954.7,
+     "y": 803.4,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 1021.0,
+     "y": 803.4,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 12.9\" (2020) portrait",
+   "container": [
+    1024,
+    1366
+   ],
+   "safe": [
+    0,
+    24,
+    1024,
+    1322
+   ],
+   "ppi_pt": 132.0,
+   "mode": "stacked",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     1105.8
+    ],
+    "rightAnchor": [
+     882.6,
+     1105.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 10.824
+   },
+   "video": [
+    0.0,
+    24,
+    1024,
+    576.0
+   ],
+   "video_mm": [
+    197.0,
+    110.8
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 961.2,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 961.2,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 871.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 871.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 935.6,
+     "y": 961.2,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 935.6,
+     "y": 961.2,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 972.9,
+     "y": 871.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 898.4,
+     "y": 871.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 1105.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 1105.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 882.6,
+     "y": 1053.4,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 829.6,
+     "y": 1105.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 935.6,
+     "y": 1105.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 882.6,
+     "y": 1158.3,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 882.6,
+     "y": 1105.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 823.0,
+     "y": 1239.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 823.0,
+     "y": 1307.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 503.2,
+     "y": 1298.0,
+     "d": 57.4
+    }
+   },
+   "notes": [
+    "portrait: picture along the top, both clusters on the bottom corners",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad Air 13\"",
+   "container": [
+    1366,
+    1024
+   ],
+   "safe": [
+    0,
+    0,
+    1366,
+    1004
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     467.8
+    ],
+    "rightAnchor": [
+     1224.6,
+     467.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 17.018
+   },
+   "video": [
+    223.7,
+    248.6,
+    901.0,
+    506.8
+   ],
+   "video_mm": [
+    173.4,
+    97.5
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 323.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 323.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 323.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 323.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1314.9,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1240.4,
+     "y": 233.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 467.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 467.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 415.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 1171.6,
+     "y": 467.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1277.6,
+     "y": 467.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 520.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1224.6,
+     "y": 467.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 1165.0,
+     "y": 601.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 1165.0,
+     "y": 669.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 674.2,
+     "y": 803.4,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 954.7,
+     "y": 803.4,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 1021.0,
+     "y": 803.4,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 13\" (M4)",
+   "container": [
+    1376,
+    1032
+   ],
+   "safe": [
+    0,
+    0,
+    1376,
+    1012
+   ],
+   "ppi_pt": 132.0,
+   "mode": "framed",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     471.8
+    ],
+    "rightAnchor": [
+     1234.6,
+     471.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 17.199
+   },
+   "video": [
+    223.7,
+    249.8,
+    911.0,
+    512.4
+   ],
+   "video_mm": [
+    175.3,
+    98.6
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 327.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 327.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 327.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 327.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1324.9,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1250.4,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 471.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 471.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 419.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 1181.6,
+     "y": 471.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 471.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 524.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 471.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 1175.0,
+     "y": 605.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 1175.0,
+     "y": 673.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 679.2,
+     "y": 810.3,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 959.7,
+     "y": 810.3,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 1026.0,
+     "y": 810.3,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  },
+  {
+   "device": "iPad Pro 11\" Split View 1/2",
+   "container": [
+    583,
+    834
+   ],
+   "safe": [
+    0,
+    0,
+    583,
+    814
+   ],
+   "ppi_pt": 132.0,
+   "mode": "stacked",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "elbow",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     714.6
+    ],
+    "rightAnchor": [
+     441.6,
+     714.6
+    ],
+    "widthUnits": 7.929,
+    "gapUnits": 1.929
+   },
+   "video": [
+    0.0,
+    0,
+    583,
+    327.9
+   ],
+   "video_mm": [
+    112.2,
+    63.1
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 570.0,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 570.0,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 480.7,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 480.7,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 494.6,
+     "y": 570.0,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 494.6,
+     "y": 570.0,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 531.9,
+     "y": 480.7,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 457.4,
+     "y": 480.7,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 714.6,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 714.6,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 441.6,
+     "y": 662.2,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 388.6,
+     "y": 714.6,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 494.6,
+     "y": 714.6,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 441.6,
+     "y": 767.1,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 441.6,
+     "y": 714.6,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 363.5,
+     "y": 636.5,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 219.5,
+     "y": 636.5,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 291.5,
+     "y": 766.0,
+     "d": 57.4
+    }
+   },
+   "notes": [
+    "portrait: picture along the top, both clusters on the bottom corners",
+    "+/- relocated to the elbow: no room for their real place below A/B/X/Y",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad Pro 11\" Slide Over",
+   "container": [
+    375,
+    834
+   ],
+   "safe": [
+    0,
+    0,
+    375,
+    814
+   ],
+   "ppi_pt": 132.0,
+   "mode": "stacked",
+   "D": 45.07,
+   "D_life": 55.22,
+   "pct_life": 82,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 8.67,
+   "clusters": {
+    "leftAnchor": [
+     115.4,
+     618.0
+    ],
+    "rightAnchor": [
+     259.6,
+     618.0
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 0.6
+   },
+   "video": [
+    0.0,
+    0,
+    375,
+    210.9
+   ],
+   "video_mm": [
+    72.2,
+    40.6
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 72.1,
+     "y": 499.9,
+     "d": 88.3
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 72.1,
+     "y": 499.9,
+     "d": 50.5
+    },
+    "L": {
+     "kind": "pill",
+     "x": 41.7,
+     "y": 427.0,
+     "w": 51.9,
+     "h": 39.4,
+     "r": 10.6
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 102.5,
+     "y": 427.0,
+     "w": 51.9,
+     "h": 39.4,
+     "r": 10.6
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 302.9,
+     "y": 499.9,
+     "d": 88.3
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 302.9,
+     "y": 499.9,
+     "d": 50.5
+    },
+    "R": {
+     "kind": "pill",
+     "x": 333.3,
+     "y": 427.0,
+     "w": 51.9,
+     "h": 39.4,
+     "r": 10.6
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 272.5,
+     "y": 427.0,
+     "w": 51.9,
+     "h": 39.4,
+     "r": 10.6
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 115.4,
+     "y": 618.0,
+     "w": 102.8,
+     "h": 100.9,
+     "arm": 34.3
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 115.4,
+     "y": 618.0,
+     "d": 31.8
+    },
+    "X": {
+     "kind": "circle",
+     "x": 259.6,
+     "y": 575.2,
+     "d": 45.1
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 216.3,
+     "y": 618.0,
+     "d": 45.1
+    },
+    "A": {
+     "kind": "circle",
+     "x": 302.9,
+     "y": 618.0,
+     "d": 45.1
+    },
+    "B": {
+     "kind": "circle",
+     "x": 259.6,
+     "y": 660.8,
+     "d": 45.1
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 259.6,
+     "y": 618.0,
+     "d": 31.8
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 210.9,
+     "y": 727.0,
+     "d": 30.6
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 210.9,
+     "y": 782.9,
+     "d": 30.6
+    }
+   },
+   "notes": [
+    "D reduced to 82% of life-size to fit",
+    "portrait: picture along the top, both clusters on the bottom corners",
+    "HOME joins TV/POWER in the pause menu: nothing on the pad clears",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad Pro 13\" portrait",
+   "container": [
+    1032,
+    1376
+   ],
+   "safe": [
+    0,
+    24,
+    1032,
+    1332
+   ],
+   "ppi_pt": 132.0,
+   "mode": "stacked",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     1115.8
+    ],
+    "rightAnchor": [
+     890.6,
+     1115.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 10.969
+   },
+   "video": [
+    0.0,
+    24,
+    1032,
+    580.5
+   ],
+   "video_mm": [
+    198.6,
+    111.7
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 971.2,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 971.2,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 881.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 881.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 943.6,
+     "y": 971.2,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 943.6,
+     "y": 971.2,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 980.9,
+     "y": 881.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 906.4,
+     "y": 881.9,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 1115.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 1115.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 890.6,
+     "y": 1063.4,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 837.6,
+     "y": 1115.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 943.6,
+     "y": 1115.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 890.6,
+     "y": 1168.3,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 890.6,
+     "y": 1115.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 831.0,
+     "y": 1249.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 831.0,
+     "y": 1317.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 507.2,
+     "y": 1308.0,
+     "d": 57.4
+    }
+   },
+   "notes": [
+    "portrait: picture along the top, both clusters on the bottom corners",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPhone 16 Pro Max portrait",
+   "container": [
+    440,
+    956
+   ],
+   "safe": [
+    0,
+    62,
+    440,
+    860
+   ],
+   "ppi_pt": 153.33,
+   "mode": "stacked",
+   "D": 52.88,
+   "D_life": 64.14,
+   "pct_life": 82,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 8.76,
+   "clusters": {
+    "leftAnchor": [
+     135.4,
+     692.0
+    ],
+    "rightAnchor": [
+     304.6,
+     692.0
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 0.6
+   },
+   "video": [
+    0.0,
+    62,
+    440,
+    247.5
+   ],
+   "video_mm": [
+    72.9,
+    41.0
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 84.6,
+     "y": 553.5,
+     "d": 103.6
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 84.6,
+     "y": 553.5,
+     "d": 59.2
+    },
+    "L": {
+     "kind": "pill",
+     "x": 48.9,
+     "y": 468.0,
+     "w": 60.9,
+     "h": 46.2,
+     "r": 12.4
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 120.3,
+     "y": 468.0,
+     "w": 60.9,
+     "h": 46.2,
+     "r": 12.4
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 355.4,
+     "y": 553.5,
+     "d": 103.6
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 355.4,
+     "y": 553.5,
+     "d": 59.2
+    },
+    "R": {
+     "kind": "pill",
+     "x": 391.1,
+     "y": 468.0,
+     "w": 60.9,
+     "h": 46.2,
+     "r": 12.4
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 319.7,
+     "y": 468.0,
+     "w": 60.9,
+     "h": 46.2,
+     "r": 12.4
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 135.4,
+     "y": 692.0,
+     "w": 120.6,
+     "h": 118.4,
+     "arm": 40.2
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 135.4,
+     "y": 692.0,
+     "d": 37.3
+    },
+    "X": {
+     "kind": "circle",
+     "x": 304.6,
+     "y": 641.8,
+     "d": 52.9
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 253.8,
+     "y": 692.0,
+     "d": 52.9
+    },
+    "A": {
+     "kind": "circle",
+     "x": 355.4,
+     "y": 692.0,
+     "d": 52.9
+    },
+    "B": {
+     "kind": "circle",
+     "x": 304.6,
+     "y": 742.2,
+     "d": 52.9
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 304.6,
+     "y": 692.0,
+     "d": 37.3
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 247.5,
+     "y": 819.9,
+     "d": 36.0
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 247.5,
+     "y": 885.5,
+     "d": 36.0
+    }
+   },
+   "notes": [
+    "D reduced to 82% of life-size to fit",
+    "portrait: picture along the top, both clusters on the bottom corners",
+    "HOME joins TV/POWER in the pause menu: nothing on the pad clears",
+    "TV/POWER live in the pause menu at this size, not on the pad"
+   ]
+  },
+  {
+   "device": "iPad Pro 13\" + external display",
+   "container": [
+    1376,
+    1032
+   ],
+   "safe": [
+    0,
+    0,
+    1376,
+    1012
+   ],
+   "ppi_pt": 132.0,
+   "mode": "shell",
+   "D": 55.22,
+   "D_life": 55.22,
+   "pct_life": 100,
+   "theta_deg": 69.9,
+   "system_placement": "hardware",
+   "mm_per_button": 10.62,
+   "clusters": {
+    "leftAnchor": [
+     141.4,
+     471.8
+    ],
+    "rightAnchor": [
+     1234.6,
+     471.8
+    ],
+    "widthUnits": 7.021,
+    "gapUnits": 17.199
+   },
+   "video": [
+    223.7,
+    249.8,
+    911.0,
+    512.4
+   ],
+   "video_mm": [
+    175.3,
+    98.6
+   ],
+   "controls": {
+    "stickL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 327.1,
+     "d": 108.2
+    },
+    "knobL": {
+     "kind": "circle",
+     "x": 88.4,
+     "y": 327.1,
+     "d": 61.8
+    },
+    "L": {
+     "kind": "pill",
+     "x": 51.1,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZL": {
+     "kind": "pill",
+     "x": 125.6,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "stickR": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 327.1,
+     "d": 108.2
+    },
+    "knobR": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 327.1,
+     "d": 61.8
+    },
+    "R": {
+     "kind": "pill",
+     "x": 1324.9,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "ZR": {
+     "kind": "pill",
+     "x": 1250.4,
+     "y": 237.8,
+     "w": 63.6,
+     "h": 48.3,
+     "r": 13.0
+    },
+    "dpad": {
+     "kind": "cross",
+     "x": 141.4,
+     "y": 471.8,
+     "w": 125.9,
+     "h": 123.7,
+     "arm": 42.0
+    },
+    "L3": {
+     "kind": "circle",
+     "x": 141.4,
+     "y": 471.8,
+     "d": 39.0
+    },
+    "X": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 419.3,
+     "d": 55.2
+    },
+    "Y": {
+     "kind": "circle",
+     "x": 1181.6,
+     "y": 471.8,
+     "d": 55.2
+    },
+    "A": {
+     "kind": "circle",
+     "x": 1287.6,
+     "y": 471.8,
+     "d": 55.2
+    },
+    "B": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 524.2,
+     "d": 55.2
+    },
+    "R3": {
+     "kind": "circle",
+     "x": 1234.6,
+     "y": 471.8,
+     "d": 39.0
+    },
+    "plus": {
+     "kind": "circle",
+     "x": 1175.0,
+     "y": 605.4,
+     "d": 37.5
+    },
+    "minus": {
+     "kind": "circle",
+     "x": 1175.0,
+     "y": 673.9,
+     "d": 37.5
+    },
+    "HOME": {
+     "kind": "circle",
+     "x": 679.2,
+     "y": 810.3,
+     "d": 57.4
+    },
+    "TV": {
+     "kind": "circle",
+     "x": 959.7,
+     "y": 810.3,
+     "d": 35.3
+    },
+    "POWER": {
+     "kind": "circle",
+     "x": 1026.0,
+     "y": 810.3,
+     "d": 35.3
+    }
+   },
+   "notes": []
+  }
+ ]
+}
