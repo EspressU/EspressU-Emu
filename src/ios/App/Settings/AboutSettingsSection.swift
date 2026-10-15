@@ -27,7 +27,7 @@ struct AboutSettingsSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
 
-            Text("EspressU is built on Cemu and based on MuffinEMU by Void.")
+            Text("EspressU is built on Cemu and based on [MuffinEMU](https://github.com/MuffinEMU/Muffin-EMU) by Void.")
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)
 
