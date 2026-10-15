@@ -208,7 +208,7 @@ final class StikJITCoordinator: ObservableObject {
         let pairing: Data
         switch StikJITSetup.preflight() {
         case .failure(var problem):
-            cemu_bridge_log_checkpoint("StikJIT: preflight failed: \(problem.title)")
+            cemu_bridge_log_checkpoint("StikJIT: preflight failed: \(problem.title). \(problem.message)")
             if quiet { quiet = false; return }
             problem.offersInterpreter = true
             failure = problem
