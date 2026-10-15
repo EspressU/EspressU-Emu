@@ -6,6 +6,7 @@
 
 <p align="center">
   A Wii U emulator for iPad and iPhone, built on <a href="https://github.com/cemu-project/Cemu">Cemu</a>.
+  Based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.
 </p>
 
 <p align="center">
