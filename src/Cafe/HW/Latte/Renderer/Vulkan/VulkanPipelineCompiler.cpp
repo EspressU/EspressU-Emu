@@ -1,4 +1,7 @@
 #include "Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.h"
+#if BOOST_OS_IOS
+#include <sys/sysctl.h>
+#endif
 #include "Cafe/HW/Latte/Core/FetchShader.h"
 #include "Cafe/HW/Latte/Renderer/Vulkan/VulkanPipelineCompiler.h"
 #include "Cafe/HW/Latte/Renderer/Vulkan/VulkanPipelineStableCache.h"
@@ -1092,6 +1095,21 @@ void PipelineCompiler::CompileThreadPool_Start()
 		numCompileThreads = 2 + (cpuCoreCount - 3);
 
 	numCompileThreads = std::min(numCompileThreads, 8u);
+#if BOOST_OS_IOS
+	// Each pipeline being compiled holds its SPIR-V, the MSL MoltenVK makes from it and the Metal
+	// compiler's reply in this process. On iOS the app is ended at a fixed footprint, and a scene that
+	// queues many pipelines at once (Mario Kart 8: 160 at a race start on 7 threads, +250 MB in
+	// 10 s, then the app was ended) costs far more on 7 threads than on 2 or 3. The limit follows the
+	// device's RAM so every iPhone and iPad gets a size that fits it.
+	{
+		uint64_t memBytes = 0;
+		size_t len = sizeof(memBytes);
+		sysctlbyname("hw.memsize", &memBytes, &len, nullptr, 0);
+		const uint32 cap = memBytes > (7ull << 30) ? 3u : 2u;
+		numCompileThreads = std::min(numCompileThreads, cap);
+		cemuLog_log(LogType::Force, "Vulkan: {} pipeline compile threads ({} MB RAM)", numCompileThreads, memBytes >> 20);
+	}
+#endif
 
 	for (uint32_t i = 0; i < numCompileThreads; i++)
 	{

@@ -165,11 +165,11 @@ static char* _getRegisterVarName(LatteDecompilerShaderContext* shaderContext, ui
 				debugBreakpoint();
 			if (type == LATTE_DECOMPILER_DTYPE_SIGNED_INT)
 			{
-				sprintf(tempStr, "Ri[%d+%s]", index, destRelOffset);
+				sprintf(tempStr, "Ri[clamp(%d+%s, 0, 127)]", index, destRelOffset);
 			}
 			else if (type == LATTE_DECOMPILER_DTYPE_FLOAT)
 			{
-				sprintf(tempStr, "Rf[%d+%s]", index, destRelOffset);
+				sprintf(tempStr, "Rf[clamp(%d+%s, 0, 127)]", index, destRelOffset);
 			}
 		}
 		else
@@ -578,7 +578,10 @@ void _emitPVPSAccessCode(LatteDecompilerShaderContext* shaderContext, LatteDecom
 	shaderContext->aluPVPSState->EmitPVPSAccess(shaderContext, aluUnitIndex, aluInstruction->instructionGroupIndex);
 }
 
-void _emitUniformAccessIndexCode(LatteDecompilerShaderContext* shaderContext, LatteDecompilerALUInstruction* aluInstruction, sint32 operandIndex)
+// Relative indexes are clamped to the declared array size. Robust buffer access makes an out-of-range read return zero
+// on desktop Vulkan and OpenGL, but MoltenVK does not honour it for these reads, and on Apple GPUs a read outside the
+// bound buffer is a GPU page fault. AR is clamped to [-256,255] by MOVA, so base+AR can still leave the array.
+void _emitUniformAccessIndexCode(LatteDecompilerShaderContext* shaderContext, LatteDecompilerALUInstruction* aluInstruction, sint32 operandIndex, sint32 arraySize)
 {
 	StringBuf* src = shaderContext->shaderSource;
 	bool isUniformRegister = GPU7_ALU_SRC_IS_CFILE(aluInstruction->sourceOperand[operandIndex].sel);
@@ -601,13 +604,13 @@ void _emitUniformAccessIndexCode(LatteDecompilerShaderContext* shaderContext, La
 	if( aluInstruction->sourceOperand[operandIndex].rel != 0 )
 	{
 		if (aluInstruction->indexMode == GPU7_INDEX_AR_X)
-			src->addFmt("ARi.x+{}", uniformOffset);
+			src->addFmt("clamp(ARi.x+{}, 0, {})", uniformOffset, std::max<sint32>(arraySize, 1) - 1);
 		else if (aluInstruction->indexMode == GPU7_INDEX_AR_Y)
-			src->addFmt("ARi.y+{}", uniformOffset);
+			src->addFmt("clamp(ARi.y+{}, 0, {})", uniformOffset, std::max<sint32>(arraySize, 1) - 1);
 		else if (aluInstruction->indexMode == GPU7_INDEX_AR_Z)
-			src->addFmt("ARi.z+{}", uniformOffset);
+			src->addFmt("clamp(ARi.z+{}, 0, {})", uniformOffset, std::max<sint32>(arraySize, 1) - 1);
 		else if (aluInstruction->indexMode == GPU7_INDEX_AR_W)
-			src->addFmt("ARi.w+{}", uniformOffset);
+			src->addFmt("clamp(ARi.w+{}, 0, {})", uniformOffset, std::max<sint32>(arraySize, 1) - 1);
 		else
 			cemu_assert_unimplemented();
 	}
@@ -690,7 +693,8 @@ void _emitUniformAccessCode(LatteDecompilerShaderContext* shaderContext, LatteDe
 			src->add("uf_uniformRegisterGS[");
 		else
 			debugBreakpoint();
-		_emitUniformAccessIndexCode(shaderContext, aluInstruction, operandIndex);
+		_emitUniformAccessIndexCode(shaderContext, aluInstruction, operandIndex,
+			shaderContext->analyzer.uniformRegisterAccessTracker.DetermineSize(shaderContext->shaderBaseHash, 256));
 		src->add("]");
 
 		_appendChannelAccess(src, aluInstruction->sourceOperand[operandIndex].chan);
@@ -712,7 +716,8 @@ void _emitUniformAccessCode(LatteDecompilerShaderContext* shaderContext, LatteDe
 		}
 		_emitTypeConversionPrefix(shaderContext, LATTE_DECOMPILER_DTYPE_FLOAT, requiredType);
 		src->addFmt("{}{}[", _getShaderUniformBlockVariableName(shaderContext->shader->shaderType), uniformBufferIndex);
-		_emitUniformAccessIndexCode(shaderContext, aluInstruction, operandIndex);
+		_emitUniformAccessIndexCode(shaderContext, aluInstruction, operandIndex,
+			shaderContext->analyzer.uniformBufferAccessTracker[uniformBufferIndex].DetermineSize(shaderContext->shaderBaseHash, LATTE_GLSL_DYNAMIC_UNIFORM_BLOCK_SIZE));
 		src->addFmt("]");
 
 		_appendChannelAccess(src, aluInstruction->sourceOperand[operandIndex].chan);
@@ -2752,13 +2757,18 @@ void _emitTEXVFetchCode(LatteDecompilerShaderContext* shaderContext, LatteDecomp
 	else
 		src->add("(");
 
-	src->addFmt("{}{}[", _getShaderUniformBlockVariableName(shaderContext->shader->shaderType), texInstruction->textureFetch.textureIndex - 0x80);
+	// The index is whatever the register holds (with a float register file, its bit pattern), so a stray value reads far
+	// past the buffer: a GPU page fault under MoltenVK. The console bounds buffer fetches by the buffer's size.
+	const sint32 ubuffIndex = texInstruction->textureFetch.textureIndex - 0x80;
+	const sint32 ubuffSize = (ubuffIndex >= 0 && ubuffIndex < LATTE_NUM_MAX_UNIFORM_BUFFERS) ?
+		shaderContext->analyzer.uniformBufferAccessTracker[ubuffIndex].DetermineSize(shaderContext->shaderBaseHash, LATTE_GLSL_DYNAMIC_UNIFORM_BLOCK_SIZE) : 1;
+	src->addFmt("{}{}[min(uint(", _getShaderUniformBlockVariableName(shaderContext->shader->shaderType), ubuffIndex);
 
 	if( shaderContext->typeTracker.defaultDataType == LATTE_DECOMPILER_DTYPE_SIGNED_INT )
 		src->addFmt("{}.{}", _getRegisterVarName(shaderContext, texInstruction->srcGpr), resultElemTable[texInstruction->textureFetch.srcSel[0]]);
 	else
 		src->addFmt("floatBitsToInt({}.{})", _getRegisterVarName(shaderContext, texInstruction->srcGpr), resultElemTable[texInstruction->textureFetch.srcSel[0]]);
-	src->add("].");
+	src->addFmt("), {}u)].", (uint32)(std::max<sint32>(ubuffSize, 1) - 1));
 
 	for(sint32 f=0; f<4; f++)
 	{
