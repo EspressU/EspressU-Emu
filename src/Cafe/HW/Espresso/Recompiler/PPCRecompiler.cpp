@@ -1222,6 +1222,15 @@ static bool PPCRecompiler_readDualMapEnvVar()
     return PPCRecompiler_shouldUseDualMapByDefault();
 }
 
+// Without a debugger attached, the TXM JIT handshake (brk #0xf00d) raises SIGTRAP and kills the app,
+// whatever the CPU mode is set to. Only the Auto mode used to check for this.
+static bool PPCRecompiler_jitNeedsDebugger()
+{
+    if (checkDebugged())
+        return false;
+    return ActiveSettings::GetCPUMode() == CPUMode::Auto || PPCRecompiler_readBoolEnvVar("HAS_TXM") == 1;
+}
+
 bool PPCRecompilerInitialized()
 {
     return ppcRecompilerInited;
@@ -1238,7 +1247,7 @@ size_t PPCRecompiler_getJitArenaUsed()
 }
 
 bool PPCRecompiler_Init26() {
-    if (!checkDebugged() && ActiveSettings::GetCPUMode() == CPUMode::Auto) {
+    if (PPCRecompiler_jitNeedsDebugger()) {
         cemuLog_log(LogType::Force, "Debugger not attached, JIT cannot continue.");
         ppcRecompilerEnabled = false;
         PPCCore_InitializePointer(ppcRecompilerEnabled);
@@ -1352,7 +1361,7 @@ void PPCRecompiler_init()
     }
 
 #if defined(__APPLE__) && BOOST_OS_IOS
-    if (!checkDebugged() && ActiveSettings::GetCPUMode() == CPUMode::Auto) {
+    if (PPCRecompiler_jitNeedsDebugger()) {
         cemuLog_log(LogType::Force, "Debugger not attached, JIT cannot continue.");
         ppcRecompilerEnabled = false;
         PPCCore_InitializePointer(ppcRecompilerEnabled);
