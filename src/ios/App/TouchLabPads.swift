@@ -12,7 +12,10 @@ import TouchLabUI
 
 enum TouchLabSettings {
     static let schemeKey = "espressu.pad.touchlabScheme"
-    static let defaultScheme = ""
+    /// Zone (always-on sticks and buttons) is what new players get. An empty value is the original pad, still
+    /// offered as "EspressU (classic)". Anyone who already picked a style keeps it, because `@AppStorage` only
+    /// falls back to this value when nothing is stored.
+    static let defaultScheme = "zone"
 
     static let floatCameraKey = "espressu.touchlab.float.camera"
     static let defaultFloatCamera = FloatPad.Camera.stick.rawValue
