@@ -1222,6 +1222,31 @@ static bool PPCRecompiler_readDualMapEnvVar()
     return PPCRecompiler_shouldUseDualMapByDefault();
 }
 
+#if defined(__APPLE__) && BOOST_OS_IOS
+extern "C" void cemu_bridge_log_checkpoint(const char* message);
+#endif
+
+// One line in the crash log saying what the JIT start-up saw, so a "JIT doesn't work" report says why.
+static void PPCRecompiler_logJitState(const char* outcome)
+{
+#if defined(__APPLE__) && BOOST_OS_IOS
+    char line[256];
+    snprintf(line, sizeof(line), "JIT state: debugger attached=%d, cpu mode=%d, DUAL_MAPPED_JIT=%d, HAS_TXM=%d, LiveContainer=%d -> %s",
+             checkDebugged() ? 1 : 0, (int)ActiveSettings::GetCPUMode(), PPCRecompiler_readBoolEnvVar("DUAL_MAPPED_JIT"),
+             PPCRecompiler_readBoolEnvVar("HAS_TXM"), std::getenv("LC_HOME_PATH") != nullptr ? 1 : 0, outcome);
+    cemu_bridge_log_checkpoint(line);
+#endif
+}
+
+// Without a debugger attached, the TXM JIT handshake (brk #0xf00d) raises SIGTRAP and kills the app,
+// whatever the CPU mode is set to. Only the Auto mode used to check for this.
+static bool PPCRecompiler_jitNeedsDebugger()
+{
+    if (checkDebugged())
+        return false;
+    return ActiveSettings::GetCPUMode() == CPUMode::Auto || PPCRecompiler_readBoolEnvVar("HAS_TXM") == 1;
+}
+
 bool PPCRecompilerInitialized()
 {
     return ppcRecompilerInited;
@@ -1238,7 +1263,8 @@ size_t PPCRecompiler_getJitArenaUsed()
 }
 
 bool PPCRecompiler_Init26() {
-    if (!checkDebugged() && ActiveSettings::GetCPUMode() == CPUMode::Auto) {
+    if (PPCRecompiler_jitNeedsDebugger()) {
+        PPCRecompiler_logJitState("no debugger, running the interpreter");
         cemuLog_log(LogType::Force, "Debugger not attached, JIT cannot continue.");
         ppcRecompilerEnabled = false;
         PPCCore_InitializePointer(ppcRecompilerEnabled);
@@ -1246,6 +1272,7 @@ bool PPCRecompiler_Init26() {
     }
 
     s_dualMapJITEnabled = PPCRecompiler_readDualMapEnvVar();
+    PPCRecompiler_logJitState(s_dualMapJITEnabled ? "starting the JIT" : "dual map off");
 
     if (!s_dualMapJITEnabled)
         return true;
@@ -1352,7 +1379,8 @@ void PPCRecompiler_init()
     }
 
 #if defined(__APPLE__) && BOOST_OS_IOS
-    if (!checkDebugged() && ActiveSettings::GetCPUMode() == CPUMode::Auto) {
+    if (PPCRecompiler_jitNeedsDebugger()) {
+        PPCRecompiler_logJitState("no debugger, running the interpreter");
         cemuLog_log(LogType::Force, "Debugger not attached, JIT cannot continue.");
         ppcRecompilerEnabled = false;
         PPCCore_InitializePointer(ppcRecompilerEnabled);
