@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EspressU - Wii U games on iPad and iPhone</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="description" content="EspressU is a free, open-source Wii U emulator for iPad and iPhone, built on Cemu. Bring your own legally dumped games.">
+<meta property="og:title" content="EspressU - Wii U games on iPad and iPhone"><meta property="og:description" content="EspressU is a free, open-source Wii U emulator for iPad and iPhone, built on Cemu. Bring your own legally dumped games."><meta property="og:image" content="assets/icon.png"><meta property="og:image:alt" content="The EspressU app icon: a white Wii U logo on a swirl of coffee crema">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('espressu-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html" aria-label="EspressU home"><img src="assets/icon.png" width="36" height="36" alt="">EspressU</a>
+    <nav class="main" id="nav" aria-label="Main"><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a></nav>
+    <div class="tools">
+      <a class="get" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark theme" title="Theme"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<div class="wrap">
+<main id="main">
+<div class="hero" id="top">
+  <div>
+    <div class="eyebrow">Wii U emulator for iOS and iPadOS</div>
+    <h1>Your Wii U library, <em>freshly brewed</em> on iPad and iPhone.</h1>
+    <p class="lead">EspressU is a free, open-source Wii U emulator built on Cemu. Metal renderer, built-in JIT, controller support, and an on-screen GamePad. Bring your own legally dumped games.</p>
+    <div class="cta"><a class="btn main" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download the IPA</a><a class="btn alt" href="setup.html">Set it up</a><a class="btn alt" href="https://discord.gg/HPRJGXTEt8">Join the Discord</a></div>
+    <div class="pills"><span class="pill">iOS / iPadOS 17.4+</span><span class="pill">Metal</span><span class="pill">JIT</span><span class="pill">MPL-2.0</span></div>
+  </div>
+  <div class="art"><img src="assets/icon.png" alt="EspressU app icon"></div>
+</div>
+<div class="quick" aria-label="Quick start">
+  <a href="setup.html#step-1"><span class="num">1</span><span><b>Get the app</b><span>Download and sideload</span></span></a>
+  <a href="setup.html#step-4"><span class="num">2</span><span><b>Turn on JIT</b><span>Pairing file and VPN</span></span></a>
+  <a href="setup.html#step-5"><span class="num">3</span><span><b>Add your games</b><span>From your own dumps</span></span></a>
+</div>
+<section id="features">
+  <h2>What it does</h2><p class="sub">The essentials, straight from the source.</p>
+  <div class="grid">
+    <a class="card" href="features.html#graphics" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"/></svg></div><h3>Metal renderer</h3><p>Graphics on Apple's Metal, with a persistent shader cache so games compile less the next time.</p></a>
+    <a class="card" href="features.html#jit" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><h3>Built-in JIT</h3><p>An ARM64 recompiler for iOS 17.4 and later. Without JIT the much slower interpreter runs.</p></a>
+    <a class="card" href="features.html#controls" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10a4 4 0 0 1 3.9 4.9l-1 4.2a2.5 2.5 0 0 1-4.2.9L14 15h-4l-1.7 2a2.5 2.5 0 0 1-4.2-.9l-1-4.2A4 4 0 0 1 7 7z"/><path d="M8 10v3M6.5 11.5h3"/><circle cx="15.5" cy="10.5" r=".6"/><circle cx="17.5" cy="12.5" r=".6"/></svg></div><h3>Controllers and touch</h3><p>DualSense, Xbox and MFi controllers, or an on-screen GamePad.</p></a>
+    <a class="card" href="features.html#games" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><h3>Your own games</h3><p>Load .wua files or decrypted folders, or encrypted ones with your own keys.txt. Updates and DLC can be imported.</p></a>
+  </div>
+  <div class="note">EspressU ships no firmware, keys or games. You need your own dumps from your own Wii U. Not affiliated with Nintendo.</div>
+</section>
+<section>
+  <h2>Ready in a few minutes</h2><p class="sub">You need three things before you start.</p>
+  <div class="cards3">
+    <a class="card" href="setup.html" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><h3>A recent iPhone or iPad</h3><p>iOS or iPadOS 17.4 or later, with Developer Mode turned on.</p></a>
+    <a class="card" href="faq.html" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><h3>Your own Wii U dumps</h3><p>Games, and a keys.txt if they are encrypted. Nothing is included.</p></a>
+    <a class="card" href="setup.html#step-4" style="text-decoration:none;display:block"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><h3>A way to enable JIT</h3><p>Import your pairing file and connect LocalDevVPN. JIT starts on its own.</p></a>
+  </div>
+</section>
+<section>
+  <div class="community"><div><h2>Come hang out</h2><p class="sub" style="margin:0">Ask for help, report a bug, or suggest a feature in the EspressU Discord. Pull requests are welcome on GitHub.</p></div><a class="btn main" href="community.html">Join the community</a></div>
+</section>
+</main>
+<footer>
+  <div class="foot-grid">
+    <div><a class="brand" href="index.html" style="margin-bottom:10px"><img src="assets/icon.png" width="30" height="30" alt="">EspressU</a>
+      <p>A free, open-source Wii U emulator for iPad and iPhone.</p>
+      <p>EspressU is built on <a href="https://github.com/cemu-project/Cemu">Cemu</a> and based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.</p></div>
+    <div><p class="ft">Explore</p><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a><a href="about.html">About and credits</a></div>
+    <div><p class="ft">Links</p><a href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download the IPA</a><a href="https://github.com/EspressU/EspressU-Emu/releases">Releases</a><a href="https://github.com/EspressU/EspressU-Emu">Source on GitHub</a><a href="https://discord.gg/HPRJGXTEt8">Discord</a></div>
+  </div>
+  <p style="margin-top:22px">Free and open source under MPL-2.0. EspressU is not affiliated with Nintendo. Wii U is a trademark of Nintendo.</p>
+</footer>
+</div>
+<a class="icon-btn top" id="totop" href="#main" aria-label="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></a>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>

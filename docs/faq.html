@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FAQ - EspressU</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="description" content="Short answers about EspressU: JIT, games and keys, installing, controllers and more.">
+<meta property="og:title" content="FAQ - EspressU"><meta property="og:description" content="Short answers about EspressU: JIT, games and keys, installing, controllers and more."><meta property="og:image" content="assets/icon.png"><meta property="og:image:alt" content="The EspressU app icon: a white Wii U logo on a swirl of coffee crema">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('espressu-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html" aria-label="EspressU home"><img src="assets/icon.png" width="36" height="36" alt="">EspressU</a>
+    <nav class="main" id="nav" aria-label="Main"><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html" aria-current="page">FAQ</a><a href="community.html">Community</a></nav>
+    <div class="tools">
+      <a class="get" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark theme" title="Theme"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<div class="wrap">
+<main id="main">
+<div class="page-hero"><div class="crumb"><a href="index.html">Home</a> / FAQ</div><h1>Questions</h1><p class="lead" style="margin:0">Short answers to what people ask first.</p></div>
+<input class="search" id="faq-search" type="search" placeholder="Search the FAQ" aria-label="Search the FAQ" autocomplete="off">
+<div id="faq-list"><details><summary>Do I need JIT?</summary><p>JIT is what makes games run well. Without it the much slower interpreter runs. JIT needs iOS 17.4 or later.</p></details><details><summary>Does EspressU include games, keys or firmware?</summary><p>No. You need your own dumps from your own Wii U. EspressU can load .wua files, decrypted folders, or encrypted ones with your own keys.txt.</p></details><details><summary>Why does a game close on its own?</summary><p>Most games run out of memory unless the limit is raised. Install GetMoreRam and use it on EspressU.</p></details><details><summary>How do I install it?</summary><p>Download the unsigned IPA from the Releases page and sideload it with SideStore or AltStore. Developer Mode must be on.</p></details><details><summary>Which devices and iOS versions work?</summary><p>An iPad or iPhone on iOS or iPadOS 17.4 or later.</p></details><details><summary>Can I use a controller?</summary><p>Yes. DualSense, Xbox and MFi controllers work, and there is an on-screen GamePad for touch.</p></details><details><summary>How do I turn JIT on?</summary><p>In Settings, JIT: import your pairing file and connect LocalDevVPN. JIT starts on its own when you launch a game.</p></details><details><summary>Can I import updates and DLC?</summary><p>Yes. Updates and DLC can be imported for your games.</p></details><details><summary>Is it free and open source?</summary><p>Yes. EspressU is free and open source under MPL-2.0, and the source is on GitHub.</p></details><details><summary>Is it affiliated with Nintendo?</summary><p>No. EspressU is not affiliated with Nintendo. Wii U is a trademark of Nintendo.</p></details><details><summary>Where did EspressU come from?</summary><p>EspressU is built on Cemu and based on MuffinEMU by Void. See the About page for credits.</p></details><details><summary>Where do I report a bug?</summary><p>In the Discord (the bugs forum) or as an issue on GitHub. Say your device, iOS version and the game.</p></details></div>
+<p class="empty" id="faq-empty">Nothing matches that. Try the <a href="community.html" style="color:var(--crema)">community</a>.</p>
+<div class="next"><a class="btn alt" href="setup.html">&larr; Setup</a><a class="btn alt" href="community.html">Community &rarr;</a></div>
+</main>
+<footer>
+  <div class="foot-grid">
+    <div><a class="brand" href="index.html" style="margin-bottom:10px"><img src="assets/icon.png" width="30" height="30" alt="">EspressU</a>
+      <p>A free, open-source Wii U emulator for iPad and iPhone.</p>
+      <p>EspressU is built on <a href="https://github.com/cemu-project/Cemu">Cemu</a> and based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.</p></div>
+    <div><p class="ft">Explore</p><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a><a href="about.html">About and credits</a></div>
+    <div><p class="ft">Links</p><a href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download the IPA</a><a href="https://github.com/EspressU/EspressU-Emu/releases">Releases</a><a href="https://github.com/EspressU/EspressU-Emu">Source on GitHub</a><a href="https://discord.gg/HPRJGXTEt8">Discord</a></div>
+  </div>
+  <p style="margin-top:22px">Free and open source under MPL-2.0. EspressU is not affiliated with Nintendo. Wii U is a trademark of Nintendo.</p>
+</footer>
+</div>
+<a class="icon-btn top" id="totop" href="#main" aria-label="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></a>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Setup - EspressU</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="description" content="Set up EspressU in five steps: download, sideload, raise the memory limit, set up JIT, add your games.">
+<meta property="og:title" content="Setup - EspressU"><meta property="og:description" content="Set up EspressU in five steps: download, sideload, raise the memory limit, set up JIT, add your games."><meta property="og:image" content="assets/icon.png"><meta property="og:image:alt" content="The EspressU app icon: a white Wii U logo on a swirl of coffee crema">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('espressu-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html" aria-label="EspressU home"><img src="assets/icon.png" width="36" height="36" alt="">EspressU</a>
+    <nav class="main" id="nav" aria-label="Main"><a href="features.html">Features</a><a href="setup.html" aria-current="page">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a></nav>
+    <div class="tools">
+      <a class="get" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark theme" title="Theme"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<div class="wrap">
+<main id="main">
+<div class="page-hero"><div class="crumb"><a href="index.html">Home</a> / Setup</div><h1>Set up in five steps</h1><p class="lead" style="margin:0">You need an iPad or iPhone on iOS 17.4 or later with Developer Mode turned on. Tick each step as you go; this page remembers where you are.</p></div>
+<div class="meter" style="margin:18px 0 22px"><span data-meter-text>0 of 5 done</span><div class="meter-bar"><i data-meter-fill></i></div><button class="reset" id="reset" type="button">Start over</button></div>
+<ol class="steps" id="steps"><li id="step-1"><input class="chk" type="checkbox" aria-label="Step 1 done"><div><span class="t">Download the IPA</span><span class="d">From the Releases page. It's unsigned.</span></div><div class="act"><a class="mini dl" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download</a></div></li><li id="step-2"><input class="chk" type="checkbox" aria-label="Step 2 done"><div><span class="t">Sideload it</span><span class="d">With SideStore or AltStore.</span></div><div class="act"><a class="mini" href="https://sidestore.io">SideStore</a><a class="mini" href="https://altstore.io">AltStore</a></div></li><li id="step-3"><input class="chk" type="checkbox" aria-label="Step 3 done"><div><span class="t">Raise the memory limit</span><span class="d">Install GetMoreRam and use it on EspressU. Without a higher limit, most games run out of memory.</span></div><div class="act"><a class="mini" href="https://github.com/hugeBlack/GetMoreRam">GetMoreRam</a></div></li><li id="step-4"><input class="chk" type="checkbox" aria-label="Step 4 done"><div><span class="t">Set up JIT</span><span class="d">In Settings, JIT: import your pairing file and connect LocalDevVPN. JIT starts on its own when you launch a game.</span></div><div class="act"></div></li><li id="step-5"><input class="chk" type="checkbox" aria-label="Step 5 done"><div><span class="t">Add your games</span><span class="d">From the library with the Add button.</span></div><div class="act"></div></li></ol>
+<section><h2>If something goes wrong</h2>
+<div class="cards3">
+<div class="card"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="8" height="12" rx="4"/><path d="M12 8V5M5 12h3M16 12h3M6 19l2.5-2M18 19l-2.5-2M9 5l1.5 1.5M15 5l-1.5 1.5"/></svg></div><h3>A game closes on its own</h3><p>Most games run out of memory unless the limit is raised. Do step 3 (GetMoreRam) and try again.</p></div>
+<div class="card"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><h3>A game is very slow</h3><p>JIT is probably off. Without JIT the slower interpreter runs. Check step 4 and that LocalDevVPN is connected.</p></div>
+<div class="card"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h3>The game won't open</h3><p>Encrypted games need your own keys.txt. Games can also be .wua files or decrypted folders.</p></div>
+</div>
+<p class="sub">Still stuck? Ask in <a href="community.html" style="color:var(--crema)">the community</a> and say which step you reached.</p></section>
+<div class="next"><a class="btn alt" href="features.html">&larr; Features</a><a class="btn alt" href="faq.html">FAQ &rarr;</a></div>
+</main>
+<footer>
+  <div class="foot-grid">
+    <div><a class="brand" href="index.html" style="margin-bottom:10px"><img src="assets/icon.png" width="30" height="30" alt="">EspressU</a>
+      <p>A free, open-source Wii U emulator for iPad and iPhone.</p>
+      <p>EspressU is built on <a href="https://github.com/cemu-project/Cemu">Cemu</a> and based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.</p></div>
+    <div><p class="ft">Explore</p><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a><a href="about.html">About and credits</a></div>
+    <div><p class="ft">Links</p><a href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download the IPA</a><a href="https://github.com/EspressU/EspressU-Emu/releases">Releases</a><a href="https://github.com/EspressU/EspressU-Emu">Source on GitHub</a><a href="https://discord.gg/HPRJGXTEt8">Discord</a></div>
+  </div>
+  <p style="margin-top:22px">Free and open source under MPL-2.0. EspressU is not affiliated with Nintendo. Wii U is a trademark of Nintendo.</p>
+</footer>
+</div>
+<a class="icon-btn top" id="totop" href="#main" aria-label="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></a>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Features - EspressU</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="description" content="What EspressU does: Metal graphics, built-in JIT, controller and touch controls, your own games, themes.">
+<meta property="og:title" content="Features - EspressU"><meta property="og:description" content="What EspressU does: Metal graphics, built-in JIT, controller and touch controls, your own games, themes."><meta property="og:image" content="assets/icon.png"><meta property="og:image:alt" content="The EspressU app icon: a white Wii U logo on a swirl of coffee crema">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('espressu-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html" aria-label="EspressU home"><img src="assets/icon.png" width="36" height="36" alt="">EspressU</a>
+    <nav class="main" id="nav" aria-label="Main"><a href="features.html" aria-current="page">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a></nav>
+    <div class="tools">
+      <a class="get" href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark theme" title="Theme"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<div class="wrap">
+<main id="main">
+<div class="page-hero"><div class="crumb"><a href="index.html">Home</a> / Features</div><h1>Everything EspressU does</h1><p class="lead" style="margin:0">Taken from the app's README and its own settings screens.</p></div><div class="split"><nav class="toc" aria-label="On this page"><a href="#graphics">Graphics and speed</a><a href="#jit">Built-in JIT</a><a href="#controls">Controls</a><a href="#games">Games and library</a><a href="#themes">Make it yours</a><a href="#data">Your data</a></nav><div class="prose">
+<section class="block" id="graphics" style="border:0;padding-top:0"><h2>Graphics and speed</h2>
+<p>EspressU draws with <strong>Metal</strong>, Apple's own graphics API, and keeps a <strong>persistent shader cache</strong> so games compile fewer shaders the next time you play them.</p>
+<ul><li>Graphics settings, a Display page, and a performance overlay you can turn on to watch how a game runs.</li><li>Options per game, so one game's tweaks don't change another's.</li></ul></section>
+<section class="block" id="jit"><h2>Built-in JIT</h2>
+<p>JIT is what makes games run at a playable speed. EspressU includes an <strong>ARM64 recompiler</strong> for iOS 17.4 and later, with a JIT page in Settings.</p>
+<ul><li>Import your pairing file and connect LocalDevVPN.</li><li>JIT starts on its own when you launch a game.</li><li>Without JIT, the much slower interpreter runs instead.</li></ul>
+<p><a class="btn alt" href="setup.html#step-4" style="display:inline-flex">JIT setup steps</a></p></section>
+<section class="block" id="controls"><h2>Controls</h2>
+<p>Play with a controller or on the touch screen.</p>
+<ul><li><strong>Controllers:</strong> DualSense, Xbox and MFi.</li><li><strong>On-screen GamePad:</strong> a touch pad you can lay out yourself.</li><li><strong>Motion and aiming:</strong> its own settings page.</li></ul></section>
+<section class="block" id="games"><h2>Games and library</h2>
+<p>Bring your own legally dumped games. EspressU opens <strong>.wua files</strong>, <strong>decrypted folders</strong>, or encrypted ones with your own <span class="kbd">keys.txt</span>.</p>
+<ul><li>Updates and DLC can be imported.</li><li>Organise your library, and fetch cover art for it.</li><li>Graphic packs for games that have them.</li></ul></section>
+<section class="block" id="themes"><h2>Make it yours</h2>
+<p>EspressU has a library of colour themes for the whole app. A few of them:</p>
+<div class="chips"><span class="chip">Bakery (Original)</span><span class="chip">Dark Mode</span><span class="chip">Mint Matcha</span><span class="chip">Neon Cyber</span><span class="chip">Blueberry Blast</span><span class="chip">Double Chocolate</span><span class="chip">Lemon Zest</span><span class="chip">Sunset Coral</span><span class="chip">Magenta Dusk</span><span class="chip">Galaxy Space</span><span class="chip">Holiday Frost</span><span class="chip">Lemon &amp; Lilac</span></div></section>
+<section class="block" id="data"><h2>Your data</h2>
+<p>EspressU includes <strong>no firmware, keys or games</strong>. You use your own Wii U keys and your own dumps.</p>
+<ul><li>Back up your settings and restore them later.</li><li>Your library and files stay on your device.</li></ul></section>
+<div class="next"><a class="btn alt" href="index.html">&larr; Home</a><a class="btn alt" href="setup.html">Setup &rarr;</a></div></div></div>
+</main>
+<footer>
+  <div class="foot-grid">
+    <div><a class="brand" href="index.html" style="margin-bottom:10px"><img src="assets/icon.png" width="30" height="30" alt="">EspressU</a>
+      <p>A free, open-source Wii U emulator for iPad and iPhone.</p>
+      <p>EspressU is built on <a href="https://github.com/cemu-project/Cemu">Cemu</a> and based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.</p></div>
+    <div><p class="ft">Explore</p><a href="features.html">Features</a><a href="setup.html">Setup</a><a href="faq.html">FAQ</a><a href="community.html">Community</a><a href="about.html">About and credits</a></div>
+    <div><p class="ft">Links</p><a href="https://github.com/EspressU/EspressU-Emu/releases/download/v1.0/EspressU-1.0.ipa" download>Download the IPA</a><a href="https://github.com/EspressU/EspressU-Emu/releases">Releases</a><a href="https://github.com/EspressU/EspressU-Emu">Source on GitHub</a><a href="https://discord.gg/HPRJGXTEt8">Discord</a></div>
+  </div>
+  <p style="margin-top:22px">Free and open source under MPL-2.0. EspressU is not affiliated with Nintendo. Wii U is a trademark of Nintendo.</p>
+</footer>
+</div>
+<a class="icon-btn top" id="totop" href="#main" aria-label="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></a>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>
