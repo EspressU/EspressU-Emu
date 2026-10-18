@@ -31,9 +31,9 @@ EspressU contains no firmware, keys or games. You need your own dumps from your 
 
 You need an iPad or iPhone on iOS 17.4 or later with Developer Mode turned on.
 
-1. Download the unsigned `EspressU.ipa` from the [Releases](../../releases) page.
-2. Sideload it with [SideStore](https://sidestore.io) or [AltStore](https://altstore.io).
-3. Install [GetMoreRam](https://github.com/hugeBlack/GetMoreRam) and use it on EspressU to raise the memory limit. Without a higher limit, most games run out of memory.
+1. Download the unsigned `EspressU.ipa` from the [Releases](https://github.com/EspressU/EspressU-Emu/releases) page.
+2. Install it with [SideInstaller](https://github.com/FrizzleM/SideInstaller).
+3. In SideInstaller, turn on the built-in memory limit increase for EspressU. Without a higher limit, most games run out of memory.
 4. Open EspressU, go to Settings › JIT, import your pairing file and connect LocalDevVPN. JIT starts on its own when you launch a game. Without JIT the much slower interpreter runs.
 5. Add your games from the library with the Add button.
 
