@@ -223,39 +223,49 @@ struct EspressUSettingsView: View {
                     .font(.system(size: 32, weight: .heavy, design: .rounded))
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .padding(.top, 16)
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                    ForEach(SettingsCategory.allCases) { item in
+                VStack(spacing: 0) {
+                    ForEach(Array(SettingsCategory.allCases.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 {
+                            Rectangle()
+                                .fill(EspressUTheme.wrapper)
+                                .frame(height: 1)
+                                .padding(.leading, 66)
+                        }
                         Button { openCategory(item) } label: {
-                            VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 14) {
                                 Image(systemName: item.icon)
-                                    .font(.system(size: 19, weight: .semibold))
+                                    .font(.system(size: 17, weight: .semibold))
                                     .foregroundColor(EspressUTheme.pixelBlue)
-                                    .frame(width: 42, height: 42)
-                                    .background(EspressUTheme.wrapper, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                                VStack(alignment: .leading, spacing: 3) {
+                                    .frame(width: 36, height: 36)
+                                    .background(EspressUTheme.wrapper, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(item.title)
-                                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                                        .font(.system(size: 17, weight: .bold, design: .rounded))
                                         .foregroundColor(EspressUTheme.brownDarkest)
                                         .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
                                     Text(item.hint)
                                         .font(.system(size: 13, design: .rounded))
                                         .foregroundColor(EspressUTheme.brownMid)
+                                        .lineLimit(2)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
-                                Spacer(minLength: 0)
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
                             }
-                            .padding(16)
-                            .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
-                            .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
-                            .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .controllerFocusRing(input.showsFocus && gridFocus == "cat.\(item.rawValue)",
-                                             shape: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                             shape: RoundedRectangle(cornerRadius: 22, style: .continuous))
                     }
                 }
+                .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
             }
             .padding(.horizontal, 16)
             .padding(.bottom, isWide ? 24 : phoneBottomRoom)
@@ -299,10 +309,10 @@ struct EspressUSettingsView: View {
                     }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(title)
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
+                            .font(.system(size: isWide ? 32 : 28, weight: .heavy, design: .rounded))
                             .foregroundColor(EspressUTheme.brownDarkest)
                         Text(summary)
-                            .font(.system(size: 16, design: .rounded))
+                            .font(.system(size: isWide ? 16 : 15, design: .rounded))
                             .foregroundColor(EspressUTheme.brownMid)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -542,8 +552,8 @@ struct EspressUSettingsView: View {
             }
         }
         .padding(.horizontal, padded ? 18 : 0)
-        .padding(.vertical, padded ? 13 : 0)
-        .frame(minHeight: padded ? 64 : 0)
+        .padding(.vertical, padded ? (isWide ? 13 : 11) : 0)
+        .frame(minHeight: padded ? (isWide ? 64 : 56) : 0)
         .contentShape(Rectangle())
     }
 

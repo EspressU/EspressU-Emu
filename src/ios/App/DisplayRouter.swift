@@ -46,7 +46,7 @@ enum DeviceScreenMode: String, CaseIterable, Identifiable {
 
 enum ExternalDisplaySystemSettings {
     static let enabledKey = "espressu.display.externalDisplaySystemEnabled"
-    static let defaultEnabled = false
+    static let defaultEnabled = true
 }
 
 enum ScreenLayout: String, CaseIterable, Identifiable {
@@ -289,7 +289,8 @@ final class DisplayRouter: ObservableObject {
     }
 
     private func applyPlacement(reason: String) {
-        let systemEnabled = UserDefaults.standard.bool(forKey: ExternalDisplaySystemSettings.enabledKey)
+        let systemEnabled = UserDefaults.standard.object(forKey: ExternalDisplaySystemSettings.enabledKey) as? Bool
+            ?? ExternalDisplaySystemSettings.defaultEnabled
         let external = systemEnabled ? externalScreen() : nil
         let scene = external.flatMap { externalWindowScene(for: $0) }
 

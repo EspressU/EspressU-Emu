@@ -402,7 +402,6 @@ struct GraphicPackCategorySections: View {
     let suggestWorkarounds: Bool
     var headerPrefix: String = ""
 
-    @State private var detailPath: String?
     @State private var confirming: GraphicPack?
     private var api: RendererAPI {
         RendererAPI(rawValue: UserDefaults.standard.integer(forKey: RendererAPI.storageKey)) ?? RendererAPI.defaultValue
@@ -428,7 +427,7 @@ struct GraphicPackCategorySections: View {
                             suggested: suggestWorkarounds && pack.isWorkaround && !pack.enabled && pack.support(on: api).isFull,
                             locked: store.gameRunning,
                             onToggle: { wantOn in toggle(pack, wantOn) },
-                            onDetails: { detailPath = pack.path }
+                            detail: AnyView(GraphicPackDetailView(packPath: pack.path, store: store, profile: profile))
                         )
                     }
                 } header: {
@@ -439,9 +438,6 @@ struct GraphicPackCategorySections: View {
                 .foregroundColor(EspressUTheme.brownDarkest)
             }
         }
-        .sheet(item: Binding(get: { detailPath.map { PackRef(path: $0) } }, set: { detailPath = $0?.path })) { ref in
-            GraphicPackDetailView(packPath: ref.path, store: store, profile: profile) { detailPath = nil }
-        }
         .alert(item: $confirming) { pack in
             Alert(
                 title: Text(confirmTitle(for: pack)),
@@ -451,8 +447,6 @@ struct GraphicPackCategorySections: View {
             )
         }
     }
-
-    private struct PackRef: Identifiable { let path: String; var id: String { path } }
 
     private var footerNote: some View {
         InfoButton.footer("Changes apply the next time you launch a game.")
@@ -507,7 +501,7 @@ struct GraphicPackRow: View {
     let suggested: Bool
     let locked: Bool
     let onToggle: (Bool) -> Void
-    let onDetails: () -> Void
+    let detail: AnyView
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -529,12 +523,13 @@ struct GraphicPackRow: View {
 
             chips
 
-            Button(action: onDetails) {
+            // A push instead of a nested sheet: a sheet opened from inside the game's
+            // settings sheet closed the whole settings menu along with it.
+            NavigationLink(destination: detail) {
                 Text(pack.presetCount > 0 ? "Options and details" : "Details")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(EspressUTheme.accentText)
             }
-            .buttonStyle(.borderless)
         }
         .padding(.vertical, 2)
     }
@@ -590,8 +585,9 @@ struct GraphicPackDetailView: View {
     let packPath: String
     @ObservedObject var store: GraphicPackStore
     let profile: GraphicPackDeviceProfile
-    let onDone: () -> Void
+    var onDone: (() -> Void)? = nil
 
+    @Environment(\.dismiss) private var dismiss
     @State private var details: GraphicPackDetails?
     @State private var confirmingRemove = false
 
@@ -601,24 +597,14 @@ struct GraphicPackDetailView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                EspressUTheme.backgroundGradient.ignoresSafeArea()
-                content
-            }
-            .navigationTitle(pack?.displayName ?? "Pack")
-            .espressuOpaqueNavigationBar(EspressUTheme.formGround)
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done", action: onDone)
-                }
-            }
+        ZStack {
+            EspressUTheme.backgroundGradient.ignoresSafeArea()
+            content
         }
+        .navigationTitle(pack?.displayName ?? "Pack")
+        .espressuOpaqueNavigationBar(EspressUTheme.formGround)
         #if os(iOS)
-        .navigationViewStyle(.stack)
+        .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear(perform: load)
     }
@@ -701,7 +687,8 @@ struct GraphicPackDetailView: View {
             .confirmationDialog("Remove this imported pack?", isPresented: $confirmingRemove, titleVisibility: .visible) {
                 Button("Remove", role: .destructive) {
                     store.removeImported(pack)
-                    onDone()
+                    onDone?()
+                    dismiss()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
