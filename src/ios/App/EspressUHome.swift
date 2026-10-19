@@ -31,6 +31,11 @@ struct EspressUHomeActions {
     let importUpdate: () -> Void
 }
 
+private struct HomeGridOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
 struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @ObservedObject var gameManager: GameManager
     let games: [GameMetadata]
@@ -62,6 +67,9 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ObservedObject private var uiStyle = UIStyleStore.shared
+    @ObservedObject private var playStats = LibraryPlayStats.shared
+    @State private var gridAppeared = false
+    @State private var keyboardUp = false
     @State private var selectedId: String?
     @State private var showingSearch = false
     @State private var showingAdd = false
@@ -86,6 +94,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @State private var addFocus: String?
     @State private var centerId: String?
     @State private var carouselDrag: CGFloat = 0
+    @State private var gridAtTop = true
 
     private var isPhone: Bool { sizeClass == .compact }
 
@@ -103,11 +112,28 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 topBar
                     .padding(.top, insets.top + (isPhone ? 6 : 14))
                 if showingSearch {
-                    SearchBarPolished(text: $searchText)
-                        .padding(.horizontal, isPhone ? 16 : 40)
-                        .padding(.top, isPhone ? 8 : 14)
-                        .padding(.bottom, isPhone ? 18 : 28)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                    HStack(spacing: 10) {
+                        SearchBarPolished(text: $searchText, autoFocus: isPhone)
+                        if isPhone {
+                            Button { closeSearch() } label: {
+                                Text("Cancel")
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .foregroundColor(EspressUTheme.accentText)
+                                    .frame(minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .transition(.opacity)
+                        }
+                    }
+                    .padding(.horizontal, isPhone ? 16 : 40)
+                    .padding(.top, isPhone ? 8 : 14)
+                    .padding(.bottom, isPhone ? 18 : 28)
+                    .gesture(isPhone ? DragGesture(minimumDistance: 16).onEnded { v in
+                        if v.translation.height < -24 { closeSearch() }
+                    } : nil)
+                    .transition(isPhone
+                        ? .opacity.combined(with: .offset(y: -28))
+                        : .move(edge: .top).combined(with: .opacity))
                 }
                 lead
                 library
@@ -134,6 +160,13 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 EspressUMenuBar(items: barItems, compact: isPhone, focusedIndex: pad.showsFocus ? barFocus : nil)
+                    .allowsHitTesting(!(isPhone && keyboardUp))
+                    .opacity(isPhone && keyboardUp ? 0.4 : 1)
+                    .overlay {
+                        if isPhone && keyboardUp {
+                            Color.clear.contentShape(Rectangle()).onTapGesture { tapAwayFromSearch() }
+                        }
+                    }
             }
             .padding(.horizontal, isPhone ? 16 : 40)
             .padding(.leading, insets.leading)
@@ -207,11 +240,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 cemu_bridge_log_checkpoint("fileImporter: failed \(error.localizedDescription)")
             }
         }
+        .ignoresSafeArea(.keyboard, edges: isPhone ? .bottom : [])
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedId)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingAdd)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: optionsGameId)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: showingJIT)
-        .animation(.easeInOut(duration: 0.2), value: showingSearch)
+        .animation(isPhone ? .spring(response: 0.5, dampingFraction: 0.9) : .easeInOut(duration: 0.2), value: showingSearch)
         .onChange(of: games.map(\.id)) { ids in
             if let selectedId, !ids.contains(selectedId) { self.selectedId = nil }
             pad.onCommand = handlePad
@@ -291,7 +325,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             Spacer()
         } else {
             GeometryReader { geo in
-                carousel(in: geo.size)
+                if isPhone {
+                    phoneGrid(in: geo.size)
+                } else {
+                    carousel(in: geo.size)
+                }
             }
         }
     }
@@ -427,6 +465,174 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .animation(.spring(response: 0.42, dampingFraction: 0.86), value: center)
     }
 
+    /// The carousel needs more width than a phone has, so phones get a plain two-column grid.
+    /// Tap starts the game, long press opens favourite and options, and pulling the list down
+    /// from the top opens search (there is no search button on phones).
+    private func phoneGrid(in size: CGSize) -> some View {
+        let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
+        let resume: GameMetadata? = {
+            guard let id = playStats.recentIDs(limit: 1).first else { return nil }
+            return games.first { $0.id == id }
+        }()
+        return ScrollView(showsIndicators: false) {
+            GeometryReader { proxy in
+                Color.clear.preference(key: HomeGridOffsetKey.self, value: proxy.frame(in: .named("homeGrid")).minY)
+            }
+            .frame(height: 0)
+            VStack(spacing: 0) {
+            if let resume {
+                phoneResumeCard(resume)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
+                    .frame(height: showingSearch ? 0 : 128, alignment: .top)
+                    .clipped()
+                    .opacity(showingSearch ? 0 : (gridAppeared ? 1 : 0))
+                    .allowsHitTesting(!showingSearch)
+            }
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(Array(games.enumerated()), id: \.element.id) { index, item in
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        actions.play(item)
+                    } label: {
+                        VStack(spacing: 10) {
+                            EspressUCover(game: item, radius: 22)
+                                .aspectRatio(1, contentMode: .fit)
+                                .shadow(color: EspressUTheme.shadow.opacity(0.22), radius: 9, y: 5)
+                                .overlay(alignment: .topTrailing) {
+                                    if item.isFavorite {
+                                        Image(systemName: "heart.fill")
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(EspressUTheme.alertText)
+                                            .padding(7)
+                                            .background(.ultraThinMaterial, in: Circle())
+                                            .padding(7)
+                                    }
+                                }
+                                .overlay(alignment: .bottomTrailing) {
+                                    Image(systemName: "play.fill")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 26, height: 26)
+                                        .background(.black.opacity(0.35), in: Circle())
+                                        .padding(8)
+                                }
+                            Text(item.cardName.name)
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(EspressUTheme.brownDarkest)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity, minHeight: 36, alignment: .top)
+                        }
+                    }
+                    .buttonStyle(EspressUPressStyle())
+                    .opacity(gridAppeared ? 1 : 0)
+                    .offset(y: gridAppeared ? 0 : 16)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(min(Double(index), 8) * 0.03), value: gridAppeared)
+                    .contextMenu {
+                        Button { actions.play(item) } label: { Label("Start", systemImage: "play.fill") }
+                        Button { actions.toggleFavorite(item) } label: {
+                            Label(item.isFavorite ? "Remove from favourites" : "Add to favourites",
+                                  systemImage: item.isFavorite ? "heart.slash" : "heart")
+                        }
+                        Button { openOptions(item) } label: { Label("More options", systemImage: "ellipsis.circle") }
+                    }
+                    .accessibilityLabel(item.cardName.name)
+                    .accessibilityHint("Starts the game.")
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.bottom, max(insets.bottom, 8) + 110)
+            }
+        }
+        .coordinateSpace(name: "homeGrid")
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) { gridAppeared = true }
+        }
+        .onPreferenceChange(HomeGridOffsetKey.self) { gridAtTop = $0 >= -2 }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 24)
+                .onEnded { value in
+                    guard gridAtTop, !showingSearch, value.translation.height > 110,
+                          abs(value.translation.width) * 2 < value.translation.height else { return }
+                    showingAdd = false
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) { showingSearch = true }
+                }
+        )
+        .frame(width: size.width, height: size.height)
+        .overlay {
+            if keyboardUp {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { tapAwayFromSearch() }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            keyboardUp = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardUp = false
+        }
+    }
+
+    /// A tap anywhere but the search bar: with an empty field it closes keyboard and bar,
+    /// with text it only closes the keyboard so the results stay.
+    private func tapAwayFromSearch() {
+        if searchText.isEmpty {
+            closeSearch()
+        } else {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+    }
+
+    private func closeSearch() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) { showingSearch = false }
+        searchText = ""
+    }
+
+    private func phoneResumeCard(_ item: GameMetadata) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            actions.play(item)
+        } label: {
+            HStack(spacing: 14) {
+                EspressUCover(game: item, radius: 18)
+                    .frame(width: 84, height: 84)
+                    .shadow(color: EspressUTheme.shadow.opacity(0.22), radius: 8, y: 4)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Continue playing")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(EspressUTheme.brownMid)
+                    Text(item.cardName.name)
+                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .foregroundColor(EspressUTheme.brownDarkest)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "play.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(EspressUTheme.accentText, in: Circle())
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .espressUSurface(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        }
+        .buttonStyle(EspressUPressStyle())
+        .contextMenu {
+            Button { actions.play(item) } label: { Label("Start", systemImage: "play.fill") }
+            Button { actions.toggleFavorite(item) } label: {
+                Label(item.isFavorite ? "Remove from favourites" : "Add to favourites",
+                      systemImage: item.isFavorite ? "heart.slash" : "heart")
+            }
+            Button { openOptions(item) } label: { Label("More options", systemImage: "ellipsis.circle") }
+        }
+        .accessibilityLabel("Continue playing \(item.cardName.name)")
+    }
+
     private func sideButtonLabel(symbol: String, tint: Color, hint: String) -> some View {
         HStack(spacing: 7) {
             if pad.showsFocus {
@@ -503,7 +709,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         }
     }
 
+    /// Phones search by pulling the list down, so the bar has no Search button there.
     private var barItems: [EspressUMenuBar.Item] {
+        isPhone ? allBarItems.filter { $0.title != "Search" } : allBarItems
+    }
+
+    private var allBarItems: [EspressUMenuBar.Item] {
         let jitOn = JITStatus.isActive
         return [
             .init(title: "Add", systemImage: "plus", tint: EspressUTheme.accentText, isOn: showingAdd) {

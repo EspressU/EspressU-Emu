@@ -16,8 +16,12 @@ struct AboutSettingsSection: View {
         Section {
             SettingsRow(label: "Version", value: Bundle.main.appVersionString, icon: "number")
             SettingsRow(label: "Created by", value: "Amar", icon: "person.fill")
-            Link(destination: URL(string: "https://github.com/Am4r-dev/espressu-ios")!) {
+            Link(destination: URL(string: "https://github.com/EspressU/EspressU-Emu")!) {
                 Label("View on GitHub", systemImage: "arrow.up.right.square")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+            }
+            Link(destination: URL(string: "https://discord.gg/espressu")!) {
+                Label("Join the Discord", systemImage: "bubble.left.and.bubble.right")
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             NavigationLink {

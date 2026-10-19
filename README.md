@@ -49,8 +49,8 @@ xcodebuild -downloadComponent MetalToolchain
 Then:
 
 ```sh
-git clone --recursive https://github.com/Am4r-dev/espressu-ios.git
-cd espressu-ios
+git clone --recursive https://github.com/EspressU/EspressU-Emu.git
+cd EspressU-Emu
 ci/build-stikjit.sh
 cmake -S . -B build-ios -G Ninja \
   -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 \

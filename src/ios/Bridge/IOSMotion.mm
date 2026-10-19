@@ -221,14 +221,23 @@ void RefreshOrientation()
     }
 }
 
+// A controller counts only if its motion object can report something. Some pads (Joy-Cons, DualShock 4)
+// expose a motion object that stays empty until its sensors are switched on, so those are accepted when
+// they need manual activation. A pad that reports a gyro is preferred over one that only has an accelerometer.
 GCController* FindControllerWithMotion()
 {
+    GCController* fallback = nil;
     for (GCController* controller in [GCController controllers])
     {
-        if (controller.motion)
+        GCMotion* motion = controller.motion;
+        if (!motion)
+            continue;
+        if (motion.hasRotationRate)
             return controller;
+        if (!fallback && (motion.hasGravityAndUserAcceleration || motion.sensorsRequireManualActivation))
+            fallback = controller;
     }
-    return nil;
+    return fallback;
 }
 
 void StopDevice()
@@ -316,6 +325,11 @@ void Apply()
         {
             StopController();
             StartController(motionController);
+        }
+        else if (g_controller.motion.sensorsRequireManualActivation && !g_controller.motion.sensorsActive)
+        {
+            // The system switches the sensors off again when the pad sleeps or reconnects.
+            g_controller.motion.sensorsActive = YES;
         }
     }
     else
