@@ -1209,6 +1209,9 @@ struct GameCardOptimized<Options: View>: View {
 
 struct SearchBarPolished: View {
     @Binding var text: String
+    var autoFocus = false
+    var onKeyboardDismiss: (() -> Void)?
+    @FocusState private var focused: Bool
 
     var body: some View {
         HStack(spacing: 10) {
@@ -1217,6 +1220,8 @@ struct SearchBarPolished: View {
                 .foregroundColor(EspressUTheme.brownMid)
 
             TextField("Search games...", text: $text)
+                .focused($focused)
+                .submitLabel(.search)
                 .font(.system(size: 15, weight: .regular, design: .rounded))
                 .textFieldStyle(.plain)
                 .foregroundColor(EspressUTheme.brownDarkest)
@@ -1241,6 +1246,14 @@ struct SearchBarPolished: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(EspressUTheme.wrapper, lineWidth: 1)
         )
+        .onAppear {
+            if autoFocus {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
+            }
+        }
+        .onChange(of: focused) { isFocused in
+            if !isFocused && text.isEmpty { onKeyboardDismiss?() }
+        }
     }
 }
 
@@ -1663,7 +1676,7 @@ struct EmulatorViewOptimized: View {
                             InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
                                 .disabled(gameManager.emulationState != .running || showHomeMenu)
                                 .accessibilityLabel("HOME menu")
-                            if !padHiddenByController {
+                            if !padHiddenByController || displayRouter.placement == .dualScreen {
                                 InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
                                     .disabled(gameManager.emulationState != .running)
                                     .accessibilityLabel(isPaused ? "Resume" : "Pause")
@@ -1675,7 +1688,7 @@ struct EmulatorViewOptimized: View {
 
                     Spacer(minLength: 0)
 
-                    if !padHiddenByController && gameManager.emulationState == .running {
+                    if (!padHiddenByController || displayRouter.placement == .dualScreen) && gameManager.emulationState == .running {
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
@@ -1963,7 +1976,7 @@ struct EmulatorViewOptimized: View {
         try? await Task.sleep(nanoseconds: TopBarAutoHide.hideDelayNanoseconds)
         guard !Task.isCancelled else { return }
         setTopBarHidden(true)
-        showHintOnce(Self.topBarHintKey, "Tap the top edge to bring the bar back.")
+        showHintOnce(Self.topBarHintKey, UIDevice.current.userInterfaceIdiom == .phone ? "Swipe down from the top edge to bring the bar back." : "Tap the top edge to bring the bar back.")
     }
 
     private static let topBarHintKey = "espressu.hint.topBarReveal"
@@ -1996,7 +2009,24 @@ struct EmulatorViewOptimized: View {
     }
 
     @ViewBuilder private var topBarRevealHandle: some View {
-        if topBarHidden {
+        if topBarHidden, UIDevice.current.userInterfaceIdiom == .phone {
+            // Nothing stays on screen: a downward swipe (or a tap) on the top edge brings the bar back.
+            Color.clear
+                .frame(height: 56)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { setTopBarHidden(false) }
+                .gesture(
+                    DragGesture(minimumDistance: 12)
+                        .onEnded { value in
+                            if value.translation.height > 16 { setTopBarHidden(false) }
+                        }
+                )
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Show top bar")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { setTopBarHidden(false) }
+        } else if topBarHidden {
             HStack(spacing: 0) {
                 InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
                     .disabled(gameManager.emulationState != .running || showHomeMenu || isEditingControlLayout)

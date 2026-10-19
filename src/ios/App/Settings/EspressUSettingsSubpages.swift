@@ -477,7 +477,11 @@ extension EspressUSettingsView {
                 SettingsItem(id: "about.by", title: "Created by", control: .info("Amar", nil)),
                 SettingsItem(id: "about.github", title: "View on GitHub", detail: nil,
                              control: .action("Open", destructive: false, confirm: false, run: {
-                                 if let url = URL(string: "https://github.com/Am4r-dev/espressu-ios") { UIApplication.shared.open(url) }
+                                 if let url = URL(string: "https://github.com/EspressU/EspressU-Emu") { UIApplication.shared.open(url) }
+                             })),
+                SettingsItem(id: "about.discord", title: "Join the Discord", detail: nil,
+                             control: .action("Open", destructive: false, confirm: false, run: {
+                                 if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
                              })),
                 SettingsItem(id: "about.licences", title: "Open-source licences", control: .link("", .licences)),
             ]),
