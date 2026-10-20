@@ -703,6 +703,8 @@ void MetalRenderer::DrawEmptyFrame(bool mainWindow)
 
 void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
 {
+    if (swapTV || swapDRC)
+        PerfTelemetry::BeginFrameSampling();
     if (LatteWait::Get().gpuError.load(std::memory_order_relaxed))
     {
         CommitCommandBuffer();
@@ -1327,6 +1329,44 @@ void MetalRenderer::texture_loadSlice(LatteTexture* hostTexture, sint32 width, s
 
     auto& bufferAllocator = m_memoryManager->GetStagingAllocator();
     auto allocation = bufferAllocator.AllocateBufferMemory(compressedImageSize, 1);
+    if (!allocation.mtlBuffer && bytesPerRow != 0 && compressedImageSize > bytesPerRow)
+    {
+        const uint32 blockH = std::max<uint32>(1, formatInfo.blockTexelSize.y);
+        const uint32 blockRowsTotal = ((uint32)uploadHeight + blockH - 1) / blockH;
+        uint32 bandRows = std::max<uint32>(1, blockRowsTotal / 2);
+        uint32 doneRows = 0;
+        bool failed = false;
+        while (doneRows < blockRowsTotal)
+        {
+            const uint32 rows = std::min(bandRows, blockRowsTotal - doneRows);
+            const uint64 sourceOffset = (uint64)doneRows * bytesPerRow;
+            if (sourceOffset >= compressedImageSize)
+                break;
+            const uint32 bandBytes = (uint32)std::min<uint64>((uint64)rows * bytesPerRow, compressedImageSize - sourceOffset);
+            auto band = bufferAllocator.AllocateBufferMemory(bandBytes, 1);
+            if (!band.mtlBuffer)
+            {
+                if (bandRows == 1)
+                {
+                    failed = true;
+                    break;
+                }
+                bandRows = std::max<uint32>(1, bandRows / 2);
+                continue;
+            }
+            memcpy(band.memPtr, static_cast<const uint8*>(pixelData) + sourceOffset, bandBytes);
+            bufferAllocator.FlushReservation(band);
+            const uint32 y0 = doneRows * blockH;
+            const uint32 bandHeight = std::min<uint32>(rows * blockH, (uint32)uploadHeight - y0);
+            blitCommandEncoder->copyFromBuffer(band.mtlBuffer, band.bufferOffset, bytesPerRow, 0, MTL::Size(uploadWidth, bandHeight, 1), textureMtl->GetTexture(), sliceIndex, mipIndex, MTL::Origin(0, y0, offsetZ), GetTextureUploadBlitOption(formatInfo.pixelFormat));
+            doneRows += rows;
+        }
+        if (!failed)
+        {
+            cemuLog_logOnce(LogType::Force, "Metal: an upload of {} bytes (format {:04x} {}x{}) did not fit one staging reservation and went through in bands", compressedImageSize, (uint32)textureMtl->format, width, height);
+            return;
+        }
+    }
     if (!allocation.mtlBuffer)
     {
         MetalGuardNote(MetalGuard::UploadStagingFull, {(uint64)(uint32)textureMtl->format, ((uint64)(uint32)width << 32) | (uint32)height}, [&] {
@@ -1607,8 +1647,13 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
         }
         else
         {
-            fitW = std::max(srcRoomW, dstRoomW);
-            fitH = std::max(srcRoomH, dstRoomH);
+            auto fitAxis = [](sint64 srcRoom, sint64 dstRoom, uint32 srcBlock, uint32 dstBlock) -> sint64 {
+                const sint64 sb = std::max<sint64>(1, srcBlock), db = std::max<sint64>(1, dstBlock);
+                const sint64 blocks = std::min((srcRoom + sb - 1) / sb, (dstRoom + db - 1) / db);
+                return std::min(srcRoom, blocks * sb);
+            };
+            fitW = fitAxis(srcRoomW, dstRoomW, srcBlockTexelSize.x, dstBlockTexelSize.x);
+            fitH = fitAxis(srcRoomH, dstRoomH, srcBlockTexelSize.y, dstBlockTexelSize.y);
             MetalGuardNote(MetalGuard::CopyBlockMismatch, {keyFormats, keyMips, keyLevels, (uint64)(uint32)effectiveCopyWidth, (uint64)(uint32)effectiveCopyHeight}, [&] { return describe("copy between different block sizes"); });
         }
         if (effectiveCopyWidth > fitW || effectiveCopyHeight > fitH)
@@ -2073,6 +2118,7 @@ void MetalRenderer::streamout_rendererFinishDrawcall()
 
 void MetalRenderer::draw_beginSequence()
 {
+    PerfTelemetry::SampledTimer beginTimer(PerfTelemetry::Get().gpuBeginNs);
     m_state.m_skipDrawSequence = false;
 
     if (LatteWait::Get().gpuError.load(std::memory_order_relaxed))
@@ -2109,7 +2155,10 @@ void MetalRenderer::draw_beginSequence()
             m_state.m_skipDrawSequence = true;
             return;
         }
-        LatteTexture_updateTextures();
+        {
+            PerfTelemetry::SampledTimer texTimer(PerfTelemetry::Get().gpuTexUpdateNs);
+            LatteTexture_updateTextures();
+        }
         if (!LatteGPUState.repeatTextureInitialization)
             break;
     }
@@ -2125,6 +2174,8 @@ void MetalRenderer::draw_beginSequence()
 
 void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 instanceCount, uint32 count, MPTR indexDataMPTR, Latte::LATTE_VGT_DMA_INDEX_TYPE::E_INDEX_TYPE indexType, bool isFirst)
 {
+    PerfTelemetry::SampledTimer execTimer(PerfTelemetry::Get().gpuExecNs);
+    PerfTelemetry::Get().gpuDraws.fetch_add(1, std::memory_order_relaxed);
     if (m_state.m_skipDrawSequence)
     {
         LatteGPUState.drawCallCounter++;
@@ -2185,7 +2236,10 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
     uint32 indexMin = 0;
     uint32 indexMax = 0;
     Renderer::IndexAllocation indexAllocation;
-    LatteIndices_decode(memory_getPointerFromVirtualOffset(indexDataMPTR), indexType, count, primitiveMode, indexMin, indexMax, hostIndexType, hostIndexCount, indexAllocation);
+    {
+        PerfTelemetry::SampledTimer indexTimer(PerfTelemetry::Get().gpuIndexNs);
+        LatteIndices_decode(memory_getPointerFromVirtualOffset(indexDataMPTR), indexType, count, primitiveMode, indexMin, indexMax, hostIndexType, hostIndexCount, indexAllocation);
+    }
     auto indexAllocationMtl = static_cast<MetalSynchronizedHeapAllocator::AllocatorReservation*>(indexAllocation.rendererInternal);
     const sint32 signedBaseVertex = static_cast<sint32>(baseVertex);
     if (indexAllocationMtl && hostIndexType != INDEX_TYPE::NONE)
@@ -2220,10 +2274,14 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
         maxVertexIndex = signedMaxVertexIndex <= 0 ? 0 : (uint32)std::min<sint64>(signedMaxVertexIndex, std::numeric_limits<uint32>::max());
     }
 
+    const uint64 bufferStart = PerfTelemetry::SampleStart();
     if (m_memoryManager->UseHostMemoryForCache())
     {
-        LatteBufferCache_processDCFlushQueue();
-        LatteBufferCache_processDeallocations();
+        {
+            PerfTelemetry::SampledTimer flushTimer(PerfTelemetry::Get().gpuFlushNs);
+            LatteBufferCache_processDCFlushQueue();
+            LatteBufferCache_processDeallocations();
+        }
         draw_updateVertexBuffersDirectAccess(minVertexIndex, maxVertexIndex, baseInstance, instanceCount, fetchVertexManually);
         if (vertexShader)
             draw_updateUniformBuffersDirectAccess(vertexShader, mmSQ_VTX_UNIFORM_BLOCK_START);
@@ -2241,10 +2299,15 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
     if (usesGeometryShader)
         PrepareUniformBufferSizes(geometryShader);
     PrepareUniformBufferSizes(pixelShader);
+    PerfTelemetry::SampleEnd(PerfTelemetry::Get().gpuBufferNs, bufferStart);
 
+    const uint64 passStart = PerfTelemetry::SampleStart();
     auto renderCommandEncoder = GetRenderCommandEncoder();
+    PerfTelemetry::SampleEnd(PerfTelemetry::Get().gpuPassNs, passStart);
 
+    const uint64 pipelineStart = PerfTelemetry::SampleStart();
     PipelineObject* pipelineObj = m_pipelineCache->GetRenderPipelineState(fetchShader, vertexShader, geometryShader, pixelShader, m_state.m_lastUsedFBO.m_attachmentsInfo, m_state.m_activeFBO.m_attachmentsInfo, m_state.m_activeFBO.m_fbo->m_size, count, LatteGPUState.contextNew);
+    PerfTelemetry::SampleEnd(PerfTelemetry::Get().gpuPipelineNs, pipelineStart);
     if (!pipelineObj->m_pipeline)
         return;
 
@@ -2343,12 +2406,19 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
         encoderState.m_depthClipEnable = zClipEnable;
     }
 
+    MTL::VisibilityResultMode visibilityMode = MTL::VisibilityResultModeDisabled;
+    NS::UInteger visibilityOffset = 0;
     if (m_occlusionQuery.m_active)
     {
-        renderCommandEncoder->setVisibilityResultMode(MTL::VisibilityResultModeCounting, (m_occlusionQuery.m_currentBuffer * OCCLUSION_QUERY_POOL_SIZE + m_occlusionQuery.m_currentIndex) * sizeof(uint64));
+        visibilityMode = MTL::VisibilityResultModeCounting;
+        visibilityOffset = (m_occlusionQuery.m_currentBuffer * OCCLUSION_QUERY_POOL_SIZE + m_occlusionQuery.m_currentIndex) * sizeof(uint64);
     }
-    else
-        renderCommandEncoder->setVisibilityResultMode(MTL::VisibilityResultModeDisabled, 0);
+    if (visibilityMode != encoderState.m_visibilityMode || visibilityOffset != encoderState.m_visibilityOffset)
+    {
+        renderCommandEncoder->setVisibilityResultMode(visibilityMode, visibilityOffset);
+        encoderState.m_visibilityMode = visibilityMode;
+        encoderState.m_visibilityOffset = visibilityOffset;
+    }
 
     if (primitiveMode == Latte::LATTE_VGT_PRIMITIVE_TYPE::E_PRIMITIVE_TYPE::RECTS)
     {
@@ -2541,9 +2611,12 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
     m_state.m_streamoutState.verticesPerInstance = streamoutVertexCount;
     LatteStreamout_PrepareDrawcall(streamoutVertexCount, instanceCount);
 
-    if (!BindStageResources(renderCommandEncoder, vertexShader, usesGeometryShader) ||
-        (usesGeometryShader && geometryShader && !BindStageResources(renderCommandEncoder, geometryShader, usesGeometryShader)) ||
-        !BindStageResources(renderCommandEncoder, pixelShader, usesGeometryShader))
+    const uint64 bindStart = PerfTelemetry::SampleStart();
+    const bool stageResourcesBound = BindStageResources(renderCommandEncoder, vertexShader, usesGeometryShader) &&
+        (!(usesGeometryShader && geometryShader) || BindStageResources(renderCommandEncoder, geometryShader, usesGeometryShader)) &&
+        BindStageResources(renderCommandEncoder, pixelShader, usesGeometryShader);
+    PerfTelemetry::SampleEnd(PerfTelemetry::Get().gpuBindNs, bindStart);
+    if (!stageResourcesBound)
     {
         streamout_rendererFinishDrawcall();
         LatteGPUState.drawCallCounter++;
@@ -2637,6 +2710,7 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
 
 void MetalRenderer::draw_endSequence()
 {
+    PerfTelemetry::SampledTimer endTimer(PerfTelemetry::Get().gpuEndNs);
     LatteDecompilerShader* pixelShader = LatteSHRC_GetActivePixelShader();
     if (pixelShader)
         LatteRenderTarget_trackUpdates();
@@ -2877,6 +2951,56 @@ void MetalRenderer::occlusionQuery_updateState() {
     ProcessFinishedCommandBuffers();
 }
 
+namespace
+{
+    constexpr size_t kBytesBoundOffset = std::numeric_limits<size_t>::max() - 1;
+
+    struct BoundBytes
+    {
+        uint32 length = 0;
+        uint8 data[MTL_MAX_SET_BYTES];
+    };
+    BoundBytes s_boundBytes[METAL_SHADER_TYPE_TOTAL];
+    uint32 s_boundBytesIndex[METAL_SHADER_TYPE_TOTAL];
+}
+
+void MetalRenderer::SetBytes(MTL::RenderCommandEncoder* renderCommandEncoder, MetalShaderType shaderType, const void* bytes, uint32 length, uint32 index)
+{
+    if (index >= MAX_MTL_BUFFERS || length > MTL_MAX_SET_BYTES)
+    {
+        cemuLog_logOnce(LogType::Force, "invalid Metal bytes binding {} ({} bytes)", index, length);
+        return;
+    }
+
+    auto& boundBuffer = m_state.m_encoderState.m_buffers[shaderType][index];
+    auto& shadow = s_boundBytes[shaderType];
+    if (boundBuffer.m_buffer == nullptr && boundBuffer.m_offset == kBytesBoundOffset && s_boundBytesIndex[shaderType] == index
+        && shadow.length == length && std::memcmp(shadow.data, bytes, length) == 0)
+        return;
+
+    switch (shaderType)
+    {
+    case METAL_SHADER_TYPE_VERTEX:
+        renderCommandEncoder->setVertexBytes(bytes, length, index);
+        break;
+    case METAL_SHADER_TYPE_OBJECT:
+        renderCommandEncoder->setObjectBytes(bytes, length, index);
+        break;
+    case METAL_SHADER_TYPE_MESH:
+        renderCommandEncoder->setMeshBytes(bytes, length, index);
+        break;
+    case METAL_SHADER_TYPE_FRAGMENT:
+        renderCommandEncoder->setFragmentBytes(bytes, length, index);
+        break;
+    default:
+        return;
+    }
+    boundBuffer = {nullptr, kBytesBoundOffset};
+    s_boundBytesIndex[shaderType] = index;
+    shadow.length = length;
+    std::memcpy(shadow.data, bytes, length);
+}
+
 void MetalRenderer::SetBuffer(MTL::RenderCommandEncoder* renderCommandEncoder, MetalShaderType shaderType, MTL::Buffer* buffer, size_t offset, uint32 index)
 {
     if (index >= MAX_MTL_BUFFERS)
@@ -2998,8 +3122,17 @@ MTL::CommandBuffer* MetalRenderer::GetCommandBuffer()
     bool needsNewCommandBuffer = (!m_currentCommandBuffer.m_commandBuffer || m_currentCommandBuffer.m_commited);
     if (needsNewCommandBuffer)
     {
-        if (m_gpuRecoveryPending && !m_gpuRecovering)
+        const bool replacingQueue = m_gpuRecoveryPending && !m_gpuRecovering;
+        if (replacingQueue)
             RecoverFromGpuFault();
+
+        if (m_memoryManager)
+        {
+            if (replacingQueue)
+                m_memoryManager->ReleaseArgumentCache();
+            else
+                m_memoryManager->AgeArgumentCache();
+        }
 
         auto pool = NS::AutoreleasePool::alloc()->init();
         auto* commandBufferDescriptor = MTL::CommandBufferDescriptor::alloc()->init();
@@ -3736,6 +3869,8 @@ bool MetalRenderer::AcquireDrawable(bool mainWindow)
         return false;
 
 #if BOOST_OS_IOS
+    if (!layer.GetDrawable() && PerfTelemetry::AppInBackground().load(std::memory_order_relaxed))
+        return false;
     const auto outputBit = mainWindow ? 1u : 2u;
     if (!layer.GetDrawable() && !(WindowSystem::GetWindowInfo().visible_outputs.load() & outputBit))
         return false;
@@ -3946,6 +4081,7 @@ bool MetalRenderer::BindStageResources(MTL::RenderCommandEncoder* renderCommandE
         sint32 samplerBinding = shader->resourceMapping.textureUnitToSamplerBindingPoint[relative_textureUnit];
 
         auto textureView = m_state.m_textures[hostTextureUnit];
+        const bool depthTexture = shader->textureUsesDepthCompare[relative_textureUnit] && IsValidDepthTextureType(textureDim);
         MTL::SamplerState* sampler = m_nearestSampler;
         uint32 stageSamplerIndex = shader->textureUnitSamplerAssignment[relative_textureUnit];
         if (samplerBinding >= 0 && stageSamplerIndex != LATTE_DECOMPILER_SAMPLER_NONE)
@@ -3954,7 +4090,7 @@ bool MetalRenderer::BindStageResources(MTL::RenderCommandEncoder* renderCommandE
             _LatteRegisterSetSampler* samplerWords = LatteGPUState.contextNew.SQ_TEX_SAMPLER + samplerIndex;
             if (textureView && textureView->baseTexture->overwriteInfo.anisotropicLevel >= 0)
                 samplerWords->WORD0.set_MAX_ANISO_RATIO(textureView->baseTexture->overwriteInfo.anisotropicLevel);
-            sampler = m_samplerCache->GetSamplerState(LatteGPUState.contextNew, shader->shaderType, stageSamplerIndex, samplerWords);
+            sampler = m_samplerCache->GetSamplerState(LatteGPUState.contextNew, shader->shaderType, stageSamplerIndex, samplerWords, depthTexture);
         }
         if (samplerBinding >= 0)
         {
@@ -3971,26 +4107,24 @@ bool MetalRenderer::BindStageResources(MTL::RenderCommandEncoder* renderCommandE
 
         MTL::Texture* mtlTexture = nullptr;
         bool textureViewFailed = false;
-        const bool integerTexture = shader->textureIsIntegerFormat[relative_textureUnit];
-        const bool depthTexture = shader->textureUsesDepthCompare[relative_textureUnit] && IsValidDepthTextureType(textureDim);
-        MTL::Texture* nullTexture = GetNullSampledTexture(textureDim, integerTexture, depthTexture);
+        const auto nullTexture = [&]() { return GetNullSampledTexture(textureDim, shader->textureIsIntegerFormat[relative_textureUnit], depthTexture); };
         if (!textureView)
         {
-            mtlTexture = nullTexture;
+            mtlTexture = nullTexture();
         }
         else if (textureDim == Latte::E_DIM::DIM_1D && (textureView->dim != Latte::E_DIM::DIM_1D))
         {
-            mtlTexture = nullTexture;
+            mtlTexture = nullTexture();
         }
         else if (textureDim == Latte::E_DIM::DIM_2D && (textureView->dim != Latte::E_DIM::DIM_2D && textureView->dim != Latte::E_DIM::DIM_2D_MSAA))
         {
-            mtlTexture = nullTexture;
+            mtlTexture = nullTexture();
         }
         else if (textureDim != Latte::E_DIM::DIM_1D &&
                  textureDim != Latte::E_DIM::DIM_2D &&
                  textureView->dim != textureDim)
         {
-            mtlTexture = nullTexture;
+            mtlTexture = nullTexture();
         }
         else
         {
@@ -3998,8 +4132,12 @@ bool MetalRenderer::BindStageResources(MTL::RenderCommandEncoder* renderCommandE
             mtlTexture = textureView->GetSwizzledView(word4);
             if (!mtlTexture)
             {
-                mtlTexture = nullTexture;
+                mtlTexture = nullTexture();
                 textureViewFailed = true;
+            }
+            else if (depthTexture && !textureView->baseTexture->isDepth)
+            {
+                cemuLog_logOnce(LogType::Force, "Metal shader {:016x} compares against texture unit {} (format {:04x}), which is a colour texture, not a depth texture; the result of that compare is undefined on Metal", shader->baseHash, relative_textureUnit, (uint32)textureView->format);
             }
         }
 
@@ -4106,16 +4244,19 @@ bool MetalRenderer::BindStageResources(MTL::RenderCommandEncoder* renderCommandE
         }
 
         size_t size = shader->uniform.uniformRangeSize;
-        auto* allocation = m_memoryManager->GetCachedSnapshot(MetalMemoryManager::SupportSnapshotBase + mtlShaderType, supportBufferData, size);
-        if (!allocation)
-            return false;
-        if (argumentEncoder)
+        const uint32 supportBinding = argumentEncoder ? MTL_SUPPORT_BUFFER_BINDING : (uint32)shader->resourceMapping.uniformVarsBufferBindingPoint;
+        if (argumentEncoder && size <= MTL_MAX_SET_BYTES)
         {
-            argumentBindings[MetalArgumentBuffer::SupportBuffer] = {MetalArgumentBinding::Type::Buffer, allocation->mtlBuffer, allocation->bufferOffset};
-            UseResource(renderCommandEncoder, allocation->mtlBuffer, MTL::ResourceUsageRead, renderStage);
+            const uint32 length = (uint32)std::min<size_t>(Align(std::max<size_t>(size, 16), 16), MTL_MAX_SET_BYTES);
+            SetBytes(renderCommandEncoder, mtlShaderType, supportBufferData, length, supportBinding);
         }
         else
-            SetBuffer(renderCommandEncoder, mtlShaderType, allocation->mtlBuffer, allocation->bufferOffset, shader->resourceMapping.uniformVarsBufferBindingPoint);
+        {
+            auto* allocation = m_memoryManager->GetCachedSnapshot(MetalMemoryManager::SupportSnapshotBase + mtlShaderType, supportBufferData, size);
+            if (!allocation)
+                return false;
+            SetBuffer(renderCommandEncoder, mtlShaderType, allocation->mtlBuffer, allocation->bufferOffset, supportBinding);
+        }
     }
 
     for (sint32 i = 0; i < LATTE_NUM_MAX_UNIFORM_BUFFERS; i++)

@@ -3,6 +3,7 @@
 #include "Cafe/HW/Latte/Core/LatteTexture.h"
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
 #include "Common/cpu_features.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 
 std::unordered_set<LatteTexture*> g_allTextures;
 
@@ -201,7 +202,14 @@ bool LatteTC_HasTextureChanged(LatteTexture* hostTexture, bool force)
 	{
 		return false;
 	}
+	const uint64 hashStart = PerfTelemetry::NowNs();
 	uint32 texDataHash = LatteTexture_CalculateTextureDataHash(hostTexture);
+	{
+		auto& perf = PerfTelemetry::Get();
+		perf.gpuTexHashNs.fetch_add(PerfTelemetry::NowNs() - hashStart, std::memory_order_relaxed);
+		perf.gpuTexHashes.fetch_add(1, std::memory_order_relaxed);
+		perf.gpuTexHashBytes.fetch_add(hostTexture->texDataPtrHigh - hostTexture->texDataPtrLow, std::memory_order_relaxed);
+	}
 	if( texDataHash != hostTexture->texDataHash2 )
 	{
 		hostTexture->texDataHash2 = texDataHash;

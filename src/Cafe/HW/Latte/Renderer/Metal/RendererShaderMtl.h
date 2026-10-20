@@ -17,7 +17,8 @@ class RendererShaderMtl : public RendererShader
 		NONE,
 		QUEUED,
 		COMPILING,
-		DONE
+		DONE,
+		DEFERRED
 	};
 
 public:

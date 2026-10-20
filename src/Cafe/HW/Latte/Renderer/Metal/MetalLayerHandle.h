@@ -42,6 +42,8 @@ private:
     double m_lastGoodWidth = 0.0;
     double m_lastGoodHeight = 0.0;
     uint32_t m_acquireCount = 0;
+    uint32_t m_skipAcquires = 0;
+    uint32_t m_starvedCount = 0;
 
     void RecordLayerState() const;
     void RepairLayer();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Metal/Metal.hpp>
+#include <unordered_map>
 
 #include "HW/Latte/ISA/LatteReg.h"
 
@@ -15,7 +16,7 @@ public:
 private:
     class MetalRenderer* m_mtlr;
 
-    std::map<uint64, MTL::DepthStencilState*> m_depthStencilCache;
+    std::unordered_map<uint64, MTL::DepthStencilState*> m_depthStencilCache;
 
     uint64 CalculateDepthStencilHash(const LatteContextRegister& lcr, bool hasDepthStencilAttachment);
 };

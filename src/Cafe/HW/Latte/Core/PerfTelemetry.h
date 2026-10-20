@@ -1,8 +1,10 @@
+
 #pragma once
 
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <type_traits>
 
 namespace PerfTelemetry
 {
@@ -41,6 +43,62 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> coreWakeups{0};
 		std::atomic<uint64_t> coreWakeLatencyNs{0};
 		std::atomic<uint64_t> coreWakeLatencyMaxNs{0};
+		std::atomic<uint32_t> textureTranscodes{0};
+		std::atomic<uint64_t> textureTranscodeNs{0};
+		std::atomic<uint32_t> textureTranscodeCacheHits{0};
+		std::atomic<uint32_t> textureTranscodeDirect{0};
+
+		std::atomic<uint32_t> gpuDraws{0};
+		std::atomic<uint64_t> gpuBeginNs{0};
+		std::atomic<uint64_t> gpuTexUpdateNs{0};
+		std::atomic<uint64_t> gpuTexHashNs{0};
+		std::atomic<uint32_t> gpuTexHashes{0};
+		std::atomic<uint64_t> gpuTexHashBytes{0};
+		std::atomic<uint64_t> gpuExecNs{0};
+		std::atomic<uint64_t> gpuIndexNs{0};
+		std::atomic<uint64_t> gpuFlushNs{0};
+		std::atomic<uint64_t> gpuBufferNs{0};
+		std::atomic<uint64_t> gpuSnapshotCompareBytes{0};
+		std::atomic<uint64_t> gpuSnapshotCopyBytes{0};
+		std::atomic<uint64_t> gpuPassNs{0};
+		std::atomic<uint64_t> gpuPipelineNs{0};
+		std::atomic<uint64_t> gpuBindNs{0};
+		std::atomic<uint32_t> gpuUseResourceCalls{0};
+		std::atomic<uint32_t> gpuUseResourceSkips{0};
+		std::atomic<uint64_t> gpuUseResourceNs{0};
+		std::atomic<uint32_t> gpuArgEncodes{0};
+		std::atomic<uint64_t> gpuArgEncodeNs{0};
+		std::atomic<uint32_t> gpuArgReuses{0};
+		std::atomic<uint64_t> gpuArgReuseNs{0};
+		std::atomic<uint32_t> gpuArgMissNoBase{0};
+		std::atomic<uint32_t> gpuArgMissSupport{0};
+		std::atomic<uint32_t> gpuArgMissSupportOnly{0};
+		std::atomic<uint32_t> gpuArgMissUniform{0};
+		std::atomic<uint32_t> gpuArgMissTexture{0};
+		std::atomic<uint32_t> gpuArgMissSampler{0};
+		std::atomic<uint32_t> gpuArgMissVertexIndex{0};
+		std::atomic<uint32_t> gpuArgMissConstant{0};
+		std::atomic<uint32_t> gpuArgDeltaEncodes{0};
+		std::atomic<uint64_t> gpuArgDeltaSlots{0};
+		std::atomic<uint64_t> gpuArgEncAllocNs{0};
+		std::atomic<uint64_t> gpuArgEncCopyNs{0};
+		std::atomic<uint64_t> gpuArgEncSetNs{0};
+		std::atomic<uint64_t> gpuArgEncFlushNs{0};
+		std::atomic<uint64_t> gpuBindTextureLoopNs{0};
+		std::atomic<uint64_t> gpuBindResidencyNs{0};
+		std::atomic<uint64_t> gpuBindSupportPrepNs{0};
+		std::atomic<uint64_t> gpuBindRemappedNs{0};
+		std::atomic<uint64_t> gpuBindSnapshotNs{0};
+		std::atomic<uint64_t> gpuBindUniformLoopNs{0};
+		std::atomic<uint64_t> gpuBindTrackNs{0};
+		std::atomic<uint64_t> gpuBindCrumbNs{0};
+		std::atomic<uint64_t> gpuBindVertexNs{0};
+		std::atomic<uint64_t> gpuBindFinalNs{0};
+		std::atomic<uint32_t> gpuSamplerLookups{0};
+		std::atomic<uint64_t> gpuSamplerLookupNs{0};
+		std::atomic<uint32_t> gpuTexViewLookups{0};
+		std::atomic<uint64_t> gpuTexViewLookupNs{0};
+		std::atomic<uint64_t> gpuEndNs{0};
 
 		std::atomic<uint32_t> jitBlocks{0};
 		std::atomic<uint64_t> jitCompileNs{0};
@@ -93,6 +151,12 @@ namespace PerfTelemetry
 		return s_summary;
 	}
 
+	inline std::atomic<bool>& AppInBackground()
+	{
+		static std::atomic<bool> s_background{false};
+		return s_background;
+	}
+
 	inline std::atomic<bool>& DrawBreadcrumbsEnabled()
 	{
 		static std::atomic<bool> s_enabled{true};
@@ -118,6 +182,38 @@ namespace PerfTelemetry
 	{
 		return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	}
+
+	inline constexpr uint32_t kSampleEvery = 8;
+	inline bool g_sampleFrame = false;
+	inline bool IsSampling() { return g_sampleFrame; }
+	inline void BeginFrameSampling()
+	{
+		static uint32_t s_frame = 0;
+		g_sampleFrame = (s_frame++ % kSampleEvery) == 0;
+	}
+	inline uint64_t SampleStart() { return g_sampleFrame ? NowNs() : 0; }
+	inline void SampleEnd(std::atomic<uint64_t>& sink, uint64_t start)
+	{
+		if (start)
+			sink.fetch_add((NowNs() - start) * kSampleEvery, std::memory_order_relaxed);
+	}
+	template <typename T>
+	inline void SampleCount(std::atomic<T>& sink, typename std::common_type<T>::type n = 1)
+	{
+		if (g_sampleFrame)
+			sink.fetch_add(n * kSampleEvery, std::memory_order_relaxed);
+	}
+	class SampledTimer
+	{
+	public:
+		explicit SampledTimer(std::atomic<uint64_t>& sink) : m_sink(sink), m_start(SampleStart()) {}
+		~SampledTimer() { SampleEnd(m_sink, m_start); }
+		SampledTimer(const SampledTimer&) = delete;
+		SampledTimer& operator=(const SampledTimer&) = delete;
+	private:
+		std::atomic<uint64_t>& m_sink;
+		uint64_t m_start;
+	};
 
 	class ScopedTimer
 	{

@@ -2,6 +2,7 @@
 #include "Cafe/HW/Latte/Core/Latte.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalLayer.h"
 
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "gui/interface/WindowSystem.h"
 
 MetalLayerHandle::MetalLayerHandle(MTL::Device* device, const Vector2i& size, bool mainWindow)
@@ -37,7 +38,8 @@ MetalLayerHandle::~MetalLayerHandle()
 MetalLayerHandle::MetalLayerHandle(MetalLayerHandle&& other) noexcept
     : m_layer(other.m_layer), m_layerScaleX(other.m_layerScaleX), m_layerScaleY(other.m_layerScaleY),
       m_drawable(other.m_drawable), m_device(other.m_device), m_isMainWindow(other.m_isMainWindow),
-      m_lastGoodWidth(other.m_lastGoodWidth), m_lastGoodHeight(other.m_lastGoodHeight), m_acquireCount(other.m_acquireCount)
+      m_lastGoodWidth(other.m_lastGoodWidth), m_lastGoodHeight(other.m_lastGoodHeight), m_acquireCount(other.m_acquireCount),
+      m_skipAcquires(other.m_skipAcquires), m_starvedCount(other.m_starvedCount)
 {
     other.m_layer = nullptr;
     other.m_drawable = nullptr;
@@ -58,6 +60,8 @@ MetalLayerHandle& MetalLayerHandle::operator=(MetalLayerHandle&& other) noexcept
     m_lastGoodWidth = other.m_lastGoodWidth;
     m_lastGoodHeight = other.m_lastGoodHeight;
     m_acquireCount = other.m_acquireCount;
+    m_skipAcquires = other.m_skipAcquires;
+    m_starvedCount = other.m_starvedCount;
     other.m_layer = nullptr;
     other.m_drawable = nullptr;
     return *this;
@@ -115,9 +119,24 @@ bool MetalLayerHandle::AcquireDrawable()
     if (m_drawable)
         return true;
 
+    if (m_skipAcquires > 0)
+    {
+        --m_skipAcquires;
+        return false;
+    }
+
+    const uint64_t acquireStart = PerfTelemetry::NowNs();
     {
         LatteWait::Scope waitScope("waiting for a screen drawable", LatteWait::Kind::Display);
         m_drawable = m_layer->nextDrawable();
+    }
+    const uint64_t acquireNs = PerfTelemetry::NowNs() - acquireStart;
+    if (!m_drawable || acquireNs >= 250ull * 1000000ull)
+    {
+        m_skipAcquires = 30;
+        if (m_starvedCount++ % 20 == 0)
+            cemuLog_log(LogType::Force, "layer {} ({}) is not returning drawables ({} ms for {}); skipping its next {} presents ({} times so far)",
+                (void*)this, m_isMainWindow ? "TV" : "GamePad", acquireNs / 1000000ull, m_drawable ? "a drawable" : "nothing", m_skipAcquires, m_starvedCount);
     }
     if (!m_drawable)
     {
