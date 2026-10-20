@@ -614,8 +614,6 @@ struct EspressUSettingsView: View {
             GraphicPacksView()
         case .figureManager:
             EmulatedDevicesView()
-        case .licences:
-            OpenSourceLicencesView()
         default:
             Form { legacySections(page) }
                 .settingsPageBackground()

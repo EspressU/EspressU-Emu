@@ -17,6 +17,8 @@ struct EspressUOnboardingView: View {
     @ObservedObject private var pairing = DevicePairing.shared
     @State private var gamesNote: String?
     @State private var choosingFolder = false
+    @State private var importingPairing = false
+    @State private var pairingNote: String?
     @State private var keyCount = WiiUKeys.keysFileExists() ? WiiUKeys.installedKeyCount() : 0
 
     private let pageCount = 4
@@ -52,6 +54,10 @@ struct EspressUOnboardingView: View {
             case .success(let url): importGames([url])
             case .failure(let error): gamesNote = error.localizedDescription
             }
+        }
+        .fileImporter(isPresented: $importingPairing, allowedContentTypes: [.propertyList, .xml, .data, .item]) { result in
+            input.resume()
+            importPairingFile(result)
         }
         .onChange(of: page) { focus = defaultFocus(for: $0) }
         .onChange(of: scenePhase) { phase in
@@ -294,7 +300,9 @@ struct EspressUOnboardingView: View {
         OnboardingColumns(wide: wide) {
             VStack(alignment: .leading, spacing: 16) {
                 pageHeading("Turn on full speed",
-                            "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once.")
+                            DevicePairing.isSupported
+                                ? "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once."
+                                : "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once. This iOS version can't make one itself, so you import one.")
                 jitStatusCard
                 Text("No JIT? Games still start, just much slower.")
                     .font(.system(.subheadline, design: .rounded))
@@ -306,7 +314,11 @@ struct EspressUOnboardingView: View {
                     .font(.system(.title3, design: .rounded).weight(.semibold))
                     .foregroundColor(EspressUTheme.onBackground)
                     .accessibilityAddTraits(.isHeader)
-                stepCard(1, "Pair this device", "Tap Pair. A pairing file from iLoader works too: Settings › JIT.")
+                if DevicePairing.isSupported {
+                    stepCard(1, "Pair this device", "Tap Pair. A pairing file from iLoader works too: Settings › JIT.")
+                } else {
+                    stepCard(1, "Import a pairing file", "Built-in pairing needs iOS \(DevicePairing.minimumIOSVersion) or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.")
+                }
                 stepCard(2, "Connect LocalDevVPN", "EspressU reaches the device through it. Wi-Fi works best.")
                 stepCard(3, "That's it", "JIT switches on by itself whenever LocalDevVPN is connected.")
             }
@@ -320,7 +332,7 @@ struct EspressUOnboardingView: View {
                 JITPairingCard()
             }
             Button(action: pairOrStop) {
-                Text(pairing.isActive ? "Stop pairing" : (StikJITSetup.hasPairingFile ? "Pair again" : "Pair"))
+                Text(pairing.isActive ? "Stop pairing" : pairButtonTitle)
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(pairing.isActive ? EspressUTheme.brownDarkest : EspressUTheme.onAccent)
                     .frame(maxWidth: .infinity, minHeight: 52)
@@ -329,14 +341,43 @@ struct EspressUOnboardingView: View {
             .buttonStyle(.plain)
             .controllerFocusRing(isFocused("pairJit"), shape: Capsule())
             if case .failed(let reason) = pairing.state { noteText(reason) }
+            if let pairingNote { noteText(pairingNote) }
         }
         .padding(22)
         .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
     }
 
+    private var pairButtonTitle: String {
+        if DevicePairing.isSupported { return StikJITSetup.hasPairingFile ? "Pair again" : "Pair" }
+        return StikJITSetup.hasPairingFile ? "Import another pairing file" : "Import pairing file"
+    }
+
     private func pairOrStop() {
-        if pairing.isActive { pairing.cancel() } else { pairing.start() }
+        if pairing.isActive {
+            pairing.cancel()
+        } else if DevicePairing.isSupported {
+            pairing.start()
+        } else {
+            input.pause()
+            importingPairing = true
+        }
+    }
+
+    private func importPairingFile(_ result: Result<URL, Error>) {
+        switch result {
+        case .success(let url):
+            do {
+                try StikJITSetup.importPairingFile(from: url)
+                StikJITCoordinator.shared.pairingFileChanged()
+                StikJITCoordinator.shared.autoEnableIfPossible()
+                pairingNote = nil
+            } catch {
+                pairingNote = "Couldn't import it: \(error.localizedDescription)"
+            }
+        case .failure(let error):
+            pairingNote = "Couldn't import it: \(error.localizedDescription)"
+        }
     }
 
     private func controllerPage(wide: Bool) -> some View {

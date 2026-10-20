@@ -563,7 +563,12 @@ extension GraphicPackStore: URLSessionDownloadDelegate {
             }
             return
         }
-        DispatchQueue.main.async { self.finishPendingInstallIfPossible() }
+        DispatchQueue.main.async {
+            // finishPendingInstallIfPossible only starts from .idle. Left at .downloading(1.0) it returned at once,
+            // so the progress bar sat at 100% and the pack was never installed.
+            if case .downloading = self.phase { self.phase = .idle }
+            self.finishPendingInstallIfPossible()
+        }
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {

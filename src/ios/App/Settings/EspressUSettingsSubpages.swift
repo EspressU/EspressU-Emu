@@ -38,7 +38,8 @@ extension EspressUSettingsView {
         case .graphicPack: return graphicPackGroups
         case .touchControls: return touchControlsGroups
         case .networkService: return customServerGroups
-        case .figureManager, .licences: return nil
+        case .licences: return licencesGroups
+        case .figureManager: return nil
         }
     }
 
@@ -465,6 +466,22 @@ extension EspressUSettingsView {
                              detail: "Shows over the game whether button presses reach it, and why not.",
                              control: .toggle(values.bool(PadDiagnostics.enabledKey, PadDiagnostics.defaultEnabled))),
             ]),
+        ]
+    }
+
+    private var licencesGroups: [SettingsGroup] {
+        let rows = OpenSourceLicencesView.components.map { component in
+            SettingsItem(id: "licence.\(component.name)", title: component.name,
+                         control: .open(component.licence, {
+                             if let url = URL(string: component.licenceURL) { UIApplication.shared.open(url) }
+                         }))
+        }
+        return [
+            SettingsGroup(id: "licences.note", title: "", items: [
+                SettingsItem(id: "licences.own", title: "EspressU", detail: "EspressU's own source is licensed under the Mozilla Public License 2.0. Each component below keeps its own copyright and licence. Tap one to read its licence.",
+                             control: .info("MPL-2.0", nil)),
+            ]),
+            SettingsGroup(id: "licences.list", title: "Included software", items: rows),
         ]
     }
 

@@ -27,12 +27,23 @@ final class DevicePairing: NSObject, ObservableObject {
 
     static let hostName = "EspressU"
 
+    /// The built-in pairing (EspressU showing up in Developer Mode settings) needs this iOS version or newer.
+    static let minimumIOSVersion = 27
+
+    static var isSupported: Bool {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= minimumIOSVersion
+    }
+
     private var host: DevicePairingHost?
     private var service: NetService?
     private let keepAlive = SilentAudioKeepAlive()
 
     func start() {
         guard !isActive else { return }
+        guard Self.isSupported else {
+            state = .failed("Built-in pairing needs iOS \(Self.minimumIOSVersion) or newer. Import a pairing file instead.")
+            return
+        }
         StikJITSetup.ensureDirectory()
         var problem: NSString?
         guard let host = DevicePairingHost(name: Self.hostName, failure: &problem) else {
