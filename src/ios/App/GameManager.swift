@@ -163,6 +163,7 @@ enum LibraryMetadataCache {
 
 @MainActor
 class GameManager: ObservableObject {
+    @Published private(set) var isQuitting = false
     @Published var games: [GameMetadata] = [] {
         didSet {
             DuplicateInstalls.shared.update(games)
@@ -1212,6 +1213,37 @@ class GameManager: ObservableObject {
         emulationState = .idle
         currentGame = nil
         ActiveGameSettings.end()
+    }
+
+    /// Same as stopEmulation, but the slow part (joining the CPU and GPU threads, flushing caches)
+    /// runs off the main thread so the UI stays responsive. A new launch waits until it is done.
+    func quitEmulationAsync() {
+        guard !isQuitting else { return }
+        isQuitting = true
+        launchToken = UUID()
+        if let gameID = currentGame?.settingsKey {
+            AutoCoreHistory.sessionEnded(gameID: gameID, stalled: videoStalled && videoStallKind == 1)
+        }
+        stopFrameRateMonitor()
+        #if os(iOS)
+        cemu_bridge_resume()
+        #endif
+        DispatchQueue.global(qos: .userInitiated).async {
+            cemu_bridge_shutdown_title()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.emulationEngine?.stop()
+                #if os(iOS)
+                DisplayRouter.shared.titleStopped()
+                #endif
+                self.surfaceRegistered = false
+                self.releaseExternalHold()
+                self.emulationState = .idle
+                self.currentGame = nil
+                ActiveGameSettings.end()
+                self.isQuitting = false
+            }
+        }
     }
 
     private func releaseExternalHold() {

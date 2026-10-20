@@ -1590,7 +1590,7 @@ struct EmulatorViewOptimized: View {
                 resume: closeHomeMenu,
                 moveControls: moveControlsFromHomeMenu,
                 quit: {
-                    gameManager.stopEmulation()
+                    gameManager.quitEmulationAsync()
                     isRunning = true
                 },
                 swapScreens: swapScreensFromHomeMenu,
