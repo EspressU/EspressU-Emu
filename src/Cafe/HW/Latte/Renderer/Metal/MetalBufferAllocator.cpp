@@ -1,5 +1,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalBufferAllocator.h"
 #include "Cemu/Logging/CemuLogging.h"
+#include <chrono>
 
 MetalBufferChunkedHeap::~MetalBufferChunkedHeap()
 {
@@ -35,14 +36,26 @@ void MetalSynchronizedRingAllocator::addUploadBufferSyncPoint(AllocatorBuffer_t&
 	buffer.queue_syncPoints.emplace(commandBuffer, offset);
 }
 
+#if BOOST_OS_IOS
+void IOSBridge_LogAllocationFailure(const char* what, uint64 wantedBytes);
+#endif
+
 void MetalSynchronizedRingAllocator::allocateAdditionalUploadBuffer(uint32 sizeRequiredForAlloc)
 {
+	const auto now = std::chrono::steady_clock::now();
+	if (m_consecutiveFailures > 0 && now < m_retryNotBefore && sizeRequiredForAlloc >= m_failedRequiredSize)
+	{
+		m_skippedWhilePaused++;
+		return;
+	}
+
 	uint32 bufferAllocSize = m_minimumBufferAllocSize;
 	while (bufferAllocSize < sizeRequiredForAlloc)
 		bufferAllocSize += m_minimumBufferAllocSize;
 
 	MTL::Buffer* mtlBuffer = m_mtlr->GetDevice()->newBuffer(bufferAllocSize, m_options);
 	uint32 attemptSize = bufferAllocSize;
+	uint32 lastTried = bufferAllocSize;
 	while (!mtlBuffer && attemptSize > sizeRequiredForAlloc)
 	{
 		const uint32 previousAttemptSize = attemptSize;
@@ -53,6 +66,7 @@ void MetalSynchronizedRingAllocator::allocateAdditionalUploadBuffer(uint32 sizeR
 		if (attemptSize >= previousAttemptSize)
 			break;
 		mtlBuffer = m_mtlr->GetDevice()->newBuffer(attemptSize, m_options);
+		lastTried = attemptSize;
 		if (attemptSize <= sizeRequiredForAlloc)
 			break;
 	}
@@ -60,12 +74,32 @@ void MetalSynchronizedRingAllocator::allocateAdditionalUploadBuffer(uint32 sizeR
 		bufferAllocSize = attemptSize;
 	if (!mtlBuffer)
 	{
+		const uint32 floorSize = std::max<uint32>(0x4000, (sizeRequiredForAlloc + 0x3FFF) & ~0x3FFFu);
+		uint32 smallSize = lastTried;
+		while (!mtlBuffer && smallSize > floorSize)
+		{
+			smallSize = std::max<uint32>(floorSize, ((smallSize / 2) + 0x3FFF) & ~0x3FFFu);
+			mtlBuffer = m_mtlr->GetDevice()->newBuffer(smallSize, m_options);
+		}
+		if (mtlBuffer)
+			bufferAllocSize = smallSize;
+	}
+	if (!mtlBuffer)
+	{
 		static uint32 s_failures = 0;
 		if (s_failures++ < 8 || (s_failures % 500) == 0)
-			cemuLog_log(LogType::Force, "Metal: staging buffer allocation failed, wanted {} bytes ({} failures so far)", bufferAllocSize, s_failures);
+			cemuLog_log(LogType::Force, "Metal: staging buffer allocation failed, wanted {} bytes ({} failures so far, {} requests refused during the pauses)", bufferAllocSize, s_failures, m_skippedWhilePaused);
+#if BOOST_OS_IOS
+		if (s_failures <= 3)
+			IOSBridge_LogAllocationFailure("Metal staging buffer", bufferAllocSize);
+#endif
+		m_consecutiveFailures = std::min<uint32>(m_consecutiveFailures + 1, 16);
+		m_failedRequiredSize = sizeRequiredForAlloc;
+		m_retryNotBefore = now + std::chrono::milliseconds(std::min<uint32>(2000, 250u << std::min<uint32>(m_consecutiveFailures - 1, 3)));
 		LatteWait::Get().evictionRequested.store(true);
 		return;
 	}
+	m_consecutiveFailures = 0;
 
 	AllocatorBuffer_t newBuffer{};
 	newBuffer.writeIndex = 0;
@@ -128,8 +162,14 @@ MetalSynchronizedRingAllocator::AllocatorReservation_t MetalSynchronizedRingAllo
 		return res;
 	}
 
-	const size_t bufferCountBefore = m_buffers.size();
+	size_t bufferCountBefore = m_buffers.size();
 	allocateAdditionalUploadBuffer(size);
+	if (m_buffers.size() == bufferCountBefore && releaseIdleBuffers())
+	{
+		bufferCountBefore = m_buffers.size();
+		m_consecutiveFailures = 0;
+		allocateAdditionalUploadBuffer(size);
+	}
 	if (m_buffers.size() == bufferCountBefore)
 	{
 		cemuLog_logOnce(LogType::Force, "Metal: could not reserve {} bytes of staging memory (alignment {})", size, alignment);
@@ -145,6 +185,22 @@ void MetalSynchronizedRingAllocator::FlushReservation(AllocatorReservation_t& up
     {
         uploadReservation.mtlBuffer->didModifyRange(NS::Range(uploadReservation.bufferOffset, uploadReservation.size));
     }
+}
+
+bool MetalSynchronizedRingAllocator::releaseIdleBuffers()
+{
+	bool releasedAny = false;
+	for (sint32 i = (sint32)m_buffers.size() - 1; i >= 0; i--)
+	{
+		if (!m_buffers[i].queue_syncPoints.empty())
+			continue;
+		m_buffers[i].mtlBuffer->release();
+		m_buffers.erase(m_buffers.begin() + i);
+		for (size_t j = (size_t)i; j < m_buffers.size(); j++)
+			m_buffers[j].index = (uint32)j;
+		releasedAny = true;
+	}
+	return releasedAny;
 }
 
 void MetalSynchronizedRingAllocator::CleanupBuffer(MTL::CommandBuffer* latestFinishedCommandBuffer)
@@ -208,7 +264,7 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalSynchronizedHeapAlloc
 		cemuLog_logOnce(LogType::Force, "Metal: could not reserve {} bytes of buffer memory (alignment {})", size, alignment);
 		return nullptr;
 	}
-	m_activeAllocations.emplace_back(addr);
+	m_activeAllocations.emplace(ActiveKey(addr.chunkIndex, addr.offset), addr);
 	AllocatorReservation* res = m_poolAllocatorReservation.allocObj();
 	res->bufferIndex = addr.chunkIndex;
 	res->bufferOffset = addr.offset;
@@ -222,7 +278,7 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalSynchronizedHeapAlloc
 void MetalSynchronizedHeapAllocator::FreeReservation(AllocatorReservation* uploadReservation)
 {
 	MTL::CommandBuffer* currentCommandBuffer = m_mtlr->GetCommandBufferToRetireOn();
-	auto it = std::find_if(m_activeAllocations.begin(), m_activeAllocations.end(), [&uploadReservation](const TrackedAllocation& allocation) { return allocation.allocation.chunkIndex == uploadReservation->bufferIndex && allocation.allocation.offset == uploadReservation->bufferOffset; });
+	auto it = m_activeAllocations.find(ActiveKey(uploadReservation->bufferIndex, uploadReservation->bufferOffset));
 	if (it == m_activeAllocations.end())
 	{
 		cemuLog_log(LogType::Force,
@@ -233,9 +289,9 @@ void MetalSynchronizedHeapAllocator::FreeReservation(AllocatorReservation* uploa
 		return;
 	}
 	if (currentCommandBuffer)
-		m_releaseQueue[currentCommandBuffer].emplace_back(it->allocation);
+		m_releaseQueue[currentCommandBuffer].emplace_back(it->second);
 	else
-		m_chunkedHeap.free(it->allocation);
+		m_chunkedHeap.free(it->second);
 	m_activeAllocations.erase(it);
 	m_poolAllocatorReservation.freeObj(uploadReservation);
 }

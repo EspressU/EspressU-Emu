@@ -49,6 +49,9 @@ struct MetalQueryRange
 #define GET_HELPER_TEXTURE_BINDING(index) (29 + index)
 #define GET_HELPER_SAMPLER_BINDING(index) (14 + index)
 
+#define MTL_SUPPORT_BUFFER_BINDING 4
+#define MTL_MAX_SET_BYTES 4096
+
 namespace MetalArgumentBuffer
 {
 	constexpr uint32 BindingIndex = 0;
