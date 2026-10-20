@@ -694,6 +694,13 @@ void cemu_bridge_memory_note(const char* tag) {
     cemu_mem_write_line(tag && tag[0] ? tag : "checkpoint", avail, foot);
 }
 
+bool MetalPipelineCache_FlushArchive(uint32_t timeoutMs);
+
+void cemu_bridge_flush_pipeline_cache(void) {
+    if (!MetalPipelineCache_FlushArchive(4000))
+        cemu_bridge_log_checkpoint("pipeline cache flush did not finish in 4 s");
+}
+
 void cemu_bridge_start_memory_watchdog(void) {
     if (g_memWatchRunning.exchange(true))
         return;
