@@ -44,10 +44,25 @@ public:
 		rangeEntry->lastIterationIndex = currentIterationIndex;
 
 		size_t idx = bucketFirst;
-		for (size_t i = 0; i < bucketCount; i++)
+		size_t i = 0;
+		try
 		{
-			rangeBuckets[idx].list_ranges.push_back(rangeEntry);
-			idx = (idx + 1) % count;
+			for (; i < bucketCount; i++)
+			{
+				rangeBuckets[idx].list_ranges.push_back(rangeEntry);
+				idx = (idx + 1) % count;
+			}
+		}
+		catch (...)
+		{
+			size_t undoIdx = bucketFirst;
+			for (size_t u = 0; u < i; u++)
+			{
+				rangeBuckets[undoIdx].list_ranges.pop_back();
+				undoIdx = (undoIdx + 1) % count;
+			}
+			delete rangeEntry;
+			throw;
 		}
 
 		return rangeEntry;

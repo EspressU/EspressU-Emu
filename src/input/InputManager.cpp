@@ -995,8 +995,12 @@ void InputManager::update_thread()
         for (auto& pad : m_wpad) { if (pad) pad->update(); }
         lock.unlock();
 
+#if BOOST_OS_IOS
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+#else
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         std::this_thread::yield();
+#endif
     }
 }
 

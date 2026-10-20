@@ -96,8 +96,19 @@ private:
             if (m_stopFlag.load(std::memory_order_acquire))
                 return;
 
-            while (PPCRecompiler_drainQueue())
+            while (true)
             {
+                bool more = false;
+                try
+                {
+                    more = PPCRecompiler_drainQueue();
+                }
+                catch (...)
+                {
+                    more = true;
+                }
+                if (!more)
+                    break;
                 if (m_stopFlag.load(std::memory_order_acquire))
                     return;
             }
