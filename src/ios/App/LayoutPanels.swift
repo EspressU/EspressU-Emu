@@ -210,8 +210,6 @@ struct EspressUPadLayoutPanel: View {
     }
 
     @ViewBuilder private var rows: some View {
-        TouchLabStylePicker()
-
         Picker("Edit mode", selection: $individualEditMode) {
             Text("Grouped").tag(false)
             Text("Individual").tag(true)

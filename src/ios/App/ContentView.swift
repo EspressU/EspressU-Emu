@@ -1437,9 +1437,7 @@ struct EmulatorViewOptimized: View {
     }
 
     private var padSystem: PadSystem {
-        if TouchLabSettings.isTouchLab(touchLabScheme) { return .touchLab }
-        if previewPadEnabled { return .preview }
-        return .espressu
+        return .touchLab
     }
 
     private var isPhonePortrait: Bool {
@@ -1742,7 +1740,6 @@ struct EmulatorViewOptimized: View {
                 Group {
                 if padSystem == .touchLab {
                     TouchLabPadOverlay(
-                        schemeID: touchLabScheme,
                         gameID: gameManager.currentGame?.settingsKey,
                         screens: touchLabScreens,
                         enabled: !isPaused && !isEditingControlLayout,
@@ -1782,7 +1779,7 @@ struct EmulatorViewOptimized: View {
                         PadDiagnosticsOverlay(
                             padControlsHidden: padControlsHidden,
                             previewPadEnabled: previewPadEnabled,
-                            touchLabScheme: touchLabScheme,
+                            touchLabScheme: TouchLabSettings.schemeID,
                             isEditingLayout: isEditingControlLayout,
                             isPaused: isPaused
                         )

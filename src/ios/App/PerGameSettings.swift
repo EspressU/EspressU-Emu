@@ -140,7 +140,6 @@ enum PerGameKeyMigration {
         for game in games where game.titleId != nil && game.settingsKey != game.id {
             PerGameSettingsStore.shared.adoptTitleIDKey(for: game)
             AutoCoreHistory.adoptTitleIDKey(from: game.id, to: game.settingsKey)
-            TouchLabSettings.adoptAdaptiveKey(from: game.id, to: game.settingsKey)
         }
     }
 }

@@ -623,7 +623,7 @@ struct EspressUSettingsView: View {
     @ViewBuilder private func legacySections(_ page: LegacySettingsPage) -> some View {
         switch page {
         case .emulatedClock: EmulatedClockSection()
-        case .touchControls: OnScreenControlsSection()
+        case .touchControls: EmptyView()
         case .figures: EmulatedDevicesSettingsSection()
         case .overlay:
             OverlaySettingsSection()
