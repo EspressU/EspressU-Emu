@@ -175,6 +175,7 @@ bool cemu_bridge_timebase_auto_enabled(void);
 bool cemu_bridge_has_txm(void);
 
 int cemu_bridge_cpu_mode(void);
+bool cemu_bridge_jit_probe(void);
 
 void cemu_bridge_set_recompiler_enabled(bool enabled);
 bool cemu_bridge_recompiler_enabled(void);

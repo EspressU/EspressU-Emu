@@ -218,6 +218,7 @@ struct GameOptionsView: View {
     let game: GameMetadata
     @ObservedObject var store: PerGameSettingsStore
     var libraryGames: [GameMetadata] = []
+    var showsOverrides = true
     @Environment(\.dismiss) private var dismiss
     @AppStorage(SettingsMode.storageKey) private var settingsModeRaw = SettingsMode.defaultValue.rawValue
 
@@ -545,8 +546,10 @@ struct GameOptionsView: View {
 
     private var optionsForm: some View {
         Form {
-            overridesSection
-            AdvancedGameOptionsSection(game: game, store: store)
+            if showsOverrides {
+                overridesSection
+                AdvancedGameOptionsSection(game: game, store: store)
+            }
             GameShaderCacheSection(game: game)
             graphicPacksSection
             gameSavesSection
@@ -578,7 +581,7 @@ struct GameOptionsView: View {
             } message: { pending in
                 Text("\"\(pending.name)\" doesn't say. Desktop Cemu's are named ..._vkpipeline.bin and EspressU's ..._mtlpipeline.bin. It's stored under the matching name either way.")
             }
-            .navigationTitle(game.title)
+            .navigationTitle(showsOverrides ? game.title : "Packs, saves and caches")
             .espressuOpaqueNavigationBar(EspressUTheme.formGround)
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)

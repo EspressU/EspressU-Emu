@@ -12,6 +12,8 @@
 #import <QuartzCore/CAMetalLayer.h>
 
 #include <sys/sysctl.h>
+#include <sys/mman.h>
+#include <mach/mach.h>
 #include <string>
 #include <cstring>
 #include <atomic>
@@ -794,6 +796,37 @@ bool ios_process_is_debugged(uint32_t& flagsOut)
     return csops(getpid(), 0  , &flagsOut, sizeof(flagsOut)) == 0 && (flagsOut & 0x10000000u) != 0;
 }
 
+bool ios_jit_probe_impl()
+{
+    // CS_DEBUGGED stays set after the JIT helper let go, so the flag alone doesn't prove JIT works right now.
+    // Where the recompiler maps its code like PPCRecompiler_allocateDualMap (not on TXM), map a page the same way.
+    const char* dual = getenv("DUAL_MAPPED_JIT");
+    const char* txm = getenv("HAS_TXM");
+    if (!dual || strcmp(dual, "1") != 0 || (txm && strcmp(txm, "1") == 0))
+        return true;
+    const size_t size = 16384;
+    void* rx = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (rx == MAP_FAILED)
+    {
+        cemu_bridge_log_checkpoint("JIT probe: the system refused executable memory");
+        return false;
+    }
+    vm_address_t rw = 0;
+    vm_prot_t curProt = VM_PROT_NONE, maxProt = VM_PROT_NONE;
+    kern_return_t kr = vm_remap(mach_task_self(), &rw, (vm_size_t)size, 0, VM_FLAGS_ANYWHERE,
+                                mach_task_self(), (vm_address_t)rx, FALSE, &curProt, &maxProt, VM_INHERIT_NONE);
+    bool ok = false;
+    if (kr == KERN_SUCCESS)
+    {
+        ok = vm_protect(mach_task_self(), rw, (vm_size_t)size, FALSE, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS;
+        vm_deallocate(mach_task_self(), rw, (vm_size_t)size);
+    }
+    munmap(rx, size);
+    if (!ok)
+        cemu_bridge_log_checkpoint("JIT probe: couldn't make a writable alias of executable memory");
+    return ok;
+}
+
 namespace {
     struct IosDeviceFacts
     {
@@ -946,7 +979,7 @@ namespace {
 void ios_apply_cpu_mode(bool announce = false)
 {
     uint32_t csFlags = 0;
-    const bool debugged = ios_process_is_debugged(csFlags);
+    const bool debugged = ios_process_is_debugged(csFlags) && ios_jit_probe_impl();
     uint64_t titleId = 0;
     if (announce)
         titleId = CafeSystem::GetForegroundTitleId();
@@ -2816,6 +2849,10 @@ bool cemu_bridge_has_txm(void) {
 
 int cemu_bridge_cpu_mode(void) {
     return g_cpuMode.load();
+}
+
+bool cemu_bridge_jit_probe(void) {
+    return ios_jit_probe_impl();
 }
 
 const char* cemu_bridge_cpu_mode_detail(void) {

@@ -462,7 +462,11 @@ struct GameBrowserView: View {
             }
             .task { await installFromInbox() }
             .onReceive(Timer.publish(every: 10, on: .main, in: .common).autoconnect()) { _ in
-                guard scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isActive else { return }
+                guard scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
+                StikJITCoordinator.shared.autoEnableIfPossible()
+            }
+            .onReceive(LocalDevVPNMonitor.shared.$isConnected.removeDuplicates().dropFirst()) { connected in
+                guard connected, scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
                 StikJITCoordinator.shared.autoEnableIfPossible()
             }
             .task {
@@ -473,6 +477,7 @@ struct GameBrowserView: View {
                 showingSettings = false
             }
             .onAppear {
+                LocalDevVPNMonitor.shared.start()
                 #if os(iOS)
                 if gameManager.emulationState == .idle { GameControlHints.restoreGlobals() }
                 #endif
@@ -992,7 +997,7 @@ struct GameBrowserView: View {
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
-                runDlcUpdateImport(from: url, kind: kind, longPressedGame: game, manualMatch: nil)
+                runDlcUpdateImport(from: url, kind: kind, longPressedGame: game, manualMatch: game)
             case .failure(let error):
                 dlcImportErrorMessage = error.localizedDescription
             }
@@ -1676,11 +1681,9 @@ struct EmulatorViewOptimized: View {
                             InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
                                 .disabled(gameManager.emulationState != .running || showHomeMenu)
                                 .accessibilityLabel("HOME menu")
-                            if !padHiddenByController || displayRouter.placement == .dualScreen {
-                                InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
-                                    .disabled(gameManager.emulationState != .running)
-                                    .accessibilityLabel(isPaused ? "Resume" : "Pause")
-                            }
+                            InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
+                                .disabled(gameManager.emulationState != .running)
+                                .accessibilityLabel(isPaused ? "Resume" : "Pause")
                         }
                     }
                     .padding(4)
@@ -1688,7 +1691,7 @@ struct EmulatorViewOptimized: View {
 
                     Spacer(minLength: 0)
 
-                    if (!padHiddenByController || displayRouter.placement == .dualScreen) && gameManager.emulationState == .running {
+                    if gameManager.emulationState == .running {
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)

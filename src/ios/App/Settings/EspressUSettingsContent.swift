@@ -67,8 +67,33 @@ extension EspressUSettingsView {
                          control: .custom(AnyView(HeatStatusBadge()))),
         ]
 
+        let speed: [SettingsItem] = [
+            SettingsItem(id: "cpu.accuracy", title: "Favour accuracy",
+                         detail: "Slower but more accurate: one CPU core and stricter GPU syncing. Can fix a game that glitches or crashes.",
+                         control: .toggle(values.bool("espressu.cpu.favourAccuracy", false) { on in
+                             cemu_bridge_set_favour_accuracy(on)
+                             if on {
+                                 UserDefaults.standard.set(false, forKey: FavourPerformance.storageKey)
+                                 cemu_bridge_set_favour_performance(false)
+                             }
+                         })),
+            SettingsItem(id: "cpu.performance", title: "Favour performance",
+                         detail: "As fast as possible: a softer picture, rougher lighting in some games, and shaders that may pop in.",
+                         control: .toggle(values.bool(FavourPerformance.storageKey, FavourPerformance.defaultValue) { on in
+                             cemu_bridge_set_favour_performance(on)
+                             if on {
+                                 UserDefaults.standard.set(false, forKey: "espressu.cpu.favourAccuracy")
+                                 cemu_bridge_set_favour_accuracy(false)
+                             }
+                         })),
+            SettingsItem(id: "cpu.onecore", title: "One-core mode",
+                         detail: "One CPU core, whatever CPU cores is set to.",
+                         control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
+        ]
+
         return [
             SettingsGroup(id: "cpu", title: "CPU", items: cpu),
+            SettingsGroup(id: "speed", title: "Speed and accuracy", items: speed),
             SettingsGroup(id: "heat", title: "Heat", items: heat),
         ]
     }

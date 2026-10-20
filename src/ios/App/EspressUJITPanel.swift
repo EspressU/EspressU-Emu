@@ -91,6 +91,7 @@ struct EspressUJITPanel: View {
     var maxHeight: CGFloat = 700
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var coordinator = StikJITCoordinator.shared
+    @ObservedObject private var vpn = LocalDevVPNMonitor.shared
 
     var body: some View {
         VStack(spacing: 14) {

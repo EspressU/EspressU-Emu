@@ -3,6 +3,7 @@
 import SwiftUI
 import UIKit
 import Darwin
+import Network
 
 enum StikJITSetup {
     static let forceScriptKey = "espressu.stikjit.forceScript"
@@ -156,11 +157,21 @@ final class StikJITCoordinator: ObservableObject {
         + (0...10).map { "download.\($0)" }
 
     var launchNeedsJIT: Bool {
-        JITSettings.enabled && !JITStatus.isActive
+        JITSettings.enabled && !JITStatus.isUsable
+    }
+
+    /// Called by LocalDevVPNMonitor the moment the tunnel appears or goes away.
+    func vpnChanged(_ connected: Bool) {
+        guard job == nil else { return }
+        if connected {
+            if case .unreachable = readiness { readiness = .notChecked }
+        } else {
+            readiness = .unreachable("LocalDevVPN is off. Turn it on and JIT switches on by itself.")
+        }
     }
 
     func acquireForLaunch(_ completion: @escaping (LaunchOutcome) -> Void) {
-        if JITStatus.isActive { completion(.ready); return }
+        if JITStatus.isUsable { completion(.ready); return }
         if job == .enable && quiet {
             quiet = false
             launchCompletion = completion
@@ -173,7 +184,7 @@ final class StikJITCoordinator: ObservableObject {
     }
 
     func autoEnableIfPossible() {
-        guard JITSettings.enabled, !JITStatus.isActive, job == nil, launchCompletion == nil,
+        guard JITSettings.enabled, !JITStatus.isUsable, job == nil, launchCompletion == nil,
               StikJITSetup.isAvailable, StikJITSetup.hasPairingFile,
               StikJITHelperLauncher.hostHasGetTaskAllow(), !StikJITHelperLauncher.isBusy(),
               !DevicePairing.shared.isActive else { return }
@@ -228,7 +239,7 @@ final class StikJITCoordinator: ObservableObject {
         guard job == .enable else { return }
         Task { @MainActor [weak self] in
             while let self, self.job == .enable {
-                if JITStatus.isActive {
+                if JITStatus.isUsable {
                     self.stageText = "JIT is on."
                     self.readiness = .ready
                     self.quiet = false
@@ -247,7 +258,7 @@ final class StikJITCoordinator: ObservableObject {
         lastLog = reply?["log"] as? [String] ?? lastLog
         guard job == .enable else { return }
         endJob()
-        if JITStatus.isActive {
+        if JITStatus.isUsable {
             readiness = .ready
             quiet = false
             finishLaunch(.ready)
@@ -558,5 +569,66 @@ private struct StikJITProgressCard: View {
         .padding(20)
         .frame(maxWidth: 420)
         .espressUSurface(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    }
+}
+
+
+/// Watches whether LocalDevVPN's tunnel is up, so the JIT status follows it within a couple of seconds
+/// instead of only changing after a restart.
+@MainActor
+final class LocalDevVPNMonitor: ObservableObject {
+    static let shared = LocalDevVPNMonitor()
+
+    @Published private(set) var isConnected = LocalDevVPNMonitor.detect()
+
+    private var timer: Timer?
+    private var pathMonitor: NWPathMonitor?
+    private var activeObserver: NSObjectProtocol?
+
+    func start() {
+        guard timer == nil else { return }
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
+        monitor.start(queue: DispatchQueue(label: "com.am4rdev.EspressU.localdevvpn"))
+        pathMonitor = monitor
+        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
+        activeObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
+                                                                object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
+        if !isConnected { StikJITCoordinator.shared.vpnChanged(false) }
+    }
+
+    func refresh() {
+        let now = Self.detect()
+        guard now != isConnected else { return }
+        isConnected = now
+        cemu_bridge_log_checkpoint("LocalDevVPN: \(now ? "connected" : "disconnected")")
+        StikJITCoordinator.shared.vpnChanged(now)
+    }
+
+    /// LocalDevVPN shows up as a utun interface with a private 10.x address.
+    nonisolated static func detect() -> Bool {
+        var list: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&list) == 0, let first = list else { return false }
+        defer { freeifaddrs(list) }
+        var cursor: UnsafeMutablePointer<ifaddrs>? = first
+        while let entry = cursor {
+            let item = entry.pointee
+            cursor = item.ifa_next
+            guard let address = item.ifa_addr,
+                  address.pointee.sa_family == sa_family_t(AF_INET),
+                  (item.ifa_flags & UInt32(IFF_UP)) != 0,
+                  String(cString: item.ifa_name).hasPrefix("utun") else { continue }
+            let ip = address.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
+                UInt32(bigEndian: $0.pointee.sin_addr.s_addr)
+            }
+            if ip >> 24 == 10 { return true }
+        }
+        return false
     }
 }
