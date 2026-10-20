@@ -246,8 +246,14 @@ struct BootFailureView: View {
                     Text("Back to games")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .espressUSurface(Capsule())
+                .contentShape(Capsule())
             }
-            .buttonStyle(EspressUBarButtonStyle())
+            .buttonStyle(.plain)
+            .environment(\.colorScheme, .dark)
             .padding(.top, 4)
         }
         .padding(32)
