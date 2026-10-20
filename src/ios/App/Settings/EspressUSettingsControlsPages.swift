@@ -97,6 +97,14 @@ extension EspressUSettingsView {
         return groups
     }
 
+    var controllerMappingGroups: [SettingsGroup] {
+        [
+            SettingsGroup(id: "map.pad", title: "Your controller", items: [
+                SettingsItem(id: "map.editor", title: "", control: .banner(AnyView(ControllerMappingEditor()))),
+            ]),
+        ]
+    }
+
     var customServerGroups: [SettingsGroup] {
         let servers = CustomServerStore.list()
         let active = CustomServerStore.activeData()

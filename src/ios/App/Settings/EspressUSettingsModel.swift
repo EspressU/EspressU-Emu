@@ -60,7 +60,7 @@ enum LegacySettingsPage: String, Identifiable {
     case emulatedClock, touchControls, figures, overlay, graphicPacks, linkedFolders
     case keys, files, backup, account, diagnostics, about
     case figureManager, networkService, licences
-    case graphicPackGame, graphicPack
+    case graphicPackGame, graphicPack, controllerMapping
 
     var id: String { rawValue }
 
@@ -94,6 +94,7 @@ enum LegacySettingsPage: String, Identifiable {
         case .licences:      return "The open-source code inside EspressU."
         case .graphicPackGame: return "Packs made for this game. Changes apply the next time you start a game."
         case .graphicPack:   return "Changes apply the next time you start a game."
+        case .controllerMapping: return "Choose which controller button does what."
         }
     }
 
@@ -116,6 +117,7 @@ enum LegacySettingsPage: String, Identifiable {
         case .licences:      return "Open-source licences"
         case .graphicPackGame: return "Graphic packs"
         case .graphicPack:   return "Pack"
+        case .controllerMapping: return "Controller buttons"
         }
     }
 }

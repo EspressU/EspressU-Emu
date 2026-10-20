@@ -14,6 +14,7 @@ struct CemuApp: App {
         JITSettings.migrate()
         RemovedSettingsCleanup.run()
         MotionSettings.startObservingControllers()
+        PadMapping.pushToBridge()
 
         let info = Bundle.main.infoDictionary ?? [:]
         let version = info["CFBundleShortVersionString"] as? String ?? "?"

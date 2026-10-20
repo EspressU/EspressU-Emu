@@ -37,6 +37,7 @@ extension EspressUSettingsView {
         case .graphicPackGame: return graphicPackGameGroups
         case .graphicPack: return graphicPackGroups
         case .touchControls: return touchControlsGroups
+        case .controllerMapping: return controllerMappingGroups
         case .networkService: return customServerGroups
         case .licences: return licencesGroups
         case .figureManager: return nil

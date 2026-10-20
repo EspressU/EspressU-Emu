@@ -642,7 +642,7 @@ struct EspressUSettingsView: View {
             DiagnosticsSection()
         case .about: AboutSettingsSection()
         case .networkService: CustomServersSettingsSection()
-        case .figureManager, .licences, .graphicPackGame, .graphicPack: EmptyView()
+        case .figureManager, .licences, .graphicPackGame, .graphicPack, .controllerMapping: EmptyView()
         }
     }
 
