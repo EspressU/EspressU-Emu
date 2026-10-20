@@ -68,6 +68,7 @@ void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "input/emulated/EmulatedController.h"
 #include "input/emulated/VPADController.h"
 #include "input/InputManager.h"
+#include "input/api/Controller.h"
 #include "util/crypto/aes128.h"
 
 __attribute__((constructor)) static void ios_crypto_init_at_load() { AES128_init(); }
@@ -4184,6 +4185,48 @@ bool cemu_bridge_reset_controller_bindings(void) {
     const int bindings = cemu_bridge_input_button_mapping_count();
     cemuLog_log(LogType::Force, "iOS input: controller bindings reset; GamePad now has {} button mappings", bindings);
     return bindings > 0;
+}
+
+static_assert(CEMU_BRIDGE_PAD_A == VPADController::kButtonId_A && CEMU_BRIDGE_PAD_Y == VPADController::kButtonId_Y
+              && CEMU_BRIDGE_PAD_PLUS == VPADController::kButtonId_Plus && CEMU_BRIDGE_PAD_UP == VPADController::kButtonId_Up
+              && CEMU_BRIDGE_PAD_STICK_R == VPADController::kButtonId_StickR,
+              "CemuBridgePadMapButton must match VPADController::ButtonId");
+
+// Physical button ids used by the settings UI: 0 A, 1 B, 2 X, 3 Y, 4 left bumper, 5 right bumper, 6 left trigger,
+// 7 right trigger, 8 options, 9 menu, 10 and 11 stick clicks, 12 to 15 D-pad up, down, left, right.
+static int ios_pad_core_button(int uiButton) {
+    if (uiButton >= 0 && uiButton <= 11)
+        return uiButton;
+    switch (uiButton)
+    {
+    case 12: return kButtonUp;
+    case 13: return kButtonDown;
+    case 14: return kButtonLeft;
+    case 15: return kButtonRight;
+    default: return -1;
+    }
+}
+
+static int ios_pad_ui_button(int coreButton) {
+    if (coreButton >= 0 && coreButton <= 11)
+        return coreButton;
+    if (coreButton == kButtonUp) return 12;
+    if (coreButton == kButtonDown) return 13;
+    if (coreButton == kButtonLeft) return 14;
+    if (coreButton == kButtonRight) return 15;
+    return -1;
+}
+
+void cemu_bridge_pad_mapping_set(int padButton, int deviceButton) {
+    InputManager::instance().set_pad_mapping_override((uint64)padButton, deviceButton < 0 ? -1 : ios_pad_core_button(deviceButton));
+}
+
+void cemu_bridge_pad_mapping_clear_all(void) {
+    InputManager::instance().clear_pad_mapping_overrides();
+}
+
+int cemu_bridge_pad_mapping_default(int padButton) {
+    return ios_pad_ui_button(InputManager::default_pad_device_button((uint64)padButton));
 }
 
 void cemu_bridge_set_stick_axis(CemuBridgeStick stick, float x, float y) {

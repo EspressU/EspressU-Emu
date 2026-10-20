@@ -503,6 +503,21 @@ const char* cemu_bridge_input_profile_name(void);
 
 bool cemu_bridge_reset_controller_bindings(void);
 
+// GamePad buttons that can be remapped onto a physical controller. The values match VPADController::ButtonId.
+typedef enum {
+    CEMU_BRIDGE_PAD_A = 1, CEMU_BRIDGE_PAD_B = 2, CEMU_BRIDGE_PAD_X = 3, CEMU_BRIDGE_PAD_Y = 4,
+    CEMU_BRIDGE_PAD_L = 5, CEMU_BRIDGE_PAD_R = 6, CEMU_BRIDGE_PAD_ZL = 7, CEMU_BRIDGE_PAD_ZR = 8,
+    CEMU_BRIDGE_PAD_PLUS = 9, CEMU_BRIDGE_PAD_MINUS = 10,
+    CEMU_BRIDGE_PAD_UP = 11, CEMU_BRIDGE_PAD_DOWN = 12, CEMU_BRIDGE_PAD_LEFT = 13, CEMU_BRIDGE_PAD_RIGHT = 14,
+    CEMU_BRIDGE_PAD_STICK_L = 15, CEMU_BRIDGE_PAD_STICK_R = 16,
+} CemuBridgePadMapButton;
+
+// Physical buttons are numbered 0 A, 1 B, 2 X, 3 Y, 4 left bumper, 5 right bumper, 6 left trigger, 7 right trigger,
+// 8 options, 9 menu, 10 and 11 stick clicks, 12 to 15 D-pad up, down, left, right. A negative deviceButton puts the default back.
+void cemu_bridge_pad_mapping_set(int padButton, int deviceButton);
+void cemu_bridge_pad_mapping_clear_all(void);
+int cemu_bridge_pad_mapping_default(int padButton);
+
 #ifdef __cplusplus
 }
 #endif
