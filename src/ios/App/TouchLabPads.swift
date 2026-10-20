@@ -14,17 +14,6 @@ enum TouchLabSettings {
     /// The on-screen controls have a single layout. Older builds let players pick between several styles;
     /// whatever was stored under the old style keys is simply ignored now.
     static let schemeID = ZonePad.schemeInfo.id
-
-    static let aScaleKey = "espressu.touchlab.aScale"
-    static let defaultAScale = 1.0
-    static let aScaleRange = 1.0...1.8
-
-    private static let legacyLargeAKey = "espressu.touchlab.zone.largeA"
-    static func migrateLegacyLargeA() {
-        let d = UserDefaults.standard
-        guard d.object(forKey: aScaleKey) == nil else { return }
-        if d.bool(forKey: legacyLargeAKey) { d.set(1.4, forKey: aScaleKey) }
-    }
 }
 
 @MainActor
@@ -132,7 +121,6 @@ struct TouchLabPadOverlay: View {
     @AppStorage(ControllerLayoutSettings.deadzoneKey) private var deadzone = ControllerLayoutSettings.defaultDeadzone
     @AppStorage(ControllerLayoutSettings.stickCurveKey) private var curve = ControllerLayoutSettings.defaultStickCurve
     @AppStorage(ControllerLayoutSettings.stickGateKey) private var gateRaw = ControllerLayoutSettings.defaultStickGateRaw
-    @AppStorage(TouchLabSettings.aScaleKey) private var aScale = TouchLabSettings.defaultAScale
 
     var body: some View {
         TouchPad(schemeID: TouchLabSettings.schemeID,
@@ -153,7 +141,6 @@ struct TouchLabPadOverlay: View {
                  makeScheme: makeScheme)
             .ignoresSafeArea()
             .onAppear {
-                TouchLabSettings.migrateLegacyLargeA()
                 syncGamepadSize()
             }
             .onChange(of: screens) { _ in syncGamepadSize() }
@@ -162,7 +149,6 @@ struct TouchLabPadOverlay: View {
     private var revision: Int {
         var h = Hasher()
         h.combine(gameID)
-        h.combine(aScale)
         return h.finalize()
     }
 
@@ -171,7 +157,7 @@ struct TouchLabPadOverlay: View {
     }
 
     private func makeScheme(_ id: String) -> TouchScheme {
-        ZonePad(aScale: CGFloat(aScale))
+        ZonePad(aScale: 1)
     }
 }
 

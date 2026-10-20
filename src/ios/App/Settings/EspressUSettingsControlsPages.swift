@@ -13,10 +13,6 @@ extension EspressUSettingsView {
             SettingsItem(id: "tc.size", title: "Button size", detail: "Bigger buttons are easier to hit.",
                          control: .slider(values.double(ControllerLayoutSettings.scaleKey, ControllerLayoutSettings.defaultScale),
                                           ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale, step: 0.05, label: percent)),
-            SettingsItem(id: "tc.aScale", title: "A button size",
-                         detail: "Makes A bigger and easier to hit. The buttons around it shrink a little.",
-                         control: .slider(values.double(TouchLabSettings.aScaleKey, TouchLabSettings.defaultAScale),
-                                          TouchLabSettings.aScaleRange, step: 0.01, label: percent)),
             SettingsItem(id: "tc.opacity", title: "Opacity", detail: "How see-through the buttons are.",
                          control: .slider(values.double(ControllerLayoutSettings.opacityKey, ControllerLayoutSettings.defaultOpacity),
                                           0.2...1.0, step: 0.05, label: percent)),
@@ -76,10 +72,9 @@ extension EspressUSettingsView {
 
         groups.append(SettingsGroup(id: "tc.more", title: "Reset", items: [
             SettingsItem(id: "tc.resetLayout", title: "Reset controls to default",
-                         detail: "Button size, A button size, opacity, stick spacing and shoulder height.",
+                         detail: "Button size, opacity, stick spacing and shoulder height.",
                          control: .action("Reset", destructive: true, confirm: true, run: {
                              ControllerLayoutSettings.reset()
-                             UserDefaults.standard.removeObject(forKey: TouchLabSettings.aScaleKey)
                              values.refresh()
                              notes["tc.resetLayout"] = "Done."
                          })),

@@ -16,12 +16,11 @@ struct TouchLabLayoutPanel: View {
     @AppStorage(ControllerLayoutSettings.opacityKey) private var controlOpacity = ControllerLayoutSettings.defaultOpacity
     @AppStorage(ControllerLayoutSettings.stickSpacingKey) private var stickSpacing = ControllerLayoutSettings.defaultStickSpacing
     @AppStorage(ControllerLayoutSettings.shoulderOffsetKey) private var shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
-    @AppStorage(TouchLabSettings.aScaleKey) private var aScale = TouchLabSettings.defaultAScale
 
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
             LayoutPanelFooter(
-                resetMessage: "Size, opacity, stick spacing, shoulder height and A button size go back to how EspressU ships, in every game.",
+                resetMessage: "Size, opacity, stick spacing and shoulder height go back to how EspressU ships, in every game.",
                 onReset: resetToDefault,
                 onDone: onDone)
         })
@@ -33,9 +32,6 @@ struct TouchLabLayoutPanel: View {
         PanelSliderRow("Button size", leadingIcon: "minus.magnifyingglass", trailingIcon: "plus.magnifyingglass",
                        value: $controlScale,
                        range: ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale)
-
-        PanelSliderRow("A button size", leadingIcon: "a.circle", trailingIcon: "a.circle.fill",
-                       value: $aScale, range: TouchLabSettings.aScaleRange)
 
         PanelSliderRow("Opacity", leadingIcon: "circle.lefthalf.filled", trailingIcon: "circle.fill",
                        value: $controlOpacity, range: 0.2...1.0)
@@ -64,6 +60,5 @@ struct TouchLabLayoutPanel: View {
         controlOpacity = ControllerLayoutSettings.defaultOpacity
         stickSpacing = ControllerLayoutSettings.defaultStickSpacing
         shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
-        aScale = TouchLabSettings.defaultAScale
     }
 }
