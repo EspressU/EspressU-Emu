@@ -177,9 +177,15 @@ extension EspressUSettingsView {
                 overlayToggle("nt.friends", "Friends", NotificationSettings.friendsKey, NotificationSettings.defaultFriends) { cemu_bridge_set_notification_friends($0) },
             ]
         }
+        let buttons = [
+            SettingsItem(id: "ov.fade", title: "Fade out in-game buttons",
+                         detail: "Hides the top bar buttons after a few seconds while a game runs. Off keeps them always visible.",
+                         control: .toggle(values.bool(TopBarAutoHide.enabledKey, TopBarAutoHide.defaultEnabled))),
+        ]
         return [
             SettingsGroup(id: "overlay", title: "Performance overlay", items: overlay),
             SettingsGroup(id: "notices", title: "Notifications", items: notices),
+            SettingsGroup(id: "buttons", title: "In-game buttons", items: buttons),
         ]
     }
 

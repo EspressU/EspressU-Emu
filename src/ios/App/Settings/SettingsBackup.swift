@@ -205,7 +205,6 @@ enum SettingsBackup {
         DownscaleFilterSetting.storageKey: 0...3,
         FullSpeedRenders.shaderModeKey: 0...1,
         TopBarAutoHide.hideDelayKey: 2...8,
-        TopBarAutoHide.overrideKey: 0...2,
     ]
 
     private static let allowedDoubles: [String: ClosedRange<Double>] = [

@@ -1386,10 +1386,9 @@ struct EmulatorViewOptimized: View {
     private static let titlePauseQueue = DispatchQueue(label: "espressu.title.pause", qos: .userInitiated)
     @AppStorage(PreviewPadStore.enabledKey) private var previewPadEnabled = PreviewPadStore.defaultEnabled
     @AppStorage(ControllerLayoutSettings.joystickKey) private var joystickMode = ControllerLayoutSettings.defaultJoystick
-    @AppStorage(TouchLabSettings.schemeKey) private var touchLabScheme = TouchLabSettings.defaultScheme
     @State private var touchLabScreens = TouchLabScreenState()
     @State private var topBarHeight: CGFloat = 0
-    @AppStorage(TopBarAutoHide.overrideKey) private var topBarAutoHideOverride = TopBarAutoHide.followDevice
+    @AppStorage(TopBarAutoHide.enabledKey) private var topBarAutoHideEnabled = TopBarAutoHide.defaultEnabled
     @State private var topBarHidden = false
     @GestureState private var topBarTouched = false
     @State private var voiceOverRunning = UIAccessibility.isVoiceOverRunning
@@ -1947,7 +1946,7 @@ struct EmulatorViewOptimized: View {
     private var overlayTopInset: CGFloat { topBarHeight }
 
     private var topBarMayHide: Bool {
-        TopBarAutoHide.isOn(override: topBarAutoHideOverride)
+        topBarAutoHideEnabled
             && !voiceOverRunning
             && gameManager.emulationState == .running
             && !launchIntroVisible
