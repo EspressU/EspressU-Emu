@@ -1695,6 +1695,7 @@ struct EmulatorViewOptimized: View {
                     Spacer(minLength: 0)
 
                     if gameManager.emulationState == .running {
+                        InGameBlowButton(enabled: !isPaused)
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
