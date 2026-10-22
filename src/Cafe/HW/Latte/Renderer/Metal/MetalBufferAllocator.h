@@ -117,6 +117,9 @@ public:
 
 	void GetStats(uint32& numBuffers, size_t& totalBufferSize, size_t& freeBufferSize) const;
 
+	// Drops every buffer that no command buffer is still reading from.
+	bool ReleaseIdleBuffers() { return releaseIdleBuffers(); }
+
 private:
 	void allocateAdditionalUploadBuffer(uint32 sizeRequiredForAlloc);
 	void addUploadBufferSyncPoint(AllocatorBuffer_t& buffer, uint32 offset);

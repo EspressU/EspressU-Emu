@@ -1044,6 +1044,7 @@ class GameManager: ObservableObject {
             cemu_bridge_set_stretch_to_fill(
                 UserDefaults.standard.object(forKey: FrameStretch.storageKey) as? Bool
                     ?? FrameStretch.defaultValue)
+            PerformanceTuning.applyToBridge()
 
             cemu_bridge_set_graphics_api(
                 Int32(clamping: UserDefaults.standard.object(forKey: "espressu.render.graphicsAPI") as? Int ?? 2))

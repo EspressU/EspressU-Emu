@@ -91,10 +91,19 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
         ]
 
+        let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",
+                         detail: "When iOS runs low on memory, drops textures the game can reload. Can stop a crash; can cause a short hitch.",
+                         control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+        ]
+
         return [
             SettingsGroup(id: "cpu", title: "CPU", items: cpu),
             SettingsGroup(id: "speed", title: "Speed and accuracy", items: speed),
             SettingsGroup(id: "heat", title: "Heat", items: heat),
+            SettingsGroup(id: "experimental", title: "Experimental", items: experimental),
         ]
     }
 

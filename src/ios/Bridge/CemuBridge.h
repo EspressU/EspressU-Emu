@@ -188,6 +188,13 @@ bool cemu_bridge_favour_performance(void);
 void cemu_bridge_set_full_speed_renders(bool enabled, int shaderMode);
 bool cemu_bridge_full_speed_renders(void);
 
+typedef enum {
+    CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
+} CemuBridgeTuning;
+
+void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);
+int cemu_bridge_tuning(CemuBridgeTuning option);
+
 double cemu_bridge_device_temperature_celsius(void);
 
 void cemu_bridge_set_thermal_throttle_micros(uint32_t micros);

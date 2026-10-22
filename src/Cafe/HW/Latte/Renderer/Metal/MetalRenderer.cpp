@@ -3587,6 +3587,8 @@ static void LogFailedEncoders(MTL::CommandBuffer* commandBuffer, NS::Error* erro
 void MetalRenderer::UpdateMemoryStatsAndRelievePressure()
 {
     auto& w = LatteWait::Get();
+    if (w.memoryWarningPending.exchange(false))
+        FreeMemoryAfterSystemWarning();
     const bool evictionRequested = w.evictionRequested.exchange(false);
     const auto now = std::chrono::steady_clock::now();
     if (!evictionRequested && now - m_lastMemoryCheck < std::chrono::milliseconds(500))
@@ -3724,6 +3726,41 @@ void MetalRenderer::UpdateMemoryStatsAndRelievePressure()
     if (evictionRequested)
         w.evictionPasses.fetch_add(1);
 #endif
+}
+
+void MetalRenderer::FreeMemoryAfterSystemWarning()
+{
+    constexpr uint64 MB = 1024 * 1024;
+    const uint64 allocatedBefore = m_device->currentAllocatedSize();
+
+    // Only textures the cache can rebuild from guest memory go, but all of them at once instead of the
+    // regular pass's 200, since iOS kills the app soon after a warning that frees nothing.
+    uint32 deletedTextures = 0;
+    for (LatteTexture* texture : LatteTC_GetDeleteableTextures())
+    {
+        const auto& live = LatteTexture::GetAllTextures();
+        if (std::find(live.begin(), live.end(), texture) == live.end())
+            continue;
+        LatteTexture_Delete(texture);
+        ++deletedTextures;
+    }
+
+    m_memoryManager->GetStagingAllocator().ReleaseIdleBuffers();
+
+    // Streamout buffers replaced by a bigger one are only safe to drop once no command buffer can still use them.
+    uint32 droppedXfb = 0;
+    if (!IsCommandBufferActive() && m_executingCommandBuffers.empty())
+    {
+        for (MTL::Buffer* retiredBuffer : m_retiredXfbRingBuffers)
+            retiredBuffer->release();
+        droppedXfb = (uint32)m_retiredXfbRingBuffers.size();
+        m_retiredXfbRingBuffers.clear();
+    }
+
+    LatteWait::Get().texturesEvicted.fetch_add(deletedTextures, std::memory_order_relaxed);
+    const uint64 allocatedAfter = m_device->currentAllocatedSize();
+    cemuLog_log(LogType::Force, "Metal: memory warning, renderer-thread cleanup deleted {} textures and {} old streamout buffers, GPU allocations {} MB -> {} MB",
+        deletedTextures, droppedXfb, allocatedBefore / MB, allocatedAfter / MB);
 }
 
 void MetalRenderer::ProcessFinishedCommandBuffers()

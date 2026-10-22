@@ -52,6 +52,7 @@ namespace LatteWait
 		std::atomic<uint32_t> memReadbackMB{0};
 		std::atomic<uint32_t> texturesEvicted{0};
 		std::atomic<bool> evictionRequested{false};
+		std::atomic<bool> memoryWarningPending{false};
 		std::atomic<uint32_t> evictionPasses{0};
 		std::atomic<bool> memStatsValid{false};
 
@@ -130,6 +131,7 @@ namespace LatteWait
 		s.memReadbackMB.store(0);
 		s.texturesEvicted.store(0);
 		s.evictionRequested.store(false);
+		s.memoryWarningPending.store(false);
 		s.evictionPasses.store(0);
 		s.memStatsValid.store(false);
 		s.presentedFrames.store(0);

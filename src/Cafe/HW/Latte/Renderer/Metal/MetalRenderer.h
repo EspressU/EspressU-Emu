@@ -291,6 +291,7 @@ public:
 	void Flush(bool waitIdle = false) override;
 	void LabelEncoder(MTL::CommandEncoder* encoder, const char* kind);
 	void UpdateMemoryStatsAndRelievePressure();
+	void FreeMemoryAfterSystemWarning();
 	void NotifyLatteCommandProcessorIdle() override;
 
 	bool ImguiBegin(bool mainWindow) override;

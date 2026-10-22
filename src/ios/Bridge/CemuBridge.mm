@@ -51,6 +51,7 @@
 #include "Cafe/HW/Latte/Core/LatteShaderCache.h"
 #include "Cemu/FileCache/FileCache.h"
 #include "Cafe/HW/Latte/Core/LatteWaitInfo.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
@@ -715,6 +716,13 @@ void cemu_bridge_start_memory_watchdog(void) {
                     unsigned long long avail = 0, foot = 0;
                     cemu_bridge_memory_status(&avail, &foot);
                     cemu_mem_write_line("WARNING - iOS is asking for memory back", avail, foot);
+                    if (HostTuning::Get().freeMemoryOnWarning.load())
+                    {
+                        auto& w = LatteWait::Get();
+                        w.memoryWarningPending.store(true);
+                        w.evictionRequested.store(true);
+                        cemu_bridge_log_checkpoint("memory warning: asked the render thread to free textures and idle GPU buffers");
+                    }
                 }];
 
     cemu_bridge_memory_note("baseline at startup");
@@ -2933,6 +2941,26 @@ void cemu_bridge_set_full_speed_renders(bool enabled, int shaderMode) {
 
 bool cemu_bridge_full_speed_renders(void) {
     return g_fullSpeedRenders.load();
+}
+
+void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
+    auto& tuning = HostTuning::Get();
+    switch (option)
+    {
+    case CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING:
+        tuning.freeMemoryOnWarning.store(value != 0);
+        break;
+    }
+}
+
+int cemu_bridge_tuning(CemuBridgeTuning option) {
+    const auto& tuning = HostTuning::Get();
+    switch (option)
+    {
+    case CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING:
+        return tuning.freeMemoryOnWarning.load() ? 1 : 0;
+    }
+    return 0;
 }
 
 double cemu_bridge_device_temperature_celsius(void) {
