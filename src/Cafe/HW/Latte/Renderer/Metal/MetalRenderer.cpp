@@ -726,7 +726,10 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
     // A GamePad frame that pacing skipped keeps its last image instead of presenting a cleared one.
     const bool holdPad = pacingPad && swapDRC && !m_padLayer.HasFrameInProgress() && m_padLayer.GetLayer();
     if (holdPad)
+    {
         PerfTelemetry::Get().padPresentsHeldBack.fetch_add(1, std::memory_order_relaxed);
+        HostTuning::Count(HostTuning::GetStats().padSkippedFrames);
+    }
 
     if (swapTV)
         SwapBuffer(true);
@@ -738,7 +741,10 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
     UpdateMemoryStatsAndRelievePressure();
     UpdateMetal4Output();
     if (swapTV)
+    {
         UpdatePadPacing();
+        ReportTuningDiagnostics();
+    }
 
     m_performanceMonitor.ResetPerFrameData();
 
@@ -860,12 +866,15 @@ void MetalRenderer::DrawBackbufferQuad(LatteTextureView* texView, RendererOutput
                     GetCommandBuffer(), presentTexture, (uint32)imageWidth, (uint32)imageHeight))
             {
                 // The image already has the target size, so only a plain copy is left, flipped if the original shader flipped.
+                HostTuning::Count(HostTuning::GetStats().fxUpscales);
                 presentTexture = upscaled;
                 const bool upsideDown = shaderIndex >= 3;
                 shader = upsideDown ? RendererOutputShader::s_copy_shader_ud : RendererOutputShader::s_copy_shader;
                 shaderIndex = upsideDown ? 3 : 0;
                 useLinearTexFilter = true;
             }
+            else
+                HostTuning::Count(HostTuning::GetStats().fxNotEnlarged);
         }
     }
     else if (m_outputUpscaler)
@@ -3808,6 +3817,10 @@ void MetalRenderer::FreeMemoryAfterSystemWarning()
 
     LatteWait::Get().texturesEvicted.fetch_add(deletedTextures, std::memory_order_relaxed);
     const uint64 allocatedAfter = m_device->currentAllocatedSize();
+    auto& stats = HostTuning::GetStats();
+    HostTuning::Count(stats.memoryCleanups);
+    HostTuning::Count(stats.memoryTexturesFreed, deletedTextures);
+    HostTuning::Count(stats.memoryFreedMB, allocatedBefore > allocatedAfter ? (allocatedBefore - allocatedAfter) / MB : 0);
     cemuLog_log(LogType::Force, "Metal: memory warning, renderer-thread cleanup deleted {} textures and {} old streamout buffers, GPU allocations {} MB -> {} MB",
         deletedTextures, droppedXfb, allocatedBefore / MB, allocatedAfter / MB);
 }
@@ -3980,6 +3993,7 @@ bool MetalRenderer::AcquireDrawable(bool mainWindow)
     {
         m_padHeldUntilFrame = m_padPacingFrame + 30;
         m_padFrameWanted = false;
+        HostTuning::Count(HostTuning::GetStats().padSlowDrawables);
         if (m_padHeldLogs++ < 8)
             cemuLog_log(LogType::Force, "Metal: GamePad drawable took {} ms, GamePad presentation is held back for 30 frames", acquireNs / 1000000ull);
     }
@@ -4556,6 +4570,129 @@ void MetalRenderer::SwapBuffer(bool mainWindow)
     auto commandBuffer = GetCommandBuffer();
     layer.PresentDrawable(commandBuffer);
     (mainWindow ? PerfTelemetry::Get().tvPresents : PerfTelemetry::Get().padPresents).fetch_add(1, std::memory_order_relaxed);
+}
+
+void MetalRenderer::ReportTuningDiagnostics()
+{
+    const auto& options = HostTuning::Get();
+    if (!options.diagnosticsLog.load(std::memory_order_relaxed))
+    {
+        m_tuningReportLast.clear();
+        return;
+    }
+    ++m_tuningReportFrames;
+    const auto now = std::chrono::steady_clock::now();
+    auto& s = HostTuning::GetStats();
+    std::atomic<uint64>* counters[] = {
+        &s.memoryWarnings, &s.memoryCleanups, &s.memoryTexturesFreed, &s.memoryFreedMB,
+        &s.substituteTextures, &s.viewFallbacks, &s.faultsRecorded,
+        &s.fxUpscales, &s.fxRebuilds, &s.fxFailures, &s.fxNotEnlarged,
+        &s.m4Frames, &s.m4Dropped, &s.m4RegularPath, &s.m4SlotTimeouts,
+        &s.fgGenerated, &s.fgSkippedFastEnough, &s.fgSkippedHistory, &s.fgSkippedQueue, &s.fgSkippedGpu, &s.fgSkippedCooldown,
+        &s.fgCooldowns, &s.fgEncodeFailed,
+        &s.padSkippedFrames, &s.padSlowDrawables,
+        &s.itpBlocks, &s.itpLinkHits, &s.itpDecodes,
+    };
+    constexpr size_t kCounters = sizeof(counters) / sizeof(counters[0]);
+    if (m_tuningReportLast.size() != kCounters)
+    {
+        m_tuningReportLast.resize(kCounters);
+        for (size_t i = 0; i < kCounters; i++)
+            m_tuningReportLast[i] = counters[i]->load(std::memory_order_relaxed);
+        m_tuningReportSince = now;
+        m_tuningReportFrames = 0;
+        cemuLog_log(LogType::Force, "[Tuning] diagnostics on, a report follows every 5 seconds");
+        return;
+    }
+    const double seconds = std::chrono::duration<double>(now - m_tuningReportSince).count();
+    if (seconds < 5.0)
+        return;
+
+    uint64 d[kCounters];
+    for (size_t i = 0; i < kCounters; i++)
+    {
+        const uint64 value = counters[i]->load(std::memory_order_relaxed);
+        d[i] = value - m_tuningReportLast[i];
+        m_tuningReportLast[i] = value;
+    }
+    const auto [memWarnings, memCleanups, memTextures, memMB, substitutes, viewFallbacks, faults,
+        fxUpscales, fxRebuilds, fxFailures, fxNotEnlarged,
+        m4Frames, m4Dropped, m4Regular, m4Timeouts,
+        fgGenerated, fgFast, fgHistory, fgQueue, fgGpu, fgCooldown, fgCooldowns, fgFailed,
+        padSkipped, padSlow, itpBlocks, itpHits, itpDecodes] = d;
+    const double tvFps = m_tuningReportFrames / seconds;
+    m_tuningReportFrames = 0;
+    m_tuningReportSince = now;
+
+    const bool memoryOn = options.freeMemoryOnWarning.load();
+    const bool historyOn = options.keepGpuFaultHistory.load();
+    const bool fxOn = options.metalFxUpscale.load();
+    const bool m4On = options.metal4Output.load();
+    const uint8 fgMode = options.frameGeneration.load();
+    const bool padOn = options.padPresentPacing.load();
+    const bool padLow = options.padLowResolution.load();
+    const bool linkOn = options.interpreterBlockLinking.load();
+
+    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} framegen {} padpacing {} padlowres {} linking {}",
+        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, fgMode == 0 ? "off" : (fgMode == 1 ? "EspressU" : "MetalFX"), padOn, padLow, linkOn);
+
+    // One line per option that is on, ending in what it means.
+    if (memoryOn || memWarnings)
+        cemuLog_log(LogType::Force, "[Tuning] memory: warnings +{}, cleanups +{}, textures freed +{}, about {} MB freed -> {}",
+            memWarnings, memCleanups, memTextures, memMB,
+            memWarnings == 0 ? "no warning from iOS, nothing to do" : (memCleanups == 0 && memoryOn ? "PROBLEM: warnings arrived but no cleanup ran" : "OK"));
+    if (substitutes || viewFallbacks || faults)
+        cemuLog_log(LogType::Force, "[Tuning] low memory: stand-in textures +{}, view fallbacks +{}, Metal failures +{}{}",
+            substitutes, viewFallbacks, faults, historyOn ? " (written to the GPU failure history)" : "");
+    if (fxOn)
+        cemuLog_log(LogType::Force, "[Tuning] metalfx: upscaled +{}, not enlarged/unsupported +{}, scaler builds +{}, failures +{} -> {}",
+            fxUpscales, fxNotEnlarged, fxRebuilds, fxFailures,
+            fxFailures ? "PROBLEM: MetalFX could not be built" : (fxUpscales ? "OK" : "not used (picture not enlarged, unsupported format or a graphic pack's own shader)"));
+    if (m4On)
+    {
+        const char* verdict = m4Frames > 0 ? (m4Regular || m4Timeouts || m4Dropped ? "OK, with some frames on the regular path" : "OK")
+            : (m_metal4OutputUnavailable ? "NOT ACTIVE: Metal 4 is not available on this device" : "PROBLEM: no frame went through Metal 4");
+        cemuLog_log(LogType::Force, "[Tuning] metal4: frames +{}, dropped +{}, regular path +{}, slot timeouts +{}, last present GPU {:.2f} ms -> {}",
+            m4Frames, m4Dropped, m4Regular, m4Timeouts, s.m4GpuMicros.load() / 1000.0, verdict);
+    }
+    if (fgMode != 0)
+    {
+        const uint64 skipped = fgFast + fgHistory + fgQueue + fgGpu + fgCooldown;
+        std::string verdict;
+        if (!m4On)
+            verdict = "NOT ACTIVE: needs Metal 4 output";
+        else if (s.fgDisabled.load())
+            verdict = "PROBLEM: turned itself off, see the EspressU lines in the log";
+        else if (fgGenerated > 0)
+            verdict = fmt::format("OK, {:.0f}% of real frames got a generated one", 100.0 * fgGenerated / std::max<uint64>(1, fgGenerated + skipped + fgFailed));
+        else if (fgFast > 0 && fgFast >= skipped / 2)
+            verdict = "idle: the game already runs at 40 fps or more";
+        else
+            verdict = "PROBLEM: no frame generated";
+        cemuLog_log(LogType::Force, "[Tuning] framegen ({}): generated +{}, skipped fast-enough +{} history +{} queue +{} gpu +{} cooldown +{}, pauses +{}, failed +{}, real interval {:.1f} ms, generation GPU {:.2f} ms -> {}",
+            s.fgBackend.load() == 2 ? "MetalFX" : (s.fgBackend.load() == 1 ? "EspressU" : "none"),
+            fgGenerated, fgFast, fgHistory, fgQueue, fgGpu, fgCooldown, fgCooldowns, fgFailed,
+            s.fgIntervalMicros.load() / 1000.0, s.fgGpuMicros.load() / 1000.0, verdict);
+    }
+    if (padOn || padLow)
+    {
+        const auto visible = WindowSystem::GetWindowInfo().visible_outputs.load();
+        const bool both = (visible & 1u) && (visible & 2u) && m_padLayer.GetLayer();
+        uint32 padWidth = 0, padHeight = 0;
+        if (m_padLayer.GetLayer())
+        {
+            const CGSize size = m_padLayer.GetLayer()->drawableSize();
+            padWidth = (uint32)size.width;
+            padHeight = (uint32)size.height;
+        }
+        cemuLog_log(LogType::Force, "[Tuning] gamepad: frames skipped +{}, slow drawables +{}, GamePad surface {}x{} -> {}",
+            padSkipped, padSlow, padWidth, padHeight,
+            !both ? "pacing idle: TV and GamePad are not both on screen" : (padOn && padSkipped == 0 ? "PROBLEM: both screens shown but nothing was paced" : "OK"));
+    }
+    if (linkOn || itpBlocks)
+        cemuLog_log(LogType::Force, "[Tuning] interpreter: blocks +{}, linked +{} ({:.0f}%), decoded +{} -> {}",
+            itpBlocks, itpHits, itpBlocks ? 100.0 * itpHits / itpBlocks : 0.0, itpDecodes,
+            itpBlocks == 0 ? "not running (JIT is in use)" : (linkOn && itpHits == 0 ? "PROBLEM: linking on but never used" : "OK"));
 }
 
 void MetalRenderer::UpdatePadPacing()

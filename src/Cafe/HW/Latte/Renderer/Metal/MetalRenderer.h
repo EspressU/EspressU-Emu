@@ -608,6 +608,12 @@ private:
 	uint32 m_padHeldUntilFrame = 0;
 	uint32 m_padHeldLogs = 0;
 	void UpdatePadPacing();
+
+	// Diagnostics log of the HostTuning options (HostTuning::diagnosticsLog).
+	void ReportTuningDiagnostics();
+	std::chrono::steady_clock::time_point m_tuningReportSince{};
+	std::vector<uint64> m_tuningReportLast;
+	uint32 m_tuningReportFrames = 0;
 	class MetalPipelineCache* m_pipelineCache;
 	class MetalDepthStencilCache* m_depthStencilCache;
 	class MetalSamplerCache* m_samplerCache;

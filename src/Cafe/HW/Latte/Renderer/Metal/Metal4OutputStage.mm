@@ -254,9 +254,12 @@ namespace
 		const uint8_t mode = HostTuning::Get().frameGeneration.load(std::memory_order_relaxed);
 		if (mode != state.refusedGeneratorMode)
 			state.refusedGeneratorMode = 0;
+		auto& stats = HostTuning::GetStats();
+		stats.fgDisabled.store(mode != 0 && mode == state.refusedGeneratorMode, std::memory_order_relaxed);
 		if (mode == 0 || mode == state.refusedGeneratorMode)
 		{
 			DropGenerator(state);
+			stats.fgBackend.store(0, std::memory_order_relaxed);
 			return nullptr;
 		}
 		if (state.generator && state.generatorMode == mode)
@@ -273,6 +276,7 @@ namespace
 			return nullptr;
 		}
 		NSLog(@"EspressU: frame generation on (%s)", generator->ActiveBackend() == Metal4FrameGenerator::Backend::MetalFX ? "MetalFX" : "EspressU");
+		stats.fgBackend.store(generator->ActiveBackend() == Metal4FrameGenerator::Backend::MetalFX ? 2 : 1, std::memory_order_relaxed);
 		state.generator = generator.release();
 		state.generatorMode = mode;
 		state.generationGpuMs.store(0.0, std::memory_order_relaxed);
@@ -351,6 +355,23 @@ namespace
 			output.generationCooldown--;
 		bool generate = generator && !historyBreak && previousIsLastFrame && frameInterval > kGenerateAboveInterval && queueKeepsUp && gpuKeepsUp
 			&& output.generationCooldown == 0;
+		if (generator)
+		{
+			// Why a frame got no generated partner, first reason only.
+			auto& stats = HostTuning::GetStats();
+			stats.fgIntervalMicros.store((uint64_t)(frameInterval * 1e6), std::memory_order_relaxed);
+			stats.fgGpuMicros.store((uint64_t)(generationMs * 1000.0), std::memory_order_relaxed);
+			if (historyBreak || !previousIsLastFrame)
+				HostTuning::Count(stats.fgSkippedHistory);
+			else if (frameInterval <= kGenerateAboveInterval)
+				HostTuning::Count(stats.fgSkippedFastEnough);
+			else if (output.generationCooldown > 0)
+				HostTuning::Count(stats.fgSkippedCooldown);
+			else if (!queueKeepsUp)
+				HostTuning::Count(stats.fgSkippedQueue);
+			else if (!gpuKeepsUp)
+				HostTuning::Count(stats.fgSkippedGpu);
+		}
 
 		AttachLayer(state, output, layer);
 		const double acquireStart = CACurrentMediaTime();
@@ -360,6 +381,7 @@ namespace
 		{
 			// The display still holds the last two presents; generating more would only slow the game down.
 			output.generationCooldown = kGenerationCooldownFrames;
+			HostTuning::Count(HostTuning::GetStats().fgCooldowns);
 			if (state.dropLogs++ < 8)
 				NSLog(@"EspressU: frame generation paused, the drawables made the game wait %.1f ms", (CACurrentMediaTime() - acquireStart) * 1000.0);
 		}
@@ -375,6 +397,7 @@ namespace
 			if (state.dropLogs++ < 8)
 				NSLog(@"EspressU: Metal 4 output dropped a frame (%s)", drawable ? "no pipeline for the drawable format" : "no drawable");
 			output.lastWentThroughGenerator = false;
+			HostTuning::Count(HostTuning::GetStats().m4Dropped);
 			return false;
 		}
 
@@ -400,6 +423,7 @@ namespace
 				NSLog(@"EspressU: frame generation is off because of %s", whyDisabled.c_str());
 				state.refusedGeneratorMode = state.generatorMode;
 			}
+			HostTuning::Count(generatedImage ? HostTuning::GetStats().fgGenerated : HostTuning::GetStats().fgEncodeFailed);
 			if (!generatedImage)
 			{
 				// Nothing was drawn into the drawable; it is still presented (as the real frame) below.
@@ -455,6 +479,8 @@ namespace
 
 		output.lastPresented = slotIndex;
 		output.lastWentThroughGenerator = generatedCommands != nil;
+		HostTuning::Count(HostTuning::GetStats().m4Frames);
+		HostTuning::GetStats().m4GpuMicros.store((uint64_t)(state.lastGpuMs.load(std::memory_order_relaxed) * 1000.0), std::memory_order_relaxed);
 		return true;
 	}
 }
@@ -521,7 +547,10 @@ MTL::Texture* Metal4OutputStage::BeginFrame(Output outputIndex, uint32_t width, 
 
 		FrameSlot& slot = output.slots[output.next];
 		if (slot.doneValue && ![state.outputEvent waitUntilSignaledValue:slot.doneValue timeoutMS:kSlotWaitMs])
+		{
+			HostTuning::Count(HostTuning::GetStats().m4SlotTimeouts);
 			return nullptr;
+		}
 
 		const MTLPixelFormat format = (MTLPixelFormat)pixelFormat;
 		if (!slot.composition || slot.composition.width != width || slot.composition.height != height || slot.composition.pixelFormat != format)

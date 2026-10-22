@@ -1,6 +1,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalLayerHandle.h"
 #include "Cafe/HW/Latte/Core/Latte.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalLayer.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "gui/interface/WindowSystem.h"
@@ -138,6 +139,7 @@ bool MetalLayerHandle::AcquireDrawable()
             return true;
         }
         // The stage could not take this frame; it goes through the regular drawable instead.
+        HostTuning::Count(HostTuning::GetStats().m4RegularPath);
     }
 
     if (m_skipAcquires > 0)

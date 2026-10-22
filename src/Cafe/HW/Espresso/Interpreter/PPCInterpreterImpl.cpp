@@ -1513,6 +1513,7 @@ public:
         const bool linkBlocks = HostTuning::Get().interpreterBlockLinking.load(std::memory_order_relaxed);
         PPCBlockRef* previous = nullptr;
         uint32 previousEnd = 0;
+        uint64 blocksRun = 0, linkHits = 0, decodes = 0;
         uint32 previousClears = cache->m_clears;
         while (hCPU->remainingCycles > 0)
         {
@@ -1539,7 +1540,10 @@ public:
                 {
                     PPCBlockRef* candidate = cache->m_table.data() + (link - 1);
                     if (candidate->count != 0 && candidate->startAddr == ip)
+                    {
                         block = candidate;
+                        linkHits++;
+                    }
                 }
             }
             if (!block)
@@ -1548,6 +1552,7 @@ public:
                 if (!block) [[unlikely]]
                 {
                     block = decodeBlock(hCPU, *cache, ip);
+                    decodes++;
                     if (cache->m_clears != previousClears) [[unlikely]]
                     {
                         previous = nullptr;
@@ -1558,6 +1563,7 @@ public:
                     previous->links[linkSlot] = (uint32)(block - cache->m_table.data()) + 1;
             }
 
+            blocksRun++;
             const uint32 count = block->count;
             const PPCBlockTerm term = block->term;
             const uint32 straight = (term == PPCBlockTerm::None) ? count : count - 1;
@@ -1603,6 +1609,13 @@ public:
                 previous = block;
                 previousEnd = ip + count * 4;
             }
+        }
+        if (HostTuning::Get().diagnosticsLog.load(std::memory_order_relaxed)) [[unlikely]]
+        {
+            auto& stats = HostTuning::GetStats();
+            stats.itpBlocks.fetch_add(blocksRun, std::memory_order_relaxed);
+            stats.itpLinkHits.fetch_add(linkHits, std::memory_order_relaxed);
+            stats.itpDecodes.fetch_add(decodes, std::memory_order_relaxed);
         }
     }
 

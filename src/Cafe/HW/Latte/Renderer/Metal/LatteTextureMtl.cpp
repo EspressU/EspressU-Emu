@@ -3,6 +3,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 LatteTextureMtl::LatteTextureMtl(class MetalRenderer* mtlRenderer, Latte::E_DIM dim, MPTR physAddress, MPTR physMipAddress, Latte::E_GX2SURFFMT format, uint32 width, uint32 height, uint32 depth, uint32 pitch, uint32 mipLevels, uint32 swizzle,
 	Latte::E_HWTILEMODE tileMode, bool isDepth, bool isRenderTarget)
@@ -101,6 +102,7 @@ LatteTextureMtl::LatteTextureMtl(class MetalRenderer* mtlRenderer, Latte::E_DIM 
 		if (!m_texture)
 			m_texture = mtlRenderer->GetNullTexture2D()->retain();
 		m_isNullSubstitute = true;
+		HostTuning::Count(HostTuning::GetStats().substituteTextures);
 		LatteWait::Get().evictionRequested.store(true);
 	}
 }

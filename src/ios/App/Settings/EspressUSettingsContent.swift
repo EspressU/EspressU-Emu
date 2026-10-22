@@ -119,10 +119,17 @@ extension EspressUSettingsView {
                          })),
             SettingsItem(id: "tuning.padLowRes", title: "Lower-resolution GamePad screen",
                          detail: "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.",
-                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault))),
+                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
             SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
                          detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
                          control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.diagnostics", title: "Log the experimental options",
+                         detail: "Every 5 seconds writes to log.txt what each option above did and whether it works, lines start with [Tuning]. log.txt is in EspressU's folder in the Files app.",
+                         control: .toggle(values.bool(PerformanceTuning.diagnosticsLogKey, PerformanceTuning.diagnosticsLogDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
             SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",

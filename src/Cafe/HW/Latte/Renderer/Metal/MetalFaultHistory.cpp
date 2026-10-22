@@ -81,6 +81,7 @@ namespace MetalFaultHistory
 
 	void Record(Kind kind, uint64_t wantedBytes, const std::string& detail)
 	{
+		HostTuning::Count(HostTuning::GetStats().faultsRecorded);
 		if (!HostTuning::Get().keepGpuFaultHistory.load(std::memory_order_relaxed))
 			return;
 		std::lock_guard lock(s_mutex);

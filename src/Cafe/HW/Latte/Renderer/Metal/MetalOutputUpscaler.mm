@@ -1,5 +1,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalOutputUpscaler.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 #import <Metal/Metal.h>
 #import <MetalFX/MetalFX.h>
@@ -125,6 +126,7 @@ MTL::Texture* MetalOutputUpscaler::Upscale(Output output, MTL::CommandBuffer* co
 			}
 			target.scaler = scaler;
 			target.unusable = (scaler == nil);
+			HostTuning::Count(target.unusable ? HostTuning::GetStats().fxFailures : HostTuning::GetStats().fxRebuilds);
 		}
 		if (target.unusable)
 			return nullptr;

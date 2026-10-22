@@ -718,6 +718,7 @@ void cemu_bridge_start_memory_watchdog(void) {
                     unsigned long long avail = 0, foot = 0;
                     cemu_bridge_memory_status(&avail, &foot);
                     cemu_mem_write_line("WARNING - iOS is asking for memory back", avail, foot);
+                    HostTuning::Count(HostTuning::GetStats().memoryWarnings);
                     if (HostTuning::Get().freeMemoryOnWarning.load())
                     {
                         auto& w = LatteWait::Get();
@@ -2970,6 +2971,12 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
         tuning.interpreterBlockLinking.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
+        tuning.padLowResolution.store(value != 0);
+        break;
+    case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
+        tuning.diagnosticsLog.store(value != 0);
+        break;
     }
 }
 
@@ -2991,6 +2998,10 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.padPresentPacing.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
         return tuning.interpreterBlockLinking.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
+        return tuning.padLowResolution.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
+        return tuning.diagnosticsLog.load() ? 1 : 0;
     }
     return 0;
 }

@@ -3,6 +3,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 #include "Metal/MTLTexture.hpp"
 
 uint32 LatteTextureMtl_AdjustTextureCompSel(Latte::E_GX2SURFFMT format, uint32 compSel)
@@ -190,6 +191,7 @@ MTL::Texture* LatteTextureViewMtl::CreateSwizzledView(uint32 gpuSamplerSwizzle)
         MetalFaultHistory::Record(MetalFaultHistory::Kind::TextureView, 0,
             fmt::format("view of pixel format {} as type {}, mips {}+{}, layers {}+{}", (uint32)pixelFormat, (uint32)textureType, baseLevel, levelCount, baseLayer, layerCount));
         cemuLog_logOnce(LogType::Force, "Metal: could not create a texture view; sampling a null texture instead");
+        HostTuning::Count(HostTuning::GetStats().viewFallbacks);
         texture = m_mtlr->GetNullSampledTexture(dim, false, m_baseTexture->isDepth)->retain();
     }
 

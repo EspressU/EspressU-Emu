@@ -35,6 +35,8 @@ enum PerformanceTuning {
     static let padLowResolutionDefault = false
     static let interpreterBlockLinkingKey = "espressu.tuning.interpreterBlockLinking"
     static let interpreterBlockLinkingDefault = false
+    static let diagnosticsLogKey = "espressu.tuning.diagnosticsLog"
+    static let diagnosticsLogDefault = false
 
     static var advancedSettings: [AdvancedSetting] {
         [
@@ -46,6 +48,7 @@ enum PerformanceTuning {
             AdvancedSetting(padPresentPacingKey, padPresentPacingDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
+            AdvancedSetting(diagnosticsLogKey, diagnosticsLogDefault),
         ]
     }
 
@@ -68,6 +71,10 @@ enum PerformanceTuning {
                                bool(padPresentPacingKey, padPresentPacingDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING,
                                bool(interpreterBlockLinkingKey, interpreterBlockLinkingDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
+                               bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
+                               bool(diagnosticsLogKey, diagnosticsLogDefault) ? 1 : 0)
     }
 
     static func applyDefaultsToBridge() {
@@ -78,5 +85,7 @@ enum PerformanceTuning {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, Int32(frameGenerationDefault.rawValue))
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, padPresentPacingDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, diagnosticsLogDefault ? 1 : 0)
     }
 }
