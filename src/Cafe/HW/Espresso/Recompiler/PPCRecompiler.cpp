@@ -24,6 +24,8 @@
 #include <unistd.h>
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <pthread.h>
+#include <signal.h>
+#include <atomic>
 #include <libkern/OSCacheControl.h>
 #if BOOST_OS_IOS
 #include <os/proc.h>
@@ -167,10 +169,72 @@ bool PPCRecompiler_readTXMEnvVar()
     return PPCRecompiler_readBoolEnvVar("HAS_TXM") == 1;
 }
 
+// The TXM handshake is a brk that the debugger has to answer. When the debugger is attached but does not serve it
+// yet (the JIT helper is still starting, or LiveContainer's debugger does not speak the protocol), the brk comes
+// back as SIGTRAP and would kill the app. The handler turns that into "no mapping" so the start can retry or fall
+// back to the interpreter.
+static std::atomic<bool> s_jitBreakServed{false};
+static std::atomic<bool> s_jitBreakGaveUp{false};
+static volatile sig_atomic_t s_jitBreakUnanswered = 0;
+static struct sigaction s_jitBreakPrevAction;
+
+static void PPCRecompiler_jitBreakHandler(int sig, siginfo_t* info, void* context)
+{
+    auto* uc = (ucontext_t*)context;
+    const uint64_t pc = __darwin_arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+    const uint64_t fn = (uint64_t)(uintptr_t)&BreakGetJITMapping;
+    if (pc >= fn && pc < fn + 12)
+    {
+        s_jitBreakUnanswered = 1;
+        uc->uc_mcontext->__ss.__x[0] = 0;
+        __darwin_arm_thread_state64_set_pc_fptr(uc->uc_mcontext->__ss, (void*)(uintptr_t)(pc + 4));
+        return;
+    }
+    if ((s_jitBreakPrevAction.sa_flags & SA_SIGINFO) && s_jitBreakPrevAction.sa_sigaction)
+    {
+        s_jitBreakPrevAction.sa_sigaction(sig, info, context);
+        return;
+    }
+    signal(sig, SIG_DFL);
+}
+
+static void* PPCRecompiler_requestJitMapping(size_t size)
+{
+    if (s_jitBreakGaveUp.load())
+        return nullptr;
+
+    constexpr int kAttempts = 10;
+    for (int attempt = 1; attempt <= kAttempts; attempt++)
+    {
+        struct sigaction act = {};
+        act.sa_sigaction = PPCRecompiler_jitBreakHandler;
+        act.sa_flags = SA_SIGINFO;
+        sigemptyset(&act.sa_mask);
+
+        s_jitBreakUnanswered = 0;
+        sigaction(SIGTRAP, &act, &s_jitBreakPrevAction);
+        void* mapping = BreakGetJITMapping(nullptr, size);
+        sigaction(SIGTRAP, &s_jitBreakPrevAction, nullptr);
+
+        if (!s_jitBreakUnanswered)
+        {
+            s_jitBreakServed = true;
+            return mapping;
+        }
+        cemuLog_log(LogType::Force, "JIT: the debugger did not answer the memory request (try {} of {}), waiting", attempt, kAttempts);
+        if (attempt < kAttempts)
+            sleep(1);
+    }
+
+    s_jitBreakGaveUp = true;
+    cemuLog_log(LogType::Force, "JIT: the debugger never answered, so the JIT cannot start. Running the interpreter instead.");
+    return nullptr;
+}
+
 static void PPCRecompiler_finishJitMappingSession()
 {
     static std::atomic<bool> s_txmDetached{false};
-    if (PPCRecompiler_readTXMEnvVar() && !s_txmDetached.exchange(true))
+    if (PPCRecompiler_readTXMEnvVar() && s_jitBreakServed.load() && !s_txmDetached.exchange(true))
     {
         cemuLog_log(LogType::Force, "Recompiler: detaching TXM debugger after JIT mapping");
         JIT26Detach();
@@ -185,7 +249,11 @@ DualMapRegion PPCRecompiler_allocateDualMap(size_t size)
     void* rxPtr = nullptr;
 
     if (PPCRecompiler_readTXMEnvVar())
-        rxPtr = BreakGetJITMapping(nullptr, size);
+    {
+        rxPtr = PPCRecompiler_requestJitMapping(size);
+        if (s_jitBreakGaveUp.load())
+            return r;
+    }
 
     if (!rxPtr)
         rxPtr = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
@@ -931,6 +999,36 @@ bool PPCRecompiler_makeRecompiledFunctionActive(uint32 initialEntryPoint, PPCFun
         return false;
     }
 
+
+    size_t registeredRanges = 0;
+    try
+    {
+        for (auto& r : ppcRecFunc->list_ranges)
+        {
+            r.storedRange = rangeStore_ppcRanges.storeRange(ppcRecFunc, r.ppcAddress, r.ppcAddress + r.ppcSize);
+            registeredRanges++;
+        }
+    }
+    catch (const std::bad_alloc&)
+    {
+        size_t undone = 0;
+        for (auto& r : ppcRecFunc->list_ranges)
+        {
+            if (undone++ >= registeredRanges)
+                break;
+            rangeStore_ppcRanges.deleteRange(r.storedRange);
+            r.storedRange = nullptr;
+        }
+        for (uint32 v = range.startAddress; v < (range.startAddress + range.length); v += 4)
+        {
+            if (v != initialEntryPoint && ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[v / 4] == PPCRecompiler_leaveRecompilerCode_visited)
+                ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[v / 4] = PPCRecompiler_leaveRecompilerCode_unvisited;
+        }
+        PPCRecompilerState.recompilerSpinlock.unlock();
+        delete ppcRecFunc;
+        throw;
+    }
+
     for (auto& itr : entryPoints)
     {
         ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[itr.first / 4] = (PPCREC_JUMP_ENTRY)((uint8*)ppcRecFunc->x86Code + itr.second);
@@ -943,10 +1041,6 @@ bool PPCRecompiler_makeRecompiledFunctionActive(uint32 initialEntryPoint, PPCFun
             ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[v / 4] = PPCRecompiler_leaveRecompilerCode_unvisited;
     }
 
-    for (auto& r : ppcRecFunc->list_ranges)
-    {
-        r.storedRange = rangeStore_ppcRanges.storeRange(ppcRecFunc, r.ppcAddress, r.ppcAddress + r.ppcSize);
-    }
     PPCRecompilerState.recompilerSpinlock.unlock();
     {
         std::lock_guard lock(s_jitMapMutex);
@@ -955,7 +1049,7 @@ bool PPCRecompiler_makeRecompiledFunctionActive(uint32 initialEntryPoint, PPCFun
     return true;
 }
 
-void PPCRecompiler_recompileAtAddress(uint32 address)
+static void PPCRecompiler_recompileAtAddressImpl(uint32 address)
 {
 	cemu_assert_debug(ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[address / 4] == PPCRecompiler_leaveRecompilerCode_visited);
 
@@ -977,15 +1071,55 @@ void PPCRecompiler_recompileAtAddress(uint32 address)
 
 	std::vector<std::pair<MPTR, uint32>> functionEntryPoints;
 	const uint64 compileStartNs = PerfTelemetry::NowNs();
-	auto func = PPCRecompiler_recompileFunction(range, entryAddresses, functionEntryPoints, funcBoundaries);
+	PPCRecFunction_t* func = nullptr;
+	try
+	{
+		func = PPCRecompiler_recompileFunction(range, entryAddresses, functionEntryPoints, funcBoundaries);
+	}
+	catch (const std::bad_alloc&)
+	{
+		static std::atomic<uint32> s_outOfMemoryCount{0};
+		if (s_outOfMemoryCount.fetch_add(1) < 3)
+			cemuLog_log(LogType::Force, "Recompiler: out of memory compiling the function at {:08x}; it runs in the interpreter", address);
+		return;
+	}
 
 	if (!func)
 	{
 		return;
 	}
-	bool r = PPCRecompiler_makeRecompiledFunctionActive(address, range, func, functionEntryPoints);
+	try
+	{
+		PPCRecompiler_makeRecompiledFunctionActive(address, range, func, functionEntryPoints);
+	}
+	catch (const std::bad_alloc&)
+	{
+		static std::atomic<uint32> s_activateOomCount{0};
+		if (s_activateOomCount.fetch_add(1) < 3)
+			cemuLog_log(LogType::Force, "Recompiler: out of memory activating the function at {:08x}; it runs in the interpreter", address);
+		return;
+	}
 	PerfTelemetry::Get().jitBlocks.fetch_add(1, std::memory_order_relaxed);
 	PerfTelemetry::Get().jitCompileNs.fetch_add(PerfTelemetry::NowNs() - compileStartNs, std::memory_order_relaxed);
+}
+
+
+void PPCRecompiler_recompileAtAddress(uint32 address)
+{
+	try
+	{
+		PPCRecompiler_recompileAtAddressImpl(address);
+	}
+	catch (const std::bad_alloc&)
+	{
+		static std::atomic<uint32> s_outerOomCount{0};
+		if (s_outerOomCount.fetch_add(1) < 3)
+			cemuLog_log(LogType::Force, "Recompiler: out of memory preparing the function at {:08x}; it runs in the interpreter", address);
+	}
+	catch (const std::exception& e)
+	{
+		cemuLog_log(LogType::Force, "Recompiler: exception while compiling the function at {:08x} ({}); it runs in the interpreter", address, e.what());
+	}
 }
 
 #define PPC_REC_ALLOC_BLOCK_SIZE    (4*1024*1024)

@@ -10,10 +10,9 @@ import SwiftUI
 import UIKit
 
 enum TopBarAutoHide {
-    static let overrideKey = "espressu.topBar.autoHideOverride"
-    static let followDevice = 0
-    static let forceOn = 1
-    static let forceOff = 2
+    static let enabledKey = "espressu.topBar.autoHide"
+    /// Phones fade the buttons out by default to keep the small screen clear; iPads keep them visible.
+    static var defaultEnabled: Bool { UIDevice.current.userInterfaceIdiom == .phone }
 
     static let hideDelayKey = "espressu.topBar.hideDelaySeconds"
     static let defaultHideDelaySeconds = 4
@@ -43,22 +42,6 @@ enum TopBarAutoHide {
 
         var width: CGFloat { self == .large ? 260 : 170 }
         var height: CGFloat { self == .large ? 80 : 60 }
-    }
-
-    /// Phones hide the bar on their own: it covers the picture there. iPads keep it, since the
-    /// 16:9 picture leaves a bar of free space above it anyway.
-    static var deviceDefault: Bool { UIDevice.current.userInterfaceIdiom == .phone }
-
-    static func isOn(override: Int) -> Bool {
-        switch override {
-        case forceOn: return true
-        case forceOff: return false
-        default: return deviceDefault
-        }
-    }
-
-    static func override(forChoice on: Bool) -> Int {
-        on == deviceDefault ? followDevice : (on ? forceOn : forceOff)
     }
 }
 

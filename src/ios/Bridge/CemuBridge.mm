@@ -12,6 +12,8 @@
 #import <QuartzCore/CAMetalLayer.h>
 
 #include <sys/sysctl.h>
+#include <sys/mman.h>
+#include <mach/mach.h>
 #include <string>
 #include <cstring>
 #include <atomic>
@@ -37,6 +39,8 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include <sys/ucontext.h>
+#include <pthread/qos.h>
+#include <malloc/malloc.h>
 
 #include "Cafe/CafeSystem.h"
 #include "Cafe/OS/libs/nn_ac/nn_ac_reachability.h"
@@ -64,6 +68,7 @@ void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "input/emulated/EmulatedController.h"
 #include "input/emulated/VPADController.h"
 #include "input/InputManager.h"
+#include "input/api/Controller.h"
 #include "util/crypto/aes128.h"
 
 __attribute__((constructor)) static void ios_crypto_init_at_load() { AES128_init(); }
@@ -168,6 +173,7 @@ void IOSSystemImplementation_ResetExit();
 
 namespace {
     int g_crashLogFd = -1;
+    void cemu_crash_open_log();
     char g_crashLogPath[1024] = {0};
 
     void cemu_crash_write(const char* s) {
@@ -195,6 +201,95 @@ namespace {
         char out[24];
         for (int j = 0; j < i; j++) out[j] = digits[i - 1 - j];
         if (g_crashLogFd >= 0) write(g_crashLogFd, out, (size_t)i);
+    }
+
+    const char* crash_vm_tag_name(unsigned tag) {
+        switch (tag) {
+            case 0: return "untagged (direct vm_allocate)";
+            case 1: return "malloc";
+            case 2: return "malloc small";
+            case 3: return "malloc large";
+            case 4: return "malloc huge";
+            case 6: return "realloc";
+            case 7: return "malloc tiny";
+            case 11: return "malloc nano";
+            case 21: return "IOKit";
+            case 30: return "stack";
+            case 31: return "guard";
+            case 33: return "dylib";
+            case 88: return "IOSurface";
+            default: return "other";
+        }
+    }
+
+    void cemu_vm_report(const char* why, uint64_t wantedBytes) {
+        cemu_crash_open_log();
+        struct Top { uint64_t size; uint64_t addr; unsigned tag; };
+        Top top[5] = {};
+        uint64_t tagBytes[256] = {};
+        uint64_t regions = 0, mapped = 0, gapTotal = 0, gapMax = 0, gapMaxAt = 0, gaps1M = 0, gaps32M = 0, highestEnd = 0, prevEnd = 0;
+        vm_address_t addr = 0;
+        natural_t depth = 0;
+        for (int guard = 0; guard < 200000; guard++) {
+            vm_size_t size = 0;
+            vm_region_submap_info_data_64_t info;
+            mach_msg_type_number_t count = VM_REGION_SUBMAP_INFO_COUNT_64;
+            if (vm_region_recurse_64(mach_task_self(), &addr, &size, &depth, (vm_region_recurse_info_t)&info, &count) != KERN_SUCCESS)
+                break;
+            if (info.is_submap) {
+                depth++;
+                continue;
+            }
+            regions++;
+            mapped += size;
+            if (prevEnd != 0 && addr > prevEnd) {
+                const uint64_t gap = (uint64_t)addr - prevEnd;
+                gapTotal += gap;
+                if (gap >= (1ull << 20)) gaps1M++;
+                if (gap >= (32ull << 20)) gaps32M++;
+                if (gap > gapMax) { gapMax = gap; gapMaxAt = prevEnd; }
+            }
+            prevEnd = (uint64_t)addr + size;
+            highestEnd = prevEnd;
+            const unsigned tag = info.user_tag & 0xFF;
+            tagBytes[tag] += size;
+            for (int i = 0; i < 5; i++) {
+                if (size > top[i].size) {
+                    for (int j = 4; j > i; j--) top[j] = top[j - 1];
+                    top[i] = { (uint64_t)size, (uint64_t)addr, tag };
+                    break;
+                }
+            }
+            addr += size;
+        }
+        cemu_crash_write("\nADDRESS SPACE at "); cemu_crash_write(why ? why : "?");
+        cemu_crash_write(" (wanted "); crash_dec((int64_t)(wantedBytes >> 10)); cemu_crash_write(" KB): ");
+        crash_dec((int64_t)regions); cemu_crash_write(" regions, ");
+        crash_dec((int64_t)(mapped >> 20)); cemu_crash_write(" MB mapped, highest end "); crash_hex(highestEnd);
+        cemu_crash_write(", free holes below it ");  crash_dec((int64_t)(gapTotal >> 20)); cemu_crash_write(" MB in total, ");
+        crash_dec((int64_t)gaps1M); cemu_crash_write(" holes of 1 MB or more, "); crash_dec((int64_t)gaps32M);
+        cemu_crash_write(" of 32 MB or more, largest "); crash_dec((int64_t)(gapMax >> 20)); cemu_crash_write(" MB at "); crash_hex(gapMaxAt);
+        cemu_crash_write("\n");
+        for (int i = 0; i < 5 && top[i].size; i++) {
+            cemu_crash_write("  region "); crash_hex(top[i].addr); cemu_crash_write(" "); crash_dec((int64_t)(top[i].size >> 20));
+            cemu_crash_write(" MB tag "); crash_dec((int64_t)top[i].tag); cemu_crash_write(" "); cemu_crash_write(crash_vm_tag_name(top[i].tag)); cemu_crash_write("\n");
+        }
+        for (int round = 0; round < 4; round++) {
+            unsigned best = 0; uint64_t bestBytes = 0;
+            for (unsigned t = 0; t < 256; t++) if (tagBytes[t] > bestBytes) { bestBytes = tagBytes[t]; best = t; }
+            if (!bestBytes) break;
+            cemu_crash_write("  by type: tag "); crash_dec((int64_t)best); cemu_crash_write(" "); cemu_crash_write(crash_vm_tag_name(best));
+            cemu_crash_write(" "); crash_dec((int64_t)(bestBytes >> 20)); cemu_crash_write(" MB\n");
+            tagBytes[best] = 0;
+        }
+        task_vm_info_data_t vi{};
+        mach_msg_type_number_t viCount = TASK_VM_INFO_COUNT;
+        if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&vi, &viCount) == KERN_SUCCESS) {
+            cemu_crash_write("  footprint "); crash_dec((int64_t)(vi.phys_footprint >> 20)); cemu_crash_write(" MB, resident "); crash_dec((int64_t)(vi.resident_size >> 20));
+            cemu_crash_write(" MB, internal "); crash_dec((int64_t)(vi.internal >> 20)); cemu_crash_write(" MB, compressed "); crash_dec((int64_t)(vi.compressed >> 20));
+            cemu_crash_write(" MB, virtual "); crash_dec((int64_t)(vi.virtual_size >> 20)); cemu_crash_write(" MB, os_proc_available_memory ");
+            crash_dec((int64_t)(os_proc_available_memory() >> 20)); cemu_crash_write(" MB\n");
+        }
     }
 
     void crash_describe_address(uint64_t addr) {
@@ -356,6 +451,9 @@ namespace {
             }
             catch (const std::exception& ex)
             {
+                static std::atomic_flag s_reportedOnce = ATOMIC_FLAG_INIT;
+                if (dynamic_cast<const std::bad_alloc*>(&ex) && !s_reportedOnce.test_and_set())
+                    cemu_vm_report("std::bad_alloc escaping a thread", 0);
                 cemu_crash_write("uncaught C++ exception, type: ");
                 cemu_crash_write(typeid(ex).name());
                 cemu_crash_write("\nwhat(): ");
@@ -370,6 +468,13 @@ namespace {
         else
         {
             cemu_crash_write("terminate called with no in-flight exception\n");
+        }
+        {
+            cemu_crash_write("terminate backtrace:\n");
+            void* frames[40];
+            const int frameCount = backtrace(frames, 40);
+            if (g_crashLogFd >= 0)
+                backtrace_symbols_fd(frames, frameCount, g_crashLogFd);
         }
         if (g_previousTerminateHandler && g_previousTerminateHandler != cemu_terminate_handler)
             g_previousTerminateHandler();
@@ -421,6 +526,13 @@ extern "C" void cemu_ios_assert_hit(void) {
     const int count = backtrace(frames, 24);
     if (g_crashLogFd >= 0)
         backtrace_symbols_fd(frames, count, g_crashLogFd);
+}
+
+static void ios_bridge_thread_begin(const char* name, bool utilityQoS = true)
+{
+    pthread_setname_np(name);
+    if (utilityQoS)
+        pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0);
 }
 
 namespace {
@@ -583,6 +695,13 @@ void cemu_bridge_memory_note(const char* tag) {
     cemu_mem_write_line(tag && tag[0] ? tag : "checkpoint", avail, foot);
 }
 
+bool MetalPipelineCache_FlushArchive(uint32_t timeoutMs);
+
+void cemu_bridge_flush_pipeline_cache(void) {
+    if (!MetalPipelineCache_FlushArchive(4000))
+        cemu_bridge_log_checkpoint("pipeline cache flush did not finish in 4 s");
+}
+
 void cemu_bridge_start_memory_watchdog(void) {
     if (g_memWatchRunning.exchange(true))
         return;
@@ -601,6 +720,7 @@ void cemu_bridge_start_memory_watchdog(void) {
     cemu_bridge_memory_note("baseline at startup");
 
     std::thread([] {
+        ios_bridge_thread_begin("EspressU MEM watch");
         uint64_t lastFootBucket = 0;
         uint64_t lastAvailBucket = UINT64_MAX;
         bool criticalAnnounced = false;
@@ -794,6 +914,37 @@ bool ios_process_is_debugged(uint32_t& flagsOut)
     return csops(getpid(), 0  , &flagsOut, sizeof(flagsOut)) == 0 && (flagsOut & 0x10000000u) != 0;
 }
 
+bool ios_jit_probe_impl()
+{
+    // CS_DEBUGGED stays set after the JIT helper let go, so the flag alone doesn't prove JIT works right now.
+    // Where the recompiler maps its code like PPCRecompiler_allocateDualMap (not on TXM), map a page the same way.
+    const char* dual = getenv("DUAL_MAPPED_JIT");
+    const char* txm = getenv("HAS_TXM");
+    if (!dual || strcmp(dual, "1") != 0 || (txm && strcmp(txm, "1") == 0))
+        return true;
+    const size_t size = 16384;
+    void* rx = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (rx == MAP_FAILED)
+    {
+        cemu_bridge_log_checkpoint("JIT probe: the system refused executable memory");
+        return false;
+    }
+    vm_address_t rw = 0;
+    vm_prot_t curProt = VM_PROT_NONE, maxProt = VM_PROT_NONE;
+    kern_return_t kr = vm_remap(mach_task_self(), &rw, (vm_size_t)size, 0, VM_FLAGS_ANYWHERE,
+                                mach_task_self(), (vm_address_t)rx, FALSE, &curProt, &maxProt, VM_INHERIT_NONE);
+    bool ok = false;
+    if (kr == KERN_SUCCESS)
+    {
+        ok = vm_protect(mach_task_self(), rw, (vm_size_t)size, FALSE, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS;
+        vm_deallocate(mach_task_self(), rw, (vm_size_t)size);
+    }
+    munmap(rx, size);
+    if (!ok)
+        cemu_bridge_log_checkpoint("JIT probe: couldn't make a writable alias of executable memory");
+    return ok;
+}
+
 namespace {
     struct IosDeviceFacts
     {
@@ -946,7 +1097,7 @@ namespace {
 void ios_apply_cpu_mode(bool announce = false)
 {
     uint32_t csFlags = 0;
-    const bool debugged = ios_process_is_debugged(csFlags);
+    const bool debugged = ios_process_is_debugged(csFlags) && ios_jit_probe_impl();
     uint64_t titleId = 0;
     if (announce)
         titleId = CafeSystem::GetForegroundTitleId();
@@ -962,6 +1113,13 @@ void ios_apply_cpu_mode(bool announce = false)
 
     if (!g_recompilerRequested.load() || !debugged)
     {
+        if (announce)
+        {
+            if (!g_recompilerRequested.load())
+                cemuLog_log(LogType::Force, "Recompiler not used: the recompiler (JIT) setting is off");
+            else
+                cemuLog_log(LogType::Force, "Recompiler not used: the recompiler is on in Settings but no JIT enabler is attached to this process (cs_flags 0x{:08x}, CS_DEBUGGED not set)", csFlags);
+        }
         config.cpu_mode = singleCore ? CPUMode::SinglecoreInterpreter : CPUMode::MulticoreInterpreter;
         g_cpuMode.store(kCpuModeInterpreter);
         if (!g_recompilerRequested.load())
@@ -1018,6 +1176,7 @@ namespace {
             return;
         const std::string path = _pathToUtf8(ActiveSettings::GetUserDataPath("log.txt"));
         std::thread([path] {
+            ios_bridge_thread_begin("EspressU log tail");
             long offset = 0;
             std::string partial;
             char chunk[4096];
@@ -1065,6 +1224,7 @@ namespace {
         if (g_statsRunning.exchange(true))
             return;
         std::thread([] {
+            ios_bridge_thread_begin("EspressU FPS sampler");
             uint32 lastFrames = 0;
             auto lastTime = std::chrono::steady_clock::now();
             bool haveBaseline = false;
@@ -1120,6 +1280,10 @@ namespace {
         uint32_t waitCount[32] = {};
         uint32_t jitBlocks = 0, jitInvalidations = 0, jitArenaReleases = 0, jitArenaAllocFails = 0;
         uint64_t jitCompileNs = 0;
+        uint32_t gpuDraws = 0, gpuTexHashes = 0;
+        uint64_t gpuBeginNs = 0, gpuTexUpdateNs = 0, gpuTexHashNs = 0, gpuTexHashBytes = 0;
+        uint64_t gpuExecNs = 0, gpuIndexNs = 0, gpuFlushNs = 0, gpuBufferNs = 0, gpuSnapshotCompareBytes = 0, gpuSnapshotCopyBytes = 0;
+        uint64_t gpuPassNs = 0, gpuPipelineNs = 0, gpuBindNs = 0, gpuEndNs = 0;
     };
 
     PerfSnapshot ios_perf_take()
@@ -1171,6 +1335,22 @@ namespace {
         s.jitInvalidations = c.jitInvalidations.load(std::memory_order_relaxed);
         s.jitArenaReleases = c.jitArenaReleases.load(std::memory_order_relaxed);
         s.jitArenaAllocFails = c.jitArenaAllocFails.load(std::memory_order_relaxed);
+        s.gpuDraws = c.gpuDraws.load(std::memory_order_relaxed);
+        s.gpuTexHashes = c.gpuTexHashes.load(std::memory_order_relaxed);
+        s.gpuBeginNs = c.gpuBeginNs.load(std::memory_order_relaxed);
+        s.gpuTexUpdateNs = c.gpuTexUpdateNs.load(std::memory_order_relaxed);
+        s.gpuTexHashNs = c.gpuTexHashNs.load(std::memory_order_relaxed);
+        s.gpuTexHashBytes = c.gpuTexHashBytes.load(std::memory_order_relaxed);
+        s.gpuExecNs = c.gpuExecNs.load(std::memory_order_relaxed);
+        s.gpuIndexNs = c.gpuIndexNs.load(std::memory_order_relaxed);
+        s.gpuFlushNs = c.gpuFlushNs.load(std::memory_order_relaxed);
+        s.gpuBufferNs = c.gpuBufferNs.load(std::memory_order_relaxed);
+        s.gpuSnapshotCompareBytes = c.gpuSnapshotCompareBytes.load(std::memory_order_relaxed);
+        s.gpuSnapshotCopyBytes = c.gpuSnapshotCopyBytes.load(std::memory_order_relaxed);
+        s.gpuPassNs = c.gpuPassNs.load(std::memory_order_relaxed);
+        s.gpuPipelineNs = c.gpuPipelineNs.load(std::memory_order_relaxed);
+        s.gpuBindNs = c.gpuBindNs.load(std::memory_order_relaxed);
+        s.gpuEndNs = c.gpuEndNs.load(std::memory_order_relaxed);
         return s;
     }
 
@@ -1254,6 +1434,11 @@ namespace {
                 cemu_bridge_device_summary(), (uint32_t)hostThreads, GetConfig().async_compile.GetValue() ? "on" : "off",
                 (uint64_t)(PPCRecompiler_getJitArenaSize() / (1024 * 1024)));
         }
+        if (logHeader)
+        {
+            std::string cpuDetail = getCpuModeDetail();
+            cemuLog_log(LogType::Force, "perf: cpu path {} | {}", g_cpuMode.load() == kCpuModeRecompiler ? "recompiler" : "interpreter", cpuDetail);
+        }
         cemuLog_log(LogType::Force,
             "perf {:.0f}s: fps host {:.1f} game {:.1f} vsync {:.1f} (speed {:.0f}%) | ppc thread run {:.0f}% wait {:.0f}% | "
             "gpu thread busy {:.0f}% idle {:.0f}% sync {:.0f}% (drawable {:.0f} ms) | metal gpu {:.1f} ms/frame ({:.0f}% busy, {:.1f} cb/frame) | "
@@ -1333,9 +1518,31 @@ namespace {
             }
         }
 
-        char line[160];
-        snprintf(line, sizeof(line), "host %.1f game %.1f fps | ppc %.0f%% gpu thread %.0f%% metal %.1f ms | %s",
-            hostFps, guestFps, ppcRun * 100.0, gpuThreadBusy * 100.0, mtlMsPerFrame, PerfTelemetry::BottleneckName(verdict));
+        {
+            const double perFrame = frames > 0.0 ? 1.0 / (frames * 1e6) : 0.0;
+            auto ms = [&](uint64_t x, uint64_t y) { return (double)(x - y) * perFrame; };
+            const double busyMs = gpuThreadBusy * wallNs * perFrame;
+            const double beginMs = ms(b.gpuBeginNs, a.gpuBeginNs);
+            const double execMs = ms(b.gpuExecNs, a.gpuExecNs);
+            const double endMs = ms(b.gpuEndNs, a.gpuEndNs);
+            const double otherMs = std::max(0.0, busyMs - beginMs - execMs - endMs);
+            const uint32_t draws = b.gpuDraws - a.gpuDraws;
+            const double mbPerFrame = frames > 0.0 ? 1.0 / (frames * 1048576.0) : 0.0;
+            cemuLog_log(LogType::Force,
+                "perf gpu thread ms/frame {:.1f}: draws {:.0f}/frame | begin {:.1f} (textures {:.1f}, hashing {:.1f} = {} textures {:.1f} MB/frame) | "
+                "execute {:.1f} (index {:.1f}, flush queue {:.1f}, buffers {:.1f} [compared {:.1f} MB/frame, copied {:.1f} MB/frame], render pass {:.1f}, pipeline {:.1f}, resource bind {:.1f}) | "
+                "end/commit {:.1f} | other {:.1f}",
+                busyMs, frames > 0.0 ? draws / frames : 0.0, beginMs, ms(b.gpuTexUpdateNs, a.gpuTexUpdateNs), ms(b.gpuTexHashNs, a.gpuTexHashNs),
+                frames > 0.0 ? (uint32_t)((b.gpuTexHashes - a.gpuTexHashes) / frames) : 0u, (double)(b.gpuTexHashBytes - a.gpuTexHashBytes) * mbPerFrame,
+                execMs, ms(b.gpuIndexNs, a.gpuIndexNs), ms(b.gpuFlushNs, a.gpuFlushNs), ms(b.gpuBufferNs, a.gpuBufferNs),
+                (double)(b.gpuSnapshotCompareBytes - a.gpuSnapshotCompareBytes) * mbPerFrame, (double)(b.gpuSnapshotCopyBytes - a.gpuSnapshotCopyBytes) * mbPerFrame,
+                ms(b.gpuPassNs, a.gpuPassNs), ms(b.gpuPipelineNs, a.gpuPipelineNs), ms(b.gpuBindNs, a.gpuBindNs), endMs, otherMs);
+        }
+
+        char line[200];
+        snprintf(line, sizeof(line), "host %.1f game %.1f fps | ppc %.0f%% gpu thread %.0f%% metal %.1f ms | %s%s",
+            hostFps, guestFps, ppcRun * 100.0, gpuThreadBusy * 100.0, mtlMsPerFrame, PerfTelemetry::BottleneckName(verdict),
+            g_cpuMode.load() == kCpuModeRecompiler ? "" : (g_recompilerRequested.load() ? " | interpreter (no JIT enabler)" : " | interpreter (recompiler off)"));
         std::lock_guard<std::mutex> lock(g_perfLineMutex);
         g_perfLine = line;
     }
@@ -1347,6 +1554,7 @@ namespace {
         if (g_perfRunning.exchange(true))
             return;
         std::thread([] {
+            ios_bridge_thread_begin("EspressU perf line");
             constexpr double kWindowSeconds = 5.0;
             PerfSnapshot baseline;
             bool haveBaseline = false;
@@ -1564,13 +1772,16 @@ namespace {
             return;
 
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:nil
-            usingBlock:^(NSNotification*) { g_appIsActive.store(false); }];
+            usingBlock:^(NSNotification*) { g_appIsActive.store(false); PerfTelemetry::AppInBackground().store(true); }];
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification object:nil queue:nil
             usingBlock:^(NSNotification*) { g_appIsActive.store(false); }];
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:nil
-            usingBlock:^(NSNotification*) { g_appIsActive.store(true); }];
+            usingBlock:^(NSNotification*) { g_appIsActive.store(true); PerfTelemetry::AppInBackground().store(false); }];
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:nil
+            usingBlock:^(NSNotification*) { PerfTelemetry::AppInBackground().store(false); }];
 
         std::thread([] {
+            ios_bridge_thread_begin("EspressU stall watch");
             StallDetect::Detector detector;
             uint32_t seenResetGen = g_stallResetGen.load();
             int64_t lastStillLogMs = 0;
@@ -1648,6 +1859,32 @@ namespace {
     }
     GCBridgeVec2 g_touchSticks[2] = {};
     uint32_t g_physicalButtons = 0;
+
+    // Custom button mapping for the physical controller only. It is applied here, before touch and controller
+    // input are merged, so the on-screen controls always keep the built-in layout. Indexed by
+    // CemuBridgePadMapButton; each entry is the bit of the physical button that drives it, or -1 for the default.
+    constexpr int kPadDefaultBit[17] = {
+        -1, kBitA, kBitB, kBitX, kBitY, kBitL, kBitR, kBitZL, kBitZR, kBitPlus, kBitMinus,
+        kBitUp, kBitDown, kBitLeft, kBitRight, kBitStickL, kBitStickR,
+    };
+    int g_padRemap[17] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    bool g_padRemapActive = false;
+
+    uint32_t ios_remap_physical(uint32_t physical)
+    {
+        if (!g_padRemapActive)
+            return physical;
+        uint32_t out = physical;
+        for (int pad = 1; pad < 17; ++pad)
+            out &= ~(1u << kPadDefaultBit[pad]);
+        for (int pad = 1; pad < 17; ++pad)
+        {
+            const int source = g_padRemap[pad] >= 0 ? g_padRemap[pad] : kPadDefaultBit[pad];
+            if (physical & (1u << source))
+                out |= 1u << kPadDefaultBit[pad];
+        }
+        return out;
+    }
     GCBridgeVec2 g_physicalSticks[2] = {};
     float g_physicalTriggers[2] = {};
 
@@ -1731,7 +1968,8 @@ namespace {
             }
         }
         GCBridgeControllerState s{};
-        s.buttons = g_touchButtons | g_physicalButtons;
+        const uint32_t physical = ios_remap_physical(g_physicalButtons);
+        s.buttons = g_touchButtons | physical;
         g_touchSeen |= g_touchButtons;
         for (int i = 0; i < 2; i++)
         {
@@ -1739,8 +1977,10 @@ namespace {
             const GCBridgeVec2 chosen = (touch.x != 0.0f || touch.y != 0.0f) ? touch : g_physicalSticks[i];
             (i == 0 ? s.leftStick : s.rightStick) = chosen;
         }
-        s.leftTrigger = std::max(g_physicalTriggers[0], (g_touchButtons & (1u << kBitZL)) ? 1.0f : 0.0f);
-        s.rightTrigger = std::max(g_physicalTriggers[1], (g_touchButtons & (1u << kBitZR)) ? 1.0f : 0.0f);
+        const float leftTrigger = g_padRemap[CEMU_BRIDGE_PAD_ZL] >= 0 ? 0.0f : g_physicalTriggers[0];
+        const float rightTrigger = g_padRemap[CEMU_BRIDGE_PAD_ZR] >= 0 ? 0.0f : g_physicalTriggers[1];
+        s.leftTrigger = std::max(leftTrigger, ((g_touchButtons | physical) & (1u << kBitZL)) ? 1.0f : 0.0f);
+        s.rightTrigger = std::max(rightTrigger, ((g_touchButtons | physical) & (1u << kBitZR)) ? 1.0f : 0.0f);
         return s;
     }
 
@@ -2818,6 +3058,10 @@ int cemu_bridge_cpu_mode(void) {
     return g_cpuMode.load();
 }
 
+bool cemu_bridge_jit_probe(void) {
+    return ios_jit_probe_impl();
+}
+
 const char* cemu_bridge_cpu_mode_detail(void) {
     const char* detail = getCpuModeDetail();
     if (detail[0] == '\0')
@@ -3261,6 +3505,7 @@ static bool StartDecryptJob(const std::function<int(const std::function<void(uin
     g_decryptFilesWritten.store(0);
 
     g_decryptThread = std::thread([job]() {
+        ios_bridge_thread_begin("EspressU decrypt", false);
         auto progress = [](uint64_t bytesWritten, uint32_t filesWritten) {
             g_decryptBytesWritten.store(bytesWritten);
             g_decryptFilesWritten.store(filesWritten);
@@ -3645,6 +3890,7 @@ bool cemu_bridge_timebase_auto_enabled(void) {
 static void ios_timebase_ladder_entry() {
     const auto start = std::chrono::steady_clock::now();
     const int startShift = cemu_bridge_get_timebase_shift();
+    ios_bridge_thread_begin("EspressU clock ladder");
     auto lastStep = start;
     bool baselineTaken = false;
     unsigned long long baseGX2Frames = 0;
@@ -3789,6 +4035,10 @@ void IOSBridge_VulkanDeviceLost(const char* why) {
     cemu_bridge_log_checkpoint((std::string("Renderer: Vulkan failed while running with MoltenVK ") + g_activeMoltenVK
         + " (" + (why ? why : "unknown") + "). The title is being stopped and the saved renderer is now Metal.").c_str());
     IOSSystemImplementation_ReportFatal("Vulkan stopped working while this game was running (the GPU stopped responding or ran out of memory), so the game was stopped. The renderer is back on Metal for the next launch; you can try Vulkan again in Settings > Graphics.");
+}
+
+void IOSBridge_LogAllocationFailure(const char* what, uint64_t wantedBytes) {
+    cemu_vm_report(what, wantedBytes);
 }
 
 void IOSBridge_GPUThreadException(const char* type, const char* what) {
@@ -3964,6 +4214,49 @@ bool cemu_bridge_reset_controller_bindings(void) {
     const int bindings = cemu_bridge_input_button_mapping_count();
     cemuLog_log(LogType::Force, "iOS input: controller bindings reset; GamePad now has {} button mappings", bindings);
     return bindings > 0;
+}
+
+static_assert(CEMU_BRIDGE_PAD_A == VPADController::kButtonId_A && CEMU_BRIDGE_PAD_Y == VPADController::kButtonId_Y
+              && CEMU_BRIDGE_PAD_PLUS == VPADController::kButtonId_Plus && CEMU_BRIDGE_PAD_UP == VPADController::kButtonId_Up
+              && CEMU_BRIDGE_PAD_STICK_R == VPADController::kButtonId_StickR,
+              "CemuBridgePadMapButton must match VPADController::ButtonId");
+
+// Physical button ids used by the settings UI: 0 A, 1 B, 2 X, 3 Y, 4 left bumper, 5 right bumper, 6 left trigger,
+// 7 right trigger, 8 options, 9 menu, 10 and 11 stick clicks, 12 to 15 D-pad up, down, left, right.
+static int ios_pad_ui_button(int coreButton) {
+    if (coreButton >= 0 && coreButton <= 11)
+        return coreButton;
+    if (coreButton == kButtonUp) return 12;
+    if (coreButton == kButtonDown) return 13;
+    if (coreButton == kButtonLeft) return 14;
+    if (coreButton == kButtonRight) return 15;
+    return -1;
+}
+
+void cemu_bridge_pad_mapping_set(int padButton, int deviceButton) {
+    if (padButton < 1 || padButton > 16)
+        return;
+    int bit = -1;
+    if (deviceButton >= 0 && deviceButton <= 11)
+        bit = deviceButton;
+    else if (deviceButton >= 12 && deviceButton <= 15)
+        bit = kBitUp + (deviceButton - 12);
+    std::lock_guard lock(g_inputMutex);
+    g_padRemap[padButton] = bit;
+    g_padRemapActive = false;
+    for (int pad = 1; pad < 17; ++pad)
+        g_padRemapActive = g_padRemapActive || g_padRemap[pad] >= 0;
+}
+
+void cemu_bridge_pad_mapping_clear_all(void) {
+    std::lock_guard lock(g_inputMutex);
+    for (int pad = 1; pad < 17; ++pad)
+        g_padRemap[pad] = -1;
+    g_padRemapActive = false;
+}
+
+int cemu_bridge_pad_mapping_default(int padButton) {
+    return ios_pad_ui_button(InputManager::default_pad_device_button((uint64)padButton));
 }
 
 void cemu_bridge_set_stick_axis(CemuBridgeStick stick, float x, float y) {

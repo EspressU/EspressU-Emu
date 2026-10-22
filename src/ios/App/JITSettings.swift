@@ -45,4 +45,7 @@ enum JITStatus {
         guard csops(getpid(), 0, &flags, MemoryLayout<UInt32>.size) == 0 else { return false }
         return flags & 0x1000_0000 != 0
     }
+
+    /// The flag stays set after the JIT helper has let go, so a game start also asks the engine side to map a page.
+    static var isUsable: Bool { isActive && cemu_bridge_jit_probe() }
 }

@@ -14,7 +14,7 @@ struct OpenSourceLicencesView: View {
 
     static let components: [Component] = [
         .init(name: "Cemu", url: "https://github.com/cemu-project/Cemu", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
-        .init(name: "MeloCafe", url: "https://github.com/stossy11/MeloCafe", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
+        .init(name: "MuffinEMU (EspressU is based on it)", url: "https://github.com/MuffinEMU/Muffin-EMU", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
         .init(name: "StikJIT (helper for the built-in JIT)", url: "https://github.com/StikDebug/StikJIT", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
         .init(name: "idevice (bundled in StikJIT)", url: "https://github.com/jkcoxson/idevice", licence: "MIT", licenceURL: "https://opensource.org/license/mit"),
         .init(name: "MoltenVK 1.4.3 and 1.2.8", url: "https://github.com/KhronosGroup/MoltenVK", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),

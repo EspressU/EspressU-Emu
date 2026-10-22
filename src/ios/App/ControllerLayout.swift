@@ -46,8 +46,8 @@ enum ControllerLayoutSettings {
     static let minStickCurve: Double = 1.0
     static let maxStickCurve: Double = 2.5
 
-    static let defaultStickGate = ControllerGeometry.StickGate.octagon
-    static let defaultStickGateRaw = ControllerGeometry.StickGate.octagon.rawValue
+    static let defaultStickGate = ControllerGeometry.StickGate.round
+    static let defaultStickGateRaw = ControllerGeometry.StickGate.round.rawValue
     static let defaultScale: Double = 1.0
     static let defaultOpacity: Double = 0.85
     static let minScale: Double = 0.6
@@ -189,39 +189,15 @@ enum ControllerGeometry {
         ringDiameter / 2 * stickTravelFraction
     }
 
+    /// The stick area is always a circle: full push in every direction.
     enum StickGate: String, CaseIterable, Identifiable {
-        case octagon
         case round
 
         var id: String { rawValue }
+        var title: String { "Round" }
+        var summary: String { "Full push in every direction." }
 
-        var title: String {
-            switch self {
-            case .octagon: return "Octagonal"
-            case .round:   return "Round"
-            }
-        }
-
-        var summary: String {
-            switch self {
-            case .octagon:
-                return "Matches the real GamePad: full push in the eight main directions, slightly less in between."
-            case .round:
-                return "Full push in every direction."
-            }
-        }
-
-        func radiusFraction(atAngle angle: CGFloat) -> CGFloat {
-            switch self {
-            case .round:
-                return 1
-            case .octagon:
-                let wedge = CGFloat.pi / 4
-                var offset = angle.truncatingRemainder(dividingBy: wedge)
-                if offset < 0 { offset += wedge }
-                return cos(wedge / 2) / cos(offset - wedge / 2)
-            }
-        }
+        func radiusFraction(atAngle angle: CGFloat) -> CGFloat { 1 }
     }
 
     static let rightStickCluster: [Control] = [

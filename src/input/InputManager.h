@@ -39,6 +39,12 @@ public:
 	void load() noexcept;
 	bool load(size_t player_index, std::string_view filename = {});
     void load_gc_controllers();
+#if BOOST_OS_IOS
+    // user remaps of the GamePad's buttons onto a physical controller; a negative button restores the default
+    void set_pad_mapping_override(uint64 vpad_button, int device_button);
+    void clear_pad_mapping_overrides();
+    static int default_pad_device_button(uint64 vpad_button);
+#endif
 
 	bool migrate_config(const fs::path& file_path);
 

@@ -12,6 +12,7 @@ struct EspressUSettingsView: View {
 
     @StateObject var values = SettingsValues()
     @StateObject var input = ControllerMenuInput()
+    @ObservedObject var mapping = ControllerMappingSession.shared
     @ObservedObject var accountSheets = AccountSheetRouter.shared
     @ObservedObject var uiStyle = UIStyleStore.shared
 
@@ -71,7 +72,10 @@ struct EspressUSettingsView: View {
         }
         .preferredColorScheme(EspressUAppearance.colorScheme)
         .onAppear(perform: appear)
-        .onDisappear { input.stop() }
+        .onDisappear {
+            ControllerMappingSession.shared.cancel()
+            input.stop()
+        }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             jitActive = JITStatus.isActive
@@ -121,12 +125,14 @@ struct EspressUSettingsView: View {
         jitActive = JITStatus.isActive
         jitCoordinator.refreshTXM()
         input.onCommand = handle
+        input.isBlocked = { ControllerMappingSession.shared.isListening }
         input.isExclusive = true
         input.start()
         cemu_bridge_log_line("Settings: opened")
     }
 
     func close() {
+        ControllerMappingSession.shared.cancel()
         input.stop()
         dismiss()
     }
@@ -504,6 +510,60 @@ struct EspressUSettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(18)
 
+        case .padButton(let label, let value, let changed, let run, let reset):
+            HStack(spacing: 6) {
+                Button {
+                    focus = item.id
+                    run()
+                } label: {
+                    HStack(spacing: 14) {
+                        Text(label)
+                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .foregroundColor(EspressUTheme.brownDarkest)
+                            .minimumScaleFactor(0.6)
+                            .lineLimit(1)
+                            .frame(width: 38, height: 38)
+                            .background(Circle().fill(EspressUTheme.pixelBlue.opacity(changed ? 0.3 : 0.14)))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.title)
+                                .font(.system(size: 17, weight: .bold, design: .rounded))
+                                .foregroundColor(EspressUTheme.brownDarkest)
+                            if let detail = item.detail, !detail.isEmpty {
+                                Text(detail)
+                                    .font(.system(size: 13, design: .rounded))
+                                    .foregroundColor(EspressUTheme.brownMid)
+                            }
+                        }
+                        Spacer(minLength: 8)
+                        Text(value)
+                            .font(.system(size: 15, weight: changed ? .bold : .regular, design: .rounded))
+                            .foregroundColor(changed ? EspressUTheme.accentText : EspressUTheme.brownMid)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Capsule().fill(changed ? EspressUTheme.pixelBlue.opacity(0.14) : EspressUTheme.wrapper.opacity(0.7)))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                if let reset {
+                    Button {
+                        focus = item.id
+                        reset()
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(EspressUTheme.brownMid)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(EspressUTheme.wrapper.opacity(0.7)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Reset \(item.title)")
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 9)
+            .frame(minHeight: isWide ? 64 : 56)
+
         case .expand(let open):
             Button {
                 focus = item.id
@@ -614,8 +674,6 @@ struct EspressUSettingsView: View {
             GraphicPacksView()
         case .figureManager:
             EmulatedDevicesView()
-        case .licences:
-            OpenSourceLicencesView()
         default:
             Form { legacySections(page) }
                 .settingsPageBackground()
@@ -625,7 +683,6 @@ struct EspressUSettingsView: View {
     @ViewBuilder private func legacySections(_ page: LegacySettingsPage) -> some View {
         switch page {
         case .emulatedClock: EmulatedClockSection()
-        case .touchControls: OnScreenControlsSection()
         case .figures: EmulatedDevicesSettingsSection()
         case .overlay:
             OverlaySettingsSection()
@@ -644,7 +701,7 @@ struct EspressUSettingsView: View {
             DiagnosticsSection()
         case .about: AboutSettingsSection()
         case .networkService: CustomServersSettingsSection()
-        case .figureManager, .licences, .graphicPackGame, .graphicPack: EmptyView()
+        case .figureManager, .licences, .graphicPackGame, .graphicPack, .controllerMapping: EmptyView()
         }
     }
 
@@ -771,6 +828,7 @@ struct EspressUSettingsView: View {
     }
 
     func closeLegacy() {
+        ControllerMappingSession.shared.cancel()
         let page = legacy
         dropdown = nil
         legacy = page?.parent
@@ -895,14 +953,16 @@ struct EspressUSettingsView: View {
             focus = focusOrder().first
         case .menu:
             close()
-        case .alternate, .select:
+        case .alternate:
+            if let item, case .padButton(_, _, _, _, let reset?) = item.control { reset() }
+        case .select:
             break
         }
     }
 
     private func handleGrid(_ command: ControllerMenuCommand) {
         let ids = SettingsCategory.allCases.map { "cat.\($0.rawValue)" }
-        let grid = ControllerFocusGrid(rows: stride(from: 0, to: ids.count, by: 2).map { Array(ids[$0..<min($0 + 2, ids.count)]) })
+        let grid = ControllerFocusGrid(rows: ids.map { [$0] })
         switch command {
         case .up, .down, .left, .right:
             if let next = grid.move(gridFocus, command) { gridFocus = next }
@@ -965,6 +1025,8 @@ struct EspressUSettingsView: View {
             run()
         case .expand:
             toggleExpanded()
+        case .padButton(_, _, _, let run, _):
+            run()
         case .info, .custom, .banner:
             break
         }
@@ -972,6 +1034,10 @@ struct EspressUSettingsView: View {
 
     private func adjust(_ item: SettingsItem, by direction: Int) -> Bool {
         switch item.control {
+        case .padButton(_, _, _, _, let reset?):
+            guard direction > 0 else { return false }
+            reset()
+            return true
         case .modeSwitch(let binding):
             let on = direction < 0
             if binding.wrappedValue != on { binding.wrappedValue = on }

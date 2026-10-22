@@ -14,7 +14,7 @@ enum RemovedSettingsCleanup {
             MotionSettings.invertHorizontalKey, MotionSettings.invertVerticalKey, MotionSettings.diagnosticKey,
             StikJITSetup.forceScriptKey,
             ExternalDisplaySystemSettings.enabledKey,
-            TopBarAutoHide.overrideKey, TopBarAutoHide.hideDelayKey, TopBarAutoHide.handleSizeKey,
+            "espressu.topBar.autoHideOverride", TopBarAutoHide.hideDelayKey, TopBarAutoHide.handleSizeKey,
         ] {
             defaults.removeObject(forKey: key)
         }

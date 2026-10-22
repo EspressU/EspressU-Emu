@@ -284,8 +284,9 @@ struct ControllerButtonHint: View {
 extension ControllerMenuInput {
     var confirmSymbol: String { controllers.first?.extendedGamepad?.buttonA.sfSymbolsName ?? "a.circle" }
     var backSymbol: String { controllers.first?.extendedGamepad?.buttonB.sfSymbolsName ?? "b.circle" }
-    var menuSymbol: String { controllers.first?.extendedGamepad?.buttonMenu.sfSymbolsName ?? "line.3.horizontal.circle" }
-    var selectSymbol: String { controllers.first?.extendedGamepad?.buttonOptions?.sfSymbolsName ?? "ellipsis.circle" }
+    // The system's own glyphs for Menu and View/Options come out as a bare oval on some pads, so these two are fixed.
+    var menuSymbol: String { "line.3.horizontal.circle" }
+    var selectSymbol: String { "minus.circle" }
     var leftShoulderSymbol: String { controllers.first?.extendedGamepad?.leftShoulder.sfSymbolsName ?? "l1.rectangle.roundedbottom" }
     var rightShoulderSymbol: String { controllers.first?.extendedGamepad?.rightShoulder.sfSymbolsName ?? "r1.rectangle.roundedbottom" }
 }

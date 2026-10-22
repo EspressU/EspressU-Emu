@@ -24,7 +24,7 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
         case .jit:         return "Built-in JIT: on or off, status and pairing."
         case .performance: return "How games run: the CPU and heat."
         case .graphics:    return "Picture quality, frame pacing and shaders."
-        case .controls:    return "Touch controls, controllers and motion."
+        case .controls:    return "Controllers and motion."
         case .screenSound: return "Screen layout, brightness, volume and the microphone."
         case .gamesData:   return "Your library, keys, files, backups and online."
         case .system:      return "Look, help and about EspressU."
@@ -34,7 +34,7 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
     var hint: String {
         switch self {
         case .jit:         return "Status, pairing"
-        case .performance: return "CPU cores, heat"
+        case .performance: return "CPU cores, speed, heat"
         case .graphics:    return "Resolution, shaders"
         case .controls:    return "Touch, controllers, motion"
         case .screenSound: return "Layout, brightness, volume"
@@ -57,10 +57,10 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 }
 
 enum LegacySettingsPage: String, Identifiable {
-    case emulatedClock, touchControls, figures, overlay, graphicPacks, linkedFolders
+    case emulatedClock, figures, overlay, graphicPacks, linkedFolders
     case keys, files, backup, account, diagnostics, about
     case figureManager, networkService, licences
-    case graphicPackGame, graphicPack
+    case graphicPackGame, graphicPack, controllerMapping
 
     var id: String { rawValue }
 
@@ -78,7 +78,6 @@ enum LegacySettingsPage: String, Identifiable {
     var summary: String {
         switch self {
         case .emulatedClock: return "How fast the Wii U's clock runs."
-        case .touchControls: return "The on-screen GamePad."
         case .figures:       return "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions."
         case .overlay:       return "What EspressU shows on top of a game."
         case .graphicPacks:  return "Mods and fixes for your games."
@@ -94,13 +93,13 @@ enum LegacySettingsPage: String, Identifiable {
         case .licences:      return "The open-source code inside EspressU."
         case .graphicPackGame: return "Packs made for this game. Changes apply the next time you start a game."
         case .graphicPack:   return "Changes apply the next time you start a game."
+        case .controllerMapping: return "Choose which controller button does what."
         }
     }
 
     var title: String {
         switch self {
         case .emulatedClock: return "Emulated clock"
-        case .touchControls: return "Touch controls"
         case .figures:       return "Figure portals"
         case .overlay:       return "Overlay and notifications"
         case .graphicPacks:  return "Graphic packs"
@@ -116,6 +115,7 @@ enum LegacySettingsPage: String, Identifiable {
         case .licences:      return "Open-source licences"
         case .graphicPackGame: return "Graphic packs"
         case .graphicPack:   return "Pack"
+        case .controllerMapping: return "Controller buttons"
         }
     }
 }
@@ -137,6 +137,7 @@ struct SettingsItem: Identifiable {
         case custom(AnyView)
         case modeSwitch(Binding<Bool>)
         case banner(AnyView)
+        case padButton(label: String, value: String, changed: Bool, run: () -> Void, reset: (() -> Void)?)
         case expand(Bool)
     }
 

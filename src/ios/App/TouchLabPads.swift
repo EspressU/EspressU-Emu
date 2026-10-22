@@ -11,97 +11,9 @@ import TouchLabCore
 import TouchLabUI
 
 enum TouchLabSettings {
-    static let schemeKey = "espressu.pad.touchlabScheme"
-    /// Zone (always-on sticks and buttons) is what new players get. An empty value is the original pad, still
-    /// offered as "EspressU (classic)". Anyone who already picked a style keeps it, because `@AppStorage` only
-    /// falls back to this value when nothing is stored.
-    static let defaultScheme = "zone"
-
-    static let floatCameraKey = "espressu.touchlab.float.camera"
-    static let defaultFloatCamera = FloatPad.Camera.stick.rawValue
-
-    static let racingAutoAccelerateKey = "espressu.touchlab.racing.autoAccelerate"
-    static let racingTiltKey = "espressu.touchlab.racing.tilt"
-
-    static let aScaleKey = "espressu.touchlab.aScale"
-    static let defaultAScale = 1.0
-    static let aScaleRange = 1.0...1.8
-
-    private static let legacyLargeAKey = "espressu.touchlab.zone.largeA"
-    static func migrateLegacyLargeA() {
-        let d = UserDefaults.standard
-        guard d.object(forKey: aScaleKey) == nil else { return }
-        if d.bool(forKey: legacyLargeAKey) { d.set(1.4, forKey: aScaleKey) }
-    }
-
-    static let adaptiveResetKey = "espressu.touchlab.adaptive.resetCount"
-
-    static func adaptiveKey(gameID: String?) -> String {
-        "espressu.touchlab.adaptive." + (gameID ?? "default")
-    }
-
-    static let schemes: [SchemeInfo] = SchemeCatalog.all
-
-    static func isTouchLab(_ id: String) -> Bool {
-        schemes.contains { $0.id == id }
-    }
-
-    static func name(_ id: String) -> String {
-        schemes.first { $0.id == id }?.name ?? "EspressU"
-    }
-
-    static func adoptAdaptiveKey(from oldID: String, to newID: String) {
-        let d = UserDefaults.standard
-        let old = adaptiveKey(gameID: oldID), new = adaptiveKey(gameID: newID)
-        guard let learned = d.string(forKey: old), d.object(forKey: new) == nil else { return }
-        d.set(learned, forKey: new)
-        d.removeObject(forKey: old)
-    }
-
-    static func resetAdaptive(gameID: String?) {
-        let d = UserDefaults.standard
-        d.removeObject(forKey: adaptiveKey(gameID: gameID))
-        d.set(d.integer(forKey: adaptiveResetKey) &+ 1, forKey: adaptiveResetKey)
-    }
-
-    static func resetAdaptiveAll() {
-        let d = UserDefaults.standard
-        let prefix = adaptiveKey(gameID: "")
-        for key in d.dictionaryRepresentation().keys where key.hasPrefix(prefix) && key != adaptiveResetKey {
-            d.removeObject(forKey: key)
-        }
-        d.set(d.integer(forKey: adaptiveResetKey) &+ 1, forKey: adaptiveResetKey)
-    }
-
-    struct Style: Identifiable {
-        let id: String
-        let name: String
-        let summary: String
-    }
-
-    static let styles: [Style] = schemes.map { Style(id: $0.id, name: $0.name, summary: $0.summary) }
-
-    static func summary(_ id: String) -> String {
-        styles.first { $0.id == id }?.summary ?? ""
-    }
-
-    static let floatStyleID = FloatPad.schemeInfo.id
-    static let adaptiveStyleID = AdaptivePad.schemeInfo.id
-    static let zoneStyleID = ZonePad.schemeInfo.id
-    static let racingStyleID = RacingPad.schemeInfo.id
-
-    static func hasFixedSticks(_ id: String) -> Bool {
-        id == zoneStyleID || id == adaptiveStyleID
-    }
-
-    static func hasMovableShoulders(_ id: String) -> Bool {
-        id == zoneStyleID || id == adaptiveStyleID
-    }
-
-    static let cameraOptions: [(value: String, title: String)] = [
-        (FloatPad.Camera.stick.rawValue, "Floating stick"),
-        (FloatPad.Camera.swipe.rawValue, "Swipe"),
-    ]
+    /// The on-screen controls have a single layout. Older builds let players pick between several styles;
+    /// whatever was stored under the old style keys is simply ignored now.
+    static let schemeID = ZonePad.schemeInfo.id
 }
 
 @MainActor
@@ -196,7 +108,6 @@ final class CemuBridgePadOutput: @preconcurrency PadOutput {
 }
 
 struct TouchLabPadOverlay: View {
-    let schemeID: String
     let gameID: String?
     let screens: TouchLabScreenState
     let enabled: Bool
@@ -208,16 +119,9 @@ struct TouchLabPadOverlay: View {
     @AppStorage(ControllerLayoutSettings.opacityKey) private var opacity = ControllerLayoutSettings.defaultOpacity
     @AppStorage(ControllerLayoutSettings.hapticsKey) private var haptics = ControllerLayoutSettings.defaultHaptics
     @AppStorage(ControllerLayoutSettings.deadzoneKey) private var deadzone = ControllerLayoutSettings.defaultDeadzone
-    @AppStorage(ControllerLayoutSettings.stickCurveKey) private var curve = ControllerLayoutSettings.defaultStickCurve
-    @AppStorage(ControllerLayoutSettings.stickGateKey) private var gateRaw = ControllerLayoutSettings.defaultStickGateRaw
-    @AppStorage(TouchLabSettings.floatCameraKey) private var cameraRaw = TouchLabSettings.defaultFloatCamera
-    @AppStorage(TouchLabSettings.adaptiveResetKey) private var adaptiveResets = 0
-    @AppStorage(TouchLabSettings.racingAutoAccelerateKey) private var racingAuto = false
-    @AppStorage(TouchLabSettings.racingTiltKey) private var racingTilt = false
-    @AppStorage(TouchLabSettings.aScaleKey) private var aScale = TouchLabSettings.defaultAScale
 
     var body: some View {
-        TouchPad(schemeID: schemeID,
+        TouchPad(schemeID: TouchLabSettings.schemeID,
                  output: CemuBridgePadOutput.shared,
                  touchscreenRect: screens.screens.touchscreenRect,
                  videoRects: screens.screens.videoRects,
@@ -228,14 +132,13 @@ struct TouchLabPadOverlay: View {
                  haptics: haptics,
                  revision: revision,
                  enabled: enabled,
-                 stickTuning: StickTuning(deadzone: deadzone, curve: curve,
-                                          gate: StickTuning.Gate(rawValue: gateRaw) ?? .octagon),
+                 stickTuning: StickTuning(deadzone: deadzone, curve: ControllerLayoutSettings.minStickCurve,
+                                          gate: .round),
                  rectSpace: .window,
                  extraInsets: Insets(top: topInset),
                  makeScheme: makeScheme)
             .ignoresSafeArea()
             .onAppear {
-                TouchLabSettings.migrateLegacyLargeA()
                 syncGamepadSize()
             }
             .onChange(of: screens) { _ in syncGamepadSize() }
@@ -243,12 +146,7 @@ struct TouchLabPadOverlay: View {
 
     private var revision: Int {
         var h = Hasher()
-        h.combine(cameraRaw)
         h.combine(gameID)
-        h.combine(adaptiveResets)
-        h.combine(racingAuto)
-        h.combine(racingTilt)
-        h.combine(aScale)
         return h.finalize()
     }
 
@@ -257,23 +155,7 @@ struct TouchLabPadOverlay: View {
     }
 
     private func makeScheme(_ id: String) -> TouchScheme {
-        switch id {
-        case FloatPad.schemeInfo.id:
-            return FloatPad(camera: FloatPad.Camera(rawValue: cameraRaw) ?? .stick, aScale: CGFloat(aScale))
-        case AdaptivePad.schemeInfo.id:
-            let key = TouchLabSettings.adaptiveKey(gameID: gameID)
-            let pad = AdaptivePad(learned: AdaptivePad.decode(UserDefaults.standard.string(forKey: key) ?? "{}"),
-                                aScale: CGFloat(aScale))
-            pad.onLearned = { UserDefaults.standard.set(AdaptivePad.encode($0), forKey: key) }
-            return pad
-        case ZonePad.schemeInfo.id:
-            return ZonePad(aScale: CGFloat(aScale))
-        case RacingPad.schemeInfo.id:
-            return RacingPad(options: RacingPad.Options(autoAccelerate: racingAuto, tilt: racingTilt),
-                             aScale: CGFloat(aScale))
-        default:
-            return SchemeCatalog.make(id, aScale: CGFloat(aScale))
-        }
+        ZonePad(aScale: 1)
     }
 }
 

@@ -409,9 +409,6 @@ namespace LatteDecompiler
 		src->add("struct StageResources {" _CRLF);
 		src->addFmt("uint dummy [[id({})]];" _CRLF, MetalArgumentBuffer::Dummy);
 
-		if (decompilerContext->output->resourceMappingMTL.uniformVarsBufferBindingPoint >= 0)
-			src->addFmt("constant SupportBuffer* supportBuffer [[id({})]];" _CRLF, MetalArgumentBuffer::SupportBuffer);
-
 		if (decompilerContext->shader->uniformMode == LATTE_DECOMPILER_UNIFORM_MODE_FULL_CBANK)
 		{
 			for (uint32 i = 0; i < LATTE_NUM_MAX_UNIFORM_BUFFERS; i++)
@@ -479,8 +476,6 @@ namespace LatteDecompiler
 		}
 		src->add("};" _CRLF _CRLF);
 
-		if (decompilerContext->output->resourceMappingMTL.uniformVarsBufferBindingPoint >= 0)
-			src->add("#define supportBuffer (*stageResources.supportBuffer)" _CRLF);
 		if (decompilerContext->shader->uniformMode == LATTE_DECOMPILER_UNIFORM_MODE_FULL_CBANK)
 		{
 			for (uint32 i = 0; i < LATTE_NUM_MAX_UNIFORM_BUFFERS; i++)
@@ -654,7 +649,11 @@ namespace LatteDecompiler
 
 		const bool usesArgumentBuffer = decompilerContext->output->resourceMappingMTL.argumentBufferBindingPoint >= 0;
 		if (usesArgumentBuffer)
+		{
 			src->addFmt(", constant StageResources& stageResources [[buffer({})]]", decompilerContext->output->resourceMappingMTL.argumentBufferBindingPoint);
+			if (decompilerContext->output->resourceMappingMTL.uniformVarsBufferBindingPoint >= 0)
+				src->addFmt(", constant SupportBuffer& supportBuffer [[buffer({})]]", MTL_SUPPORT_BUFFER_BINDING);
+		}
 		else if (decompilerContext->output->resourceMappingMTL.uniformVarsBufferBindingPoint >= 0)
 		    src->addFmt(", constant SupportBuffer& supportBuffer [[buffer({})]]", decompilerContext->output->resourceMappingMTL.uniformVarsBufferBindingPoint);
 

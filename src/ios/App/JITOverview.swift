@@ -21,7 +21,9 @@ struct JITOverview {
 
     var missing: Check? { checks.first { $0.state == .missing } }
 
-    var isReady: Bool { active || (enabled && missing == nil) }
+    let vpnConnected: Bool
+
+    var isReady: Bool { vpnConnected && (active || (enabled && missing == nil)) }
 
     static var current: JITOverview { current(enabled: JITSettings.enabled) }
 
@@ -40,6 +42,7 @@ struct JITOverview {
             device = .missing
             deviceHint = reason
         }
+        let vpn = LocalDevVPNMonitor.shared.isConnected
         let checks = [
             Check(id: "ios", title: "iOS 17.4+", state: StikJITSetup.isAvailable ? .ok : .missing,
                   missingTitle: "Built-in JIT isn't available",
@@ -51,16 +54,20 @@ struct JITOverview {
             Check(id: "pairing", title: "Pairing file", state: StikJITSetup.hasPairingFile ? .ok : .missing,
                   missingTitle: "Pairing file missing",
                   hint: "Pair this device or import a pairing file."),
+            Check(id: "vpn", title: "LocalDevVPN connected", state: vpn ? .ok : .missing,
+                  missingTitle: "LocalDevVPN is off",
+                  hint: "Turn on LocalDevVPN. JIT then switches on by itself."),
             Check(id: "device", title: "Device reachable (LocalDevVPN/Wi-Fi)", state: device,
                   missingTitle: "Device not reachable", hint: deviceHint),
         ]
         return JITOverview(enabled: enabled, active: JITStatus.isActive && StikJITSetup.hasPairingFile, checks: checks,
                            preparing: (coordinator.job == .enable && !coordinator.quiet) || coordinator.job == .prepare || coordinator.job == .resetDDI,
-                           stageText: coordinator.stageText)
+                           stageText: coordinator.stageText, vpnConnected: vpn)
     }
 
     var title: String {
         if !enabled { return "JIT is off" }
+        if !vpnConnected && active { return "LocalDevVPN is off" }
         if active { return "JIT is on" }
         if preparing { return "Switching on…" }
         return missing?.missingTitle ?? "Ready"
@@ -68,6 +75,7 @@ struct JITOverview {
 
     var subtitle: String {
         if !enabled { return "Games run with the slow interpreter." }
+        if !vpnConnected && active { return "JIT stays on until you close EspressU. Turn LocalDevVPN back on to switch it on again later." }
         if active { return "Games run with the fast recompiler." }
         if preparing { return stageText }
         if let missing { return missing.hint }
@@ -80,6 +88,7 @@ struct JITOverview {
     var tint: Color {
         if !enabled { return EspressUTheme.brownMid }
         if isReady { return Color(hex: "#2E8B57") }
+        if !vpnConnected && active { return EspressUTheme.brownMid }
         if preparing { return EspressUTheme.accentText }
         return EspressUTheme.cautionText
     }
@@ -87,6 +96,7 @@ struct JITOverview {
 
 struct JITStatusCard: View {
     @ObservedObject private var coordinator = StikJITCoordinator.shared
+    @ObservedObject private var vpn = LocalDevVPNMonitor.shared
     @ObservedObject private var pairing = DevicePairing.shared
     var compact = false
     var enabled = JITSettings.enabled

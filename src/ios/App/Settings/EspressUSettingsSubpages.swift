@@ -36,9 +36,10 @@ extension EspressUSettingsView {
         case .graphicPacks: return graphicPacksGroups
         case .graphicPackGame: return graphicPackGameGroups
         case .graphicPack: return graphicPackGroups
-        case .touchControls: return touchControlsGroups
+        case .controllerMapping: return controllerMappingGroups
         case .networkService: return customServerGroups
-        case .figureManager, .licences: return nil
+        case .licences: return licencesGroups
+        case .figureManager: return nil
         }
     }
 
@@ -176,9 +177,15 @@ extension EspressUSettingsView {
                 overlayToggle("nt.friends", "Friends", NotificationSettings.friendsKey, NotificationSettings.defaultFriends) { cemu_bridge_set_notification_friends($0) },
             ]
         }
+        let buttons = [
+            SettingsItem(id: "ov.fade", title: "Fade out in-game buttons",
+                         detail: "Hides the top bar buttons, HOME included, after a few seconds while a game runs. Tap or swipe down at the top edge to bring them back. Off keeps them always visible.",
+                         control: .toggle(values.bool(TopBarAutoHide.enabledKey, TopBarAutoHide.defaultEnabled))),
+        ]
         return [
             SettingsGroup(id: "overlay", title: "Performance overlay", items: overlay),
             SettingsGroup(id: "notices", title: "Notifications", items: notices),
+            SettingsGroup(id: "buttons", title: "In-game buttons", items: buttons),
         ]
     }
 
@@ -465,6 +472,22 @@ extension EspressUSettingsView {
                              detail: "Shows over the game whether button presses reach it, and why not.",
                              control: .toggle(values.bool(PadDiagnostics.enabledKey, PadDiagnostics.defaultEnabled))),
             ]),
+        ]
+    }
+
+    private var licencesGroups: [SettingsGroup] {
+        let rows = OpenSourceLicencesView.components.map { component in
+            SettingsItem(id: "licence.\(component.name)", title: component.name,
+                         control: .open(component.licence, {
+                             if let url = URL(string: component.licenceURL) { UIApplication.shared.open(url) }
+                         }))
+        }
+        return [
+            SettingsGroup(id: "licences.note", title: "", items: [
+                SettingsItem(id: "licences.own", title: "EspressU", detail: "EspressU's own source is licensed under the Mozilla Public License 2.0. Each component below keeps its own copyright and licence. Tap one to read its licence.",
+                             control: .info("MPL-2.0", nil)),
+            ]),
+            SettingsGroup(id: "licences.list", title: "Included software", items: rows),
         ]
     }
 

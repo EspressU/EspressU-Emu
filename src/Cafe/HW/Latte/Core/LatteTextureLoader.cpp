@@ -703,8 +703,19 @@ void LatteTextureLoader_UpdateTextureSliceData(LatteTexture* tex, uint32 sliceIn
 		tex->texDataPtrHigh = physImagePtr + textureLoader.maxOffsetOutdated;
 		LatteTC_ResetTextureChangeTracker(tex, true);
 	}
-
-	LatteTextureLoader_loadTextureDataIntoSlice(tex, textureLoader.width, textureLoader.height, depth, mipLevels, pixelData, sliceIndex, mipIndex, imageSize);
+	try
+	{
+		LatteTextureLoader_loadTextureDataIntoSlice(tex, textureLoader.width, textureLoader.height, depth, mipLevels, pixelData, sliceIndex, mipIndex, imageSize);
+	}
+	catch (const std::bad_alloc&)
+	{
+		cemuLog_logOnce(LogType::Force, "Texture upload ran out of memory ({}x{}x{}, format {:04x}); that texture will be loaded again", textureLoader.width, textureLoader.height, textureLoader.surfaceInfoDepth, (int)tex->format);
+		g_renderer->texture_uploadBufferUnavailable(tex);
+		g_renderer->texture_releaseTextureUploadBuffer(pixelData);
+		if (textureLoader.dump)
+			free(textureLoader.dumpRGBA);
+		return;
+	}
 	if (textureLoader.dump)
 	{
 		fs::path path = ActiveSettings::GetUserDataPath("dump/textures");

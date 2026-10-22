@@ -91,26 +91,20 @@ uint64 MetalDepthStencilCache::CalculateDepthStencilHash(const LatteContextRegis
 
     uint32* ctxRegister = lcr.GetRawView();
 
-    uint64 stateHash = 0;
     uint32 depthControl = ctxRegister[Latte::REGADDR::DB_DEPTH_CONTROL];
-	bool stencilTestEnable = depthControl & 1;
-	if (stencilTestEnable)
-	{
-		stateHash += ctxRegister[mmDB_STENCILREFMASK];
-		stateHash = std::rotl<uint64>(stateHash, 17);
-		if(depthControl & (1<<7))
-		{
-			stateHash += ctxRegister[mmDB_STENCILREFMASK_BF];
-			stateHash = std::rotl<uint64>(stateHash, 13);
-		}
-	}
-	else
-	{
-		depthControl &= 0xFF;
-	}
+    uint64 frontMasks = 0;
+    uint64 backMasks = 0;
+    const bool stencilTestEnable = depthControl & 1;
+    if (stencilTestEnable)
+    {
+        frontMasks = (ctxRegister[mmDB_STENCILREFMASK] >> 8) & 0xFFFF;
+        if (depthControl & (1 << 7))
+            backMasks = (ctxRegister[mmDB_STENCILREFMASK_BF] >> 8) & 0xFFFF;
+    }
+    else
+    {
+        depthControl &= 0xFF;
+    }
 
-	stateHash = std::rotl<uint64>(stateHash, 17);
-	stateHash += depthControl;
-
-	return stateHash;
+    return (uint64)depthControl | (frontMasks << 32) | (backMasks << 48);
 }

@@ -603,20 +603,6 @@ private struct StickGateShape: InsettableShape {
         case .round:
             return Circle().path(in: CGRect(x: rect.midX - radius, y: rect.midY - radius,
                                             width: radius * 2, height: radius * 2))
-        case .octagon:
-            var path = Path()
-            for corner in 0..<8 {
-                let angle = CGFloat(corner) * .pi / 4
-                let point = CGPoint(x: rect.midX + cos(angle) * radius,
-                                    y: rect.midY + sin(angle) * radius)
-                if corner == 0 {
-                    path.move(to: point)
-                } else {
-                    path.addLine(to: point)
-                }
-            }
-            path.closeSubpath()
-            return path
         }
     }
 

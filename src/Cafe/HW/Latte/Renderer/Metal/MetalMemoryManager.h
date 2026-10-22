@@ -7,6 +7,8 @@
 #include "Common/DeviceCapabilities.h"
 
 #include <array>
+#include <unordered_map>
+#include <vector>
 
 struct MetalArgumentBinding
 {
@@ -34,6 +36,8 @@ public:
 
     MetalSynchronizedHeapAllocator::AllocatorReservation* GetCachedSnapshot(uint32 slot, const void* data, uint32 size, uint32 firstByte = 0);
     MetalSynchronizedHeapAllocator::AllocatorReservation* GetCachedArgumentBuffer(uint32 stage, MTL::ArgumentEncoder* encoder, const MetalArgumentBindings& bindings);
+    void ReleaseArgumentCache();
+    void AgeArgumentCache();
     void GetSnapshotStats(uint32& numBuffers, size_t& totalSize, size_t& freeSize) const
     {
         m_snapshotAllocator.GetStats(numBuffers, totalSize, freeSize);
@@ -64,6 +68,7 @@ public:
         m_stagingAllocator.CleanupBuffer(latestFinishedCommandBuffer);
         m_indexAllocator.CleanupBuffer(latestFinishedCommandBuffer);
         m_snapshotAllocator.CleanupBuffer(latestFinishedCommandBuffer);
+        ReclaimArgumentBlocks(latestFinishedCommandBuffer);
         m_sharedTracker.Complete(latestFinishedCommandBuffer);
     }
 
@@ -137,12 +142,33 @@ private:
         uint32 endByte = 0;
     } m_snapshots[SnapshotCount]{};
 
-    struct ArgumentSnapshot
+    static constexpr uint32 ARGUMENT_CACHE_ENTRIES = 48;
+    static constexpr uint32 ARGUMENT_CACHE_MAX_AGE = 6;
+    struct ArgumentCacheEntry
     {
+        uint64 hash = 0;
+        uint64 lastUse = 0;
+        uint64 lastGeneration = 0;
         MTL::ArgumentEncoder* encoder = nullptr;
         MetalArgumentBindings bindings{};
         MetalSynchronizedHeapAllocator::AllocatorReservation* allocation = nullptr;
-    } m_argumentSnapshots[METAL_SHADER_TYPE_TOTAL]{};
+    };
+    struct ArgumentCache
+    {
+        std::vector<ArgumentCacheEntry> entries;
+        uint64 useCounter = 0;
+    } m_argumentCaches[METAL_SHADER_TYPE_TOTAL]{};
+    uint64 m_argumentGeneration = 0;
+
+    static constexpr uint32 ARGUMENT_BLOCK_POOL_MAX = 1536;
+    using ArgumentBlock = MetalSynchronizedHeapAllocator::AllocatorReservation;
+    ArgumentBlock* AllocateArgumentBlock(uint32 size, uint32 alignment);
+    void RetireArgumentBlock(ArgumentBlock* block);
+    void ReclaimArgumentBlocks(MTL::CommandBuffer* finishedCommandBuffer);
+    std::unordered_map<uint32, std::vector<ArgumentBlock*>> m_freeArgumentBlocks;
+    std::unordered_map<MTL::CommandBuffer*, std::vector<ArgumentBlock*>> m_retiringArgumentBlocks;
+    uint32 m_pooledArgumentBlocks = 0;
+    void ReleaseArgumentCacheEntry(ArgumentCacheEntry& entry);
 
     MTL::Buffer* m_bufferCache = nullptr;
     size_t m_bufferCacheSize = 0;

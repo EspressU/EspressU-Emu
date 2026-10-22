@@ -246,8 +246,14 @@ struct BootFailureView: View {
                     Text("Back to games")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .espressUSurface(Capsule())
+                .contentShape(Capsule())
             }
-            .buttonStyle(EspressUBarButtonStyle())
+            .buttonStyle(.plain)
+            .environment(\.colorScheme, .dark)
             .padding(.top, 4)
         }
         .padding(32)
@@ -462,7 +468,11 @@ struct GameBrowserView: View {
             }
             .task { await installFromInbox() }
             .onReceive(Timer.publish(every: 10, on: .main, in: .common).autoconnect()) { _ in
-                guard scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isActive else { return }
+                guard scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
+                StikJITCoordinator.shared.autoEnableIfPossible()
+            }
+            .onReceive(LocalDevVPNMonitor.shared.$isConnected.removeDuplicates().dropFirst()) { connected in
+                guard connected, scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
                 StikJITCoordinator.shared.autoEnableIfPossible()
             }
             .task {
@@ -473,6 +483,7 @@ struct GameBrowserView: View {
                 showingSettings = false
             }
             .onAppear {
+                LocalDevVPNMonitor.shared.start()
                 #if os(iOS)
                 if gameManager.emulationState == .idle { GameControlHints.restoreGlobals() }
                 #endif
@@ -992,7 +1003,7 @@ struct GameBrowserView: View {
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
-                runDlcUpdateImport(from: url, kind: kind, longPressedGame: game, manualMatch: nil)
+                runDlcUpdateImport(from: url, kind: kind, longPressedGame: game, manualMatch: game)
             case .failure(let error):
                 dlcImportErrorMessage = error.localizedDescription
             }
@@ -1376,15 +1387,17 @@ struct EmulatorViewOptimized: View {
     @State private var padControlsHidden = false
     @State private var isPaused = false
     @State private var showHomeMenu = false
-    @State private var padHiddenByController = false
+    @AppStorage(ControllerLayoutSettings.autoHideWithControllerKey)
+    private var autoHideWithController = ControllerLayoutSettings.defaultAutoHideWithController
+    @State private var controllerConnected: Bool?
+    @State private var padShownDespiteController = false
     @State private var pausedByLifecycle = false
     private static let titlePauseQueue = DispatchQueue(label: "espressu.title.pause", qos: .userInitiated)
     @AppStorage(PreviewPadStore.enabledKey) private var previewPadEnabled = PreviewPadStore.defaultEnabled
     @AppStorage(ControllerLayoutSettings.joystickKey) private var joystickMode = ControllerLayoutSettings.defaultJoystick
-    @AppStorage(TouchLabSettings.schemeKey) private var touchLabScheme = TouchLabSettings.defaultScheme
     @State private var touchLabScreens = TouchLabScreenState()
     @State private var topBarHeight: CGFloat = 0
-    @AppStorage(TopBarAutoHide.overrideKey) private var topBarAutoHideOverride = TopBarAutoHide.followDevice
+    @AppStorage(TopBarAutoHide.enabledKey) private var topBarAutoHideEnabled = TopBarAutoHide.defaultEnabled
     @State private var topBarHidden = false
     @GestureState private var topBarTouched = false
     @State private var voiceOverRunning = UIAccessibility.isVoiceOverRunning
@@ -1427,9 +1440,7 @@ struct EmulatorViewOptimized: View {
     }
 
     private var padSystem: PadSystem {
-        if TouchLabSettings.isTouchLab(touchLabScheme) { return .touchLab }
-        if previewPadEnabled { return .preview }
-        return .espressu
+        return .touchLab
     }
 
     private var isPhonePortrait: Bool {
@@ -1498,21 +1509,28 @@ struct EmulatorViewOptimized: View {
         }
     }
 
-    private func setPadHiddenByController(_ hide: Bool, atStart: Bool) {
-        if hide {
-            guard !padHiddenByController else { return }
-            padHiddenByController = true
-            if !padControlsHidden {
-                padControlsHidden = true
-                cemu_bridge_release_all_buttons()
-            }
-        } else {
-            guard padHiddenByController else { return }
-            padHiddenByController = false
-            padControlsHidden = false
-        }
+    /// The on-screen controls are hidden when the player hid them in the home menu or a controller hides them, but
+    /// never while the layout is being edited.
+    /// Worked out on every redraw from the setting and the connection, so a change to either applies at once.
+    private var padHiddenByController: Bool {
+        autoHideWithController && controllerConnected == true && !padShownDespiteController
+    }
+
+    private var padHidden: Bool {
+        !isEditingControlLayout && (padControlsHidden || padHiddenByController)
+    }
+
+    private func controllerPresenceChanged(_ connected: Bool, atStart: Bool) {
+        let previous = controllerConnected
+        guard connected != previous else { return }
+        let wasHidden = padHiddenByController
+        controllerConnected = connected
+        padShownDespiteController = false
+        if !connected { padControlsHidden = false }
+        if padHiddenByController { cemu_bridge_release_all_buttons() }
+        guard autoHideWithController, padHiddenByController || wasHidden else { return }
         if atStart && gameManager.launchNotice != nil { return }
-        gameManager.showLaunchNotice(hide
+        gameManager.showLaunchNotice(connected
             ? "Controller connected. On-screen controls hidden. Menu: HOME, the touchpad or Select + Start."
             : "Controller disconnected. On-screen controls shown.")
     }
@@ -1535,8 +1553,6 @@ struct EmulatorViewOptimized: View {
 
     private func moveControlsFromHomeMenu() {
         closeHomeMenu()
-        padControlsHidden = false
-        padHiddenByController = false
         withAnimation(.easeInOut(duration: 0.2)) { isEditingControlLayout = true }
         cemu_bridge_release_all_buttons()
     }
@@ -1579,20 +1595,24 @@ struct EmulatorViewOptimized: View {
             screenLayout: $screenLayout,
             isDualScreen: displayRouter.placement == .dualScreen,
             canQuit: true,
-            touchControlsHidden: isPadViewVisible ? padControlsHidden : nil,
+            touchControlsHidden: isPadViewVisible ? padHidden : nil,
             offersEmulatedDevices: anyEmulatedDeviceEnabled,
             actions: HomeMenuActions(
                 resume: closeHomeMenu,
                 moveControls: moveControlsFromHomeMenu,
                 quit: {
-                    gameManager.stopEmulation()
+                    gameManager.quitEmulationAsync()
                     isRunning = true
                 },
                 swapScreens: swapScreensFromHomeMenu,
                 scanAmiibo: { showAmiibo = true },
                 toggleTouchControls: {
-                    padControlsHidden.toggle()
-                    padHiddenByController = false
+                    if padHidden {
+                        padControlsHidden = false
+                        padShownDespiteController = true
+                    } else {
+                        padControlsHidden = true
+                    }
                     cemu_bridge_release_all_buttons()
                 },
                 emulatedDevices: { showEmulatedDevices = true }
@@ -1623,7 +1643,7 @@ struct EmulatorViewOptimized: View {
                              y: native ? resolved.video.midY : proxy.size.height / 2)
                     .clipped()
 
-                    if !padControlsHidden {
+                    if !padHidden {
                         PreviewControllerPad(
                             store: previewPad,
                             onInput: { label, pressed in
@@ -1676,11 +1696,9 @@ struct EmulatorViewOptimized: View {
                             InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
                                 .disabled(gameManager.emulationState != .running || showHomeMenu)
                                 .accessibilityLabel("HOME menu")
-                            if !padHiddenByController || displayRouter.placement == .dualScreen {
-                                InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
-                                    .disabled(gameManager.emulationState != .running)
-                                    .accessibilityLabel(isPaused ? "Resume" : "Pause")
-                            }
+                            InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
+                                .disabled(gameManager.emulationState != .running)
+                                .accessibilityLabel(isPaused ? "Resume" : "Pause")
                         }
                     }
                     .padding(4)
@@ -1688,7 +1706,8 @@ struct EmulatorViewOptimized: View {
 
                     Spacer(minLength: 0)
 
-                    if (!padHiddenByController || displayRouter.placement == .dualScreen) && gameManager.emulationState == .running {
+                    if gameManager.emulationState == .running {
+                        InGameBlowButton(enabled: !isPaused)
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
@@ -1730,11 +1749,10 @@ struct EmulatorViewOptimized: View {
                 voiceOverRunning = UIAccessibility.isVoiceOverRunning
             }
 
-            if !padControlsHidden {
+            if !padHidden {
                 Group {
                 if padSystem == .touchLab {
                     TouchLabPadOverlay(
-                        schemeID: touchLabScheme,
                         gameID: gameManager.currentGame?.settingsKey,
                         screens: touchLabScreens,
                         enabled: !isPaused && !isEditingControlLayout,
@@ -1772,9 +1790,9 @@ struct EmulatorViewOptimized: View {
                 VStack {
                     HStack {
                         PadDiagnosticsOverlay(
-                            padControlsHidden: padControlsHidden,
+                            padControlsHidden: padHidden,
                             previewPadEnabled: previewPadEnabled,
-                            touchLabScheme: touchLabScheme,
+                            touchLabScheme: TouchLabSettings.schemeID,
                             isEditingLayout: isEditingControlLayout,
                             isPaused: isPaused
                         )
@@ -1902,13 +1920,17 @@ struct EmulatorViewOptimized: View {
             if isPaused { setTitlePaused(true) }
         }
         .onChange(of: isPadViewVisible) { visible in
-            if !visible && !padHiddenByController { padControlsHidden = false }
+            if !visible { padControlsHidden = false }
             if visible { showGamePadHintIfNeeded() }
         }
         .hidingSystemOverlaysDuringPlay()
         .modifier(HeatNoticeModifier { gameManager.showLaunchNotice($0) })
         .modifier(HomeMenuEventsModifier(isOpen: showHomeMenu || isEditingControlLayout, onEvent: handleHomeMenuEvent))
-        .modifier(ControllerAutoHideModifier(apply: setPadHiddenByController))
+        .modifier(ControllerAutoHideModifier(apply: controllerPresenceChanged))
+        .onChange(of: autoHideWithController) { _ in
+            padShownDespiteController = false
+            cemu_bridge_release_all_buttons()
+        }
         .overlay(alignment: .top) {
             if showsStallCard {
                 videoStalledCard
@@ -1944,7 +1966,7 @@ struct EmulatorViewOptimized: View {
     private var overlayTopInset: CGFloat { topBarHeight }
 
     private var topBarMayHide: Bool {
-        TopBarAutoHide.isOn(override: topBarAutoHideOverride)
+        topBarAutoHideEnabled
             && !voiceOverRunning
             && gameManager.emulationState == .running
             && !launchIntroVisible
@@ -1976,7 +1998,7 @@ struct EmulatorViewOptimized: View {
         try? await Task.sleep(nanoseconds: TopBarAutoHide.hideDelayNanoseconds)
         guard !Task.isCancelled else { return }
         setTopBarHidden(true)
-        showHintOnce(Self.topBarHintKey, UIDevice.current.userInterfaceIdiom == .phone ? "Swipe down from the top edge to bring the bar back." : "Tap the top edge to bring the bar back.")
+        showHintOnce(Self.topBarHintKey, "Tap or swipe down at the top edge to bring the bar back.")
     }
 
     private static let topBarHintKey = "espressu.hint.topBarReveal"
@@ -2009,10 +2031,10 @@ struct EmulatorViewOptimized: View {
     }
 
     @ViewBuilder private var topBarRevealHandle: some View {
-        if topBarHidden, UIDevice.current.userInterfaceIdiom == .phone {
+        if topBarHidden {
             // Nothing stays on screen: a downward swipe (or a tap) on the top edge brings the bar back.
             Color.clear
-                .frame(height: 56)
+                .frame(height: UIDevice.current.userInterfaceIdiom == .phone ? 56 : 80)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture { setTopBarHidden(false) }
@@ -2026,18 +2048,6 @@ struct EmulatorViewOptimized: View {
                 .accessibilityLabel("Show top bar")
                 .accessibilityAddTraits(.isButton)
                 .accessibilityAction { setTopBarHidden(false) }
-        } else if topBarHidden {
-            HStack(spacing: 0) {
-                InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
-                    .disabled(gameManager.emulationState != .running || showHomeMenu || isEditingControlLayout)
-                    .accessibilityLabel("HOME menu")
-                    .padding(4)
-                    .espressUSurface(Capsule())
-                Spacer(minLength: 0)
-            }
-            .environment(\.colorScheme, .dark)
-            .padding(WindowSafeArea.padding(minimum: 12))
-            .transition(.opacity)
         }
     }
 

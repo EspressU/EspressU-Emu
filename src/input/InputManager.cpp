@@ -4,6 +4,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <pugixml.hpp>
 #include <algorithm>
+#include <map>
+#include <mutex>
 #include "Cafe/GameProfile/GameProfile.h"
 #include "util/EventService.h"
 
@@ -108,6 +110,33 @@ static bool has_complete_button_mappings(const EmulatedControllerPtr& emulated,
     return true;
 }
 
+static std::mutex s_padOverrideMutex;
+static std::map<uint64, int> s_padOverrides;
+
+int InputManager::default_pad_device_button(uint64 id)
+{
+    switch (id)
+    {
+    case VPADController::kButtonId_A:      return kGCBitA;
+    case VPADController::kButtonId_B:      return kGCBitB;
+    case VPADController::kButtonId_X:      return kGCBitX;
+    case VPADController::kButtonId_Y:      return kGCBitY;
+    case VPADController::kButtonId_L:      return kGCBitLB;
+    case VPADController::kButtonId_R:      return kGCBitRB;
+    case VPADController::kButtonId_ZL:     return kGCBitLTDig;
+    case VPADController::kButtonId_ZR:     return kGCBitRTDig;
+    case VPADController::kButtonId_Minus:  return kGCBitOptions;
+    case VPADController::kButtonId_Plus:   return kGCBitMenu;
+    case VPADController::kButtonId_StickL: return kGCBitLS;
+    case VPADController::kButtonId_StickR: return kGCBitRS;
+    case VPADController::kButtonId_Up:     return kGCBitDUp;
+    case VPADController::kButtonId_Down:   return kGCBitDDown;
+    case VPADController::kButtonId_Left:   return kGCBitDLeft;
+    case VPADController::kButtonId_Right:  return kGCBitDRight;
+    default:                               return -1;
+    }
+}
+
 enum class MappingFill { All, GapsOnly };
 
 static void apply_default_gc_mappings(EmulatedControllerPtr& emulated,
@@ -158,6 +187,13 @@ static void apply_default_gc_mappings(EmulatedControllerPtr& emulated,
 
         mapLeftStick(VPADController::kButtonId_StickL_Up,   VPADController::kButtonId_StickL_Down, VPADController::kButtonId_StickL_Left, VPADController::kButtonId_StickL_Right);
         mapRightStick(VPADController::kButtonId_StickR_Up,   VPADController::kButtonId_StickR_Down, VPADController::kButtonId_StickR_Left, VPADController::kButtonId_StickR_Right);
+
+        if (fill == MappingFill::All)
+        {
+            std::lock_guard overrideLock(s_padOverrideMutex);
+            for (const auto& [id, bit] : s_padOverrides)
+                emulated->set_mapping(id, controller, bit);
+        }
     }
     else if (t == Type::Pro)
     {
@@ -282,6 +318,36 @@ void InputManager::load_gc_controllers()
         m_vpad.swap(next_vpad);
         m_wpad.swap(next_wpad);
     }
+}
+
+void InputManager::set_pad_mapping_override(uint64 vpad_button, int device_button)
+{
+    {
+        std::lock_guard lock(s_padOverrideMutex);
+        if (device_button < 0)
+            s_padOverrides.erase(vpad_button);
+        else
+            s_padOverrides[vpad_button] = device_button;
+    }
+    const auto vpad = get_vpad_controller(0);
+    if (!vpad || vpad->get_controllers().empty())
+        return;
+    const int bit = device_button >= 0 ? device_button : default_pad_device_button(vpad_button);
+    if (bit >= 0)
+        vpad->set_mapping(vpad_button, vpad->get_controllers().front(), (uint64)bit);
+}
+
+void InputManager::clear_pad_mapping_overrides()
+{
+    std::vector<uint64> ids;
+    {
+        std::lock_guard lock(s_padOverrideMutex);
+        for (const auto& entry : s_padOverrides)
+            ids.push_back(entry.first);
+        s_padOverrides.clear();
+    }
+    for (uint64 id : ids)
+        set_pad_mapping_override(id, -1);
 }
 
 #endif
@@ -995,8 +1061,12 @@ void InputManager::update_thread()
         for (auto& pad : m_wpad) { if (pad) pad->update(); }
         lock.unlock();
 
+#if BOOST_OS_IOS
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+#else
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         std::this_thread::yield();
+#endif
     }
 }
 

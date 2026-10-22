@@ -317,7 +317,7 @@ private struct PreviewStickView: View {
                 .onChanged { value in
                     let dx = value.location.x - radius, dy = value.location.y - radius
                     let distance = (dx * dx + dy * dy).squareRoot()
-                    let reach = travel * ControllerGeometry.StickGate.octagon.radiusFraction(atAngle: atan2(dy, dx))
+                    let reach = travel * ControllerGeometry.StickGate.round.radiusFraction(atAngle: atan2(dy, dx))
                     let scale = distance > reach ? reach / distance : 1
                     knobOffset = CGSize(width: dx * scale, height: dy * scale)
                     let deflection = travel > 0 ? min(distance, reach) / travel : 0

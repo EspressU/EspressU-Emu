@@ -26,6 +26,12 @@ extension EspressUSettingsView {
                                              control: .action("Stop", destructive: false, confirm: false,
                                                               run: { pairing.cancel() })))
         case .idle, .paired, .failed:
+            guard DevicePairing.isSupported else {
+                pairingItems.append(SettingsItem(id: "jit.pairUnsupported", title: "Pair this device",
+                                                 detail: "Built-in pairing needs iOS \(DevicePairing.minimumIOSVersion) or newer. Import a pairing file instead.",
+                                                 control: .info("Not available", EspressUTheme.cautionText)))
+                break
+            }
             var detail = "No computer needed: EspressU shows up in Settings › Privacy & Security › Developer Mode."
             if case .paired(let device) = pairing.state {
                 detail = device.map { "Paired with \($0)." } ?? "Paired."

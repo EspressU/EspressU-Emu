@@ -67,8 +67,33 @@ extension EspressUSettingsView {
                          control: .custom(AnyView(HeatStatusBadge()))),
         ]
 
+        let speed: [SettingsItem] = [
+            SettingsItem(id: "cpu.accuracy", title: "Favour accuracy",
+                         detail: "Slower but more accurate: one CPU core and stricter GPU syncing. Can fix a game that glitches or crashes.",
+                         control: .toggle(values.bool("espressu.cpu.favourAccuracy", false) { on in
+                             cemu_bridge_set_favour_accuracy(on)
+                             if on {
+                                 UserDefaults.standard.set(false, forKey: FavourPerformance.storageKey)
+                                 cemu_bridge_set_favour_performance(false)
+                             }
+                         })),
+            SettingsItem(id: "cpu.performance", title: "Favour performance",
+                         detail: "As fast as possible: a softer picture, rougher lighting in some games, and shaders that may pop in.",
+                         control: .toggle(values.bool(FavourPerformance.storageKey, FavourPerformance.defaultValue) { on in
+                             cemu_bridge_set_favour_performance(on)
+                             if on {
+                                 UserDefaults.standard.set(false, forKey: "espressu.cpu.favourAccuracy")
+                                 cemu_bridge_set_favour_accuracy(false)
+                             }
+                         })),
+            SettingsItem(id: "cpu.onecore", title: "One-core mode",
+                         detail: "One CPU core, whatever CPU cores is set to.",
+                         control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
+        ]
+
         return [
             SettingsGroup(id: "cpu", title: "CPU", items: cpu),
+            SettingsGroup(id: "speed", title: "Speed and accuracy", items: speed),
             SettingsGroup(id: "heat", title: "Heat", items: heat),
         ]
     }
@@ -202,26 +227,6 @@ extension EspressUSettingsView {
     }
 
     private var controlsGroups: [SettingsGroup] {
-        let percent: (Double) -> String = { "\(Int(($0 * 100).rounded()))%" }
-
-        let touch: [SettingsItem] = [
-            SettingsItem(id: "touch.size", title: "Button size", detail: "Bigger buttons are easier to hit.",
-                         control: .slider(values.double(ControllerLayoutSettings.scaleKey, ControllerLayoutSettings.defaultScale),
-                                          ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale, step: 0.05, label: percent)),
-            SettingsItem(id: "touch.opacity", title: "Opacity", detail: "How see-through the buttons are.",
-                         control: .slider(values.double(ControllerLayoutSettings.opacityKey, ControllerLayoutSettings.defaultOpacity),
-                                          0.2...1.0, step: 0.05, label: percent)),
-            SettingsItem(id: "touch.haptics", title: "Haptic feedback", detail: "A light tap when you press a button.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.hapticsKey, ControllerLayoutSettings.defaultHaptics))),
-            SettingsItem(id: "touch.autoHide", title: "Hide with a controller",
-                         detail: "Touch controls disappear while a controller is connected.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.autoHideWithControllerKey,
-                                                      ControllerLayoutSettings.defaultAutoHideWithController))),
-            SettingsItem(id: "touch.more", title: "Layout, sticks and more",
-                         detail: "Move buttons, analog sticks, the controller style.",
-                         control: .link("", .touchControls)),
-        ]
-
         let defaults = UserDefaults.standard
         let motionOn = defaults.object(forKey: MotionSettings.enabledKey) as? Bool ?? MotionSettings.defaultEnabled
         let motionSource = defaults.object(forKey: MotionSettings.sourceKey) as? Int ?? MotionSettings.defaultSource
@@ -270,13 +275,15 @@ extension EspressUSettingsView {
                                            SettingsOption(id: "1", title: "Classic Controller")],
                                           values.intChoice("espressu.input.extraPadType", 0)),
                          enabled: UserDefaults.standard.object(forKey: "espressu.input.extraPads") as? Bool ?? true),
+            SettingsItem(id: "pad.mapping", title: "Controller buttons",
+                         detail: "Choose which button on your controller does what.",
+                         control: .link("", .controllerMapping)),
             SettingsItem(id: "pad.figures", title: "Figure portals",
                          detail: "Skylanders, Disney Infinity and LEGO Dimensions.",
                          control: .link("", .figures)),
         ]
 
         return [
-            SettingsGroup(id: "touch", title: "Touch controls", items: touch),
             SettingsGroup(id: "motion", title: "Motion", items: motion),
             SettingsGroup(id: "controllers", title: "Controllers", items: controllers),
         ]

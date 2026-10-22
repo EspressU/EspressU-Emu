@@ -21,8 +21,14 @@ struct BootBackButton: View {
                         Text("Back")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 44)
+                    .espressUSurface(Capsule())
+                    .contentShape(Capsule())
                 }
-                .buttonStyle(EspressUBarButtonStyle())
+                .buttonStyle(.plain)
+                .environment(\.colorScheme, .dark)
                 .accessibilityHint("Stops starting the game and returns to your games.")
                 Spacer()
             }

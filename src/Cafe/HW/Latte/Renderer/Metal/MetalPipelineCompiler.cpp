@@ -1,5 +1,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalCommon.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPipelineCompiler.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalPipelineCache.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/CachedFBOMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
@@ -356,10 +357,22 @@ bool MetalPipelineCompiler::Compile(bool forceCompile, bool isRenderThread, bool
             desc->setFragmentFunction(fragmentFunction);
 
         desc->setLabel(ToNSString(fmt::format("pipeline VS {:016x}-{:016x} PS {:016x}-{:016x}", m_vertexShaderMtl->GetBaseHash(), m_vertexShaderMtl->GetAuxHash(), m_pixelShaderMtl ? m_pixelShaderMtl->GetBaseHash() : 0, m_pixelShaderMtl ? m_pixelShaderMtl->GetAuxHash() : 0)));
-       	pipeline = m_mtlr->GetDevice()->newRenderPipelineState(desc, MTL::PipelineOptionNone, nullptr, &error);
+        if (NS::Array* archives = MetalPipelineCache_GetBinaryArchives())
+        {
+            desc->setBinaryArchives(archives);
+            pipeline = m_mtlr->GetDevice()->newRenderPipelineState(desc, MTL::PipelineOptionFailOnBinaryArchiveMiss, nullptr, &error);
+            MetalPipelineCache_NoteArchiveLookup(pipeline != nullptr);
+            if (!pipeline)
+                error = nullptr;
+        }
+        if (!pipeline)
+        {
+            pipeline = m_mtlr->GetDevice()->newRenderPipelineState(desc, MTL::PipelineOptionNone, nullptr, &error);
+            if (pipeline && !(isRenderThread && showInOverlay))
+                MetalPipelineCache_QueueArchiveAdd(desc);
+        }
     }
     auto end = std::chrono::high_resolution_clock::now();
-
     auto creationDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     PerfTelemetry::Get().pipelineCompiles.fetch_add(1, std::memory_order_relaxed);
     PerfTelemetry::Get().pipelineCompileNs.fetch_add((uint64)creationDuration, std::memory_order_relaxed);

@@ -15,6 +15,16 @@ private struct PanelRowsHeightKey: PreferenceKey {
     }
 }
 
+extension View {
+    /// The look every row in the on-screen controls editor shares: a soft tile on the glass card.
+    func panelRowStyle() -> some View {
+        padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous))
+    }
+}
+
 struct LayoutPanelCard<Rows: View, Footer: View>: View {
     private let rows: Rows
     private let footer: Footer
@@ -25,14 +35,28 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
         self.footer = footer()
     }
 
-    private static var chrome: CGFloat { 124 }
+    private static var chrome: CGFloat { 168 }
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: EspressUTheme.Radius.card, style: .continuous)
+    }
 
     var body: some View {
         GeometryReader { proxy in
             VStack(spacing: 0) {
-                VStack(spacing: 10) {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 10) { rows }
+                VStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 14, weight: .bold))
+                        Text("On-screen controls")
+                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        Spacer(minLength: 0)
+                    }
+                    .foregroundColor(.white)
+                    .accessibilityAddTraits(.isHeader)
+
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 8) { rows }
                             .background(
                                 GeometryReader { inner in
                                     Color.clear.preference(key: PanelRowsHeightKey.self, value: inner.size.height)
@@ -42,11 +66,13 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
                     .frame(height: rowsHeight > 0 ? min(rowsHeight, max(120, proxy.size.height - Self.chrome)) : nil)
                     footer
                 }
-                .padding(14)
-                .frame(maxWidth: 420)
-                .background(Color.black.opacity(0.82))
-                .cornerRadius(14)
+                .padding(16)
+                .frame(maxWidth: 440)
+                .background(shape.fill(Color.black.opacity(0.5)))
+                .espressUSurface(shape)
+                .environment(\.colorScheme, .dark)
                 .padding(.top, 12)
+                .padding(.horizontal, 12)
 
                 Spacer(minLength: 0)
             }
@@ -64,18 +90,33 @@ struct LayoutPanelFooter: View {
     @State private var confirmingReset = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            Button("Reset to default") { confirmingReset = true }
-                .buttonStyle(EspressUSecondaryButtonStyle())
-                .confirmationDialog("Reset controls to default?", isPresented: $confirmingReset, titleVisibility: .visible) {
-                    Button("Reset to default", role: .destructive, action: onReset)
-                    Button("Cancel", role: .cancel) { }
-                } message: {
-                    Text(resetMessage)
-                }
+        HStack(spacing: 10) {
+            Button { confirmingReset = true } label: {
+                Label("Reset", systemImage: "arrow.counterclockwise")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 44)
+                    .background(Color.white.opacity(0.1), in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .confirmationDialog("Reset controls to default?", isPresented: $confirmingReset, titleVisibility: .visible) {
+                Button("Reset to default", role: .destructive, action: onReset)
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text(resetMessage)
+            }
 
-            Button("Done", action: onDone)
-                .buttonStyle(EspressUSecondaryButtonStyle())
+            Button(action: onDone) {
+                Label("Done", systemImage: "checkmark")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(EspressUTheme.pixelBlue, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -86,10 +127,12 @@ struct PanelCaption: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: prominent ? 12 : 11, weight: prominent ? .semibold : .regular, design: .rounded))
-            .foregroundColor(.white.opacity(prominent ? 0.85 : 0.65))
-            .multilineTextAlignment(.center)
+            .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular, design: .rounded))
+            .foregroundColor(.white.opacity(prominent ? 0.85 : 0.6))
+            .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
     }
 }
 
@@ -118,38 +161,49 @@ struct PanelSliderRow: View {
         self.readout = readout
     }
 
+    private var shownValue: String? {
+        if let readout { return readout }
+        if let spokenValue { return spokenValue }
+        if range.lowerBound >= 0, range.upperBound <= 2.5 { return "\(Int((value * 100).rounded()))%" }
+        return nil
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
-            if let title {
-                Text(title)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.85))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                Spacer(minLength: 8)
+                if let shownValue {
+                    Text(shownValue)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundColor(.white.opacity(0.7))
+                        .accessibilityHidden(true)
+                }
             }
-            if let leadingIcon { icon(leadingIcon) }
-            slider
-            if let trailingIcon { icon(trailingIcon) }
-            if let readout {
-                Text(readout)
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.7))
-                    .frame(width: 34, alignment: .trailing)
-                    .accessibilityHidden(true)
+            HStack(spacing: 10) {
+                if let leadingIcon { icon(leadingIcon) }
+                slider
+                if let trailingIcon { icon(trailingIcon) }
             }
         }
+        .panelRowStyle()
     }
 
     private func icon(_ name: String) -> some View {
         Image(systemName: name)
-            .font(.system(size: 12))
+            .font(.system(size: 13))
             .foregroundColor(.white.opacity(0.7))
             .accessibilityHidden(true)
     }
 
     @ViewBuilder private var slider: some View {
         if let step {
-            spoken(Slider(value: $value, in: range, step: step))
+            spoken(Slider(value: $value, in: range, step: step).tint(EspressUTheme.pixelBlue))
         } else {
-            spoken(Slider(value: $value, in: range))
+            spoken(Slider(value: $value, in: range).tint(EspressUTheme.pixelBlue))
         }
     }
 
@@ -169,10 +223,11 @@ struct PanelToggle: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             Text(title)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundColor(.white.opacity(0.85))
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
         }
         .tint(EspressUTheme.pixelBlue)
+        .panelRowStyle()
     }
 }
 
@@ -195,10 +250,6 @@ struct EspressUPadLayoutPanel: View {
     private var comfortControls = ControllerLayoutSettings.defaultComfortControls
     @AppStorage(ControllerLayoutSettings.deadzoneKey)
     private var stickDeadzone = ControllerLayoutSettings.defaultDeadzone
-    @AppStorage(ControllerLayoutSettings.stickCurveKey)
-    private var stickCurve = ControllerLayoutSettings.defaultStickCurve
-    @AppStorage(ControllerLayoutSettings.stickGateKey)
-    private var stickGateRaw = ControllerLayoutSettings.defaultStickGateRaw
 
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
@@ -210,8 +261,6 @@ struct EspressUPadLayoutPanel: View {
     }
 
     @ViewBuilder private var rows: some View {
-        TouchLabStylePicker()
-
         Picker("Edit mode", selection: $individualEditMode) {
             Text("Grouped").tag(false)
             Text("Individual").tag(true)
@@ -252,26 +301,11 @@ struct EspressUPadLayoutPanel: View {
                      : "L, ZL and minus stay on the d-pad; R, ZR and plus stay on A/B/X/Y.",
                      prominent: false)
 
-        Picker("Stick gate", selection: $stickGateRaw) {
-            ForEach(ControllerGeometry.StickGate.allCases) { gate in
-                Text(gate.title).tag(gate.rawValue)
-            }
-        }
-        .pickerStyle(.segmented)
-
         PanelSliderRow("Stick deadzone", title: "Deadzone",
                        value: $stickDeadzone,
                        range: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
                        spokenValue: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded())) percent",
                        readout: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded()))%")
-
-        PanelSliderRow("Fine control", title: "Fine",
-                       value: $stickCurve,
-                       range: ControllerLayoutSettings.minStickCurve...ControllerLayoutSettings.maxStickCurve,
-                       spokenValue: stickCurve <= ControllerLayoutSettings.minStickCurve + 0.005
-                           ? "linear" : String(format: "%.1f times", stickCurve),
-                       readout: stickCurve <= ControllerLayoutSettings.minStickCurve + 0.005
-                           ? "lin" : String(format: "%.1fx", stickCurve))
 
         PanelSliderRow("Stick spacing", title: "Sticks",
                        leadingIcon: "arrow.right.and.line.vertical.and.arrow.left",

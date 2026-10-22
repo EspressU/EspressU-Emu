@@ -68,6 +68,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ObservedObject private var uiStyle = UIStyleStore.shared
     @ObservedObject private var playStats = LibraryPlayStats.shared
+    @ObservedObject private var vpn = LocalDevVPNMonitor.shared
     @State private var gridAppeared = false
     @State private var keyboardUp = false
     @State private var selectedId: String?
@@ -453,7 +454,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     }
                     .buttonStyle(.plain)
                     Button { openOptions(game) } label: {
-                        sideButtonLabel(symbol: "ellipsis", tint: EspressUTheme.brownDark, hint: pad.menuSymbol)
+                        sideButtonLabel(symbol: "ellipsis", tint: EspressUTheme.brownDark, hint: pad.menuSymbol, hintTrailing: true)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("More options for \(game.cardName.name)")
@@ -474,7 +475,8 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             guard let id = playStats.recentIDs(limit: 1).first else { return nil }
             return games.first { $0.id == id }
         }()
-        return ScrollView(showsIndicators: false) {
+        return ScrollViewReader { scroller in
+        ScrollView(showsIndicators: false) {
             GeometryReader { proxy in
                 Color.clear.preference(key: HomeGridOffsetKey.self, value: proxy.frame(in: .named("homeGrid")).minY)
             }
@@ -526,6 +528,9 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         }
                     }
                     .buttonStyle(EspressUPressStyle())
+                    .controllerFocusRing(pad.showsFocus && selectedId == item.id && barFocus == nil,
+                                         shape: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .id(item.id)
                     .opacity(gridAppeared ? 1 : 0)
                     .offset(y: gridAppeared ? 0 : 16)
                     .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(min(Double(index), 8) * 0.03), value: gridAppeared)
@@ -546,6 +551,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             }
         }
         .coordinateSpace(name: "homeGrid")
+        .onChange(of: selectedId) { id in
+            guard let id else { return }
+            withAnimation(.easeInOut(duration: 0.25)) { scroller.scrollTo(id, anchor: .center) }
+        }
+        }
         .onAppear {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) { gridAppeared = true }
         }
@@ -633,17 +643,17 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .accessibilityLabel("Continue playing \(item.cardName.name)")
     }
 
-    private func sideButtonLabel(symbol: String, tint: Color, hint: String) -> some View {
-        HStack(spacing: 7) {
-            if pad.showsFocus {
-                Image(systemName: hint)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .accessibilityHidden(true)
-            }
+    private func sideButtonLabel(symbol: String, tint: Color, hint: String, hintTrailing: Bool = false) -> some View {
+        let hintView = Image(systemName: hint)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundColor(EspressUTheme.brownMid)
+            .accessibilityHidden(true)
+        return HStack(spacing: 7) {
+            if pad.showsFocus && !hintTrailing { hintView }
             Image(systemName: symbol)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(tint)
+            if pad.showsFocus && hintTrailing { hintView }
         }
         .padding(.horizontal, pad.showsFocus ? 14 : 0)
         .frame(minWidth: 46, minHeight: 46)
@@ -715,7 +725,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     }
 
     private var allBarItems: [EspressUMenuBar.Item] {
-        let jitOn = JITStatus.isActive
+        let jitOn = JITStatus.isActive && vpn.isConnected
         return [
             .init(title: "Add", systemImage: "plus", tint: EspressUTheme.accentText, isOn: showingAdd) {
                 showingAdd.toggle()
@@ -770,6 +780,18 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         }
         let center = centerIndex
         let centerGame = selectedGame ?? (games.indices.contains(center) ? games[center] : nil)
+        // Phones show a two-column grid instead of the carousel, so up and down move a whole row.
+        if isPhone, [.left, .right, .up, .down].contains(command) {
+            guard selectedId != nil else { bringToCenter(center); return }
+            let step = (command == .left || command == .right) ? 1 : 2
+            let target = (command == .left || command == .up) ? center - step : center + step
+            if games.indices.contains(target) {
+                bringToCenter(target)
+            } else if command == .down {
+                if center / 2 < (games.count - 1) / 2 { bringToCenter(games.count - 1) } else { enterBar() }
+            }
+            return
+        }
         switch command {
         case .left, .right, .previousPage, .nextPage:
             guard selectedId != nil else { bringToCenter(center); return }
@@ -842,7 +864,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     }
 
     private func handleAddPanel(_ command: ControllerMenuCommand) {
-        let columns = isPhone ? 2 : 3
+        let columns = 1
         var rows: [[String]] = []
         for group in addGroups {
             let ids = group.1.map(\.id)
@@ -1042,25 +1064,25 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private var addGroups: [(String, [AddOption])] {
         [
-            ("Games", [
-                AddOption(id: "file", title: "Game file", detail: ".wua, .wux, .wud or .rpx",
+            ("Add games", [
+                AddOption(id: "file", title: "Game file", detail: "A .wua, .wux, .wud or .rpx",
                           systemImage: "doc.fill", action: actions.importFile),
-                AddOption(id: "folder", title: "Game folder", detail: "A dumped game with code, content and meta",
+                AddOption(id: "folder", title: "Game folder", detail: "A dumped game folder",
                           systemImage: "folder.fill", action: { importerPurpose = .gameFolder; importerMode = .gameFolder }),
-                AddOption(id: "romsInFiles", title: "Put games in Files", detail: "Opens EspressU › Roms in Files. Drag games in, then come back",
+                AddOption(id: "romsInFiles", title: "Roms folder in Files", detail: "Drag games in, then come back",
                           systemImage: "folder.badge.plus", action: { Self.openInFiles(Self.documentsFolder("Roms")) })
             ]),
-            ("Play from storage", [
-                AddOption(id: "linkFolder", title: "Link a folder", detail: "A drive, SD card or iCloud folder, nothing is copied",
+            ("Keep games where they are", [
+                AddOption(id: "linkFolder", title: "Link a folder", detail: "Drive, SD card or iCloud. Nothing is copied",
                           systemImage: "externaldrive.fill.badge.plus", action: actions.linkFolder),
-                AddOption(id: "linkFile", title: "Link a game file", detail: "Play one file right where it is",
+                AddOption(id: "linkFile", title: "Link a game file", detail: "Play it right where it is",
                           systemImage: "link", action: actions.linkFile)
             ]),
-            ("Extras", [
-                AddOption(id: "dlc", title: "DLC", detail: "A DLC folder or .wua. Or drop it into Files › EspressU › Updates & DLC",
-                          systemImage: "shippingbox.fill", action: { importerPurpose = .content(.dlc); importerMode = .content(.dlc) }),
-                AddOption(id: "update", title: "Update", detail: "An update folder or .wua. Or drop it into Files › EspressU › Updates & DLC",
+            ("Updates, DLC and keys", [
+                AddOption(id: "update", title: "Update", detail: "A folder or .wua for a game you have",
                           systemImage: "arrow.triangle.2.circlepath", action: { importerPurpose = .content(.update); importerMode = .content(.update) }),
+                AddOption(id: "dlc", title: "DLC", detail: "A folder or .wua for a game you have",
+                          systemImage: "shippingbox.fill", action: { importerPurpose = .content(.dlc); importerMode = .content(.dlc) }),
                 AddOption(id: "keys", title: "Keys", detail: "keys.txt for encrypted games",
                           systemImage: "key.fill", action: actions.importKeys)
             ])
@@ -1082,36 +1104,60 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     }
 
     private var addPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Add to EspressU")
-                    .font(.system(size: 20, weight: .heavy, design: .rounded))
-                    .foregroundColor(EspressUTheme.brownDarkest)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Add to EspressU")
+                        .font(.system(size: 22, weight: .heavy, design: .rounded))
+                        .foregroundColor(EspressUTheme.brownDarkest)
+                    Text("Games, updates, DLC and keys")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(EspressUTheme.brownMid)
+                }
                 Spacer()
                 Button { showingAdd = false } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(EspressUTheme.brownMid)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 38, height: 38)
                         .background(EspressUTheme.wrapper.opacity(0.6), in: Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Close")
             }
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
                     ForEach(addGroups, id: \.0) { group in
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(group.0.uppercased())
                                 .font(.system(size: 12, weight: .heavy, design: .rounded))
+                                .tracking(0.6)
                                 .foregroundColor(EspressUTheme.brownMid)
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: isPhone ? 2 : 3),
-                                      spacing: 10) {
-                                ForEach(group.1) { option in addTile(option) }
+                                .padding(.horizontal, 6)
+                            VStack(spacing: 0) {
+                                ForEach(Array(group.1.enumerated()), id: \.element.id) { index, option in
+                                    if index > 0 {
+                                        Rectangle()
+                                            .fill(EspressUTheme.wrapper)
+                                            .frame(height: 1)
+                                            .padding(.leading, 62)
+                                    }
+                                    addRow(option)
+                                }
+                            }
+                            .background(EspressUTheme.cream.opacity(0.85), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+                            if group.0 == "Updates, DLC and keys" {
+                                Text("You can also drop updates and DLC into Files \u{203A} EspressU \u{203A} Updates & DLC.")
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(EspressUTheme.brownMid)
+                                    .padding(.horizontal, 6)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
                     }
                 }
+                .padding(.bottom, 4)
                 .background(
                     GeometryReader { geo in
                         Color.clear
@@ -1120,44 +1166,46 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     }
                 )
             }
-            .frame(height: min(max(addContentHeight, 1), screenSize.height * 0.5))
+            .frame(height: min(max(addContentHeight, 1), screenSize.height * (isPhone ? 0.62 : 0.55)))
         }
-        .padding(20)
-        .frame(maxWidth: isPhone ? .infinity : 760)
+        .padding(isPhone ? 16 : 20)
+        .frame(maxWidth: isPhone ? .infinity : 560)
         .espressUSurface(RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
-    private func addTile(_ option: AddOption) -> some View {
+    private func addRow(_ option: AddOption) -> some View {
         Button {
             runAddOption(option)
         } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Image(systemName: option.systemImage)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(EspressUTheme.onCremaTop)
-                    .frame(width: 40, height: 40)
-                    .background(EspressUTheme.cremaTopGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .frame(width: 38, height: 38)
+                    .background(EspressUTheme.cremaTopGradient, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(option.title)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(EspressUTheme.brownDarkest)
                     Text(option.detail)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundColor(EspressUTheme.brownMid)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer(minLength: 0)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .background(EspressUTheme.cream.opacity(0.85), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(EspressUPressStyle())
         .controllerFocusRing(pad.showsFocus && addFocus == option.id,
-                             shape: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                             shape: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 

@@ -60,3 +60,4 @@ bin/gameProfiles/*
 .DS_Store
 ._*
 __pycache__/
+build-espressu-ipa.sh

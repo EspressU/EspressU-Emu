@@ -155,7 +155,7 @@ struct EspressURowList: View {
                 rowLabel(item) { view }
             }
 
-        case .link, .expand, .open:
+        case .link, .expand, .open, .padButton:
             rowLabel(item) { EmptyView() }
         }
     }
