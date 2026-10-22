@@ -179,7 +179,7 @@ extension EspressUSettingsView {
         }
         let buttons = [
             SettingsItem(id: "ov.fade", title: "Fade out in-game buttons",
-                         detail: "Hides the top bar buttons after a few seconds while a game runs. Off keeps them always visible.",
+                         detail: "Hides the top bar buttons, HOME included, after a few seconds while a game runs. Tap or swipe down at the top edge to bring them back. Off keeps them always visible.",
                          control: .toggle(values.bool(TopBarAutoHide.enabledKey, TopBarAutoHide.defaultEnabled))),
         ]
         return [

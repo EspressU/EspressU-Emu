@@ -1998,7 +1998,7 @@ struct EmulatorViewOptimized: View {
         try? await Task.sleep(nanoseconds: TopBarAutoHide.hideDelayNanoseconds)
         guard !Task.isCancelled else { return }
         setTopBarHidden(true)
-        showHintOnce(Self.topBarHintKey, UIDevice.current.userInterfaceIdiom == .phone ? "Swipe down from the top edge to bring the bar back." : "Tap the top edge to bring the bar back.")
+        showHintOnce(Self.topBarHintKey, "Tap or swipe down at the top edge to bring the bar back.")
     }
 
     private static let topBarHintKey = "espressu.hint.topBarReveal"
@@ -2031,10 +2031,10 @@ struct EmulatorViewOptimized: View {
     }
 
     @ViewBuilder private var topBarRevealHandle: some View {
-        if topBarHidden, UIDevice.current.userInterfaceIdiom == .phone {
+        if topBarHidden {
             // Nothing stays on screen: a downward swipe (or a tap) on the top edge brings the bar back.
             Color.clear
-                .frame(height: 56)
+                .frame(height: UIDevice.current.userInterfaceIdiom == .phone ? 56 : 80)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture { setTopBarHidden(false) }
@@ -2048,18 +2048,6 @@ struct EmulatorViewOptimized: View {
                 .accessibilityLabel("Show top bar")
                 .accessibilityAddTraits(.isButton)
                 .accessibilityAction { setTopBarHidden(false) }
-        } else if topBarHidden {
-            HStack(spacing: 0) {
-                InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
-                    .disabled(gameManager.emulationState != .running || showHomeMenu || isEditingControlLayout)
-                    .accessibilityLabel("HOME menu")
-                    .padding(4)
-                    .espressUSurface(Capsule())
-                Spacer(minLength: 0)
-            }
-            .environment(\.colorScheme, .dark)
-            .padding(WindowSafeArea.padding(minimum: 12))
-            .transition(.opacity)
         }
     }
 

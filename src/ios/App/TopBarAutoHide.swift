@@ -11,7 +11,8 @@ import UIKit
 
 enum TopBarAutoHide {
     static let enabledKey = "espressu.topBar.autoHide"
-    static let defaultEnabled = true
+    /// Phones fade the buttons out by default to keep the small screen clear; iPads keep them visible.
+    static var defaultEnabled: Bool { UIDevice.current.userInterfaceIdiom == .phone }
 
     static let hideDelayKey = "espressu.topBar.hideDelaySeconds"
     static let defaultHideDelaySeconds = 4
