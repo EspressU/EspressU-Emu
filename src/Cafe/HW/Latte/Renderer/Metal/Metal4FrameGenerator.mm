@@ -274,7 +274,8 @@ struct Metal4FrameGenerator::Resources
 	uint32_t lowWidth = 0, lowHeight = 0, blocksX = 0, blocksY = 0;
 
 	id<MTLTexture> luma[2] = {nil, nil};
-	__weak id<MTLTexture> lumaSource[2] = {nil, nil};
+	// Which composition each luma copy was made from, compared by identity only (never dereferenced).
+	const void* lumaSource[2] = {nullptr, nullptr};
 	id<MTLTexture> forwardField[2] = {nil, nil};
 	id<MTLTexture> backwardField[2] = {nil, nil};
 	uint32_t fieldIndex = 0;
@@ -309,7 +310,7 @@ struct Metal4FrameGenerator::Resources
 				[set removeAllocation:allocation];
 			[set commit];
 		}
-		lumaSource[0] = lumaSource[1] = nil;
+		lumaSource[0] = lumaSource[1] = nullptr;
 		fieldsValid = false;
 		depthCleared = false;
 		width = height = 0;
@@ -490,10 +491,12 @@ id<MTLTexture> Metal4FrameGenerator::Encode(id<MTL4CommandBuffer> commandBuffer,
 	// Luma of the previous frame is reused when it is still the one computed last time. The composition
 	// textures are recycled, so identity only means anything while frames arrive back to back.
 	if (!historyValid)
-		res.lumaSource[0] = res.lumaSource[1] = nil;
-	const uint32_t currentLuma = (res.lumaSource[0] == previous) ? 1 : 0;
+		res.lumaSource[0] = res.lumaSource[1] = nullptr;
+	const void* previousId = (__bridge const void*)previous;
+	const void* currentId = (__bridge const void*)current;
+	const uint32_t currentLuma = (res.lumaSource[0] == previousId) ? 1 : 0;
 	const uint32_t previousLuma = currentLuma ^ 1;
-	const bool previousLumaValid = res.lumaSource[previousLuma] == previous;
+	const bool previousLumaValid = res.lumaSource[previousLuma] == previousId;
 	const bool usePredictor = historyValid && res.fieldsValid;
 
 	GeneratorParams* params = (GeneratorParams*)[res.params[slot] contents];
@@ -528,12 +531,12 @@ id<MTLTexture> Metal4FrameGenerator::Encode(id<MTL4CommandBuffer> commandBuffer,
 		[table setTexture:previous.gpuResourceID atIndex:0];
 		[table setTexture:res.luma[previousLuma].gpuResourceID atIndex:1];
 		[encoder dispatchThreads:lowGrid threadsPerThreadgroup:group];
-		res.lumaSource[previousLuma] = previous;
+		res.lumaSource[previousLuma] = previousId;
 	}
 	[table setTexture:current.gpuResourceID atIndex:0];
 	[table setTexture:res.luma[currentLuma].gpuResourceID atIndex:1];
 	[encoder dispatchThreads:lowGrid threadsPerThreadgroup:group];
-	res.lumaSource[currentLuma] = current;
+	res.lumaSource[currentLuma] = currentId;
 	[encoder barrierAfterEncoderStages:MTLStageDispatch beforeEncoderStages:MTLStageDispatch visibilityOptions:MTL4VisibilityOptionDevice];
 
 	const uint32_t writeField = res.fieldIndex ^ 1;

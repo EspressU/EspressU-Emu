@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <string>
 
 #define ESPRESSU_METAL4 API_AVAILABLE(ios(26.0), macos(26.0))
@@ -64,7 +65,7 @@ fragment float4 espressu_present_fragment(PresentVertex in [[stage_in]], texture
 		uint32_t next = 0;
 		int32_t current = -1;
 		id attachedLayerSet = nil; // id<MTLResidencySet> of the CAMetalLayer this output presents to
-		__weak CAMetalLayer* attachedLayer = nil;
+		const void* attachedLayer = nullptr; // identity only
 
 		// Frame pacing of the real frames, for frame generation.
 		int32_t lastPresented = -1;
@@ -106,9 +107,14 @@ struct Metal4OutputStage::State
 	uint64_t outputValue = 0;
 
 	OutputSlots outputs[OutputCount];
-	std::atomic<double> lastGpuMs{0.0};
-	// GPU time of the last command buffer that generated a frame; decides whether there is room for the next one.
-	std::atomic<double> generationGpuMs{0.0};
+	// Written by commit feedback handlers, which can still run after the stage is gone, so they share ownership.
+	struct GpuTimings
+	{
+		std::atomic<double> lastGpuMs{0.0};
+		// GPU time of the last command buffer that generated a frame; decides whether there is room for the next one.
+		std::atomic<double> generationGpuMs{0.0};
+	};
+	std::shared_ptr<GpuTimings> timings = std::make_shared<GpuTimings>();
 	uint32_t dropLogs = 0;
 
 	// Metal4FrameGenerator*, owned; untyped so the struct stays usable before iOS 26.
@@ -220,12 +226,12 @@ namespace
 	ESPRESSU_METAL4 void AttachLayer(Metal4OutputStage::State& state, OutputSlots& output, CAMetalLayer* layer)
 	{
 		// The layer hands out a new residency set whenever its device changes.
-		if (output.attachedLayer == layer && output.attachedLayerSet == layer.residencySet)
+		if (output.attachedLayer == (__bridge const void*)layer && output.attachedLayerSet == layer.residencySet)
 			return;
 		id<MTL4CommandQueue> queue = state.queue;
 		if (output.attachedLayerSet)
 			[queue removeResidencySet:output.attachedLayerSet];
-		output.attachedLayer = layer;
+		output.attachedLayer = (__bridge const void*)layer;
 		output.attachedLayerSet = layer.residencySet;
 		if (output.attachedLayerSet)
 			[queue addResidencySet:output.attachedLayerSet];
@@ -279,7 +285,7 @@ namespace
 		stats.fgBackend.store(generator->ActiveBackend() == Metal4FrameGenerator::Backend::MetalFX ? 2 : 1, std::memory_order_relaxed);
 		state.generator = generator.release();
 		state.generatorMode = mode;
-		state.generationGpuMs.store(0.0, std::memory_order_relaxed);
+		state.timings->generationGpuMs.store(0.0, std::memory_order_relaxed);
 		return Generator(state);
 	}
 
@@ -300,12 +306,13 @@ namespace
 		[encoder endEncoding];
 	}
 
-	ESPRESSU_METAL4 MTL4CommitOptions* FeedbackOptions(std::atomic<double>* gpuMs)
+	ESPRESSU_METAL4 MTL4CommitOptions* FeedbackOptions(const std::shared_ptr<Metal4OutputStage::State::GpuTimings>& timings, bool generation)
 	{
 		MTL4CommitOptions* options = [MTL4CommitOptions new];
+		std::shared_ptr<Metal4OutputStage::State::GpuTimings> keep = timings;
 		[options addFeedbackHandler:^(id<MTL4CommitFeedback> feedback) {
 			if (!feedback.error && feedback.GPUEndTime > feedback.GPUStartTime)
-				gpuMs->store((feedback.GPUEndTime - feedback.GPUStartTime) * 1000.0, std::memory_order_relaxed);
+				(generation ? keep->generationGpuMs : keep->lastGpuMs).store((feedback.GPUEndTime - feedback.GPUStartTime) * 1000.0, std::memory_order_relaxed);
 		}];
 		return options;
 	}
@@ -347,10 +354,10 @@ namespace
 		Metal4FrameGenerator* generator = outputIndex == Metal4OutputStage::TV ? UpdateGenerator(state) : nullptr;
 		// Present credit: at most two frames waiting on the output queue, and enough GPU time left for the extra one.
 		const bool queueKeepsUp = state.outputValue <= state.outputEvent.signaledValue + 2;
-		const double generationMs = state.generationGpuMs.load(std::memory_order_relaxed);
+		const double generationMs = state.timings->generationGpuMs.load(std::memory_order_relaxed);
 		const bool gpuKeepsUp = generationMs < frameInterval * 1000.0 * 0.4;
 		if (!gpuKeepsUp)
-			state.generationGpuMs.store(generationMs * 0.95, std::memory_order_relaxed); // try again after a while
+			state.timings->generationGpuMs.store(generationMs * 0.95, std::memory_order_relaxed); // try again after a while
 		if (output.generationCooldown > 0)
 			output.generationCooldown--;
 		bool generate = generator && !historyBreak && previousIsLastFrame && frameInterval > kGenerateAboveInterval && queueKeepsUp && gpuKeepsUp
@@ -451,12 +458,12 @@ namespace
 		if (generatedCommands)
 		{
 			id<MTL4CommandBuffer> first[1] = {generatedCommands};
-			[queue commit:first count:1 options:FeedbackOptions(&state.generationGpuMs)];
+			[queue commit:first count:1 options:FeedbackOptions(state.timings, true)];
 			if (generate)
 				[queue signalDrawable:generatedDrawable];
 		}
 		id<MTL4CommandBuffer> second[1] = {commandBuffer};
-		[queue commit:second count:1 options:FeedbackOptions(&state.lastGpuMs)];
+		[queue commit:second count:1 options:FeedbackOptions(state.timings, false)];
 		[queue signalDrawable:realDrawable];
 
 		slot.doneValue = ++state.outputValue;
@@ -480,7 +487,7 @@ namespace
 		output.lastPresented = slotIndex;
 		output.lastWentThroughGenerator = generatedCommands != nil;
 		HostTuning::Count(HostTuning::GetStats().m4Frames);
-		HostTuning::GetStats().m4GpuMicros.store((uint64_t)(state.lastGpuMs.load(std::memory_order_relaxed) * 1000.0), std::memory_order_relaxed);
+		HostTuning::GetStats().m4GpuMicros.store((uint64_t)(state.timings->lastGpuMs.load(std::memory_order_relaxed) * 1000.0), std::memory_order_relaxed);
 		return true;
 	}
 }
@@ -494,6 +501,10 @@ Metal4OutputStage::~Metal4OutputStage()
 {
 	if (!m_state->queue)
 		return;
+	// Work still waiting for a composition that will never be signalled (the game stopped mid-frame) is let go,
+	// so the queue can drain before it is released.
+	if (m_state->interopEvent && m_state->interopEvent.signaledValue < m_state->interopValue)
+		m_state->interopEvent.signaledValue = m_state->interopValue;
 	WaitIdle(1000);
 	if (@available(iOS 26.0, macOS 26.0, *))
 	{
@@ -591,7 +602,7 @@ bool Metal4OutputStage::PresentFrame(Output output, MTL::CommandBuffer* legacyCo
 
 double Metal4OutputStage::LastGpuTimeMilliseconds() const
 {
-	return m_state->lastGpuMs.load(std::memory_order_relaxed);
+	return m_state->timings->lastGpuMs.load(std::memory_order_relaxed);
 }
 
 bool Metal4OutputStage::WaitIdle(uint32_t timeoutMs)
