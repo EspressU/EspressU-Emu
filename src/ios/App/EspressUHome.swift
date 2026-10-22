@@ -475,7 +475,8 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             guard let id = playStats.recentIDs(limit: 1).first else { return nil }
             return games.first { $0.id == id }
         }()
-        return ScrollView(showsIndicators: false) {
+        return ScrollViewReader { scroller in
+        ScrollView(showsIndicators: false) {
             GeometryReader { proxy in
                 Color.clear.preference(key: HomeGridOffsetKey.self, value: proxy.frame(in: .named("homeGrid")).minY)
             }
@@ -527,6 +528,9 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         }
                     }
                     .buttonStyle(EspressUPressStyle())
+                    .controllerFocusRing(pad.showsFocus && selectedId == item.id && barFocus == nil,
+                                         shape: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .id(item.id)
                     .opacity(gridAppeared ? 1 : 0)
                     .offset(y: gridAppeared ? 0 : 16)
                     .animation(.spring(response: 0.45, dampingFraction: 0.85).delay(min(Double(index), 8) * 0.03), value: gridAppeared)
@@ -547,6 +551,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             }
         }
         .coordinateSpace(name: "homeGrid")
+        .onChange(of: selectedId) { id in
+            guard let id else { return }
+            withAnimation(.easeInOut(duration: 0.25)) { scroller.scrollTo(id, anchor: .center) }
+        }
+        }
         .onAppear {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) { gridAppeared = true }
         }
@@ -771,6 +780,18 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         }
         let center = centerIndex
         let centerGame = selectedGame ?? (games.indices.contains(center) ? games[center] : nil)
+        // Phones show a two-column grid instead of the carousel, so up and down move a whole row.
+        if isPhone, [.left, .right, .up, .down].contains(command) {
+            guard selectedId != nil else { bringToCenter(center); return }
+            let step = (command == .left || command == .right) ? 1 : 2
+            let target = (command == .left || command == .up) ? center - step : center + step
+            if games.indices.contains(target) {
+                bringToCenter(target)
+            } else if command == .down {
+                if center / 2 < (games.count - 1) / 2 { bringToCenter(games.count - 1) } else { enterBar() }
+            }
+            return
+        }
         switch command {
         case .left, .right, .previousPage, .nextPage:
             guard selectedId != nil else { bringToCenter(center); return }
