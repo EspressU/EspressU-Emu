@@ -122,6 +122,11 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
+            SettingsItem(id: "tuning.jitOverlaps", title: "No duplicate JIT work",
+                         detail: "JIT threads no longer compile the same game code at the same time and throw one result away. Leaves more CPU for the game.",
+                         control: .toggle(values.bool(PerformanceTuning.jitSkipOverlapsKey, PerformanceTuning.jitSkipOverlapsDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
             SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
                          detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
                          control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in

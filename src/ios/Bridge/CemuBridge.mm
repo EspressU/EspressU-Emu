@@ -2977,6 +2977,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
         tuning.diagnosticsLog.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
+        tuning.jitSkipOverlappingCompiles.store(value != 0);
+        break;
     }
 }
 
@@ -3002,6 +3005,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.padLowResolution.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
         return tuning.diagnosticsLog.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
+        return tuning.jitSkipOverlappingCompiles.load() ? 1 : 0;
     }
     return 0;
 }
