@@ -4652,7 +4652,7 @@ void MetalRenderer::ReportTuningDiagnostics()
     {
         const char* verdict = m4Frames > 0 ? (m4Regular || m4Timeouts || m4Dropped ? "OK, with some frames on the regular path" : "OK")
             : (m_metal4OutputUnavailable ? "NOT ACTIVE: Metal 4 is not available on this device" : "PROBLEM: no frame went through Metal 4");
-        cemuLog_log(LogType::Force, "[Tuning] metal4: frames +{}, dropped +{}, regular path +{}, slot timeouts +{}, last present GPU {:.2f} ms -> {}",
+        cemuLog_log(LogType::Force, "[Tuning] metal4: frames +{}, dropped or replaced by a newer one +{}, regular path +{}, no free slot +{}, last present GPU {:.2f} ms -> {}",
             m4Frames, m4Dropped, m4Regular, m4Timeouts, s.m4GpuMicros.load() / 1000.0, verdict);
     }
     if (fgMode != 0)
@@ -4666,12 +4666,12 @@ void MetalRenderer::ReportTuningDiagnostics()
         else if (fgGenerated > 0)
             verdict = fmt::format("OK, {:.0f}% of real frames got a generated one", 100.0 * fgGenerated / std::max<uint64>(1, fgGenerated + skipped + fgFailed));
         else if (fgFast > 0 && fgFast >= skipped / 2)
-            verdict = "idle: the game already runs at 40 fps or more";
+            verdict = "idle: the game already runs faster than 32 fps";
         else
             verdict = "PROBLEM: no frame generated";
-        cemuLog_log(LogType::Force, "[Tuning] framegen ({}): generated +{}, skipped fast-enough +{} history +{} queue +{} gpu +{} cooldown +{}, pauses +{}, failed +{}, real interval {:.1f} ms, generation GPU {:.2f} ms -> {}",
+        cemuLog_log(LogType::Force, "[Tuning] framegen ({}): generated +{}, skipped fast-enough +{} history +{} gpu +{}, failed +{}, real interval {:.1f} ms, generation GPU {:.2f} ms -> {}",
             s.fgBackend.load() == 2 ? "MetalFX" : (s.fgBackend.load() == 1 ? "EspressU" : "none"),
-            fgGenerated, fgFast, fgHistory, fgQueue, fgGpu, fgCooldown, fgCooldowns, fgFailed,
+            fgGenerated, fgFast, fgHistory, fgGpu, fgFailed,
             s.fgIntervalMicros.load() / 1000.0, s.fgGpuMicros.load() / 1000.0, verdict);
     }
     if (padOn || padLow)
