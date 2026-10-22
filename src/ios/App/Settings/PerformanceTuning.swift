@@ -9,11 +9,14 @@ enum PerformanceTuning {
     static let freeMemoryOnWarningDefault = false
     static let gpuFaultHistoryKey = "espressu.tuning.gpuFaultHistory"
     static let gpuFaultHistoryDefault = false
+    static let metalFxUpscaleKey = "espressu.tuning.metalFxUpscale"
+    static let metalFxUpscaleDefault = false
 
     static var advancedSettings: [AdvancedSetting] {
         [
             AdvancedSetting(freeMemoryOnWarningKey, freeMemoryOnWarningDefault),
             AdvancedSetting(gpuFaultHistoryKey, gpuFaultHistoryDefault),
+            AdvancedSetting(metalFxUpscaleKey, metalFxUpscaleDefault),
         ]
     }
 
@@ -26,10 +29,13 @@ enum PerformanceTuning {
                                bool(freeMemoryOnWarningKey, freeMemoryOnWarningDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY,
                                bool(gpuFaultHistoryKey, gpuFaultHistoryDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE,
+                               bool(metalFxUpscaleKey, metalFxUpscaleDefault) ? 1 : 0)
     }
 
     static func applyDefaultsToBridge() {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING, freeMemoryOnWarningDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY, gpuFaultHistoryDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
     }
 }

@@ -191,6 +191,7 @@ bool cemu_bridge_full_speed_renders(void);
 typedef enum {
     CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
     CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY = 1,
+    CEMU_BRIDGE_TUNING_METALFX_UPSCALE = 2,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);

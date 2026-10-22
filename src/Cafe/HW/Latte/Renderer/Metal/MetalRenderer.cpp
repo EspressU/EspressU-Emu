@@ -18,6 +18,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/UtilityShaderSource.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 #include "Cafe/HW/Latte/Core/LatteShader.h"
 #include "Cafe/HW/Latte/Core/LatteTextureLoader.h"
@@ -599,6 +600,7 @@ MetalRenderer::~MetalRenderer()
     LatteIndices_forgetAll();
 
     delete m_outputShaderCache;
+    m_outputUpscaler.reset();
     if (!MetalPipelineCache_LoaderAbandoned())
         delete m_pipelineCache;
     delete m_depthStencilCache;
@@ -823,6 +825,39 @@ void MetalRenderer::DrawBackbufferQuad(LatteTextureView* texView, RendererOutput
     if (!layer.GetDrawableTexture() || !presentTexture)
         return;
 
+    uint8 shaderIndex = 255;
+    if (shader == RendererOutputShader::s_copy_shader) shaderIndex = 0;
+    else if (shader == RendererOutputShader::s_bicubic_shader) shaderIndex = 1;
+    else if (shader == RendererOutputShader::s_hermit_shader) shaderIndex = 2;
+    else if (shader == RendererOutputShader::s_copy_shader_ud) shaderIndex = 3;
+    else if (shader == RendererOutputShader::s_bicubic_shader_ud) shaderIndex = 4;
+    else if (shader == RendererOutputShader::s_hermit_shader_ud) shaderIndex = 5;
+
+    // Graphic-pack output shaders (index 255) keep doing their own scaling.
+    if (HostTuning::Get().metalFxUpscale.load(std::memory_order_relaxed) && shaderIndex != 255 && imageWidth > 0 && imageHeight > 0)
+    {
+        if (!m_outputUpscaler && MetalOutputUpscaler::IsAvailable(m_device))
+            m_outputUpscaler = std::make_unique<MetalOutputUpscaler>(m_device);
+        if (m_outputUpscaler)
+        {
+            EndEncoding();
+            if (MTL::Texture* upscaled = m_outputUpscaler->Upscale(padView ? MetalOutputUpscaler::GamePad : MetalOutputUpscaler::TV,
+                    GetCommandBuffer(), presentTexture, (uint32)imageWidth, (uint32)imageHeight))
+            {
+                // The image already has the target size, so only a plain copy is left, flipped if the original shader flipped.
+                presentTexture = upscaled;
+                const bool upsideDown = shaderIndex >= 3;
+                shader = upsideDown ? RendererOutputShader::s_copy_shader_ud : RendererOutputShader::s_copy_shader;
+                shaderIndex = upsideDown ? 3 : 0;
+                useLinearTexFilter = true;
+            }
+        }
+    }
+    else if (m_outputUpscaler)
+    {
+        m_outputUpscaler.reset();
+    }
+
     NS_STACK_SCOPED MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
     colorAttachment->setTexture(layer.GetDrawable()->texture());
@@ -831,14 +866,6 @@ void MetalRenderer::DrawBackbufferQuad(LatteTextureView* texView, RendererOutput
     colorAttachment->setStoreAction(MTL::StoreActionStore);
 
     auto renderCommandEncoder = GetTemporaryRenderCommandEncoder(renderPassDescriptor);
-
-    uint8 shaderIndex = 255;
-    if (shader == RendererOutputShader::s_copy_shader) shaderIndex = 0;
-    else if (shader == RendererOutputShader::s_bicubic_shader) shaderIndex = 1;
-    else if (shader == RendererOutputShader::s_hermit_shader) shaderIndex = 2;
-    else if (shader == RendererOutputShader::s_copy_shader_ud) shaderIndex = 3;
-    else if (shader == RendererOutputShader::s_bicubic_shader_ud) shaderIndex = 4;
-    else if (shader == RendererOutputShader::s_hermit_shader_ud) shaderIndex = 5;
 
     uint8 shaderType = shaderIndex % 3;
 
@@ -3751,6 +3778,8 @@ void MetalRenderer::FreeMemoryAfterSystemWarning()
     }
 
     m_memoryManager->GetStagingAllocator().ReleaseIdleBuffers();
+    if (m_outputUpscaler)
+        m_outputUpscaler->Release();
 
     // Streamout buffers replaced by a bigger one are only safe to drop once no command buffer can still use them.
     uint32 droppedXfb = 0;

@@ -13,6 +13,8 @@ namespace HostTuning
 		std::atomic<bool> freeMemoryOnWarning{false};
 		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
 		std::atomic<bool> keepGpuFaultHistory{false};
+		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
+		std::atomic<bool> metalFxUpscale{false};
 	};
 
 	inline Options& Get()

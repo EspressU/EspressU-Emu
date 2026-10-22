@@ -6,6 +6,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalOutputShaderCache.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalAttachmentsInfo.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalOutputUpscaler.h"
 #include "Common/DeviceCapabilities.h"
 
 enum MetalGeneralShaderType
@@ -596,6 +597,7 @@ private:
 
 	class MetalMemoryManager* m_memoryManager;
 	class MetalOutputShaderCache* m_outputShaderCache;
+	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
 	class MetalPipelineCache* m_pipelineCache;
 	class MetalDepthStencilCache* m_depthStencilCache;
 	class MetalSamplerCache* m_samplerCache;

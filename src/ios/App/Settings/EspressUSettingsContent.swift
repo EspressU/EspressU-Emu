@@ -92,6 +92,11 @@ extension EspressUSettingsView {
         ]
 
         let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.metalFx", title: "MetalFX upscaling",
+                         detail: "Sharper enlarging of the finished picture with Apple's MetalFX on Metal. Costs a little GPU time. Not used with a graphic pack's own output filter.",
+                         control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
             SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",
                          detail: "When iOS runs low on memory, drops textures the game can reload. Can stop a crash; can cause a short hitch.",
                          control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in

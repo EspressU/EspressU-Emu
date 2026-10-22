@@ -2954,6 +2954,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
         tuning.keepGpuFaultHistory.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
+        tuning.metalFxUpscale.store(value != 0);
+        break;
     }
 }
 
@@ -2965,6 +2968,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.freeMemoryOnWarning.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
         return tuning.keepGpuFaultHistory.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
+        return tuning.metalFxUpscale.load() ? 1 : 0;
     }
     return 0;
 }
