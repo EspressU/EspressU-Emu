@@ -55,7 +55,9 @@ struct TouchLabLayoutPanel: View {
                            spokenValue: ControllerLayoutSettings.shoulderOffsetLabel(max(0, shoulderOffset)))
         }
 
-        PanelToggle(title: "Haptic feedback", isOn: $haptics)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            PanelToggle(title: "Haptic feedback", isOn: $haptics)
+        }
 
         PanelToggle(title: "Disable on-screen controls when a controller is connected", isOn: $autoHide)
 
