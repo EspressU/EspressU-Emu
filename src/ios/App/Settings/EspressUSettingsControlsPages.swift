@@ -4,80 +4,52 @@ import SwiftUI
 
 extension EspressUSettingsView {
 
-    var touchControlsGroups: [SettingsGroup] {
-        let percent: (Double) -> String = { "\(Int(($0 * 100).rounded()))%" }
-        let defaults = UserDefaults.standard
-        let advanced = SettingsMode.isAdvanced
+    var controllerMappingGroups: [SettingsGroup] {
+        let session = mapping
+        let connected = session.controllerName
+        let listening = session.listeningPad
 
-        let size: [SettingsItem] = [
-            SettingsItem(id: "tc.size", title: "Button size", detail: "Bigger buttons are easier to hit.",
-                         control: .slider(values.double(ControllerLayoutSettings.scaleKey, ControllerLayoutSettings.defaultScale),
-                                          ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale, step: 0.05, label: percent)),
-            SettingsItem(id: "tc.opacity", title: "Opacity", detail: "How see-through the buttons are.",
-                         control: .slider(values.double(ControllerLayoutSettings.opacityKey, ControllerLayoutSettings.defaultOpacity),
-                                          0.2...1.0, step: 0.05, label: percent)),
+        var top: [SettingsItem] = [
+            SettingsItem(id: "map.status", title: connected ?? "No controller connected",
+                         detail: connected == nil
+                             ? "Pair one in the iOS Bluetooth settings to change buttons."
+                             : "Pick a GamePad button, then press the one you want on your controller.",
+                         control: .info(connected == nil ? "None" : "Connected", connected == nil ? nil : EspressUTheme.accentText)),
         ]
-
-        var placement: [SettingsItem] = [
-            SettingsItem(id: "tc.spacing", title: "Stick spacing",
-                         detail: "Moves both sticks closer together or further apart.",
-                         control: .slider(values.double(ControllerLayoutSettings.stickSpacingKey, ControllerLayoutSettings.defaultStickSpacing),
-                                          ControllerLayoutSettings.minStickSpacing...ControllerLayoutSettings.maxStickSpacing,
-                                          step: ControllerLayoutSettings.stickSpacingStep,
-                                          label: { ControllerLayoutSettings.stickSpacingLabel($0) })),
-        ]
-        if ControllerLayoutSettings.supportsShoulderOffset {
-            placement.append(SettingsItem(id: "tc.shoulders", title: "L, R, ZL and ZR height",
-                                          detail: "Moves the four shoulder buttons up or down together.",
-                                          control: .slider(values.double(ControllerLayoutSettings.shoulderOffsetKey, ControllerLayoutSettings.defaultShoulderOffset),
-                                                           ControllerLayoutSettings.shoulderOffsetRange(touchLab: true),
-                                                           step: ControllerLayoutSettings.shoulderOffsetStep,
-                                                           label: { ControllerLayoutSettings.shoulderOffsetLabel(max(0, $0)) })))
+        if let pad = listening, let slot = PadMapping.slot(pad) {
+            top.append(SettingsItem(id: "map.listening", title: "Press a button on your controller",
+                                    detail: "It will become GamePad \(slot.name). \(Int(session.secondsLeft.rounded(.up))) s left.",
+                                    control: .action("Cancel", destructive: false, confirm: false, run: { session.cancel() })))
         }
 
-        let feel: [SettingsItem] = [
-            SettingsItem(id: "tc.haptics", title: "Haptic feedback", detail: "A light tap on press.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.hapticsKey, ControllerLayoutSettings.defaultHaptics))),
-            SettingsItem(id: "tc.autoHide", title: "Hide when a controller is connected",
-                         detail: "The controls come back when it disconnects. The GamePad's screen stays touchable.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.autoHideWithControllerKey,
-                                                      ControllerLayoutSettings.defaultAutoHideWithController))),
-        ]
-
-        var groups = [
-            SettingsGroup(id: "tc.size", title: "Size and look", items: size),
-            SettingsGroup(id: "tc.placement", title: "Placement", items: placement),
-            SettingsGroup(id: "tc.feel", title: "Behaviour", items: feel),
-        ]
-
-        if advanced {
-            let gate = ControllerGeometry.StickGate(rawValue: defaults.string(forKey: ControllerLayoutSettings.stickGateKey)
-                                                    ?? ControllerLayoutSettings.defaultStickGateRaw) ?? ControllerLayoutSettings.defaultStickGate
-            groups.append(SettingsGroup(id: "tc.sticks", title: "Sticks", items: [
-                SettingsItem(id: "tc.gate", title: "Stick gate", detail: gate.summary,
-                             control: .choice(ControllerGeometry.StickGate.allCases.map { SettingsOption(id: $0.rawValue, title: $0.title) },
-                                              values.string(ControllerLayoutSettings.stickGateKey, ControllerLayoutSettings.defaultStickGateRaw))),
-                SettingsItem(id: "tc.deadzone", title: "Stick deadzone",
-                             detail: "How far you can move before the game notices.",
-                             control: .slider(values.double(ControllerLayoutSettings.deadzoneKey, ControllerLayoutSettings.defaultDeadzone),
-                                              ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone, step: 0.01,
-                                              label: { $0 <= 0.0005 ? "off" : "\(Int(($0 * 100).rounded()))%" })),
-                SettingsItem(id: "tc.curve", title: "Fine control",
-                             detail: "Makes small movements gentler.",
-                             control: .slider(values.double(ControllerLayoutSettings.stickCurveKey, ControllerLayoutSettings.defaultStickCurve),
-                                              ControllerLayoutSettings.minStickCurve...ControllerLayoutSettings.maxStickCurve, step: 0.1,
-                                              label: { $0 <= ControllerLayoutSettings.minStickCurve + 0.005 ? "linear" : String(format: "%.1fx", $0) })),
-            ]))
+        var groups = [SettingsGroup(id: "map.pad", title: "Your controller", items: top)]
+        for group in ControllerMappingSession.groupLayout {
+            var items: [SettingsItem] = []
+            for pad in group.pads {
+                guard let slot = PadMapping.slot(Int(pad.rawValue)) else { continue }
+                let changed = PadMapping.isRemapped(slot.id)
+                let builtIn = PadMapping.deviceName(PadMapping.defaultDevice(for: slot.id))
+                let waiting = listening == slot.id
+                var resetAction: (() -> Void)? = nil
+                if changed && listening == nil { resetAction = { session.reset(pad: slot.id) } }
+                items.append(SettingsItem(
+                    id: "map.pad.\(slot.id)", title: slot.name,
+                    detail: changed ? "Built-in: \(builtIn)" : nil,
+                    control: .padButton(label: slot.label,
+                                        value: waiting ? "Press a button" : PadMapping.deviceName(PadMapping.device(for: slot.id)),
+                                        changed: changed || waiting,
+                                        run: { session.listen(for: slot.id) },
+                                        reset: resetAction),
+                    enabled: connected != nil && (listening == nil || waiting)))
+            }
+            groups.append(SettingsGroup(id: "map.\(group.title)", title: group.title, items: items))
         }
 
-        groups.append(SettingsGroup(id: "tc.more", title: "Reset", items: [
-            SettingsItem(id: "tc.resetLayout", title: "Reset controls to default",
-                         detail: "Button size, opacity, stick spacing and shoulder height.",
-                         control: .action("Reset", destructive: true, confirm: true, run: {
-                             ControllerLayoutSettings.reset()
-                             values.refresh()
-                             notes["tc.resetLayout"] = "Done."
-                         })),
+        groups.append(SettingsGroup(id: "map.more", title: "Reset", items: [
+            SettingsItem(id: "map.resetAll", title: "Reset every button",
+                         detail: "All GamePad buttons go back to the built-in layout.",
+                         control: .action("Reset", destructive: true, confirm: true, run: { session.resetAll() }),
+                         enabled: !PadMapping.overrides().isEmpty && listening == nil),
             SettingsItem(id: "tc.resetBindings", title: "Reset controller bindings",
                          detail: "Rebuilds the default button bindings. Use it if some buttons do nothing while the sticks still work.",
                          control: .action("Reset", destructive: true, confirm: true, run: {
@@ -87,17 +59,10 @@ extension EspressUSettingsView {
                                  ? "Reset. The GamePad now has \(count) button bindings."
                                  : (count < 0 ? "No GamePad is wired yet - start a game, then try again."
                                               : "Reset, but the GamePad still has no button bindings.")
-                         })),
+                         }),
+                         enabled: listening == nil),
         ]))
         return groups
-    }
-
-    var controllerMappingGroups: [SettingsGroup] {
-        [
-            SettingsGroup(id: "map.pad", title: "Your controller", items: [
-                SettingsItem(id: "map.editor", title: "", control: .banner(AnyView(ControllerMappingEditor()))),
-            ]),
-        ]
     }
 
     var customServerGroups: [SettingsGroup] {

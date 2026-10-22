@@ -24,7 +24,7 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
         case .jit:         return "Built-in JIT: on or off, status and pairing."
         case .performance: return "How games run: the CPU and heat."
         case .graphics:    return "Picture quality, frame pacing and shaders."
-        case .controls:    return "Touch controls, controllers and motion."
+        case .controls:    return "Controllers and motion."
         case .screenSound: return "Screen layout, brightness, volume and the microphone."
         case .gamesData:   return "Your library, keys, files, backups and online."
         case .system:      return "Look, help and about EspressU."
@@ -57,7 +57,7 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 }
 
 enum LegacySettingsPage: String, Identifiable {
-    case emulatedClock, touchControls, figures, overlay, graphicPacks, linkedFolders
+    case emulatedClock, figures, overlay, graphicPacks, linkedFolders
     case keys, files, backup, account, diagnostics, about
     case figureManager, networkService, licences
     case graphicPackGame, graphicPack, controllerMapping
@@ -78,7 +78,6 @@ enum LegacySettingsPage: String, Identifiable {
     var summary: String {
         switch self {
         case .emulatedClock: return "How fast the Wii U's clock runs."
-        case .touchControls: return "The on-screen GamePad."
         case .figures:       return "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions."
         case .overlay:       return "What EspressU shows on top of a game."
         case .graphicPacks:  return "Mods and fixes for your games."
@@ -101,7 +100,6 @@ enum LegacySettingsPage: String, Identifiable {
     var title: String {
         switch self {
         case .emulatedClock: return "Emulated clock"
-        case .touchControls: return "Touch controls"
         case .figures:       return "Figure portals"
         case .overlay:       return "Overlay and notifications"
         case .graphicPacks:  return "Graphic packs"
@@ -139,6 +137,7 @@ struct SettingsItem: Identifiable {
         case custom(AnyView)
         case modeSwitch(Binding<Bool>)
         case banner(AnyView)
+        case padButton(label: String, value: String, changed: Bool, run: () -> Void, reset: (() -> Void)?)
         case expand(Bool)
     }
 

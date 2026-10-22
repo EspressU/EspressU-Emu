@@ -116,23 +116,13 @@ enum PadMapping {
     }
 }
 
-/// Connects the page to the real mapping: it reads the saved changes, listens for the next press on the physical
-/// controller and writes the result back.
-struct ControllerMappingEditor: View {
-    @State private var selected: Int?
-    @State private var listening = false
-    @State private var held = Set<Int>()
-    @State private var listenStarted = Date()
-    @State private var secondsLeft: Double = 0
-    @State private var changes = 0
-    @State private var blink = false
-    @State private var controllerName = PadMapping.controllerName
-    @State private var confirmingResetAll = false
+/// Waits for the next press on the physical controller while one GamePad button is being reassigned. The Settings
+/// page shows its state; while it listens the menu ignores the controller, so the press is not taken as navigation.
+final class ControllerMappingSession: ObservableObject {
+    static let shared = ControllerMappingSession()
+    static let timeout: TimeInterval = 10
 
-    private let timer = Timer.publish(every: 0.04, on: .main, in: .common).autoconnect()
-    private let timeout: TimeInterval = 10
-
-    private static let groupLayout: [(title: String, pads: [CemuBridgePadMapButton])] = [
+    static let groupLayout: [(title: String, pads: [CemuBridgePadMapButton])] = [
         ("Face buttons", [CEMU_BRIDGE_PAD_A, CEMU_BRIDGE_PAD_B, CEMU_BRIDGE_PAD_X, CEMU_BRIDGE_PAD_Y]),
         ("Shoulders", [CEMU_BRIDGE_PAD_L, CEMU_BRIDGE_PAD_R, CEMU_BRIDGE_PAD_ZL, CEMU_BRIDGE_PAD_ZR]),
         ("D-pad", [CEMU_BRIDGE_PAD_UP, CEMU_BRIDGE_PAD_DOWN, CEMU_BRIDGE_PAD_LEFT, CEMU_BRIDGE_PAD_RIGHT]),
@@ -140,100 +130,77 @@ struct ControllerMappingEditor: View {
         ("System", [CEMU_BRIDGE_PAD_PLUS, CEMU_BRIDGE_PAD_MINUS]),
     ]
 
-    private var palette: MappingPalette {
-        MappingPalette(ink: EspressUTheme.brownDarkest, mid: EspressUTheme.brownMid, secondary: EspressUTheme.secondaryText,
-                       accent: EspressUTheme.pixelBlue, accentText: EspressUTheme.accentText, caution: EspressUTheme.cautionText)
-    }
+    @Published private(set) var listeningPad: Int?
+    @Published private(set) var secondsLeft: Double = 0
+    @Published private(set) var controllerName: String? = PadMapping.controllerName
+    @Published private(set) var revision = 0
 
-    private var pageModel: MappingPageModel {
-        let groups = Self.groupLayout.map { group in
-            (title: group.title, slots: group.pads.compactMap { pad in
-                PadMapping.slot(Int(pad.rawValue)).map { MappingSlotInfo(id: $0.id, name: $0.name, label: $0.label) }
-            })
+    var isListening: Bool { listeningPad != nil }
+
+    private var held = Set<Int>()
+    private var started = Date()
+    private var timer: Timer?
+
+    private init() {
+        for name in [Notification.Name.GCControllerDidConnect, .GCControllerDidDisconnect] {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.controllersChanged()
+            }
         }
-        return MappingPageModel(
-            groups: groups, selected: selected, listening: listening, secondsLeft: secondsLeft, timeout: timeout,
-            blink: blink, controllerName: controllerName,
-            assigned: { PadMapping.deviceName(PadMapping.device(for: $0)) },
-            builtIn: { PadMapping.deviceName(PadMapping.defaultDevice(for: $0)) },
-            isChanged: { PadMapping.isRemapped($0) })
     }
 
-    private var actions: MappingPageActions {
-        MappingPageActions(
-            select: { select($0) },
-            change: { if listening { stopListening() } else { startListening() } },
-            cancel: { stopListening() },
-            reset: { id in
-                PadMapping.reset(pad: id)
-                EspressUHaptics.select()
-                changes += 1
-            },
-            resetAll: { confirmingResetAll = true })
-    }
-
-    private func cardSurface(_ content: AnyView) -> AnyView {
-        AnyView(content.espressUSurface(RoundedRectangle(cornerRadius: EspressUTheme.Radius.card, style: .continuous)))
-    }
-
-    var body: some View {
-        ControllerMappingPage(model: pageModel, actions: actions, palette: palette, surface: cardSurface)
-            .id(changes)
-            .onReceive(timer) { _ in tick() }
-            .onReceive(NotificationCenter.default.publisher(for: .GCControllerDidConnect)) { _ in controllerName = PadMapping.controllerName }
-            .onReceive(NotificationCenter.default.publisher(for: .GCControllerDidDisconnect)) { _ in
-                controllerName = PadMapping.controllerName
-                stopListening()
-            }
-            .onDisappear { stopListening() }
-            .confirmationDialog("Reset every button?", isPresented: $confirmingResetAll, titleVisibility: .visible) {
-                Button("Reset", role: .destructive) {
-                    PadMapping.resetAll()
-                    stopListening()
-                    changes += 1
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("All GamePad buttons go back to the built-in layout.")
-            }
-    }
-
-    private func select(_ id: Int) {
-        if selected != id { stopListening() }
-        selected = id
-        EspressUHaptics.select()
-    }
-
-    private func startListening() {
-        guard controllerName != nil, selected != nil else { return }
+    func listen(for pad: Int) {
+        guard controllerName != nil, PadMapping.slot(pad) != nil else { return }
         held = PadMapping.pressedDeviceButtons()
-        listenStarted = Date()
-        secondsLeft = timeout
-        listening = true
+        started = Date()
+        secondsLeft = Self.timeout
+        listeningPad = pad
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.04, repeats: true) { [weak self] _ in self?.tick() }
         EspressUHaptics.tap()
     }
 
-    private func stopListening() {
-        listening = false
-        blink = false
+    func cancel() {
+        timer?.invalidate()
+        timer = nil
+        if listeningPad != nil { listeningPad = nil }
+    }
+
+    func reset(pad: Int) {
+        PadMapping.reset(pad: pad)
+        EspressUHaptics.select()
+        revision += 1
+    }
+
+    func resetAll() {
+        cancel()
+        PadMapping.resetAll()
+        revision += 1
+    }
+
+    private func controllersChanged() {
+        controllerName = PadMapping.controllerName
+        if controllerName == nil { cancel() }
     }
 
     private func tick() {
-        guard listening, let id = selected else { return }
-        let elapsed = Date().timeIntervalSince(listenStarted)
-        secondsLeft = max(0, timeout - elapsed)
-        blink = Int(elapsed * 3) % 2 == 0
-        if elapsed > timeout {
-            stopListening()
+        guard let pad = listeningPad else {
+            cancel()
+            return
+        }
+        let elapsed = Date().timeIntervalSince(started)
+        secondsLeft = max(0, Self.timeout - elapsed)
+        if elapsed > Self.timeout {
+            cancel()
             return
         }
         let pressed = PadMapping.pressedDeviceButtons()
         held.formIntersection(pressed)
         if let next = pressed.subtracting(held).sorted().first {
-            PadMapping.set(pad: id, device: next)
-            stopListening()
+            PadMapping.set(pad: pad, device: next)
+            cancel()
             EspressUHaptics.tap()
-            changes += 1
+            revision += 1
         }
     }
 }

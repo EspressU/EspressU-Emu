@@ -227,26 +227,6 @@ extension EspressUSettingsView {
     }
 
     private var controlsGroups: [SettingsGroup] {
-        let percent: (Double) -> String = { "\(Int(($0 * 100).rounded()))%" }
-
-        let touch: [SettingsItem] = [
-            SettingsItem(id: "touch.size", title: "Button size", detail: "Bigger buttons are easier to hit.",
-                         control: .slider(values.double(ControllerLayoutSettings.scaleKey, ControllerLayoutSettings.defaultScale),
-                                          ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale, step: 0.05, label: percent)),
-            SettingsItem(id: "touch.opacity", title: "Opacity", detail: "How see-through the buttons are.",
-                         control: .slider(values.double(ControllerLayoutSettings.opacityKey, ControllerLayoutSettings.defaultOpacity),
-                                          0.2...1.0, step: 0.05, label: percent)),
-            SettingsItem(id: "touch.haptics", title: "Haptic feedback", detail: "A light tap when you press a button.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.hapticsKey, ControllerLayoutSettings.defaultHaptics))),
-            SettingsItem(id: "touch.autoHide", title: "Hide with a controller",
-                         detail: "Touch controls disappear while a controller is connected.",
-                         control: .toggle(values.bool(ControllerLayoutSettings.autoHideWithControllerKey,
-                                                      ControllerLayoutSettings.defaultAutoHideWithController))),
-            SettingsItem(id: "touch.more", title: "Layout, sticks and more",
-                         detail: "Move buttons, analog sticks, the controller style.",
-                         control: .link("", .touchControls)),
-        ]
-
         let defaults = UserDefaults.standard
         let motionOn = defaults.object(forKey: MotionSettings.enabledKey) as? Bool ?? MotionSettings.defaultEnabled
         let motionSource = defaults.object(forKey: MotionSettings.sourceKey) as? Int ?? MotionSettings.defaultSource
@@ -304,7 +284,6 @@ extension EspressUSettingsView {
         ]
 
         return [
-            SettingsGroup(id: "touch", title: "Touch controls", items: touch),
             SettingsGroup(id: "motion", title: "Motion", items: motion),
             SettingsGroup(id: "controllers", title: "Controllers", items: controllers),
         ]
