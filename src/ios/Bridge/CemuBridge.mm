@@ -1859,6 +1859,32 @@ namespace {
     }
     GCBridgeVec2 g_touchSticks[2] = {};
     uint32_t g_physicalButtons = 0;
+
+    // Custom button mapping for the physical controller only. It is applied here, before touch and controller
+    // input are merged, so the on-screen controls always keep the built-in layout. Indexed by
+    // CemuBridgePadMapButton; each entry is the bit of the physical button that drives it, or -1 for the default.
+    constexpr int kPadDefaultBit[17] = {
+        -1, kBitA, kBitB, kBitX, kBitY, kBitL, kBitR, kBitZL, kBitZR, kBitPlus, kBitMinus,
+        kBitUp, kBitDown, kBitLeft, kBitRight, kBitStickL, kBitStickR,
+    };
+    int g_padRemap[17] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    bool g_padRemapActive = false;
+
+    uint32_t ios_remap_physical(uint32_t physical)
+    {
+        if (!g_padRemapActive)
+            return physical;
+        uint32_t out = physical;
+        for (int pad = 1; pad < 17; ++pad)
+            out &= ~(1u << kPadDefaultBit[pad]);
+        for (int pad = 1; pad < 17; ++pad)
+        {
+            const int source = g_padRemap[pad] >= 0 ? g_padRemap[pad] : kPadDefaultBit[pad];
+            if (physical & (1u << source))
+                out |= 1u << kPadDefaultBit[pad];
+        }
+        return out;
+    }
     GCBridgeVec2 g_physicalSticks[2] = {};
     float g_physicalTriggers[2] = {};
 
@@ -1942,7 +1968,8 @@ namespace {
             }
         }
         GCBridgeControllerState s{};
-        s.buttons = g_touchButtons | g_physicalButtons;
+        const uint32_t physical = ios_remap_physical(g_physicalButtons);
+        s.buttons = g_touchButtons | physical;
         g_touchSeen |= g_touchButtons;
         for (int i = 0; i < 2; i++)
         {
@@ -1950,8 +1977,10 @@ namespace {
             const GCBridgeVec2 chosen = (touch.x != 0.0f || touch.y != 0.0f) ? touch : g_physicalSticks[i];
             (i == 0 ? s.leftStick : s.rightStick) = chosen;
         }
-        s.leftTrigger = std::max(g_physicalTriggers[0], (g_touchButtons & (1u << kBitZL)) ? 1.0f : 0.0f);
-        s.rightTrigger = std::max(g_physicalTriggers[1], (g_touchButtons & (1u << kBitZR)) ? 1.0f : 0.0f);
+        const float leftTrigger = g_padRemap[CEMU_BRIDGE_PAD_ZL] >= 0 ? 0.0f : g_physicalTriggers[0];
+        const float rightTrigger = g_padRemap[CEMU_BRIDGE_PAD_ZR] >= 0 ? 0.0f : g_physicalTriggers[1];
+        s.leftTrigger = std::max(leftTrigger, ((g_touchButtons | physical) & (1u << kBitZL)) ? 1.0f : 0.0f);
+        s.rightTrigger = std::max(rightTrigger, ((g_touchButtons | physical) & (1u << kBitZR)) ? 1.0f : 0.0f);
         return s;
     }
 
@@ -4194,19 +4223,6 @@ static_assert(CEMU_BRIDGE_PAD_A == VPADController::kButtonId_A && CEMU_BRIDGE_PA
 
 // Physical button ids used by the settings UI: 0 A, 1 B, 2 X, 3 Y, 4 left bumper, 5 right bumper, 6 left trigger,
 // 7 right trigger, 8 options, 9 menu, 10 and 11 stick clicks, 12 to 15 D-pad up, down, left, right.
-static int ios_pad_core_button(int uiButton) {
-    if (uiButton >= 0 && uiButton <= 11)
-        return uiButton;
-    switch (uiButton)
-    {
-    case 12: return kButtonUp;
-    case 13: return kButtonDown;
-    case 14: return kButtonLeft;
-    case 15: return kButtonRight;
-    default: return -1;
-    }
-}
-
 static int ios_pad_ui_button(int coreButton) {
     if (coreButton >= 0 && coreButton <= 11)
         return coreButton;
@@ -4218,11 +4234,25 @@ static int ios_pad_ui_button(int coreButton) {
 }
 
 void cemu_bridge_pad_mapping_set(int padButton, int deviceButton) {
-    InputManager::instance().set_pad_mapping_override((uint64)padButton, deviceButton < 0 ? -1 : ios_pad_core_button(deviceButton));
+    if (padButton < 1 || padButton > 16)
+        return;
+    int bit = -1;
+    if (deviceButton >= 0 && deviceButton <= 11)
+        bit = deviceButton;
+    else if (deviceButton >= 12 && deviceButton <= 15)
+        bit = kBitUp + (deviceButton - 12);
+    std::lock_guard lock(g_inputMutex);
+    g_padRemap[padButton] = bit;
+    g_padRemapActive = false;
+    for (int pad = 1; pad < 17; ++pad)
+        g_padRemapActive = g_padRemapActive || g_padRemap[pad] >= 0;
 }
 
 void cemu_bridge_pad_mapping_clear_all(void) {
-    InputManager::instance().clear_pad_mapping_overrides();
+    std::lock_guard lock(g_inputMutex);
+    for (int pad = 1; pad < 17; ++pad)
+        g_padRemap[pad] = -1;
+    g_padRemapActive = false;
 }
 
 int cemu_bridge_pad_mapping_default(int padButton) {
