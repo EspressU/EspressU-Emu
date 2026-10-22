@@ -17,6 +17,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalQuery.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/UtilityShaderSource.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 
 #include "Cafe/HW/Latte/Core/LatteShader.h"
 #include "Cafe/HW/Latte/Core/LatteTextureLoader.h"
@@ -1500,7 +1501,10 @@ const char* MetalRenderer::CopyRawBlocksIntoTranscodedTexture(LatteTexture* src,
     const size_t bytesPerImageIn = bytesPerRowIn * (size_t)copyBlocksH;
     MTL::Buffer* readback = m_device->newBuffer(bytesPerImageIn * (size_t)slices, MTL::ResourceStorageModeShared);
     if (!readback)
+    {
+        MetalFaultHistory::Record(MetalFaultHistory::Kind::ReadbackBuffer, bytesPerImageIn * (size_t)slices, "transcoding copy");
         return "no memory for the readback";
+    }
 
     {
         auto blit = GetBlitCommandEncoder(PerfTelemetry::kBreakTranscodeCopy);
@@ -1985,6 +1989,7 @@ MTL::Buffer* MetalRenderer::GetXfbRingBuffer(size_t minimumSize)
     MTL::Buffer* newBuffer = m_device->newBuffer(allocationSize, MTL::ResourceStorageModePrivate);
     if (!newBuffer)
     {
+        MetalFaultHistory::Record(MetalFaultHistory::Kind::StreamoutBuffer, allocationSize, "streamout ring buffer");
         cemuLog_logOnce(LogType::Force, "Failed to allocate {} byte Metal streamout buffer", allocationSize);
         return nullptr;
     }
@@ -3800,6 +3805,9 @@ void MetalRenderer::ProcessFinishedCommandBuffers()
                 }
                 if (errorCode == 3 || errorCode == 4 || errorCode == 8 || errorCode == 11)
                 {
+                    if (!staleQueue)
+                        MetalFaultHistory::Record(MetalFaultHistory::Kind::GpuFault, 0,
+                            fmt::format("command buffer error {}, {} queue replacement(s) so far", errorCode, m_gpuRecoveryCount));
                     if (staleQueue)
                     {
                     }

@@ -97,6 +97,11 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
+            SettingsItem(id: "tuning.faultHistory", title: "Keep a GPU memory failure history",
+                         detail: "Notes failed graphics allocations and GPU faults in a small file. Shown in Device report and logs.",
+                         control: .toggle(values.bool(PerformanceTuning.gpuFaultHistoryKey, PerformanceTuning.gpuFaultHistoryDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
         ]
 
         return [

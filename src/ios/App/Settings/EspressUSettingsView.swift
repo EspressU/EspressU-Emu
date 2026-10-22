@@ -698,6 +698,7 @@ struct EspressUSettingsView: View {
             NetworkServiceSettingsSection()
         case .diagnostics:
             DeviceReportSection()
+            GpuFaultHistorySection()
             DiagnosticsSection()
         case .about: AboutSettingsSection()
         case .networkService: CustomServersSettingsSection()

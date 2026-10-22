@@ -190,10 +190,14 @@ bool cemu_bridge_full_speed_renders(void);
 
 typedef enum {
     CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
+    CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY = 1,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);
 int cemu_bridge_tuning(CemuBridgeTuning option);
+
+const char* cemu_bridge_gpu_fault_history(void);
+void cemu_bridge_clear_gpu_fault_history(void);
 
 double cemu_bridge_device_temperature_celsius(void);
 

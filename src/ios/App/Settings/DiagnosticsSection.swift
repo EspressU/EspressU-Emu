@@ -35,6 +35,38 @@ struct DeviceReportSection: View {
     }
 }
 
+struct GpuFaultHistorySection: View {
+    @State private var history = String(cString: cemu_bridge_gpu_fault_history())
+
+    var body: some View {
+        Section {
+            Text(history.isEmpty ? "Nothing recorded." : history)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundColor(EspressUTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !history.isEmpty {
+                Button {
+                    UIPasteboard.general.string = history
+                } label: {
+                    Label("Copy history", systemImage: "doc.on.doc")
+                }
+                Button(role: .destructive) {
+                    cemu_bridge_clear_gpu_fault_history()
+                    history = ""
+                } label: {
+                    Label("Clear history", systemImage: "trash")
+                }
+            }
+        } header: {
+            SettingsSectionHeader("GPU Memory Failures", icon: "memorychip", accent: .system)
+        } footer: {
+            InfoButton.footer("The last graphics allocations that failed and GPU faults, newest first. Turn it on in Performance > Experimental.")
+        }
+        .foregroundColor(EspressUTheme.brownDarkest)
+    }
+}
+
 struct DiagnosticsSection: View {
     @AppStorage(LaunchLogSettings.showKey) private var showLaunchLog = false
     @AppStorage("espressu.showLaunchIntro") private var launchIntroEnabled = true

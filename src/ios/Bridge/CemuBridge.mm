@@ -52,6 +52,7 @@
 #include "Cemu/FileCache/FileCache.h"
 #include "Cafe/HW/Latte/Core/LatteWaitInfo.h"
 #include "Cafe/HW/Latte/Core/HostTuning.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
@@ -2950,6 +2951,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING:
         tuning.freeMemoryOnWarning.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
+        tuning.keepGpuFaultHistory.store(value != 0);
+        break;
     }
 }
 
@@ -2959,8 +2963,20 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
     {
     case CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING:
         return tuning.freeMemoryOnWarning.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
+        return tuning.keepGpuFaultHistory.load() ? 1 : 0;
     }
     return 0;
+}
+
+const char* cemu_bridge_gpu_fault_history(void) {
+    static thread_local std::string history;
+    history = MetalFaultHistory::Describe(20);
+    return history.c_str();
+}
+
+void cemu_bridge_clear_gpu_fault_history(void) {
+    MetalFaultHistory::Clear();
 }
 
 double cemu_bridge_device_temperature_celsius(void) {

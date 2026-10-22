@@ -11,6 +11,8 @@ namespace HostTuning
 	{
 		// Free textures and idle GPU buffers on the render thread when iOS sends a memory warning.
 		std::atomic<bool> freeMemoryOnWarning{false};
+		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
+		std::atomic<bool> keepGpuFaultHistory{false};
 	};
 
 	inline Options& Get()
