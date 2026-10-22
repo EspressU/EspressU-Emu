@@ -723,6 +723,9 @@ void MetalPipelineCache_QueueArchiveAdd(MTL::RenderPipelineDescriptor* desc)
 }
 
 static constexpr bool ARCHIVES_ENABLED = true;
+// Metal throws std::bad_alloc on one of its own worker threads (not catchable) when newBinaryArchive finds no big enough
+// free hole in the address space, so archives are only used when a large hole exists, for loading and for new archives
+static constexpr uint64 ARCHIVE_MIN_FREE_HOLE_BYTES = 256ull * 1024 * 1024;
 static constexpr uint32 ARCHIVE_MAX_FILES = 8;
 static constexpr uint64 ARCHIVE_MAX_BYTES = 384ull * 1024 * 1024;
 static constexpr uint64 ARCHIVE_LOAD_BYTES = 256ull * 1024 * 1024;
@@ -787,6 +790,17 @@ void MetalPipelineCache::OpenBinaryArchives(uint64 cacheTitleId)
 		m_archiveBaseBytes = 0;
 		cemuLog_log(LogType::Force, "Metal binary archive: not used for this launch (restart the app to use it again)");
 		return;
+	}
+	{
+		const uint64 hole = GetLargestAddressSpaceHole();
+		if (hole < ARCHIVE_MIN_FREE_HOLE_BYTES)
+		{
+			cemuLog_log(LogType::Force, "Metal binary archive: address space too fragmented (largest free hole {} MB, need {} MB), running without archives this time", hole / (1024 * 1024), ARCHIVE_MIN_FREE_HOLE_BYTES / (1024 * 1024));
+			m_archiveWriteEnabled = false;
+			m_archiveFilesLoaded = 0;
+			m_archiveBaseBytes = 0;
+			return;
+		}
 	}
 	const std::string titlePrefix = fmt::format("{:016x}_mtlbin_", cacheTitleId);
 	const std::string keyPrefix = titlePrefix + GetBinaryArchiveKey(m_mtlr->GetDevice()) + "_";
