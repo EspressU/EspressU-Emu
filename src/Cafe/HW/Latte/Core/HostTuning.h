@@ -15,6 +15,8 @@ namespace HostTuning
 		std::atomic<bool> keepGpuFaultHistory{false};
 		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
 		std::atomic<bool> metalFxUpscale{false};
+		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
+		std::atomic<bool> metal4Output{false};
 	};
 
 	inline Options& Get()

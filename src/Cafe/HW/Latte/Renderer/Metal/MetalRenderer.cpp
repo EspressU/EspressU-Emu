@@ -601,6 +601,9 @@ MetalRenderer::~MetalRenderer()
 
     delete m_outputShaderCache;
     m_outputUpscaler.reset();
+    m_mainLayer.SetOutputStage(nullptr);
+    m_padLayer.SetOutputStage(nullptr);
+    m_metal4Output.reset();
     if (!MetalPipelineCache_LoaderAbandoned())
         delete m_pipelineCache;
     delete m_depthStencilCache;
@@ -645,6 +648,7 @@ void MetalRenderer::InitializeLayer(const Vector2i& size, bool mainWindow)
     auto& layer = GetLayer(mainWindow);
     layer = MetalLayerHandle(m_device, size, mainWindow);
     layer.GetLayer()->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
+    layer.SetOutputStage(m_metal4Output.get());
 }
 
 void MetalRenderer::ShutdownLayer(bool mainWindow)
@@ -724,6 +728,7 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
     CommitCommandBuffer();
 
     UpdateMemoryStatsAndRelievePressure();
+    UpdateMetal4Output();
 
     m_performanceMonitor.ResetPerFrameData();
 
@@ -746,7 +751,7 @@ void MetalRenderer::HandleScreenshotRequest(LatteTextureView* texView, bool padV
     if (!m_screenshot_requested && m_screenshot_state == ScreenshotState::None)
         return;
 
-    if (m_mainLayer.GetDrawable())
+    if (m_mainLayer.HasFrameInProgress())
     {
         if (m_screenshot_state == ScreenshotState::Main && padView)
             return;
@@ -860,7 +865,7 @@ void MetalRenderer::DrawBackbufferQuad(LatteTextureView* texView, RendererOutput
 
     NS_STACK_SCOPED MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
-    colorAttachment->setTexture(layer.GetDrawable()->texture());
+    colorAttachment->setTexture(layer.GetDrawableTexture());
     colorAttachment->setClearColor(MTL::ClearColor(0.0, 0.0, 0.0, 1.0));
     colorAttachment->setLoadAction(clearBackground ? MTL::LoadActionClear : MTL::LoadActionLoad);
     colorAttachment->setStoreAction(MTL::StoreActionStore);
@@ -887,7 +892,7 @@ void MetalRenderer::DrawBackbufferQuad(LatteTextureView* texView, RendererOutput
 
     renderCommandEncoder->setViewport(MTL::Viewport{(double)imageX, (double)imageY, (double)imageWidth, (double)imageHeight, 0.0, 1.0});
     {
-        MTL::Texture* target = layer.GetDrawable()->texture();
+        MTL::Texture* target = layer.GetDrawableTexture();
         const uint64 tw = target->width(), th = target->height();
         const uint64 sx = std::min<uint64>((uint32)std::max(imageX, 0), tw), sy = std::min<uint64>((uint32)std::max(imageY, 0), th);
         const uint64 sw = std::min<uint64>((uint32)std::max(imageWidth, 0), tw - sx), sh = std::min<uint64>((uint32)std::max(imageHeight, 0), th - sy);
@@ -973,7 +978,7 @@ bool MetalRenderer::ImguiBegin(bool mainWindow)
 
     NS_STACK_SCOPED MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
-    colorAttachment->setTexture(layer.GetDrawable()->texture());
+    colorAttachment->setTexture(layer.GetDrawableTexture());
     colorAttachment->setLoadAction(MTL::LoadActionLoad);
     colorAttachment->setStoreAction(MTL::StoreActionStore);
 
@@ -3943,10 +3948,10 @@ bool MetalRenderer::AcquireDrawable(bool mainWindow)
         return false;
 
 #if BOOST_OS_IOS
-    if (!layer.GetDrawable() && PerfTelemetry::AppInBackground().load(std::memory_order_relaxed))
+    if (!layer.HasFrameInProgress() && PerfTelemetry::AppInBackground().load(std::memory_order_relaxed))
         return false;
     const auto outputBit = mainWindow ? 1u : 2u;
-    if (!layer.GetDrawable() && !(WindowSystem::GetWindowInfo().visible_outputs.load() & outputBit))
+    if (!layer.HasFrameInProgress() && !(WindowSystem::GetWindowInfo().visible_outputs.load() & outputBit))
         return false;
 #endif
 
@@ -4519,7 +4524,7 @@ void MetalRenderer::CopyBufferToBuffer(MTL::Buffer* src, uint32 srcOffset, MTL::
 void MetalRenderer::SwapBuffer(bool mainWindow)
 {
     auto& layer = GetLayer(mainWindow);
-    const bool drawableAlreadyAcquired = layer.GetDrawable() != nullptr;
+    const bool drawableAlreadyAcquired = layer.HasFrameInProgress();
 
     if (!AcquireDrawable(mainWindow))
         return;
@@ -4527,9 +4532,47 @@ void MetalRenderer::SwapBuffer(bool mainWindow)
     if (!drawableAlreadyAcquired)
         ClearColorTextureInternal(layer.GetDrawableTexture(), 0, 0, 0.0f, 0.0f, 0.0f, 1.0f);
 
+    // The Metal 4 hand-over signals an event on the command buffer, which needs every encoder closed.
+    if (m_metal4Output)
+        EndEncoding();
     auto commandBuffer = GetCommandBuffer();
     layer.PresentDrawable(commandBuffer);
     (mainWindow ? PerfTelemetry::Get().tvPresents : PerfTelemetry::Get().padPresents).fetch_add(1, std::memory_order_relaxed);
+}
+
+void MetalRenderer::UpdateMetal4Output()
+{
+    const bool wanted = HostTuning::Get().metal4Output.load(std::memory_order_relaxed);
+    if (wanted == (m_metal4Output != nullptr))
+        return;
+    if (!wanted)
+        m_metal4OutputUnavailable = false;
+    else if (m_metal4OutputUnavailable)
+        return;
+    // Switch only between frames, while neither output holds a target of the old path.
+    if (m_mainLayer.HasFrameInProgress() || m_padLayer.HasFrameInProgress())
+        return;
+
+    if (wanted)
+    {
+        m_metal4Output = Metal4OutputStage::Create(m_device);
+        if (!m_metal4Output)
+        {
+            m_metal4OutputUnavailable = true;
+            cemuLog_log(LogType::Force, "Metal: the Metal 4 output path is not available on this device or iOS version, presenting as before");
+            return;
+        }
+        cemuLog_log(LogType::Force, "Metal: TV and GamePad frames are now presented through a Metal 4 command queue");
+    }
+    else
+    {
+        if (!m_metal4Output->WaitIdle(1000))
+            cemuLog_log(LogType::Force, "Metal: the Metal 4 output queue did not finish within 1 s while switching back");
+        m_metal4Output.reset();
+        cemuLog_log(LogType::Force, "Metal: presenting through the regular command queue again");
+    }
+    m_mainLayer.SetOutputStage(m_metal4Output.get());
+    m_padLayer.SetOutputStage(m_metal4Output.get());
 }
 
 void MetalRenderer::EnsureImGuiBackend()

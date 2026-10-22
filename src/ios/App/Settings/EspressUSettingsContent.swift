@@ -91,7 +91,15 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
         ]
 
+        let metal4 = cemu_bridge_metal4_output_supported()
         let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.metal4", title: "Metal 4 output",
+                         detail: metal4 ? "Puts finished frames on screen through a separate Metal 4 queue, so the game's own rendering never waits for the display."
+                                        : "Needs iOS 26 and an A14 or M1 chip or newer.",
+                         control: .toggle(values.bool(PerformanceTuning.metal4OutputKey, PerformanceTuning.metal4OutputDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         }),
+                         enabled: metal4),
             SettingsItem(id: "tuning.metalFx", title: "MetalFX upscaling",
                          detail: "Sharper enlarging of the finished picture with Apple's MetalFX on Metal. Costs a little GPU time. Not used with a graphic pack's own output filter.",
                          control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in

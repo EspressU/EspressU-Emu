@@ -597,6 +597,8 @@ if(ENABLE_METAL)
         HW/Latte/Renderer/Metal/LatteTextureViewMtl.h
         HW/Latte/Renderer/Metal/LatteToMtl.cpp
         HW/Latte/Renderer/Metal/LatteToMtl.h
+        HW/Latte/Renderer/Metal/Metal4OutputStage.h
+        HW/Latte/Renderer/Metal/Metal4OutputStage.mm
         HW/Latte/Renderer/Metal/MetalAttachmentsInfo.cpp
         HW/Latte/Renderer/Metal/MetalAttachmentsInfo.h
         HW/Latte/Renderer/Metal/MetalBufferAllocator.cpp
@@ -645,7 +647,7 @@ if(ENABLE_METAL)
         HW/Latte/LegacyShaderDecompiler/LatteDecompilerEmitMSLHeader.hpp
     )
 
-    set_source_files_properties(HW/Latte/Renderer/Metal/MetalOutputUpscaler.mm PROPERTIES
+    set_source_files_properties(HW/Latte/Renderer/Metal/MetalOutputUpscaler.mm HW/Latte/Renderer/Metal/Metal4OutputStage.mm PROPERTIES
         COMPILE_OPTIONS "-fobjc-arc"
         SKIP_PRECOMPILE_HEADERS ON)
 

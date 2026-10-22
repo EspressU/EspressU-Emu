@@ -53,6 +53,7 @@
 #include "Cafe/HW/Latte/Core/LatteWaitInfo.h"
 #include "Cafe/HW/Latte/Core/HostTuning.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Renderer/Metal/Metal4OutputStage.h"
 void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
@@ -2957,6 +2958,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
         tuning.metalFxUpscale.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_METAL4_OUTPUT:
+        tuning.metal4Output.store(value != 0);
+        break;
     }
 }
 
@@ -2970,8 +2974,18 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.keepGpuFaultHistory.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
         return tuning.metalFxUpscale.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_METAL4_OUTPUT:
+        return tuning.metal4Output.load() ? 1 : 0;
     }
     return 0;
+}
+
+bool cemu_bridge_metal4_output_supported(void) {
+    static const bool supported = [] {
+        id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+        return Metal4OutputStage::IsSupported(static_cast<MTL::Device*>((__bridge void*)device));
+    }();
+    return supported;
 }
 
 const char* cemu_bridge_gpu_fault_history(void) {
