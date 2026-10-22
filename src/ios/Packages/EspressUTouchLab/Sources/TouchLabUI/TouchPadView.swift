@@ -402,6 +402,20 @@ enum LabelCache {
         halo.shadowColor = (luminance < 0.5 ? UIColor.white : UIColor.black).withAlphaComponent(alpha * 0.7)
         halo.shadowBlurRadius = max(1.5, size * 0.12)
         halo.shadowOffset = .zero
+        if label == PadButton.home.description, let symbol = homeSymbol(size: size, colour: text.withAlphaComponent(alpha)) {
+            // The text glyph for HOME sits off-centre and looks thin, so the house is drawn as a symbol instead.
+            let pad = ceil(halo.shadowBlurRadius * 2)
+            let canvas = CGSize(width: ceil(symbol.size.width) + 2 * pad, height: ceil(symbol.size.height) + 2 * pad)
+            let image = UIGraphicsImageRenderer(size: canvas).image { context in
+                context.cgContext.setShadow(offset: .zero, blur: halo.shadowBlurRadius,
+                                            color: (halo.shadowColor as? UIColor)?.cgColor)
+                symbol.draw(in: CGRect(x: pad, y: pad, width: symbol.size.width, height: symbol.size.height))
+            }
+            if images.count >= limit { images.removeAll(keepingCapacity: true) }
+            images[key] = image
+            return image
+        }
+
         let str = NSAttributedString(string: label, attributes: [
             .font: UIFont.systemFont(ofSize: size, weight: .semibold),
             .foregroundColor: text.withAlphaComponent(alpha),
@@ -416,6 +430,12 @@ enum LabelCache {
         if images.count >= limit { images.removeAll(keepingCapacity: true) }
         images[key] = image
         return image
+    }
+
+    private static func homeSymbol(size: CGFloat, colour: UIColor) -> UIImage? {
+        let config = UIImage.SymbolConfiguration(pointSize: size * 0.8, weight: .bold)
+        return UIImage(systemName: "house.fill", withConfiguration: config)?
+            .withTintColor(colour, renderingMode: .alwaysOriginal)
     }
 }
 #endif
