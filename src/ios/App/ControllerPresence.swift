@@ -7,24 +7,29 @@ enum ControllerPresence {
     }
 }
 
+/// Reports whether a controller is connected; the screen decides from that and the setting what to hide.
 struct ControllerAutoHideModifier: ViewModifier {
-    @AppStorage(ControllerLayoutSettings.autoHideWithControllerKey)
-    private var autoHide = ControllerLayoutSettings.defaultAutoHideWithController
-    let apply: (_ hide: Bool, _ atStart: Bool) -> Void
+    let apply: (_ connected: Bool, _ atStart: Bool) -> Void
 
     func body(content: Content) -> some View {
         content
-            .onAppear { evaluate(departing: nil, atStart: true) }
+            .onAppear {
+                evaluate(departing: nil, atStart: true)
+                // A controller that was already paired is often not listed yet when the game opens and sends no
+                // connect event, so look again a few times while the game starts.
+                for delay in [0.5, 1.5, 3.0] {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { evaluate(departing: nil, atStart: true) }
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .GCControllerDidConnect)) { _ in
                 evaluate(departing: nil, atStart: false)
             }
             .onReceive(NotificationCenter.default.publisher(for: .GCControllerDidDisconnect)) { note in
                 evaluate(departing: note.object as? GCController, atStart: false)
             }
-            .onChange(of: autoHide) { _ in evaluate(departing: nil, atStart: false) }
     }
 
     private func evaluate(departing: GCController?, atStart: Bool) {
-        apply(autoHide && ControllerPresence.isConnected(excluding: departing), atStart)
+        apply(ControllerPresence.isConnected(excluding: departing), atStart)
     }
 }

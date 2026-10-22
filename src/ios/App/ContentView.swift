@@ -1387,7 +1387,10 @@ struct EmulatorViewOptimized: View {
     @State private var padControlsHidden = false
     @State private var isPaused = false
     @State private var showHomeMenu = false
-    @State private var padHiddenByController = false
+    @AppStorage(ControllerLayoutSettings.autoHideWithControllerKey)
+    private var autoHideWithController = ControllerLayoutSettings.defaultAutoHideWithController
+    @State private var controllerConnected: Bool?
+    @State private var padShownDespiteController = false
     @State private var pausedByLifecycle = false
     private static let titlePauseQueue = DispatchQueue(label: "espressu.title.pause", qos: .userInitiated)
     @AppStorage(PreviewPadStore.enabledKey) private var previewPadEnabled = PreviewPadStore.defaultEnabled
@@ -1506,21 +1509,28 @@ struct EmulatorViewOptimized: View {
         }
     }
 
-    private func setPadHiddenByController(_ hide: Bool, atStart: Bool) {
-        if hide {
-            guard !padHiddenByController else { return }
-            padHiddenByController = true
-            if !padControlsHidden {
-                padControlsHidden = true
-                cemu_bridge_release_all_buttons()
-            }
-        } else {
-            guard padHiddenByController else { return }
-            padHiddenByController = false
-            padControlsHidden = false
-        }
+    /// The on-screen controls are hidden when the player hid them in the home menu or a controller hides them, but
+    /// never while the layout is being edited.
+    /// Worked out on every redraw from the setting and the connection, so a change to either applies at once.
+    private var padHiddenByController: Bool {
+        autoHideWithController && controllerConnected == true && !padShownDespiteController
+    }
+
+    private var padHidden: Bool {
+        !isEditingControlLayout && (padControlsHidden || padHiddenByController)
+    }
+
+    private func controllerPresenceChanged(_ connected: Bool, atStart: Bool) {
+        let previous = controllerConnected
+        guard connected != previous else { return }
+        let wasHidden = padHiddenByController
+        controllerConnected = connected
+        padShownDespiteController = false
+        if !connected { padControlsHidden = false }
+        if padHiddenByController { cemu_bridge_release_all_buttons() }
+        guard autoHideWithController, padHiddenByController || wasHidden else { return }
         if atStart && gameManager.launchNotice != nil { return }
-        gameManager.showLaunchNotice(hide
+        gameManager.showLaunchNotice(connected
             ? "Controller connected. On-screen controls hidden. Menu: HOME, the touchpad or Select + Start."
             : "Controller disconnected. On-screen controls shown.")
     }
@@ -1543,8 +1553,6 @@ struct EmulatorViewOptimized: View {
 
     private func moveControlsFromHomeMenu() {
         closeHomeMenu()
-        padControlsHidden = false
-        padHiddenByController = false
         withAnimation(.easeInOut(duration: 0.2)) { isEditingControlLayout = true }
         cemu_bridge_release_all_buttons()
     }
@@ -1587,7 +1595,7 @@ struct EmulatorViewOptimized: View {
             screenLayout: $screenLayout,
             isDualScreen: displayRouter.placement == .dualScreen,
             canQuit: true,
-            touchControlsHidden: isPadViewVisible ? padControlsHidden : nil,
+            touchControlsHidden: isPadViewVisible ? padHidden : nil,
             offersEmulatedDevices: anyEmulatedDeviceEnabled,
             actions: HomeMenuActions(
                 resume: closeHomeMenu,
@@ -1599,8 +1607,12 @@ struct EmulatorViewOptimized: View {
                 swapScreens: swapScreensFromHomeMenu,
                 scanAmiibo: { showAmiibo = true },
                 toggleTouchControls: {
-                    padControlsHidden.toggle()
-                    padHiddenByController = false
+                    if padHidden {
+                        padControlsHidden = false
+                        padShownDespiteController = true
+                    } else {
+                        padControlsHidden = true
+                    }
                     cemu_bridge_release_all_buttons()
                 },
                 emulatedDevices: { showEmulatedDevices = true }
@@ -1631,7 +1643,7 @@ struct EmulatorViewOptimized: View {
                              y: native ? resolved.video.midY : proxy.size.height / 2)
                     .clipped()
 
-                    if !padControlsHidden {
+                    if !padHidden {
                         PreviewControllerPad(
                             store: previewPad,
                             onInput: { label, pressed in
@@ -1737,7 +1749,7 @@ struct EmulatorViewOptimized: View {
                 voiceOverRunning = UIAccessibility.isVoiceOverRunning
             }
 
-            if !padControlsHidden {
+            if !padHidden {
                 Group {
                 if padSystem == .touchLab {
                     TouchLabPadOverlay(
@@ -1778,7 +1790,7 @@ struct EmulatorViewOptimized: View {
                 VStack {
                     HStack {
                         PadDiagnosticsOverlay(
-                            padControlsHidden: padControlsHidden,
+                            padControlsHidden: padHidden,
                             previewPadEnabled: previewPadEnabled,
                             touchLabScheme: TouchLabSettings.schemeID,
                             isEditingLayout: isEditingControlLayout,
@@ -1908,13 +1920,17 @@ struct EmulatorViewOptimized: View {
             if isPaused { setTitlePaused(true) }
         }
         .onChange(of: isPadViewVisible) { visible in
-            if !visible && !padHiddenByController { padControlsHidden = false }
+            if !visible { padControlsHidden = false }
             if visible { showGamePadHintIfNeeded() }
         }
         .hidingSystemOverlaysDuringPlay()
         .modifier(HeatNoticeModifier { gameManager.showLaunchNotice($0) })
         .modifier(HomeMenuEventsModifier(isOpen: showHomeMenu || isEditingControlLayout, onEvent: handleHomeMenuEvent))
-        .modifier(ControllerAutoHideModifier(apply: setPadHiddenByController))
+        .modifier(ControllerAutoHideModifier(apply: controllerPresenceChanged))
+        .onChange(of: autoHideWithController) { _ in
+            padShownDespiteController = false
+            cemu_bridge_release_all_buttons()
+        }
         .overlay(alignment: .top) {
             if showsStallCard {
                 videoStalledCard
