@@ -6,6 +6,7 @@
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
 
+#include <algorithm>
 #include <atomic>
 #include <map>
 #include <string>
@@ -70,12 +71,21 @@ fragment float4 espressu_present_fragment(PresentVertex in [[stage_in]], texture
 		double lastPresentTime = 0.0;
 		double smoothedInterval = 0.0;
 		bool lastWentThroughGenerator = false;
+		// Frames left before generation may run again after its drawables made the emulator thread wait.
+		uint32_t generationCooldown = 0;
 	};
 
 	// Game frames slower than this get a generated frame in between (below 40 fps).
 	constexpr double kGenerateAboveInterval = 1.0 / 40.0;
 	// A gap this long (pause, loading) starts the frame history over.
 	constexpr double kHistoryBreakInterval = 0.25;
+	// Longest spacing between the two presents of a real frame. Pacing by the measured interval alone feeds
+	// back on itself: a late frame stretches the spacing, which holds the drawables longer, which makes the next
+	// frame later still. Capping at one 60 Hz refresh breaks that loop.
+	constexpr double kMaxPresentSpacing = 1.0 / 60.0;
+	// Waiting this long for the two drawables of a generated frame pauses generation for a while.
+	constexpr double kDrawableWaitLimit = 0.006;
+	constexpr uint32_t kGenerationCooldownFrames = 120;
 }
 
 struct Metal4OutputStage::State
@@ -337,11 +347,22 @@ namespace
 		const bool gpuKeepsUp = generationMs < frameInterval * 1000.0 * 0.4;
 		if (!gpuKeepsUp)
 			state.generationGpuMs.store(generationMs * 0.95, std::memory_order_relaxed); // try again after a while
-		bool generate = generator && !historyBreak && previousIsLastFrame && frameInterval > kGenerateAboveInterval && queueKeepsUp && gpuKeepsUp;
+		if (output.generationCooldown > 0)
+			output.generationCooldown--;
+		bool generate = generator && !historyBreak && previousIsLastFrame && frameInterval > kGenerateAboveInterval && queueKeepsUp && gpuKeepsUp
+			&& output.generationCooldown == 0;
 
 		AttachLayer(state, output, layer);
+		const double acquireStart = CACurrentMediaTime();
 		id<CAMetalDrawable> generatedDrawable = generate ? [layer nextDrawable] : nil;
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
+		if (generate && CACurrentMediaTime() - acquireStart > kDrawableWaitLimit)
+		{
+			// The display still holds the last two presents; generating more would only slow the game down.
+			output.generationCooldown = kGenerationCooldownFrames;
+			if (state.dropLogs++ < 8)
+				NSLog(@"EspressU: frame generation paused, the drawables made the game wait %.1f ms", (CACurrentMediaTime() - acquireStart) * 1000.0);
+		}
 		if (!drawable && generatedDrawable)
 		{
 			drawable = generatedDrawable;
@@ -422,7 +443,7 @@ namespace
 		if (generate)
 		{
 			// Two presents for one real frame, half an interval apart: the display paces them, not the CPU.
-			const double half = frameInterval * 0.5;
+			const double half = std::min(frameInterval * 0.5, kMaxPresentSpacing);
 			[generatedDrawable presentAfterMinimumDuration:half];
 			[realDrawable presentAfterMinimumDuration:half];
 		}
