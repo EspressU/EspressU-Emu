@@ -720,15 +720,25 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         return;
     }
 
+    const bool pacingPad = HostTuning::Get().padPresentPacing.load(std::memory_order_relaxed);
+    if (swapTV && swapDRC && m_mainLayer.HasFrameInProgress() && m_padLayer.HasFrameInProgress())
+        PerfTelemetry::Get().tvAndPadSameFramePresents.fetch_add(1, std::memory_order_relaxed);
+    // A GamePad frame that pacing skipped keeps its last image instead of presenting a cleared one.
+    const bool holdPad = pacingPad && swapDRC && !m_padLayer.HasFrameInProgress() && m_padLayer.GetLayer();
+    if (holdPad)
+        PerfTelemetry::Get().padPresentsHeldBack.fetch_add(1, std::memory_order_relaxed);
+
     if (swapTV)
         SwapBuffer(true);
-    if (swapDRC)
+    if (swapDRC && !holdPad)
         SwapBuffer(false);
 
     CommitCommandBuffer();
 
     UpdateMemoryStatsAndRelievePressure();
     UpdateMetal4Output();
+    if (swapTV)
+        UpdatePadPacing();
 
     m_performanceMonitor.ResetPerFrameData();
 
@@ -3965,6 +3975,14 @@ bool MetalRenderer::AcquireDrawable(bool mainWindow)
     const bool acquired = layer.AcquireDrawable();
     const uint64 acquireNs = PerfTelemetry::NowNs() - acquireStart;
     PerfTelemetry::Get().drawableWaitNs.fetch_add(acquireNs, std::memory_order_relaxed);
+    // A GamePad drawable that keeps the emulator thread waiting holds GamePad presents back for a while.
+    if (!mainWindow && acquireNs >= 4ull * 1000000ull && HostTuning::Get().padPresentPacing.load(std::memory_order_relaxed))
+    {
+        m_padHeldUntilFrame = m_padPacingFrame + 30;
+        m_padFrameWanted = false;
+        if (m_padHeldLogs++ < 8)
+            cemuLog_log(LogType::Force, "Metal: GamePad drawable took {} ms, GamePad presentation is held back for 30 frames", acquireNs / 1000000ull);
+    }
     PerfTelemetry::Get().gpuSyncNs.fetch_add(acquireNs, std::memory_order_relaxed);
     return acquired;
 }
@@ -4538,6 +4556,25 @@ void MetalRenderer::SwapBuffer(bool mainWindow)
     auto commandBuffer = GetCommandBuffer();
     layer.PresentDrawable(commandBuffer);
     (mainWindow ? PerfTelemetry::Get().tvPresents : PerfTelemetry::Get().padPresents).fetch_add(1, std::memory_order_relaxed);
+}
+
+void MetalRenderer::UpdatePadPacing()
+{
+    ++m_padPacingFrame;
+    const auto visible = WindowSystem::GetWindowInfo().visible_outputs.load();
+    const bool bothShown = (visible & 1u) && (visible & 2u) && m_padLayer.GetLayer();
+    if (!HostTuning::Get().padPresentPacing.load(std::memory_order_relaxed) || !bothShown)
+    {
+        m_padFrameWanted = true;
+        m_padHeldUntilFrame = 0;
+        return;
+    }
+    m_padFrameWanted = (m_padPacingFrame % 2) == 0 && m_padPacingFrame >= m_padHeldUntilFrame;
+
+    auto& telemetry = PerfTelemetry::Get();
+    if (m_padPacingFrame % 1800 == 0)
+        cemuLog_log(LogType::Force, "Metal: GamePad pacing, {} frames with TV and GamePad presented together, {} GamePad presents held back so far",
+            telemetry.tvAndPadSameFramePresents.load(std::memory_order_relaxed), telemetry.padPresentsHeldBack.load(std::memory_order_relaxed));
 }
 
 void MetalRenderer::UpdateMetal4Output()

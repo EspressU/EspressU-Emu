@@ -2964,6 +2964,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
         tuning.frameGeneration.store((uint8_t)std::clamp(value, 0, 2));
         break;
+    case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
+        tuning.padPresentPacing.store(value != 0);
+        break;
     }
 }
 
@@ -2981,6 +2984,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.metal4Output.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
         return tuning.frameGeneration.load();
+    case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
+        return tuning.padPresentPacing.load() ? 1 : 0;
     }
     return 0;
 }

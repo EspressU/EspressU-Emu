@@ -949,7 +949,7 @@ void LatteRenderTarget_itHLECopyColorBufferToScanBuffer(MPTR colorBufferPtr, uin
 	const auto outputSources = windowInfo.output_sources.load();
 	const bool isTV = (renderTarget & RENDER_TARGET_TV) != 0;
 	const bool isDRC = (renderTarget & RENDER_TARGET_DRC) != 0;
-	if ((visibleOutputs & 2u) && ((outputSources & 2u) ? isTV : isDRC) && g_renderer->IsPadWindowActive())
+	if ((visibleOutputs & 2u) && ((outputSources & 2u) ? isTV : isDRC) && g_renderer->IsPadWindowActive() && g_renderer->WantsPadFrame())
 		LatteRenderTarget_copyToBackbuffer(texView, true);
 	if ((visibleOutputs & 1u) && ((outputSources & 1u) ? isDRC : isTV))
 		LatteRenderTarget_copyToBackbuffer(texView, false);

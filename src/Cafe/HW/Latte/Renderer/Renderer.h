@@ -62,6 +62,8 @@ public:
 	virtual void Initialize();
 	virtual void Shutdown();
 	virtual bool IsPadWindowActive() = 0;
+	// False when the renderer wants the GamePad image of this frame skipped to keep the TV image on time.
+	virtual bool WantsPadFrame() { return true; }
 
 	virtual bool GetVRAMInfo(int& usageInMB, int& totalInMB) const;
 

@@ -112,6 +112,14 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
+            SettingsItem(id: "tuning.padPacing", title: "Keep the TV smooth with both screens",
+                         detail: "With TV and GamePad on screen, the GamePad is drawn every second frame and waits while it is slow to show.",
+                         control: .toggle(values.bool(PerformanceTuning.padPresentPacingKey, PerformanceTuning.padPresentPacingDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.padLowRes", title: "Lower-resolution GamePad screen",
+                         detail: "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.",
+                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault))),
             SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",
                          detail: "When iOS runs low on memory, drops textures the game can reload. Can stop a crash; can cause a short hitch.",
                          control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in

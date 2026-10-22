@@ -194,6 +194,7 @@ typedef enum {
     CEMU_BRIDGE_TUNING_METALFX_UPSCALE = 2,
     CEMU_BRIDGE_TUNING_METAL4_OUTPUT = 3,
     CEMU_BRIDGE_TUNING_FRAME_GENERATION = 4,
+    CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING = 5,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);

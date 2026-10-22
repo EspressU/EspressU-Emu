@@ -275,6 +275,7 @@ public:
 	void Initialize() override;
 	void Shutdown() override;
 	bool IsPadWindowActive() override;
+	bool WantsPadFrame() override { return m_padFrameWanted; }
 
 	bool GetVRAMInfo(int& usageInMB, int& totalInMB) const override;
 
@@ -600,6 +601,13 @@ private:
 	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
 	std::unique_ptr<Metal4OutputStage> m_metal4Output;
 	bool m_metal4OutputUnavailable = false;
+
+	// GamePad pacing (HostTuning::padPresentPacing).
+	bool m_padFrameWanted = true;
+	uint32 m_padPacingFrame = 0;
+	uint32 m_padHeldUntilFrame = 0;
+	uint32 m_padHeldLogs = 0;
+	void UpdatePadPacing();
 	class MetalPipelineCache* m_pipelineCache;
 	class MetalDepthStencilCache* m_depthStencilCache;
 	class MetalSamplerCache* m_samplerCache;
