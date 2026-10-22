@@ -24,6 +24,8 @@
 #include <unistd.h>
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <pthread.h>
+#include <signal.h>
+#include <atomic>
 #include <libkern/OSCacheControl.h>
 #if BOOST_OS_IOS
 #include <os/proc.h>
@@ -167,10 +169,72 @@ bool PPCRecompiler_readTXMEnvVar()
     return PPCRecompiler_readBoolEnvVar("HAS_TXM") == 1;
 }
 
+// The TXM handshake is a brk that the debugger has to answer. When the debugger is attached but does not serve it
+// yet (the JIT helper is still starting, or LiveContainer's debugger does not speak the protocol), the brk comes
+// back as SIGTRAP and would kill the app. The handler turns that into "no mapping" so the start can retry or fall
+// back to the interpreter.
+static std::atomic<bool> s_jitBreakServed{false};
+static std::atomic<bool> s_jitBreakGaveUp{false};
+static volatile sig_atomic_t s_jitBreakUnanswered = 0;
+static struct sigaction s_jitBreakPrevAction;
+
+static void PPCRecompiler_jitBreakHandler(int sig, siginfo_t* info, void* context)
+{
+    auto* uc = (ucontext_t*)context;
+    const uint64_t pc = __darwin_arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+    const uint64_t fn = (uint64_t)(uintptr_t)&BreakGetJITMapping;
+    if (pc >= fn && pc < fn + 12)
+    {
+        s_jitBreakUnanswered = 1;
+        uc->uc_mcontext->__ss.__x[0] = 0;
+        __darwin_arm_thread_state64_set_pc_fptr(uc->uc_mcontext->__ss, (void*)(uintptr_t)(pc + 4));
+        return;
+    }
+    if ((s_jitBreakPrevAction.sa_flags & SA_SIGINFO) && s_jitBreakPrevAction.sa_sigaction)
+    {
+        s_jitBreakPrevAction.sa_sigaction(sig, info, context);
+        return;
+    }
+    signal(sig, SIG_DFL);
+}
+
+static void* PPCRecompiler_requestJitMapping(size_t size)
+{
+    if (s_jitBreakGaveUp.load())
+        return nullptr;
+
+    constexpr int kAttempts = 10;
+    for (int attempt = 1; attempt <= kAttempts; attempt++)
+    {
+        struct sigaction act = {};
+        act.sa_sigaction = PPCRecompiler_jitBreakHandler;
+        act.sa_flags = SA_SIGINFO;
+        sigemptyset(&act.sa_mask);
+
+        s_jitBreakUnanswered = 0;
+        sigaction(SIGTRAP, &act, &s_jitBreakPrevAction);
+        void* mapping = BreakGetJITMapping(nullptr, size);
+        sigaction(SIGTRAP, &s_jitBreakPrevAction, nullptr);
+
+        if (!s_jitBreakUnanswered)
+        {
+            s_jitBreakServed = true;
+            return mapping;
+        }
+        cemuLog_log(LogType::Force, "JIT: the debugger did not answer the memory request (try {} of {}), waiting", attempt, kAttempts);
+        if (attempt < kAttempts)
+            sleep(1);
+    }
+
+    s_jitBreakGaveUp = true;
+    cemuLog_log(LogType::Force, "JIT: the debugger never answered, so the JIT cannot start. Running the interpreter instead.");
+    return nullptr;
+}
+
 static void PPCRecompiler_finishJitMappingSession()
 {
     static std::atomic<bool> s_txmDetached{false};
-    if (PPCRecompiler_readTXMEnvVar() && !s_txmDetached.exchange(true))
+    if (PPCRecompiler_readTXMEnvVar() && s_jitBreakServed.load() && !s_txmDetached.exchange(true))
     {
         cemuLog_log(LogType::Force, "Recompiler: detaching TXM debugger after JIT mapping");
         JIT26Detach();
@@ -185,7 +249,11 @@ DualMapRegion PPCRecompiler_allocateDualMap(size_t size)
     void* rxPtr = nullptr;
 
     if (PPCRecompiler_readTXMEnvVar())
-        rxPtr = BreakGetJITMapping(nullptr, size);
+    {
+        rxPtr = PPCRecompiler_requestJitMapping(size);
+        if (s_jitBreakGaveUp.load())
+            return r;
+    }
 
     if (!rxPtr)
         rxPtr = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
