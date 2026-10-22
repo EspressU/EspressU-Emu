@@ -33,6 +33,8 @@ enum PerformanceTuning {
     static let padPresentPacingDefault = false
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
+    static let interpreterBlockLinkingKey = "espressu.tuning.interpreterBlockLinking"
+    static let interpreterBlockLinkingDefault = false
 
     static var advancedSettings: [AdvancedSetting] {
         [
@@ -43,6 +45,7 @@ enum PerformanceTuning {
             AdvancedSetting(frameGenerationKey, frameGenerationDefault.rawValue),
             AdvancedSetting(padPresentPacingKey, padPresentPacingDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
+            AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
         ]
     }
 
@@ -63,6 +66,8 @@ enum PerformanceTuning {
                                Int32(UserDefaults.standard.object(forKey: frameGenerationKey) as? Int ?? frameGenerationDefault.rawValue))
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING,
                                bool(padPresentPacingKey, padPresentPacingDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING,
+                               bool(interpreterBlockLinkingKey, interpreterBlockLinkingDefault) ? 1 : 0)
     }
 
     static func applyDefaultsToBridge() {
@@ -72,5 +77,6 @@ enum PerformanceTuning {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT, metal4OutputDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, Int32(frameGenerationDefault.rawValue))
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, padPresentPacingDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
     }
 }

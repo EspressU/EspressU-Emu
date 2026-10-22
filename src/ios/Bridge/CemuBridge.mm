@@ -2967,6 +2967,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         tuning.padPresentPacing.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
+        tuning.interpreterBlockLinking.store(value != 0);
+        break;
     }
 }
 
@@ -2986,6 +2989,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.frameGeneration.load();
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         return tuning.padPresentPacing.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
+        return tuning.interpreterBlockLinking.load() ? 1 : 0;
     }
     return 0;
 }
