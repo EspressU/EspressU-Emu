@@ -17,6 +17,8 @@ namespace HostTuning
 		std::atomic<bool> metalFxUpscale{false};
 		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
 		std::atomic<bool> metal4Output{false};
+		// Generated in-between frames on the Metal 4 output: 0 off, 1 EspressU's own, 2 MetalFX.
+		std::atomic<uint8_t> frameGeneration{0};
 	};
 
 	inline Options& Get()

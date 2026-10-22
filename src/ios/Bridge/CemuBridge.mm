@@ -2961,6 +2961,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_METAL4_OUTPUT:
         tuning.metal4Output.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
+        tuning.frameGeneration.store((uint8_t)std::clamp(value, 0, 2));
+        break;
     }
 }
 
@@ -2976,6 +2979,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.metalFxUpscale.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_METAL4_OUTPUT:
         return tuning.metal4Output.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
+        return tuning.frameGeneration.load();
     }
     return 0;
 }

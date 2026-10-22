@@ -1,5 +1,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/Metal4OutputStage.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Renderer/Metal/Metal4FrameGenerator.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -49,6 +51,7 @@ fragment float4 espressu_present_fragment(PresentVertex in [[stage_in]], texture
 	{
 		id allocator = nil;      // id<MTL4CommandAllocator>
 		id commandBuffer = nil;  // id<MTL4CommandBuffer>
+		id secondCommandBuffer = nil; // id<MTL4CommandBuffer>, for the real frame after a generated one
 		id arguments = nil;      // id<MTL4ArgumentTable>
 		id<MTLTexture> composition = nil;
 		uint64_t doneValue = 0;  // value of the stage's output event once the GPU is finished with this slot
@@ -61,7 +64,18 @@ fragment float4 espressu_present_fragment(PresentVertex in [[stage_in]], texture
 		int32_t current = -1;
 		id attachedLayerSet = nil; // id<MTLResidencySet> of the CAMetalLayer this output presents to
 		__weak CAMetalLayer* attachedLayer = nil;
+
+		// Frame pacing of the real frames, for frame generation.
+		int32_t lastPresented = -1;
+		double lastPresentTime = 0.0;
+		double smoothedInterval = 0.0;
+		bool lastWentThroughGenerator = false;
 	};
+
+	// Game frames slower than this get a generated frame in between (below 40 fps).
+	constexpr double kGenerateAboveInterval = 1.0 / 40.0;
+	// A gap this long (pause, loading) starts the frame history over.
+	constexpr double kHistoryBreakInterval = 0.25;
 }
 
 struct Metal4OutputStage::State
@@ -83,7 +97,15 @@ struct Metal4OutputStage::State
 
 	OutputSlots outputs[OutputCount];
 	std::atomic<double> lastGpuMs{0.0};
+	// GPU time of the last command buffer that generated a frame; decides whether there is room for the next one.
+	std::atomic<double> generationGpuMs{0.0};
 	uint32_t dropLogs = 0;
+
+	// Metal4FrameGenerator*, owned; untyped so the struct stays usable before iOS 26.
+	void* generator = nullptr;
+	uint8_t generatorMode = 0;
+	// The mode that failed for good, so it is not set up again every frame until the setting changes.
+	uint8_t refusedGeneratorMode = 0;
 };
 
 namespace
@@ -172,11 +194,13 @@ namespace
 			{
 				id<MTL4CommandAllocator> allocator = [device newCommandAllocator];
 				id<MTL4CommandBuffer> commandBuffer = [device newCommandBuffer];
+				id<MTL4CommandBuffer> secondCommandBuffer = [device newCommandBuffer];
 				id<MTL4ArgumentTable> arguments = [device newArgumentTableWithDescriptor:tableDescriptor error:&error];
-				if (!allocator || !commandBuffer || !arguments)
+				if (!allocator || !commandBuffer || !secondCommandBuffer || !arguments)
 					return false;
 				slot.allocator = allocator;
 				slot.commandBuffer = commandBuffer;
+				slot.secondCommandBuffer = secondCommandBuffer;
 				slot.arguments = arguments;
 			}
 		}
@@ -197,12 +221,88 @@ namespace
 			[queue addResidencySet:output.attachedLayerSet];
 	}
 
+	ESPRESSU_METAL4 Metal4FrameGenerator* Generator(Metal4OutputStage::State& state)
+	{
+		return static_cast<Metal4FrameGenerator*>(state.generator);
+	}
+
+	ESPRESSU_METAL4 void DropGenerator(Metal4OutputStage::State& state)
+	{
+		if (!state.generator)
+			return;
+		// Metal 4 command buffers do not keep their resources alive, so wait for the queue first.
+		if (state.outputValue)
+			[state.outputEvent waitUntilSignaledValue:state.outputValue timeoutMS:500];
+		delete Generator(state);
+		state.generator = nullptr;
+		state.generatorMode = 0;
+	}
+
+	// Brings the frame generator in line with the setting; returns it when it should run.
+	ESPRESSU_METAL4 Metal4FrameGenerator* UpdateGenerator(Metal4OutputStage::State& state)
+	{
+		const uint8_t mode = HostTuning::Get().frameGeneration.load(std::memory_order_relaxed);
+		if (mode != state.refusedGeneratorMode)
+			state.refusedGeneratorMode = 0;
+		if (mode == 0 || mode == state.refusedGeneratorMode)
+		{
+			DropGenerator(state);
+			return nullptr;
+		}
+		if (state.generator && state.generatorMode == mode)
+			return Generator(state);
+		DropGenerator(state);
+
+		std::string whyNot;
+		const auto backend = mode == 2 ? Metal4FrameGenerator::Backend::MetalFX : Metal4FrameGenerator::Backend::EspressU;
+		auto generator = Metal4FrameGenerator::Create(state.device, state.compiler, state.residency, backend, whyNot);
+		if (!generator)
+		{
+			NSLog(@"EspressU: frame generation is off because %s", whyNot.c_str());
+			state.refusedGeneratorMode = mode;
+			return nullptr;
+		}
+		NSLog(@"EspressU: frame generation on (%s)", generator->ActiveBackend() == Metal4FrameGenerator::Backend::MetalFX ? "MetalFX" : "EspressU");
+		state.generator = generator.release();
+		state.generatorMode = mode;
+		state.generationGpuMs.store(0.0, std::memory_order_relaxed);
+		return Generator(state);
+	}
+
+	ESPRESSU_METAL4 void EncodeBlit(id<MTL4CommandBuffer> commandBuffer, id<MTL4ArgumentTable> arguments, id<MTLRenderPipelineState> pipeline,
+		id<MTLTexture> source, id<MTLTexture> target, bool afterCompute)
+	{
+		MTL4RenderPassDescriptor* pass = [MTL4RenderPassDescriptor new];
+		pass.colorAttachments[0].texture = target;
+		pass.colorAttachments[0].loadAction = MTLLoadActionDontCare;
+		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+		id<MTL4RenderCommandEncoder> encoder = [commandBuffer renderCommandEncoderWithDescriptor:pass];
+		if (afterCompute)
+			[encoder barrierAfterQueueStages:MTLStageAll beforeStages:MTLStageFragment visibilityOptions:MTL4VisibilityOptionDevice];
+		[arguments setTexture:source.gpuResourceID atIndex:0];
+		[encoder setRenderPipelineState:pipeline];
+		[encoder setArgumentTable:arguments atStages:MTLRenderStageFragment];
+		[encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+		[encoder endEncoding];
+	}
+
+	ESPRESSU_METAL4 MTL4CommitOptions* FeedbackOptions(std::atomic<double>* gpuMs)
+	{
+		MTL4CommitOptions* options = [MTL4CommitOptions new];
+		[options addFeedbackHandler:^(id<MTL4CommitFeedback> feedback) {
+			if (!feedback.error && feedback.GPUEndTime > feedback.GPUStartTime)
+				gpuMs->store((feedback.GPUEndTime - feedback.GPUStartTime) * 1000.0, std::memory_order_relaxed);
+		}];
+		return options;
+	}
+
 	ESPRESSU_METAL4 bool Present(Metal4OutputStage::State& state, Metal4OutputStage::Output outputIndex, id<MTLCommandBuffer> legacy, CAMetalLayer* layer, double minimumDuration)
 	{
 		OutputSlots& output = state.outputs[outputIndex];
 		if (output.current < 0)
 			return false;
-		FrameSlot& slot = output.slots[output.current];
+		const int32_t slotIndex = output.current;
+		FrameSlot& slot = output.slots[slotIndex];
 		output.current = -1;
 
 		// The regular queue tells the Metal 4 queue when the composition is done. If its command buffer fails,
@@ -215,56 +315,125 @@ namespace
 				interop.signaledValue = composed;
 		}];
 
+		// Pacing of the real frames: a smoothed interval, started over after a long gap.
+		const double now = CACurrentMediaTime();
+		const double interval = output.lastPresentTime > 0.0 ? now - output.lastPresentTime : 0.0;
+		output.lastPresentTime = now;
+		const bool historyBreak = interval <= 0.0 || interval > kHistoryBreakInterval;
+		if (historyBreak)
+			output.smoothedInterval = 0.0;
+		else
+			output.smoothedInterval = output.smoothedInterval > 0.0 ? output.smoothedInterval * 0.9 + interval * 0.1 : interval;
+		const double frameInterval = minimumDuration > 0.0 ? minimumDuration : output.smoothedInterval;
+
+		const int32_t previousIndex = (slotIndex + kSlotsPerOutput - 1) % kSlotsPerOutput;
+		const bool previousIsLastFrame = output.lastPresented == previousIndex;
+		output.lastPresented = -1;
+
+		Metal4FrameGenerator* generator = outputIndex == Metal4OutputStage::TV ? UpdateGenerator(state) : nullptr;
+		// Present credit: at most two frames waiting on the output queue, and enough GPU time left for the extra one.
+		const bool queueKeepsUp = state.outputValue <= state.outputEvent.signaledValue + 2;
+		const double generationMs = state.generationGpuMs.load(std::memory_order_relaxed);
+		const bool gpuKeepsUp = generationMs < frameInterval * 1000.0 * 0.4;
+		if (!gpuKeepsUp)
+			state.generationGpuMs.store(generationMs * 0.95, std::memory_order_relaxed); // try again after a while
+		bool generate = generator && !historyBreak && previousIsLastFrame && frameInterval > kGenerateAboveInterval && queueKeepsUp && gpuKeepsUp;
+
 		AttachLayer(state, output, layer);
+		id<CAMetalDrawable> generatedDrawable = generate ? [layer nextDrawable] : nil;
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
+		if (!drawable && generatedDrawable)
+		{
+			drawable = generatedDrawable;
+			generatedDrawable = nil;
+		}
+		generate = generate && generatedDrawable;
 		id<MTLRenderPipelineState> pipeline = drawable ? PipelineFor(state, drawable.texture.pixelFormat) : nil;
 		if (!drawable || !pipeline)
 		{
 			if (state.dropLogs++ < 8)
 				NSLog(@"EspressU: Metal 4 output dropped a frame (%s)", drawable ? "no pipeline for the drawable format" : "no drawable");
+			output.lastWentThroughGenerator = false;
 			return false;
 		}
 
 		id<MTL4CommandAllocator> allocator = slot.allocator;
-		id<MTL4CommandBuffer> commandBuffer = slot.commandBuffer;
 		id<MTL4ArgumentTable> arguments = slot.arguments;
+		id<MTL4CommandQueue> queue = state.queue;
 		[allocator reset];
+
+		id<MTL4CommandBuffer> generatedCommands = nil;
+		if (generate)
+		{
+			generatedCommands = slot.commandBuffer;
+			[generatedCommands beginCommandBufferWithAllocator:allocator];
+			generatedCommands.label = @"EspressU generated frame";
+			std::string whyDisabled;
+			id<MTLTexture> generatedImage = generator->Encode(generatedCommands, output.slots[previousIndex].composition, slot.composition, (uint32_t)slotIndex,
+				(float)frameInterval, output.lastWentThroughGenerator, whyDisabled);
+			if (generatedImage)
+				EncodeBlit(generatedCommands, arguments, pipeline, generatedImage, generatedDrawable.texture, true);
+			[generatedCommands endCommandBuffer];
+			if (!whyDisabled.empty())
+			{
+				NSLog(@"EspressU: frame generation is off because of %s", whyDisabled.c_str());
+				state.refusedGeneratorMode = state.generatorMode;
+			}
+			if (!generatedImage)
+			{
+				// Nothing was drawn into the drawable; it is still presented (as the real frame) below.
+				generate = false;
+			}
+		}
+
+		id<MTL4CommandBuffer> commandBuffer = generate ? slot.secondCommandBuffer : slot.commandBuffer;
+		if (!generate && generatedCommands)
+		{
+			// The command buffer started above holds only compute work that fed nothing; it still runs so the
+			// generator's history stays consistent, and the real frame follows in the second buffer.
+			commandBuffer = slot.secondCommandBuffer;
+		}
 		[commandBuffer beginCommandBufferWithAllocator:allocator];
 		commandBuffer.label = outputIndex == Metal4OutputStage::TV ? @"EspressU TV present" : @"EspressU GamePad present";
-
-		MTL4RenderPassDescriptor* pass = [MTL4RenderPassDescriptor new];
-		pass.colorAttachments[0].texture = drawable.texture;
-		pass.colorAttachments[0].loadAction = MTLLoadActionDontCare;
-		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
-		id<MTL4RenderCommandEncoder> encoder = [commandBuffer renderCommandEncoderWithDescriptor:pass];
-		[arguments setTexture:slot.composition.gpuResourceID atIndex:0];
-		[encoder setRenderPipelineState:pipeline];
-		[encoder setArgumentTable:arguments atStages:MTLRenderStageFragment];
-		[encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-		[encoder endEncoding];
+		id<CAMetalDrawable> realDrawable = generate ? drawable : (generatedDrawable ? generatedDrawable : drawable);
+		EncodeBlit(commandBuffer, arguments, pipeline, slot.composition, realDrawable.texture, generatedCommands != nil);
 		[commandBuffer endCommandBuffer];
 
-		id<MTL4CommandQueue> queue = state.queue;
 		[queue waitForEvent:interop value:composed];
-		[queue waitForDrawable:drawable];
-
-		MTL4CommitOptions* options = [MTL4CommitOptions new];
-		std::atomic<double>* lastGpuMs = &state.lastGpuMs;
-		[options addFeedbackHandler:^(id<MTL4CommitFeedback> feedback) {
-			if (!feedback.error && feedback.GPUEndTime > feedback.GPUStartTime)
-				lastGpuMs->store((feedback.GPUEndTime - feedback.GPUStartTime) * 1000.0, std::memory_order_relaxed);
-		}];
-		id<MTL4CommandBuffer> buffers[1] = {commandBuffer};
-		[queue commit:buffers count:1 options:options];
-		[queue signalDrawable:drawable];
+		if (generate)
+			[queue waitForDrawable:generatedDrawable];
+		[queue waitForDrawable:realDrawable];
+		if (generatedCommands)
+		{
+			id<MTL4CommandBuffer> first[1] = {generatedCommands};
+			[queue commit:first count:1 options:FeedbackOptions(&state.generationGpuMs)];
+			if (generate)
+				[queue signalDrawable:generatedDrawable];
+		}
+		id<MTL4CommandBuffer> second[1] = {commandBuffer};
+		[queue commit:second count:1 options:FeedbackOptions(&state.lastGpuMs)];
+		[queue signalDrawable:realDrawable];
 
 		slot.doneValue = ++state.outputValue;
+		if (generatedCommands)
+			output.slots[previousIndex].doneValue = slot.doneValue; // the generator read the previous composition too
 		[queue signalEvent:state.outputEvent value:slot.doneValue];
 
-		if (minimumDuration > 0.0)
-			[drawable presentAfterMinimumDuration:minimumDuration];
+		if (generate)
+		{
+			// Two presents for one real frame, half an interval apart: the display paces them, not the CPU.
+			const double half = frameInterval * 0.5;
+			[generatedDrawable presentAfterMinimumDuration:half];
+			[realDrawable presentAfterMinimumDuration:half];
+		}
+		else if (minimumDuration > 0.0)
+			[realDrawable presentAfterMinimumDuration:minimumDuration];
 		else
-			[drawable present];
+			[realDrawable present];
+		// A drawable taken for a generated frame that did not happen is simply not used.
+
+		output.lastPresented = slotIndex;
+		output.lastWentThroughGenerator = generatedCommands != nil;
 		return true;
 	}
 }
@@ -281,6 +450,7 @@ Metal4OutputStage::~Metal4OutputStage()
 	WaitIdle(1000);
 	if (@available(iOS 26.0, macOS 26.0, *))
 	{
+		DropGenerator(*m_state);
 		id<MTL4CommandQueue> queue = m_state->queue;
 		for (OutputSlots& output : m_state->outputs)
 		{
