@@ -119,8 +119,6 @@ struct TouchLabPadOverlay: View {
     @AppStorage(ControllerLayoutSettings.opacityKey) private var opacity = ControllerLayoutSettings.defaultOpacity
     @AppStorage(ControllerLayoutSettings.hapticsKey) private var haptics = ControllerLayoutSettings.defaultHaptics
     @AppStorage(ControllerLayoutSettings.deadzoneKey) private var deadzone = ControllerLayoutSettings.defaultDeadzone
-    @AppStorage(ControllerLayoutSettings.stickCurveKey) private var curve = ControllerLayoutSettings.defaultStickCurve
-    @AppStorage(ControllerLayoutSettings.stickGateKey) private var gateRaw = ControllerLayoutSettings.defaultStickGateRaw
 
     var body: some View {
         TouchPad(schemeID: TouchLabSettings.schemeID,
@@ -134,8 +132,8 @@ struct TouchLabPadOverlay: View {
                  haptics: haptics,
                  revision: revision,
                  enabled: enabled,
-                 stickTuning: StickTuning(deadzone: deadzone, curve: curve,
-                                          gate: StickTuning.Gate(rawValue: gateRaw) ?? .octagon),
+                 stickTuning: StickTuning(deadzone: deadzone, curve: ControllerLayoutSettings.minStickCurve,
+                                          gate: .round),
                  rectSpace: .window,
                  extraInsets: Insets(top: topInset),
                  makeScheme: makeScheme)

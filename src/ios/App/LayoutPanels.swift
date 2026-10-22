@@ -250,10 +250,6 @@ struct EspressUPadLayoutPanel: View {
     private var comfortControls = ControllerLayoutSettings.defaultComfortControls
     @AppStorage(ControllerLayoutSettings.deadzoneKey)
     private var stickDeadzone = ControllerLayoutSettings.defaultDeadzone
-    @AppStorage(ControllerLayoutSettings.stickCurveKey)
-    private var stickCurve = ControllerLayoutSettings.defaultStickCurve
-    @AppStorage(ControllerLayoutSettings.stickGateKey)
-    private var stickGateRaw = ControllerLayoutSettings.defaultStickGateRaw
 
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
@@ -305,26 +301,11 @@ struct EspressUPadLayoutPanel: View {
                      : "L, ZL and minus stay on the d-pad; R, ZR and plus stay on A/B/X/Y.",
                      prominent: false)
 
-        Picker("Stick gate", selection: $stickGateRaw) {
-            ForEach(ControllerGeometry.StickGate.allCases) { gate in
-                Text(gate.title).tag(gate.rawValue)
-            }
-        }
-        .pickerStyle(.segmented)
-
         PanelSliderRow("Stick deadzone", title: "Deadzone",
                        value: $stickDeadzone,
                        range: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
                        spokenValue: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded())) percent",
                        readout: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded()))%")
-
-        PanelSliderRow("Fine control", title: "Fine",
-                       value: $stickCurve,
-                       range: ControllerLayoutSettings.minStickCurve...ControllerLayoutSettings.maxStickCurve,
-                       spokenValue: stickCurve <= ControllerLayoutSettings.minStickCurve + 0.005
-                           ? "linear" : String(format: "%.1f times", stickCurve),
-                       readout: stickCurve <= ControllerLayoutSettings.minStickCurve + 0.005
-                           ? "lin" : String(format: "%.1fx", stickCurve))
 
         PanelSliderRow("Stick spacing", title: "Sticks",
                        leadingIcon: "arrow.right.and.line.vertical.and.arrow.left",

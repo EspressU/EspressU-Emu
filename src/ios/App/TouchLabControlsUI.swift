@@ -16,11 +16,14 @@ struct TouchLabLayoutPanel: View {
     @AppStorage(ControllerLayoutSettings.opacityKey) private var controlOpacity = ControllerLayoutSettings.defaultOpacity
     @AppStorage(ControllerLayoutSettings.stickSpacingKey) private var stickSpacing = ControllerLayoutSettings.defaultStickSpacing
     @AppStorage(ControllerLayoutSettings.shoulderOffsetKey) private var shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
+    @AppStorage(ControllerLayoutSettings.hapticsKey) private var haptics = ControllerLayoutSettings.defaultHaptics
+    @AppStorage(ControllerLayoutSettings.autoHideWithControllerKey) private var autoHide = ControllerLayoutSettings.defaultAutoHideWithController
+    @AppStorage(ControllerLayoutSettings.deadzoneKey) private var stickDeadzone = ControllerLayoutSettings.defaultDeadzone
 
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
             LayoutPanelFooter(
-                resetMessage: "Size, opacity, stick spacing and shoulder height go back to how EspressU ships, in every game.",
+                resetMessage: "Size, opacity, stick spacing, shoulder height, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.",
                 onReset: resetToDefault,
                 onDone: onDone)
         })
@@ -52,6 +55,16 @@ struct TouchLabLayoutPanel: View {
                            spokenValue: ControllerLayoutSettings.shoulderOffsetLabel(max(0, shoulderOffset)))
         }
 
+        PanelToggle(title: "Haptic feedback", isOn: $haptics)
+
+        PanelToggle(title: "Disable on-screen controls when a controller is connected", isOn: $autoHide)
+
+        PanelSliderRow("Stick deadzone", title: "Deadzone",
+                       value: $stickDeadzone,
+                       range: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
+                       spokenValue: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded())) percent",
+                       readout: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded()))%")
+
         PanelCaption(text: "These settings apply to every game.", prominent: false)
     }
 
@@ -60,5 +73,8 @@ struct TouchLabLayoutPanel: View {
         controlOpacity = ControllerLayoutSettings.defaultOpacity
         stickSpacing = ControllerLayoutSettings.defaultStickSpacing
         shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
+        haptics = ControllerLayoutSettings.defaultHaptics
+        autoHide = ControllerLayoutSettings.defaultAutoHideWithController
+        stickDeadzone = ControllerLayoutSettings.defaultDeadzone
     }
 }
