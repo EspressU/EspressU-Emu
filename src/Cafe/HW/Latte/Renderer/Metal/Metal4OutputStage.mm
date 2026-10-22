@@ -122,7 +122,6 @@ struct Metal4OutputStage::State
 	id<MTLLibrary> library = nil;
 	id residency = nil;     // id<MTLResidencySet> with every composition and frame generation image
 	std::map<MTLPixelFormat, id<MTLRenderPipelineState>> pipelines;
-	dispatch_queue_t feedbackQueue = nil;
 
 	// Regular queue -> Metal 4 queue: the composition of a frame is complete.
 	id<MTLSharedEvent> interopEvent = nil;
@@ -192,8 +191,8 @@ namespace
 
 		MTL4CommandQueueDescriptor* queueDescriptor = [MTL4CommandQueueDescriptor new];
 		queueDescriptor.label = @"EspressU output";
-		state.feedbackQueue = dispatch_queue_create("EspressU Metal 4 feedback", DISPATCH_QUEUE_SERIAL);
-		queueDescriptor.feedbackQueue = state.feedbackQueue;
+		// No feedbackQueue of our own: the descriptor only assigns it, and handing Metal a queue we also own
+		// over-released it when the stage was destroyed (crash on leaving a game). Metal's default queue is used.
 		id<MTL4CommandQueue> queue = [device newMTL4CommandQueueWithDescriptor:queueDescriptor error:nil];
 		if (!queue)
 			return false;
