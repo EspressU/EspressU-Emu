@@ -26,10 +26,16 @@ struct DeviceReportSection: View {
                 Label(deviceReportCopied ? "Copied" : "Copy device report",
                       systemImage: deviceReportCopied ? "checkmark" : "doc.on.doc")
             }
+
+            Button {
+                SessionReport.share()
+            } label: {
+                Label("Share EspressU report", systemImage: "square.and.arrow.up")
+            }
         } header: {
             SettingsSectionHeader("This Device", icon: "iphone", accent: .system)
         } footer: {
-            InfoButton.footer("Send this with any bug report. It lists your chip, memory and app build.")
+            InfoButton.footer("For any bug, crash or speed comparison, share the EspressU report: device, settings, the whole log, crashes and a performance summary per game. The previous session's report is included.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }

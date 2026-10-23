@@ -119,6 +119,8 @@ bool cemuLog_advancedPPCLoggingEnabled();
 uint64 cemuLog_getFlag(LogType type);
 
 fs::path cemuLog_GetLogFilePath();
+// Also hands every written block of log text to sink (for example a combined report file); nullptr removes it.
+void cemuLog_setTee(void (*sink)(const char* text, size_t length));
 void cemuLog_createLogFile(bool triggeredByCrash);
 [[nodiscard]] std::unique_lock<std::recursive_mutex> cemuLog_acquire();
 

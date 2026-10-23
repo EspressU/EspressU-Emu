@@ -1,3 +1,4 @@
+#include "Cafe/HW/Latte/Core/FrameTimeStats.h"
 #include "Cafe/HW/Latte/ISA/RegDefines.h"
 
 #include "Cafe/HW/Latte/Core/Latte.h"
@@ -638,6 +639,7 @@ void LatteRenderTarget_itHLESwapScanBuffer()
 	LattePerformanceMonitor_frameEnd();
 	LatteGPUState.frameCounter++;
 	g_renderer->SwapBuffers(true, true);
+	FrameTimeStats::Get().NoteFrame();
 
 	catchOpenGLError();
 	performanceMonitor.gpuTime_frameTime.beginMeasuring();

@@ -56,6 +56,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/Metal4OutputStage.h"
 void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
+#include "IOSReport.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "Cafe/GameProfile/GameProfile.h"
 #include "util/Fiber/Fiber.h"
@@ -179,8 +180,21 @@ namespace {
     void cemu_crash_open_log();
     char g_crashLogPath[1024] = {0};
 
+    // Everything written for a crash goes to CemuCrashLog.txt and to the session report.
+    void crash_fd_write(const void* data, size_t length) {
+        if (g_crashLogFd >= 0) write(g_crashLogFd, data, length);
+        const int reportFd = IOSReport_Fd();
+        if (reportFd >= 0) write(reportFd, data, length);
+    }
+
+    void crash_backtrace(void* const* frames, int count) {
+        if (g_crashLogFd >= 0) backtrace_symbols_fd(frames, count, g_crashLogFd);
+        const int reportFd = IOSReport_Fd();
+        if (reportFd >= 0) backtrace_symbols_fd(frames, count, reportFd);
+    }
+
     void cemu_crash_write(const char* s) {
-        if (g_crashLogFd >= 0 && s) write(g_crashLogFd, s, strlen(s));
+        if (s) crash_fd_write(s, strlen(s));
     }
 
     void crash_hex(uint64_t v) {
@@ -190,7 +204,7 @@ namespace {
             const int nibble = (int)((v >> ((15 - i) * 4)) & 0xF);
             buf[2 + i] = (char)(nibble < 10 ? '0' + nibble : 'a' + nibble - 10);
         }
-        if (g_crashLogFd >= 0) write(g_crashLogFd, buf, sizeof(buf));
+        crash_fd_write(buf, sizeof(buf));
     }
 
     void crash_dec(int64_t v) {
@@ -203,7 +217,7 @@ namespace {
         if (negative) digits[i++] = '-';
         char out[24];
         for (int j = 0; j < i; j++) out[j] = digits[i - 1 - j];
-        if (g_crashLogFd >= 0) write(g_crashLogFd, out, (size_t)i);
+        crash_fd_write(out, (size_t)i);
     }
 
     const char* crash_vm_tag_name(unsigned tag) {
@@ -418,7 +432,7 @@ namespace {
         {
             void* frames[64];
             int count = backtrace(frames, 64);
-            if (g_crashLogFd >= 0) backtrace_symbols_fd(frames, count, g_crashLogFd);
+            crash_backtrace(frames, count);
         }
         crash_dump_other_threads();
         cemu_crash_write("=== end of crash report ===\n");
@@ -476,8 +490,7 @@ namespace {
             cemu_crash_write("terminate backtrace:\n");
             void* frames[40];
             const int frameCount = backtrace(frames, 40);
-            if (g_crashLogFd >= 0)
-                backtrace_symbols_fd(frames, frameCount, g_crashLogFd);
+            crash_backtrace(frames, frameCount);
         }
         if (g_previousTerminateHandler && g_previousTerminateHandler != cemu_terminate_handler)
             g_previousTerminateHandler();
@@ -487,6 +500,8 @@ namespace {
 
 extern "C" __attribute__((constructor(101)))
 void cemu_bridge_install_early_crash_handler() {
+    IOSReport_OpenEarly();
+    cemuLog_setTee(IOSReport_Write);
     cemu_crash_open_log();
     cemu_crash_write("=== Cemu process started (early constructor) ===\n");
     int sigs[] = {SIGSEGV, SIGBUS, SIGILL, SIGABRT, SIGTRAP, SIGFPE};
@@ -527,8 +542,7 @@ extern "C" void cemu_ios_assert_hit(void) {
     cemu_bridge_log_checkpoint(line);
     void* frames[24];
     const int count = backtrace(frames, 24);
-    if (g_crashLogFd >= 0)
-        backtrace_symbols_fd(frames, count, g_crashLogFd);
+    crash_backtrace(frames, count);
 }
 
 static void ios_bridge_thread_begin(const char* name, bool utilityQoS = true)
@@ -651,6 +665,25 @@ static std::string cemu_build_device_report(void)
     report += " | build ";
     report += BUILD_VERSION_STRING;
     return report;
+}
+
+static std::string ios_report_device_text()
+{
+    NSProcessInfo* process = [NSProcessInfo processInfo];
+    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+    const char* thermalNames[] = {"nominal", "fair", "serious", "critical"};
+    const NSInteger thermal = std::clamp<NSInteger>((NSInteger)process.thermalState, 0, 3);
+    std::string text;
+    text += fmt::format("App: EspressU {} (build {})\n",
+        [(NSString*)(info[@"CFBundleShortVersionString"] ?: @"?") UTF8String], [(NSString*)(info[@"CFBundleVersion"] ?: @"?") UTF8String]);
+    text += fmt::format("System: {} | uptime {:.0f} min | low power mode {} | thermal {}\n",
+        [process.operatingSystemVersionString UTF8String], process.systemUptime / 60.0, process.lowPowerModeEnabled ? "ON" : "off", thermalNames[thermal]);
+    text += fmt::format("Memory: {} MB physical, {} MB available to EspressU right now, {} MB in use\n",
+        process.physicalMemory / (1024ull * 1024ull), (uint64_t)os_proc_available_memory() / (1024ull * 1024ull), cemu_mem_footprint_bytes() / (1024ull * 1024ull));
+    text += fmt::format("Processors: {} active of {}\n", (uint64_t)process.activeProcessorCount, (uint64_t)process.processorCount);
+    text += cemu_bridge_device_report();
+    text += "\n";
+    return text;
 }
 
 extern "C" const char* cemu_bridge_device_report(void)
@@ -1438,6 +1471,23 @@ namespace {
         summary.mtlGpuBusyPct.store((float)(mtlBusy * 100.0), std::memory_order_relaxed);
         summary.bottleneck.store(verdict, std::memory_order_relaxed);
         summary.valid.store(true, std::memory_order_relaxed);
+
+        {
+            IOSReportPerfWindow window;
+            window.seconds = dt;
+            window.hostFps = hostFps;
+            window.guestFps = guestFps;
+            window.speedPct = speedPct;
+            window.ppcRunPct = ppcRun * 100.0;
+            window.gpuThreadBusyPct = gpuThreadBusy * 100.0;
+            window.metalGpuMs = mtlMsPerFrame;
+            window.metalGpuBusyPct = mtlBusy * 100.0;
+            window.thermal = thermal;
+            window.bottleneck = verdict;
+            window.availableMB = (uint64_t)os_proc_available_memory() / (1024ull * 1024ull);
+            window.footprintMB = cemu_mem_footprint_bytes() / (1024ull * 1024ull);
+            IOSReport_NotePerfWindow(window);
+        }
 
         if (logHeader)
         {
@@ -3014,6 +3064,22 @@ bool cemu_bridge_metal4_output_supported(void) {
     return supported;
 }
 
+void cemu_bridge_report_settings(const char* text) {
+    IOSReport_SetSettings(text ? text : "");
+}
+
+const char* cemu_bridge_report_path(void) {
+    static std::string path;
+    path = IOSReport_Path();
+    return path.c_str();
+}
+
+const char* cemu_bridge_report_previous_path(void) {
+    static std::string path;
+    path = IOSReport_PreviousPath();
+    return path.c_str();
+}
+
 const char* cemu_bridge_gpu_fault_history(void) {
     static thread_local std::string history;
     history = MetalFaultHistory::Describe(20);
@@ -3230,6 +3296,7 @@ void cemu_bridge_initialize(const char* mlcPath) {
         return;
     }
     cemu_bridge_log_checkpoint("initialize: CemuInitialize() returned");
+    IOSReport_SetDevice(ios_report_device_text());
     IOSSystemImplementation_Install();
 
     cemuLog_setActiveLoggingFlags(cemuLog_getFlag(LogType::CoreinitLogging) | cemuLog_getFlag(LogType::APIErrors));
@@ -3530,6 +3597,8 @@ static CemuBridgeStatus ios_boot_prepared_title(int prepared) {
         return CEMU_BRIDGE_UNABLE_TO_MOUNT;
     }
     cemu_bridge_log_checkpoint("boot_title: CemuRun() returned");
+    IOSReport_SetDevice(ios_report_device_text());
+    IOSReport_TitleStarted(CafeSystem::GetForegroundTitleId(), CafeSystem::GetForegroundTitleName());
     ios_report_renderer_fallback();
     ios_reset_video_stall_state();
     g_titleRunning.store(true);
@@ -4138,8 +4207,7 @@ void IOSBridge_GPUThreadException(const char* type, const char* what) {
     cemu_bridge_log_checkpoint("GPU thread backtrace (where it was caught):");
     void* frames[32];
     const int count = backtrace(frames, 32);
-    if (g_crashLogFd >= 0)
-        backtrace_symbols_fd(frames, count, g_crashLogFd);
+    crash_backtrace(frames, count);
     cemu_bridge_log_checkpoint("=== the title is being stopped ===");
     IOSSystemImplementation_ReportFatal("The graphics engine hit an error and the game was stopped. The details are in CemuCrashLog.txt.");
 }
@@ -4153,6 +4221,7 @@ void cemu_bridge_resume(void) {
 }
 
 void cemu_bridge_shutdown_title(void) {
+    IOSReport_TitleStopped("the game was closed");
     cemu_bridge_memory_note("before title shutdown");
     ios_timebase_ladder_stop();
     IOSTitlePause_Resume();
