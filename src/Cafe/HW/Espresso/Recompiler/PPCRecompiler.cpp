@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <atomic>
+#include <deque>
 #include <libkern/OSCacheControl.h>
 #if BOOST_OS_IOS
 #include <os/proc.h>
@@ -493,7 +494,7 @@ struct PPCInvalidationRange
 struct
 {
     FSpinlock             recompilerSpinlock;
-    std::queue<MPTR>      targetQueue;
+    std::deque<MPTR>      targetQueue;
     std::vector<PPCInvalidationRange> invalidationRanges;
 } PPCRecompilerState;
 
@@ -544,7 +545,7 @@ void PPCRecompiler_visitAddressNoBlock(uint32 enterAddress)
         PPCRecompilerState.recompilerSpinlock.unlock();
         return;
     }
-    PPCRecompilerState.targetQueue.emplace(enterAddress);
+    PPCRecompilerState.targetQueue.emplace_back(enterAddress);
     ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[enterAddress / 4] = PPCRecompiler_leaveRecompilerCode_visited;
     PPCRecompilerState.recompilerSpinlock.unlock();
     s_threadPool.Notify();
@@ -564,7 +565,7 @@ bool PPCRecompiler_drainQueue()
         return false;
     }
     uint32 enterAddress = PPCRecompilerState.targetQueue.front();
-    PPCRecompilerState.targetQueue.pop();
+    PPCRecompilerState.targetQueue.pop_front();
     auto funcPtr = ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[enterAddress / 4];
 
     if (funcPtr != PPCRecompiler_leaveRecompilerCode_visited)
@@ -1098,14 +1099,15 @@ namespace
 		}
 		if (waiting.empty())
 			return;
-		// Entries the finished function did not cover go back into the queue.
+		// Entries the finished function did not cover go to the front of the queue: they have been running in the
+		// interpreter while they waited, which is what made loading slower.
 		bool requeued = false;
 		PPCRecompilerState.recompilerSpinlock.lock();
 		for (uint32 address : waiting)
 		{
 			if (ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[address / 4] == PPCRecompiler_leaveRecompilerCode_visited)
 			{
-				PPCRecompilerState.targetQueue.emplace(address);
+				PPCRecompilerState.targetQueue.emplace_front(address);
 				requeued = true;
 			}
 		}
@@ -1702,7 +1704,7 @@ void PPCRecompiler_Shutdown()
     s_threadPool.Stop();
 
     while (!PPCRecompilerState.targetQueue.empty())
-        PPCRecompilerState.targetQueue.pop();
+        PPCRecompilerState.targetQueue.pop_front();
     PPCRecompilerState.invalidationRanges.clear();
 
     rangeStore_ppcRanges.clear();
