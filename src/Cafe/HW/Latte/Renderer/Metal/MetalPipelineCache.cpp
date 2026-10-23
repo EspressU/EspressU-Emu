@@ -23,6 +23,7 @@
 #if TARGET_OS_IPHONE
 #include <os/proc.h>
 #endif
+#include <condition_variable>
 #include <chrono>
 #include <deque>
 #include <fstream>
@@ -32,6 +33,48 @@ static std::mutex g_compilePipelineMutex;
 static std::condition_variable g_compilePipelineCondVar;
 static std::queue<MetalPipelineCompiler*> g_compilePipelineRequests;
 static std::atomic<uint32_t> g_compilePipelineInFlight{0};
+
+namespace
+{
+	// Pipeline compiles hold a lot of memory while they run. Loading a big cache on all cores at once took a
+	// 6 GB iPad from 1.3 GB to 2 MB free in seconds, before a single texture existed, and iOS killed the app.
+	// With little memory left only a few compiles run at a time; one always may, so loading never stops.
+	constexpr uint64 kCompileMemoryLow = 1024ull << 20;
+	constexpr uint64 kCompileMemoryCritical = 512ull << 20;
+	std::mutex s_compileGateMutex;
+	std::condition_variable s_compileGateCv;
+	uint32 s_compilesRunning = 0;
+	std::atomic<uint32> s_compileGateLogs{0};
+
+	struct CompileMemoryGate
+	{
+		CompileMemoryGate()
+		{
+			std::unique_lock lock(s_compileGateMutex);
+			bool waited = false;
+			for (;;)
+			{
+				const uint64 available = (uint64)os_proc_available_memory();
+				const uint32 allowed = available == 0 ? UINT32_MAX : (available < kCompileMemoryCritical ? 1 : (available < kCompileMemoryLow ? 2 : UINT32_MAX));
+				if (s_compilesRunning < allowed)
+					break;
+				if (!waited && s_compileGateLogs++ < 8)
+					cemuLog_log(LogType::Force, "Metal: only {} MB free, pipeline compiles wait so at most {} run at once", available >> 20, allowed);
+				waited = true;
+				s_compileGateCv.wait_for(lock, std::chrono::milliseconds(20));
+			}
+			++s_compilesRunning;
+		}
+		~CompileMemoryGate()
+		{
+			{
+				std::lock_guard lock(s_compileGateMutex);
+				--s_compilesRunning;
+			}
+			s_compileGateCv.notify_all();
+		}
+	};
+}
 
 static void compileThreadFunc(sint32 threadIndex)
 {
@@ -52,7 +95,10 @@ static void compileThreadFunc(sint32 threadIndex)
 
 		lock.unlock();
 
-		request->Compile(true, false, true);
+		{
+			CompileMemoryGate gate;
+			request->Compile(true, false, true);
+		}
 		delete request;
 		g_compilePipelineInFlight.fetch_sub(1);
 	}
@@ -647,7 +693,10 @@ int MetalPipelineCache::CompilerThread()
 		std::vector<uint8> pipelineData = m_compilationQueue.pop();
 		if(pipelineData.empty())
 			continue;
-		LoadPipelineFromCache(pipelineData);
+		{
+			CompileMemoryGate gate;
+			LoadPipelineFromCache(pipelineData);
+		}
 		++g_mtlCacheState.pipelinesLoaded;
 	}
 	m_loaderThreadsRunning.fetch_sub(1);
