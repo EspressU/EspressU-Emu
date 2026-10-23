@@ -166,7 +166,7 @@ void cemuLog_thread()
 
 fs::path cemuLog_GetLogFilePath()
 {
-    return ActiveSettings::GetUserDataPath("log.txt");
+    return ActiveSettings::GetUserDataPath("Logs/log.txt");
 }
 
 void cemuLog_createLogFile(bool triggeredByCrash)
@@ -176,6 +176,8 @@ void cemuLog_createLogFile(bool triggeredByCrash)
 		return;
 
 	const auto path = cemuLog_GetLogFilePath();
+	std::error_code ec;
+	fs::create_directories(path.parent_path(), ec);
 	LogContext.file_stream.open(fs::resolvePathCI(path), std::ios::out);
 	if (LogContext.file_stream.fail())
 	{

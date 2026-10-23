@@ -448,7 +448,9 @@ namespace {
         if (!home)
             return;
         char path[1024];
-        snprintf(path, sizeof(path), "%s/Documents/CemuCrashLog.txt", home);
+        snprintf(path, sizeof(path), "%s/Documents/Logs", home);
+        mkdir(path, 0755);
+        snprintf(path, sizeof(path), "%s/Documents/Logs/CemuCrashLog.txt", home);
         g_crashLogFd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
         snprintf(g_crashLogPath, sizeof(g_crashLogPath), "%s", path);
         void* warm[4];
@@ -1218,7 +1220,7 @@ namespace {
     {
         if (g_logTailRunning.exchange(true))
             return;
-        const std::string path = _pathToUtf8(ActiveSettings::GetUserDataPath("log.txt"));
+        const std::string path = _pathToUtf8(cemuLog_GetLogFilePath());
         std::thread([path] {
             ios_bridge_thread_begin("EspressU log tail");
             long offset = 0;

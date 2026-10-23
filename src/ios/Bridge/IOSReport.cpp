@@ -272,7 +272,9 @@ void IOSReport_OpenEarly()
 	const char* home = getenv("HOME");
 	if (!home)
 		return;
-	const std::string dir = std::string(home) + "/Documents/";
+	// All logs live in Documents/Logs, next to each other and visible in the Files app.
+	const std::string dir = std::string(home) + "/Documents/Logs/";
+	mkdir(dir.c_str(), 0755);
 	s_path = dir + "EspressU-Report.txt";
 	s_previousPath = dir + "EspressU-Report-previous.txt";
 	const std::string olderPath = dir + "EspressU-Report-older.txt";
