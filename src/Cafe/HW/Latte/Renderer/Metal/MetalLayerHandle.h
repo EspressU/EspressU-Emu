@@ -38,6 +38,10 @@ public:
     // Frames go through the Metal 4 output stage while one is set; nullptr returns to the regular drawable.
     void SetOutputStage(Metal4OutputStage* stage) { m_outputStage = stage; }
 
+    // Ends a frame the output stage was too busy for; until then every acquire of this frame fails, so no
+    // later step can present a cleared, empty image in its place.
+    void EndSkippedFrame() { m_skippingFrame = false; }
+
 private:
     CA::MetalLayer* m_layer = nullptr;
     float m_layerScaleX = 1.0f;
@@ -46,6 +50,7 @@ private:
     CA::MetalDrawable* m_drawable = nullptr;
     Metal4OutputStage* m_outputStage = nullptr;
     MTL::Texture* m_stageTarget = nullptr;
+    bool m_skippingFrame = false;
 
     MTL::Device* m_device = nullptr;
     bool m_isMainWindow = false;

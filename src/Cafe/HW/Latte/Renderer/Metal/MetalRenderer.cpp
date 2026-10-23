@@ -717,6 +717,8 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         CommitCommandBuffer();
         ProcessFinishedCommandBuffers();
         UpdateMemoryStatsAndRelievePressure();
+        m_mainLayer.EndSkippedFrame();
+        m_padLayer.EndSkippedFrame();
         return;
     }
 
@@ -735,6 +737,8 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         SwapBuffer(true);
     if (swapDRC && !holdPad)
         SwapBuffer(false);
+    m_mainLayer.EndSkippedFrame();
+    m_padLayer.EndSkippedFrame();
 
     CommitCommandBuffer();
 

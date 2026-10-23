@@ -123,6 +123,8 @@ bool MetalLayerHandle::AcquireDrawable()
 {
     if (m_drawable || m_stageTarget)
         return true;
+    if (m_skippingFrame)
+        return false;
 
     if (m_outputStage && m_layer)
     {
@@ -142,7 +144,10 @@ bool MetalLayerHandle::AcquireDrawable()
         // All slots are still on their way to the screen: this frame is not shown, and the GPU thread carries on
         // instead of waiting for the display.
         if (busy)
+        {
+            m_skippingFrame = true;
             return false;
+        }
         // The stage could not take this frame; it goes through the regular drawable instead.
         HostTuning::Count(HostTuning::GetStats().m4RegularPath);
     }
