@@ -43,8 +43,9 @@ public:
 	Metal4OutputStage(const Metal4OutputStage&) = delete;
 	Metal4OutputStage& operator=(const Metal4OutputStage&) = delete;
 
-	// The texture the regular renderer composes this frame into, sized like the drawable.
-	MTL::Texture* BeginFrame(Output output, uint32_t width, uint32_t height, uint32_t pixelFormat);
+	// The texture the regular renderer composes this frame into, sized like the drawable. On nullptr, busy says
+	// whether the stage only has no slot free right now (skip the frame) rather than failing (use the drawable).
+	MTL::Texture* BeginFrame(Output output, uint32_t width, uint32_t height, uint32_t pixelFormat, bool& busy);
 
 	// Hands the composed frame over. legacyCommandBuffer is the regular command buffer that wrote it; it must
 	// not be committed yet and must have no open encoder. Returns false when the frame was dropped.

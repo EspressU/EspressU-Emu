@@ -127,8 +127,9 @@ bool MetalLayerHandle::AcquireDrawable()
     if (m_outputStage && m_layer)
     {
         const CGSize drawableSize = m_layer->drawableSize();
+        bool busy = false;
         m_stageTarget = m_outputStage->BeginFrame(m_isMainWindow ? Metal4OutputStage::TV : Metal4OutputStage::GamePad,
-            (uint32_t)drawableSize.width, (uint32_t)drawableSize.height, (uint32_t)m_layer->pixelFormat());
+            (uint32_t)drawableSize.width, (uint32_t)drawableSize.height, (uint32_t)m_layer->pixelFormat(), busy);
         if (m_stageTarget)
         {
             if (m_isMainWindow)
@@ -138,6 +139,10 @@ bool MetalLayerHandle::AcquireDrawable()
             }
             return true;
         }
+        // All slots are still on their way to the screen: this frame is not shown, and the GPU thread carries on
+        // instead of waiting for the display.
+        if (busy)
+            return false;
         // The stage could not take this frame; it goes through the regular drawable instead.
         HostTuning::Count(HostTuning::GetStats().m4RegularPath);
     }

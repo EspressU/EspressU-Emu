@@ -19,8 +19,9 @@ namespace
 {
 	// Three slots per output: one being composed by the game, one waiting for the presenter, one on screen.
 	constexpr uint32_t kSlotsPerOutput = 3;
-	// How long BeginFrame waits for a free slot's GPU work before the frame takes the regular path instead.
-	constexpr uint64_t kSlotWaitMs = 40;
+	// How long BeginFrame waits for a free slot's GPU work. Kept short: this runs on the GPU thread, and waiting
+	// here held up the game's own rendering, which made loading screens slower. A busy frame is skipped instead.
+	constexpr uint64_t kSlotWaitMs = 2;
 
 	const char* kPresentShaderSource = R"(
 #include <metal_stdlib>
@@ -618,8 +619,9 @@ std::unique_ptr<Metal4OutputStage> Metal4OutputStage::Create(MTL::Device* device
 	return nullptr;
 }
 
-MTL::Texture* Metal4OutputStage::BeginFrame(Output outputIndex, uint32_t width, uint32_t height, uint32_t pixelFormat)
+MTL::Texture* Metal4OutputStage::BeginFrame(Output outputIndex, uint32_t width, uint32_t height, uint32_t pixelFormat, bool& busy)
 {
+	busy = false;
 	if (outputIndex >= OutputCount || width == 0 || height == 0)
 		return nullptr;
 	if (@available(iOS 26.0, macOS 26.0, *))
@@ -651,6 +653,7 @@ MTL::Texture* Metal4OutputStage::BeginFrame(Output outputIndex, uint32_t width, 
 			if (index < 0)
 			{
 				HostTuning::Count(HostTuning::GetStats().m4SlotTimeouts);
+				busy = true;
 				return nullptr;
 			}
 			output.slots[index].use = SlotUse::Composing;
@@ -664,10 +667,11 @@ MTL::Texture* Metal4OutputStage::BeginFrame(Output outputIndex, uint32_t width, 
 			slot.use = SlotUse::Free;
 			output.current = -1;
 		};
-		if (waitFor && ![output.doneEvent waitUntilSignaledValue:waitFor timeoutMS:kSlotWaitMs])
+		if (waitFor && output.doneEvent.signaledValue < waitFor && ![output.doneEvent waitUntilSignaledValue:waitFor timeoutMS:kSlotWaitMs])
 		{
 			HostTuning::Count(HostTuning::GetStats().m4SlotTimeouts);
 			giveBack();
+			busy = true;
 			return nullptr;
 		}
 
