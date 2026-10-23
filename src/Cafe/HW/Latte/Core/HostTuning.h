@@ -17,8 +17,6 @@ namespace HostTuning
 		std::atomic<bool> metalFxUpscale{false};
 		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
 		std::atomic<bool> metal4Output{false};
-		// Generated in-between frames on the Metal 4 output: 0 off, 1 EspressU's own, 2 MetalFX.
-		std::atomic<uint8_t> frameGeneration{0};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
 		std::atomic<bool> padPresentPacing{false};
@@ -62,19 +60,6 @@ namespace HostTuning
 		std::atomic<uint64_t> m4RegularPath{0};
 		std::atomic<uint64_t> m4SlotTimeouts{0};
 		std::atomic<uint64_t> m4GpuMicros{0};
-		// Frame generation
-		std::atomic<uint64_t> fgGenerated{0};
-		std::atomic<uint64_t> fgSkippedFastEnough{0};
-		std::atomic<uint64_t> fgSkippedHistory{0};
-		std::atomic<uint64_t> fgSkippedQueue{0};
-		std::atomic<uint64_t> fgSkippedGpu{0};
-		std::atomic<uint64_t> fgSkippedCooldown{0};
-		std::atomic<uint64_t> fgCooldowns{0};
-		std::atomic<uint64_t> fgEncodeFailed{0};
-		std::atomic<uint64_t> fgGpuMicros{0};
-		std::atomic<uint64_t> fgIntervalMicros{0};
-		std::atomic<uint8_t> fgBackend{0}; // 0 none, 1 EspressU, 2 MetalFX
-		std::atomic<bool> fgDisabled{false};
 		// GamePad pacing
 		std::atomic<uint64_t> padSkippedFrames{0};
 		std::atomic<uint64_t> padSlowDrawables{0};

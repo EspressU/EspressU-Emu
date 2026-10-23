@@ -100,13 +100,6 @@ extension EspressUSettingsView {
                              PerformanceTuning.applyToBridge()
                          }),
                          enabled: metal4),
-            SettingsItem(id: "tuning.frameGeneration", title: "Frame generation",
-                         detail: "Adds a generated frame between two real ones when a game runs below 40 fps. Needs Metal 4 output. Can smear fast motion and adds half a frame of delay.",
-                         control: .choice(PerformanceTuning.FrameGeneration.allCases.map { SettingsOption(id: String($0.rawValue), title: $0.title) },
-                                          values.intChoice(PerformanceTuning.frameGenerationKey, PerformanceTuning.frameGenerationDefault.rawValue) { _ in
-                                              PerformanceTuning.applyToBridge()
-                                          }),
-                         enabled: metal4 && PerformanceTuning.bool(PerformanceTuning.metal4OutputKey, PerformanceTuning.metal4OutputDefault)),
             SettingsItem(id: "tuning.metalFx", title: "MetalFX upscaling",
                          detail: "Sharper enlarging of the finished picture with Apple's MetalFX on Metal. Costs a little GPU time. Not used with a graphic pack's own output filter.",
                          control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in

@@ -4592,8 +4592,6 @@ void MetalRenderer::ReportTuningDiagnostics()
         &s.substituteTextures, &s.viewFallbacks, &s.faultsRecorded,
         &s.fxUpscales, &s.fxRebuilds, &s.fxFailures, &s.fxNotEnlarged,
         &s.m4Frames, &s.m4Dropped, &s.m4RegularPath, &s.m4SlotTimeouts,
-        &s.fgGenerated, &s.fgSkippedFastEnough, &s.fgSkippedHistory, &s.fgSkippedQueue, &s.fgSkippedGpu, &s.fgSkippedCooldown,
-        &s.fgCooldowns, &s.fgEncodeFailed,
         &s.padSkippedFrames, &s.padSlowDrawables,
         &s.itpBlocks, &s.itpLinkHits, &s.itpDecodes,
         &s.jitCompiled, &s.jitDiscarded, &s.jitWaited,
@@ -4623,7 +4621,6 @@ void MetalRenderer::ReportTuningDiagnostics()
     const auto [memWarnings, memCleanups, memTextures, memMB, substitutes, viewFallbacks, faults,
         fxUpscales, fxRebuilds, fxFailures, fxNotEnlarged,
         m4Frames, m4Dropped, m4Regular, m4Timeouts,
-        fgGenerated, fgFast, fgHistory, fgQueue, fgGpu, fgCooldown, fgCooldowns, fgFailed,
         padSkipped, padSlow, itpBlocks, itpHits, itpDecodes, jitCompiled, jitDiscarded, jitWaited] = d;
     const double tvFps = m_tuningReportFrames / seconds;
     m_tuningReportFrames = 0;
@@ -4633,13 +4630,12 @@ void MetalRenderer::ReportTuningDiagnostics()
     const bool historyOn = options.keepGpuFaultHistory.load();
     const bool fxOn = options.metalFxUpscale.load();
     const bool m4On = options.metal4Output.load();
-    const uint8 fgMode = options.frameGeneration.load();
     const bool padOn = options.padPresentPacing.load();
     const bool padLow = options.padLowResolution.load();
     const bool linkOn = options.interpreterBlockLinking.load();
 
-    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} framegen {} padpacing {} padlowres {} linking {}",
-        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, fgMode == 0 ? "off" : (fgMode == 1 ? "EspressU" : "MetalFX"), padOn, padLow, linkOn);
+    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} linking {} jit-no-duplicates {}",
+        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, linkOn, options.jitSkipOverlappingCompiles.load());
 
     // One line per option that is on, ending in what it means.
     if (memoryOn || memWarnings)
@@ -4659,25 +4655,6 @@ void MetalRenderer::ReportTuningDiagnostics()
             : (m_metal4OutputUnavailable ? "NOT ACTIVE: Metal 4 is not available on this device" : "PROBLEM: no frame went through Metal 4");
         cemuLog_log(LogType::Force, "[Tuning] metal4: frames +{}, dropped or replaced by a newer one +{}, regular path +{}, no free slot +{}, last present GPU {:.2f} ms -> {}",
             m4Frames, m4Dropped, m4Regular, m4Timeouts, s.m4GpuMicros.load() / 1000.0, verdict);
-    }
-    if (fgMode != 0)
-    {
-        const uint64 skipped = fgFast + fgHistory + fgQueue + fgGpu + fgCooldown;
-        std::string verdict;
-        if (!m4On)
-            verdict = "NOT ACTIVE: needs Metal 4 output";
-        else if (s.fgDisabled.load())
-            verdict = "PROBLEM: turned itself off, see the EspressU lines in the log";
-        else if (fgGenerated > 0)
-            verdict = fmt::format("OK, {:.0f}% of real frames got a generated one", 100.0 * fgGenerated / std::max<uint64>(1, fgGenerated + skipped + fgFailed));
-        else if (fgFast > 0 && fgFast >= skipped / 2)
-            verdict = "idle: the game already runs faster than 32 fps";
-        else
-            verdict = "PROBLEM: no frame generated";
-        cemuLog_log(LogType::Force, "[Tuning] framegen ({}): generated +{}, skipped fast-enough +{} history +{} gpu +{}, failed +{}, real interval {:.1f} ms, generation GPU {:.2f} ms -> {}",
-            s.fgBackend.load() == 2 ? "MetalFX" : (s.fgBackend.load() == 1 ? "EspressU" : "none"),
-            fgGenerated, fgFast, fgHistory, fgGpu, fgFailed,
-            s.fgIntervalMicros.load() / 1000.0, s.fgGpuMicros.load() / 1000.0, verdict);
     }
     if (padOn || padLow)
     {

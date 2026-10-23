@@ -13,22 +13,6 @@ enum PerformanceTuning {
     static let metalFxUpscaleDefault = false
     static let metal4OutputKey = "espressu.tuning.metal4Output"
     static let metal4OutputDefault = false
-    static let frameGenerationKey = "espressu.tuning.frameGeneration"
-
-    enum FrameGeneration: Int, CaseIterable {
-        case off = 0
-        case espressU = 1
-        case metalFX = 2
-
-        var title: String {
-            switch self {
-            case .off: return "Off"
-            case .espressU: return "EspressU"
-            case .metalFX: return "MetalFX"
-            }
-        }
-    }
-    static let frameGenerationDefault = FrameGeneration.off
     static let padPresentPacingKey = "espressu.tuning.padPresentPacing"
     static let padPresentPacingDefault = false
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
@@ -46,7 +30,6 @@ enum PerformanceTuning {
             AdvancedSetting(gpuFaultHistoryKey, gpuFaultHistoryDefault),
             AdvancedSetting(metalFxUpscaleKey, metalFxUpscaleDefault),
             AdvancedSetting(metal4OutputKey, metal4OutputDefault),
-            AdvancedSetting(frameGenerationKey, frameGenerationDefault.rawValue),
             AdvancedSetting(padPresentPacingKey, padPresentPacingDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
@@ -68,8 +51,6 @@ enum PerformanceTuning {
                                bool(metalFxUpscaleKey, metalFxUpscaleDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT,
                                bool(metal4OutputKey, metal4OutputDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION,
-                               Int32(UserDefaults.standard.object(forKey: frameGenerationKey) as? Int ?? frameGenerationDefault.rawValue))
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING,
                                bool(padPresentPacingKey, padPresentPacingDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING,
@@ -87,7 +68,6 @@ enum PerformanceTuning {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY, gpuFaultHistoryDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT, metal4OutputDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, Int32(frameGenerationDefault.rawValue))
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, padPresentPacingDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
