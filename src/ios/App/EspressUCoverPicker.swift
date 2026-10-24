@@ -52,7 +52,7 @@ struct EspressUCoverPicker: View {
                         .frame(maxWidth: 620)
                         .frame(maxWidth: .infinity)
                     }
-                    .onChange(of: focus) { id in
+                    .onValueChange(of: focus) { id in
                         withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
                     }
                 }
@@ -83,8 +83,8 @@ struct EspressUCoverPicker: View {
                 usePicked(data)
             }
         }
-        .onChange(of: showingPhotos) { open in open ? input.pause() : input.resume() }
-        .onChange(of: showingFiles) { open in open ? input.pause() : input.resume() }
+        .onValueChange(of: showingPhotos) { open in open ? input.pause() : input.resume() }
+        .onValueChange(of: showingFiles) { open in open ? input.pause() : input.resume() }
         .alert("Couldn't change the cover", isPresented: Binding(
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
@@ -357,7 +357,7 @@ private struct ModernCoverPhotosPicker: ViewModifier {
     func body(content: Content) -> some View {
         content
             .photosPicker(isPresented: $isPresented, selection: $item, matching: .images)
-            .onChange(of: item) { newItem in
+            .onValueChange(of: item) { newItem in
                 guard let newItem else { return }
                 item = nil
                 Task {

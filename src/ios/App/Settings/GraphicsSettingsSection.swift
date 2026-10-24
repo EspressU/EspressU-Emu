@@ -162,7 +162,7 @@ struct GraphicsSettingsSection: View {
                 }
             }
             .pickerStyle(.segmented)
-            .onChange(of: rendererRaw) { newValue in
+            .onValueChange(of: rendererRaw) { newValue in
                 if newValue == RendererAPI.vulkan.rawValue {
                     UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailedBuild")
                     UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailureReason")
@@ -244,7 +244,7 @@ struct GraphicsSettingsSection: View {
             }
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: fullSpeedRenders) { _ in FullSpeedRenders.applyToBridge() }
+        .onValueChange(of: fullSpeedRenders) { _ in FullSpeedRenders.applyToBridge() }
     }
 
     private var fullSpeedShaderPicker: some View {
@@ -257,7 +257,7 @@ struct GraphicsSettingsSection: View {
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)
             .foregroundColor(EspressUTheme.brownDarkest)
-            .onChange(of: fullSpeedShaderMode) { _ in FullSpeedRenders.applyToBridge() }
+            .onValueChange(of: fullSpeedShaderMode) { _ in FullSpeedRenders.applyToBridge() }
             Text((FullSpeedRenders.ShaderMode(rawValue: fullSpeedShaderMode) ?? FullSpeedRenders.defaultShaderMode).summary)
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)
@@ -282,7 +282,7 @@ struct GraphicsSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: frameStretchEnabled) { newValue in
+        .onValueChange(of: frameStretchEnabled) { newValue in
             cemu_bridge_set_stretch_to_fill(newValue)
         }
     }
@@ -293,7 +293,7 @@ struct GraphicsSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: upsideDownEnabled) { newValue in
+        .onValueChange(of: upsideDownEnabled) { newValue in
             cemu_bridge_set_render_upside_down(newValue)
         }
     }
@@ -313,7 +313,7 @@ struct GraphicsSettingsSection: View {
                 in: DisplayGammaSetting.minValue...DisplayGammaSetting.maxValue
             )
             .accessibilityLabel("Display gamma")
-            .onChange(of: displayGamma) { newValue in
+            .onValueChange(of: displayGamma) { newValue in
                 cemu_bridge_set_display_gamma(Float(newValue))
             }
         }
@@ -325,7 +325,7 @@ struct GraphicsSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: framebufferFetchEnabled) { newValue in
+        .onValueChange(of: framebufferFetchEnabled) { newValue in
             cemu_bridge_set_framebuffer_fetch(newValue)
         }
     }
@@ -336,7 +336,7 @@ struct GraphicsSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: overrideAppGammaEnabled) { newValue in
+        .onValueChange(of: overrideAppGammaEnabled) { newValue in
             cemu_bridge_set_override_app_gamma(newValue)
         }
     }
@@ -356,7 +356,7 @@ struct GraphicsSettingsSection: View {
                 in: OverrideGammaSetting.minValue...OverrideGammaSetting.maxValue
             )
             .accessibilityLabel("Override gamma")
-            .onChange(of: overrideGammaValue) { newValue in
+            .onValueChange(of: overrideGammaValue) { newValue in
                 cemu_bridge_set_override_gamma_value(Float(newValue))
             }
         }

@@ -102,7 +102,7 @@ struct LaunchLogView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                 }
-                .onChange(of: store.lines.count) { count in
+                .onValueChange(of: store.lines.count) { count in
                     guard count > 0 else { return }
                     withAnimation(.easeOut(duration: 0.12)) {
                         proxy.scrollTo(count - 1, anchor: .bottom)

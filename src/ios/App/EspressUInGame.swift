@@ -58,7 +58,7 @@ struct InGameBlowButton: View {
                     .onChanged { _ in if enabled { setBlowing(true) } }
                     .onEnded { _ in setBlowing(false) }
             )
-            .onChange(of: enabled) { isEnabled in
+            .onValueChange(of: enabled) { isEnabled in
                 if !isEnabled { setBlowing(false) }
             }
             .onDisappear { setBlowing(false) }

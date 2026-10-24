@@ -262,13 +262,13 @@ private struct PreviewDpadView: View {
             )
             .allowsHitTesting(isInteractive)
             .position(centre)
-            .onChange(of: touching) { down in
+            .onValueChange(of: touching) { down in
                 if !down { releaseAll() }
             }
-            .onChange(of: held) { now in
+            .onValueChange(of: held) { now in
                 if !now.isEmpty && !touching { releaseAll() }
             }
-            .onChange(of: isInteractive) { active in
+            .onValueChange(of: isInteractive) { active in
                 if !active { releaseAll() }
             }
             .onDisappear { releaseAll() }
@@ -332,13 +332,13 @@ private struct PreviewStickView: View {
         )
         .allowsHitTesting(isInteractive)
         .position(centre)
-        .onChange(of: touching) { down in
+        .onValueChange(of: touching) { down in
             if !down { recentre() }
         }
-        .onChange(of: knobOffset) { offset in
+        .onValueChange(of: knobOffset) { offset in
             if offset != .zero && !touching { recentre() }
         }
-        .onChange(of: isInteractive) { active in
+        .onValueChange(of: isInteractive) { active in
             if !active { recentre() }
         }
         .onDisappear {

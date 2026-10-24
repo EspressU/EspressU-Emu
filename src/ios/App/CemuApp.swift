@@ -44,13 +44,13 @@ struct CemuApp: App {
                 .id(themeStore.current.id)
                 .preferredColorScheme(appearanceMode == "light" ? .light : (appearanceMode == "dark" ? .dark : nil))
                 .espressuScrollEdgeBlurHidden()
-                .onChange(of: scenePhase) { phase in
+                .onValueChange(of: scenePhase) { phase in
                     if phase != .active {
                         ControllerCustomLayout.shared.flushPending()
                         UserDefaults.standard.synchronize()
                     }
                 }
-                .onChange(of: scenePhase) { phase in
+                .onValueChange(of: scenePhase) { phase in
                     if phase == .background { PipelineCacheFlusher.flushForBackground() }
                 }
                 .onAppear {
@@ -98,6 +98,19 @@ enum PipelineCacheFlusher {
                     box.id = .invalid
                 }
             }
+        }
+    }
+}
+
+// Keep the one-value callback available on iOS 15/16 while using the current API on newer systems.
+extension View {
+    @ViewBuilder
+    func onValueChange<Value: Equatable>(of value: Value,
+                                        perform action: @escaping (Value) -> Void) -> some View {
+        if #available(iOS 17.0, *) {
+            onChange(of: value) { _, newValue in action(newValue) }
+        } else {
+            onChange(of: value, perform: action)
         }
     }
 }

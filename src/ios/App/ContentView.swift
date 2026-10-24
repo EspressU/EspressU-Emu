@@ -457,7 +457,7 @@ struct GameBrowserView: View {
     var body: some View {
         withAlerts(withSheets(
             libraryScreen
-            .onChange(of: scenePhase) { phase in
+            .onValueChange(of: scenePhase) { phase in
                 if phase == .active {
                     if gameManager.emulationState == .idle { StikJITCoordinator.shared.autoEnableIfPossible() }
                     Task {
@@ -868,7 +868,7 @@ struct GameBrowserView: View {
                     removingContentMessage = "Removing \(pending.kind.displayName) for \"\(pending.game.title)\"…"
                     Task {
                         do {
-                            try await Task.detached {
+                            _ = try await Task.detached {
                                 try DlcUpdateImport.remove(kind: pending.kind, for: pending.game)
                             }.value
                         } catch {
@@ -1262,7 +1262,7 @@ struct SearchBarPolished: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
             }
         }
-        .onChange(of: focused) { isFocused in
+        .onValueChange(of: focused) { isFocused in
             if !isFocused && text.isEmpty { onKeyboardDismiss?() }
         }
     }
@@ -1741,7 +1741,7 @@ struct EmulatorViewOptimized: View {
                 if !topBarHidden, bottom != topBarHeight { topBarHeight = bottom }
             }
             .overlay(alignment: .top) { topBarRevealHandle }
-            .onChange(of: isPaused) { paused in
+            .onValueChange(of: isPaused) { paused in
                 if paused, topBarHidden { setTopBarHidden(false) }
             }
             .task(id: topBarHideKey) { await runTopBarAutoHide(topBarHideKey) }
@@ -1892,10 +1892,10 @@ struct EmulatorViewOptimized: View {
             OrientationPolicy.setInGame(false)
             cemu_bridge_release_all_buttons()
         }
-        .onChange(of: showLaunchLog) { enabled in
+        .onValueChange(of: showLaunchLog) { enabled in
             if enabled { launchLog.start() } else { launchLog.stop() }
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onValueChange(of: scenePhase) { newPhase in
             if newPhase == .active {
                 guard pausedByLifecycle else { return }
                 pausedByLifecycle = false
@@ -1910,7 +1910,7 @@ struct EmulatorViewOptimized: View {
                 setTitlePaused(true)
             }
         }
-        .onChange(of: gameManager.emulationState) { state in
+        .onValueChange(of: gameManager.emulationState) { state in
             guard state == .running else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { showGamePadHintIfNeeded() }
             if scenePhase != .active && !isPaused {
@@ -1919,7 +1919,7 @@ struct EmulatorViewOptimized: View {
             }
             if isPaused { setTitlePaused(true) }
         }
-        .onChange(of: isPadViewVisible) { visible in
+        .onValueChange(of: isPadViewVisible) { visible in
             if !visible { padControlsHidden = false }
             if visible { showGamePadHintIfNeeded() }
         }
@@ -1927,7 +1927,7 @@ struct EmulatorViewOptimized: View {
         .modifier(HeatNoticeModifier { gameManager.showLaunchNotice($0) })
         .modifier(HomeMenuEventsModifier(isOpen: showHomeMenu || isEditingControlLayout, onEvent: handleHomeMenuEvent))
         .modifier(ControllerAutoHideModifier(apply: controllerPresenceChanged))
-        .onChange(of: autoHideWithController) { _ in
+        .onValueChange(of: autoHideWithController) { _ in
             padShownDespiteController = false
             cemu_bridge_release_all_buttons()
         }
@@ -1939,12 +1939,12 @@ struct EmulatorViewOptimized: View {
                     .transition(.opacity)
             }
         }
-        .onChange(of: gameManager.videoStalled) { stalled in
+        .onValueChange(of: gameManager.videoStalled) { stalled in
             if !stalled {
                 stallCardDismissed = false
             }
         }
-        .onChange(of: gameManager.videoStallKind) { kind in
+        .onValueChange(of: gameManager.videoStallKind) { kind in
             if kind != 0 { stallCardDismissed = false }
         }
         .sheet(isPresented: $showEmulatedDevices) {
@@ -2142,9 +2142,9 @@ struct EmulatorViewOptimized: View {
         .ignoresSafeArea(.all, edges: verticalSizeClass == .regular ? .horizontal : .all)
         .trackTouchLabScreens($touchLabScreens, imageIsAspectFit: { !FrameStretch.isEnabled })
         .onAppear { updateVisibleOutputs() }
-        .onChange(of: screenLayout) { _ in updateVisibleOutputs() }
-        .onChange(of: localSwapped) { _ in updateVisibleOutputs() }
-        .onChange(of: displayRouter.placement) { _ in updateVisibleOutputs() }
+        .onValueChange(of: screenLayout) { _ in updateVisibleOutputs() }
+        .onValueChange(of: localSwapped) { _ in updateVisibleOutputs() }
+        .onValueChange(of: displayRouter.placement) { _ in updateVisibleOutputs() }
         .onDisappear {
             DisplayRouter.shared.updateLocalVisibleOutputs(showTV: true, showPad: false)
             cemu_bridge_set_pad_touch(0, 0, false)

@@ -107,7 +107,7 @@ struct EspressUJITPanel: View {
             }
             .frame(maxHeight: max(120, maxHeight - 120))
             .fixedSize(horizontal: false, vertical: true)
-            .onChange(of: model.focus) { index in
+            .onValueChange(of: model.focus) { index in
                 let rows = model.rows
                 guard showsFocus, rows.indices.contains(index) else { return }
                 withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(rows[index].id) }
@@ -118,7 +118,7 @@ struct EspressUJITPanel: View {
         .frame(maxWidth: 460)
         .espressUSurface(RoundedRectangle(cornerRadius: 30, style: .continuous))
         .animation(.easeOut(duration: 0.15), value: model.focus)
-        .onChange(of: scenePhase) { phase in
+        .onValueChange(of: scenePhase) { phase in
             if phase == .active { model.refreshAfterReturn() }
         }
     }

@@ -110,7 +110,7 @@ struct OverlaySettingsSection: View {
             .labelsHidden()
             .tint(EspressUTheme.accentText)
         }
-        .onChange(of: positionRaw) { newValue in
+        .onValueChange(of: positionRaw) { newValue in
             cemu_bridge_set_overlay_position(Int32(newValue))
         }
     }
@@ -119,7 +119,7 @@ struct OverlaySettingsSection: View {
         ColorPicker("Text colour", selection: packedColourBinding($textColor), supportsOpacity: false)
             .font(.system(size: 15, weight: .semibold, design: .rounded))
             .disabled(isOff)
-            .onChange(of: textColor) { newValue in
+            .onValueChange(of: textColor) { newValue in
                 cemu_bridge_set_overlay_text_color(UInt32(truncatingIfNeeded: newValue))
             }
     }
@@ -139,7 +139,7 @@ struct OverlaySettingsSection: View {
                 in: 50...200, step: 25)
         }
         .disabled(isOff)
-        .onChange(of: textScale) { newValue in
+        .onValueChange(of: textScale) { newValue in
             cemu_bridge_set_overlay_text_scale(Int32(newValue))
         }
     }
@@ -151,7 +151,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: fpsEnabled) { newValue in
+        .onValueChange(of: fpsEnabled) { newValue in
             cemu_bridge_set_overlay_fps(newValue)
         }
     }
@@ -163,7 +163,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: drawcallsEnabled) { newValue in
+        .onValueChange(of: drawcallsEnabled) { newValue in
             cemu_bridge_set_overlay_drawcalls(newValue)
         }
     }
@@ -175,7 +175,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: cpuUsageEnabled) { newValue in
+        .onValueChange(of: cpuUsageEnabled) { newValue in
             cemu_bridge_set_overlay_cpu_usage(newValue)
         }
     }
@@ -187,7 +187,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: cpuPerCoreUsageEnabled) { newValue in
+        .onValueChange(of: cpuPerCoreUsageEnabled) { newValue in
             cemu_bridge_set_overlay_cpu_per_core_usage(newValue)
         }
     }
@@ -199,7 +199,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: ramUsageEnabled) { newValue in
+        .onValueChange(of: ramUsageEnabled) { newValue in
             cemu_bridge_set_overlay_ram_usage(newValue)
         }
     }
@@ -211,7 +211,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: vramUsageEnabled) { newValue in
+        .onValueChange(of: vramUsageEnabled) { newValue in
             cemu_bridge_set_overlay_vram_usage(newValue)
         }
     }
@@ -223,7 +223,7 @@ struct OverlaySettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: debugEnabled) { newValue in
+        .onValueChange(of: debugEnabled) { newValue in
             cemu_bridge_set_overlay_debug(newValue)
         }
     }

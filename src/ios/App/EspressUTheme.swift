@@ -578,7 +578,7 @@ struct EspressUPrimaryButtonStyle: ButtonStyle {
                 .opacity(isEnabled ? 1 : 0.45)
                 .scaleEffect(pressed ? EspressUTheme.Motion.pressScale : 1)
                 .animation(EspressUTheme.Motion.press(isPressed: pressed, reduceMotion: reduceMotion), value: pressed)
-                .onChange(of: pressed) { nowPressed in
+                .onValueChange(of: pressed) { nowPressed in
                     if nowPressed { EspressUHaptics.tap() }
                 })
         }
@@ -626,7 +626,7 @@ struct EspressUSecondaryButtonStyle: ButtonStyle {
                 .opacity(isEnabled ? 1 : 0.45)
                 .scaleEffect(pressed ? EspressUTheme.Motion.compactPressScale : 1)
                 .animation(EspressUTheme.Motion.press(isPressed: pressed, reduceMotion: reduceMotion), value: pressed)
-                .onChange(of: pressed) { nowPressed in
+                .onValueChange(of: pressed) { nowPressed in
                     if nowPressed { EspressUHaptics.tap() }
                 })
         }

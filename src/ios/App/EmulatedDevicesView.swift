@@ -176,7 +176,7 @@ private struct EmulateDeviceToggle: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: isOn) { newValue in
+        .onValueChange(of: isOn) { newValue in
             UserDefaults.standard.set(newValue, forKey: device.enabledStorageKey)
             device.setEmulated(newValue)
         }

@@ -214,8 +214,8 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { measureInsets() }
                         }
                     }
-                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didChangeStatusBarFrameNotification)) { _ in measureInsets() }
-                    .onChange(of: geo.size) { _ in measure(geo) }
+                    .onValueChange(of: geo.safeAreaInsets) { _ in measure(geo) }
+                    .onValueChange(of: geo.size) { _ in measure(geo) }
             }
         )
         .overlay(alignment: .top) {
@@ -247,7 +247,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: optionsGameId)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: showingJIT)
         .animation(isPhone ? .spring(response: 0.5, dampingFraction: 0.9) : .easeInOut(duration: 0.2), value: showingSearch)
-        .onChange(of: games.map(\.id)) { ids in
+        .onValueChange(of: games.map(\.id)) { ids in
             if let selectedId, !ids.contains(selectedId) { self.selectedId = nil }
             pad.onCommand = handlePad
         }
@@ -265,11 +265,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             pad.start()
         }
         .onDisappear { pad.stop() }
-        .onChange(of: showingAdd) { open in
+        .onValueChange(of: showingAdd) { open in
             addFocus = open && pad.showsFocus ? addGroups.first?.1.first?.id : nil
             pad.onCommand = handlePad
         }
-        .onChange(of: gameManager.isLoading) { _ in pad.onCommand = handlePad }
+        .onValueChange(of: gameManager.isLoading) { _ in pad.onCommand = handlePad }
     }
 
     private func measure(_ geo: GeometryProxy) {
@@ -551,7 +551,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             }
         }
         .coordinateSpace(name: "homeGrid")
-        .onChange(of: selectedId) { id in
+        .onValueChange(of: selectedId) { id in
             guard let id else { return }
             withAnimation(.easeInOut(duration: 0.25)) { scroller.scrollTo(id, anchor: .center) }
         }
@@ -1162,7 +1162,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     GeometryReader { geo in
                         Color.clear
                             .onAppear { addContentHeight = geo.size.height }
-                            .onChange(of: geo.size.height) { addContentHeight = $0 }
+                            .onValueChange(of: geo.size.height) { addContentHeight = $0 }
                     }
                 )
             }
@@ -1286,7 +1286,7 @@ struct EspressUMenuBar: View {
                         if insideVertically && start != end { items[end].action() }
                     }
             )
-            .onChange(of: hovered) { newValue in
+            .onValueChange(of: hovered) { newValue in
                 if newValue != nil && lastHovered != nil { haptics.selectionChanged() }
                 lastHovered = newValue
                 haptics.prepare()
