@@ -32,10 +32,16 @@ struct DeviceReportSection: View {
             } label: {
                 Label("Share EspressU report", systemImage: "square.and.arrow.up")
             }
+
+            Button(role: .destructive) {
+                cemu_bridge_report_clear()
+            } label: {
+                Label("Delete EspressU report", systemImage: "trash")
+            }
         } header: {
             SettingsSectionHeader("This Device", icon: "iphone", accent: .system)
         } footer: {
-            InfoButton.footer("For any bug, crash or speed comparison, share the EspressU report: device, settings, the whole log, crashes and a performance summary per game. The previous session's report is included.")
+            InfoButton.footer("For any bug, crash or speed comparison, share the EspressU report: device, settings, the whole log, crashes and a performance summary per game. Every session goes into the same file until you delete it here.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }

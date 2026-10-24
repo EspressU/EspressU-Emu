@@ -210,6 +210,7 @@ bool cemu_bridge_metal4_output_supported(void);
 void cemu_bridge_report_settings(const char* text);
 const char* cemu_bridge_report_path(void);
 const char* cemu_bridge_report_previous_path(void);
+void cemu_bridge_report_clear(void);
 
 const char* cemu_bridge_gpu_fault_history(void);
 void cemu_bridge_clear_gpu_fault_history(void);

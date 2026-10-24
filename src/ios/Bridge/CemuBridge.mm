@@ -3076,6 +3076,10 @@ const char* cemu_bridge_report_path(void) {
     return path.c_str();
 }
 
+void cemu_bridge_report_clear(void) {
+    IOSReport_Clear();
+}
+
 const char* cemu_bridge_report_previous_path(void) {
     static std::string path;
     path = IOSReport_PreviousPath();

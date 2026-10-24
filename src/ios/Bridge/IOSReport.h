@@ -6,10 +6,9 @@
 
 // EspressU-Report.txt: the one file to send for a bug, a crash or a performance comparison.
 //
-// One file per app session in Documents, the two sessions before it kept as -previous and -older. It holds
+// One file in Documents/Logs for every app session, appended to until it is deleted. Each session holds
 // the device and settings, every log line, memory samples, crash reports with backtraces, a performance
-// summary per game with a one-line COMPARE entry, and, when the previous session crashed or was killed,
-// what is known about that at the top of the next one.
+// summary per game with a one-line COMPARE entry, and at its top how the session before it ended.
 //
 // Writes are plain write() calls on one descriptor, so the crash handler can use it too.
 
@@ -49,4 +48,6 @@ void IOSReport_NotePerfWindow(const IOSReportPerfWindow& window);
 void IOSReport_TitleStopped(const char* reason);
 
 std::string IOSReport_Path();
-std::string IOSReport_PreviousPath();
+std::string IOSReport_PreviousPath(); // empty: there is only one report file
+// Empties the report; the running session goes on writing into it.
+void IOSReport_Clear();

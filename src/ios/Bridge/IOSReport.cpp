@@ -24,6 +24,8 @@ namespace
 	constexpr off_t kLogTeeLimit = 48ll << 20;
 
 	int s_fd = -1;
+	// Where this session starts in the file; the log size limit counts from here.
+	off_t s_sessionStart = 0;
 	std::string s_path;
 	std::string s_previousPath;
 	std::atomic<bool> s_logTeeFull{false};
@@ -104,59 +106,28 @@ namespace
 		return text;
 	}
 
-	// What the previous session left behind: a crash report, a kill while a game ran, or a normal end.
-	std::string DescribePreviousSession(const std::string& previousPath)
+	// What the session before this one, further up in the same file, left behind: a crash report, a kill while a
+	// game ran, or a normal end. Only its verdict is written; the session itself is right above.
+	std::string DescribePreviousSession(const std::string& path)
 	{
-		const std::string tail = ReadTail(previousPath, 512 * 1024);
-		if (tail.empty())
-			return "No earlier session report.\n";
+		std::string tail = ReadTail(path, 1024 * 1024);
+		const size_t sessionAt = tail.rfind("EspressU report, session started");
+		if (tail.empty() || sessionAt == std::string::npos)
+			return "This is the first session in this report.\n";
+		tail = tail.substr(sessionAt);
 
-		std::string text;
 		const char* crashMarkers[] = {"=== CEMU CRASH", "=== CEMU TERMINATE", "=== GPU THREAD EXCEPTION"};
-		size_t crashAt = std::string::npos;
+		bool crashed = false;
 		for (const char* marker : crashMarkers)
-		{
-			const size_t at = tail.rfind(marker);
-			if (at != std::string::npos && (crashAt == std::string::npos || at > crashAt))
-				crashAt = at;
-		}
+			crashed = crashed || tail.find(marker) != std::string::npos;
 		const size_t lastStart = tail.rfind("[report] TITLE RUNNING");
 		const size_t lastStop = tail.rfind("[report] TITLE STOPPED");
-		if (crashAt != std::string::npos)
-		{
-			text += "The previous session CRASHED. Its crash report:\n\n";
-			size_t end = tail.find("=== end of crash report ===", crashAt);
-			end = end == std::string::npos ? tail.size() : end + strlen("=== end of crash report ===");
-			text += tail.substr(crashAt, std::min<size_t>(end - crashAt, 96 * 1024));
-			text += "\n";
-		}
-		else if (lastStart != std::string::npos && (lastStop == std::string::npos || lastStop < lastStart))
-		{
-			text += "The previous session ENDED WHILE A GAME WAS RUNNING without a crash report: iOS killed the app "
-			        "(out of memory, watchdog, overheating) or it was closed from the app switcher.\n";
-		}
-		else
-		{
-			text += "The previous session ended normally.\n";
-		}
-
-		// The last lines before the end, whatever the reason.
-		size_t from = tail.size();
-		for (int lines = 0; lines < 60 && from > 0; )
-		{
-			from = tail.rfind('\n', from - 1);
-			if (from == std::string::npos)
-			{
-				from = 0;
-				break;
-			}
-			lines++;
-		}
-		text += "\nLast lines of the previous session:\n";
-		text += tail.substr(from);
-		if (!text.empty() && text.back() != '\n')
-			text += '\n';
-		return text;
+		if (crashed)
+			return "The previous session (above) CRASHED; its crash report is at the end of it.\n";
+		if (lastStart != std::string::npos && (lastStop == std::string::npos || lastStop < lastStart))
+			return "The previous session (above) ENDED WHILE A GAME WAS RUNNING without a crash report: iOS killed the app "
+			       "(out of memory, watchdog, overheating) or it was closed from the app switcher.\n";
+		return "The previous session (above) ended normally.\n";
 	}
 
 	const char* ThermalName(int state)
@@ -275,15 +246,16 @@ void IOSReport_OpenEarly()
 	// All logs live in Documents/Logs, next to each other and visible in the Files app.
 	const std::string dir = std::string(home) + "/Documents/Logs/";
 	mkdir(dir.c_str(), 0755);
+	// One file for every session, appended to until it is deleted in the app or the Files app.
 	s_path = dir + "EspressU-Report.txt";
-	s_previousPath = dir + "EspressU-Report-previous.txt";
-	const std::string olderPath = dir + "EspressU-Report-older.txt";
-
-	rename(s_previousPath.c_str(), olderPath.c_str());
-	rename(s_path.c_str(), s_previousPath.c_str());
-	s_fd = open(s_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0644);
+	const std::string previous = DescribePreviousSession(s_path);
+	s_fd = open(s_path.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (s_fd < 0)
 		return;
+	struct stat info{};
+	s_sessionStart = fstat(s_fd, &info) == 0 ? info.st_size : 0;
+	if (s_sessionStart > 0)
+		WriteString("\n\n");
 
 	WriteString("################################################################\n");
 	WriteString("EspressU report, session started " + DateTime() + "\n");
@@ -291,7 +263,7 @@ void IOSReport_OpenEarly()
 	            "CRASH (when one happens), PERFORMANCE SUMMARY + COMPARE line (each time a game stops).\n");
 	WriteString("################################################################\n");
 	IOSReport_Section("PREVIOUS SESSION");
-	WriteString(DescribePreviousSession(s_previousPath));
+	WriteString(previous);
 	IOSReport_Section("LOG");
 }
 
@@ -305,10 +277,10 @@ void IOSReport_Write(const char* text, size_t length)
 	if (s_fd < 0 || s_logTeeFull.load(std::memory_order_relaxed))
 		return;
 	struct stat info{};
-	if (fstat(s_fd, &info) == 0 && info.st_size > kLogTeeLimit)
+	if (fstat(s_fd, &info) == 0 && info.st_size - s_sessionStart > kLogTeeLimit)
 	{
 		if (!s_logTeeFull.exchange(true))
-			WriteString("\n[report] the report reached 48 MB; further ordinary log lines are only in log.txt\n");
+			WriteString("\n[report] this session reached 48 MB in the report; further ordinary log lines are only in log.txt\n");
 		return;
 	}
 	WriteAll(text, length);
@@ -424,4 +396,17 @@ std::string IOSReport_Path()
 std::string IOSReport_PreviousPath()
 {
 	return s_previousPath;
+}
+
+void IOSReport_Clear()
+{
+	if (s_fd < 0)
+		return;
+	ftruncate(s_fd, 0);
+	s_sessionStart = 0;
+	s_logTeeFull.store(false);
+	WriteString("################################################################\n");
+	WriteString("EspressU report, cleared " + DateTime() + "; the session continues below\n");
+	WriteString("################################################################\n");
+	IOSReport_Section("LOG (continued)");
 }
