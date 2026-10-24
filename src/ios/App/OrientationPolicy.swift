@@ -40,7 +40,9 @@ enum OrientationPolicy {
                 UIDevice.current.setValue(value.rawValue, forKey: "orientation")
             }
         }
-        UIViewController.attemptRotationToDeviceOrientation()
+        if #unavailable(iOS 16.0) {
+            UIViewController.attemptRotationToDeviceOrientation()
+        }
     }
 }
 

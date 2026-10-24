@@ -165,6 +165,14 @@ final class GameDataStore: ObservableObject {
     private let lock = NSLock()
     private var file = GameDataFile()
     private var titleIndex: [TitleIndexRecord] = []
+
+    private func storeScrape(_ completedFile: GameDataFile, index: [TitleIndexRecord]) {
+        lock.lock()
+        defer { lock.unlock() }
+        file = completedFile
+        titleIndex = index
+    }
+
     private var cancelRequested = false
     private static let overridesKey = "espressu.gamedata.manualOverrides"
     private static let lastAttemptKey = "espressu.gamedata.lastAutoAttempt"
@@ -346,11 +354,9 @@ final class GameDataStore: ObservableObject {
         newFile.info = result.info
         try JSONEncoder.iso.encode(newFile).write(to: Self.dataURL, options: .atomic)
         try JSONEncoder().encode(result.titleIndex).write(to: Self.indexURL, options: .atomic)
-        lock.lock()
-        file = newFile
-        titleIndex = result.titleIndex
-        lock.unlock()
-        await MainActor.run { self.lastScrape = newFile.scrapedAt }
+        let completedFile = newFile
+        storeScrape(completedFile, index: result.titleIndex)
+        await MainActor.run { self.lastScrape = completedFile.scrapedAt }
 
         let matched = result.matches.count
         return "Matched \(matched) of \(targets.count) games from \(reader.gamesRead) database entries."

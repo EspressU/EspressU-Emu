@@ -71,6 +71,8 @@ private final class HelperWork {
             return reply(ok: false, readiness: "unreachable", reason: reason)
         case .preparationFailed(let reason):
             return reply(ok: false, readiness: "notReady", reason: reason)
+        @unknown default:
+            return reply(ok: false, readiness: "notReady", reason: "Unknown device readiness. Update EspressU and try again.")
         }
     }
 

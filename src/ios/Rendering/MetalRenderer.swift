@@ -35,12 +35,7 @@ class AdvancedMetalRenderer: NSObject, MTKViewDelegate {
     }
 
     private func setupLibrary() {
-        do {
-            let defaultLibrary = try device.makeDefaultLibrary()
-            self.library = defaultLibrary
-        } catch {
-            print("Error loading Metal library: \(error)")
-        }
+        library = device.makeDefaultLibrary()
     }
 
     private func setupPipelines() {
@@ -136,9 +131,7 @@ class AdvancedMetalRenderer: NSObject, MTKViewDelegate {
 
         renderEncoder.endEncoding()
 
-        if let drawable = drawable as? CAMetalDrawable {
-            commandBuffer.present(drawable)
-        }
+        commandBuffer.present(drawable)
 
         commandBuffer.commit()
     }

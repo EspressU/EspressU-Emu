@@ -13,8 +13,8 @@ import Combine
 final class PadDiagnostics: ObservableObject {
     static let shared = PadDiagnostics()
 
-    static let enabledKey = "espressu.diagnostics.padOverlay"
-    static let defaultEnabled = false
+    nonisolated static let enabledKey = "espressu.diagnostics.padOverlay"
+    nonisolated static let defaultEnabled = false
 
     enum ActivePad: String {
         case none = "none mounted"
