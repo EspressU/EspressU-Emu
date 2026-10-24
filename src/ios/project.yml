@@ -21,6 +21,8 @@ settings:
     - '$(SRCROOT)/../../build-ios/out'
   LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks'
   GENERATE_INFOPLIST_FILE: 'YES'
+  # Neither target declares App Intents; skip the unused metadata extraction step.
+  LM_SKIP_METADATA_EXTRACTION: 'YES'
   INFOPLIST_FILE: 'Info-AlternateIcons.plist'
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   MARKETING_VERSION: '1.2'
