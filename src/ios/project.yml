@@ -24,6 +24,7 @@ settings:
   # Neither target declares App Intents; skip the unused metadata extraction step.
   LM_SKIP_METADATA_EXTRACTION: 'YES'
   INFOPLIST_FILE: 'Info-AlternateIcons.plist'
+  INFOPLIST_KEY_UIRequiresFullScreen: 'YES'
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   MARKETING_VERSION: '1.2'
   CURRENT_PROJECT_VERSION: '1'
