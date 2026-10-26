@@ -1,14 +1,14 @@
 name: EspressU
 
 options:
-  bundleIdPrefix: com.am4rdev
+  bundleIdPrefix: dev.espressu
   deploymentTarget:
     iOS: '15.0'
   xcodeVersion: '15.0'
 
 settings:
   PRODUCT_NAME: EspressU
-  PRODUCT_BUNDLE_IDENTIFIER: com.am4rdev.EspressU
+  PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU
   SDKROOT: iphoneos
   IPHONEOS_DEPLOYMENT_TARGET: '15.0'
   CODE_SIGN_IDENTITY: iPhone Developer
@@ -114,7 +114,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: StikJITHelper
-        PRODUCT_BUNDLE_IDENTIFIER: com.am4rdev.EspressU.StikJITHelper
+        PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU.StikJITHelper
         INFOPLIST_FILE: StikJITHelper/Info.plist
         GENERATE_INFOPLIST_FILE: 'NO'
         CODE_SIGN_ENTITLEMENTS: ''

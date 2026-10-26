@@ -75,7 +75,7 @@ if(BUILD_HEADLESS_DYLIB)
     set_target_properties(CemuBin PROPERTIES
         CXX_VISIBILITY_PRESET default
         VISIBILITY_INLINES_HIDDEN OFF
-        MACOSX_FRAMEWORK_IDENTIFIER com.am4rdev.EspressU.Cemu
+        MACOSX_FRAMEWORK_IDENTIFIER dev.espressu.EspressU.Cemu
         FRAMEWORK TRUE
     )
     if(IOS)

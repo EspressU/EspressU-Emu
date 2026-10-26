@@ -5,7 +5,7 @@ import StikJIT
 
 @objc(StikJITHelperHandler)
 final class StikJITHelperHandler: NSObject, NSExtensionRequestHandling {
-    private static let queue = DispatchQueue(label: "com.am4rdev.EspressU.StikJITHelper", qos: .userInitiated)
+    private static let queue = DispatchQueue(label: "dev.espressu.EspressU.StikJITHelper", qos: .userInitiated)
 
     func beginRequest(with context: NSExtensionContext) {
         let item = context.inputItems.first as? NSExtensionItem
