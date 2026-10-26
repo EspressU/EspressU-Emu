@@ -840,6 +840,20 @@ void MetalPipelineCache::OpenBinaryArchives(uint64 cacheTitleId)
 		cemuLog_log(LogType::Force, "Metal binary archive: not used for this launch (restart the app to use it again)");
 		return;
 	}
+	// Opening archives crashed the app on this title before (bad_alloc inside Metal). It stays off for this title:
+	// the system's own pipeline cache already makes later launches fast, and a crash on every second launch costs more.
+	const fs::path disabledPath = dir / fmt::format("{:016x}_mtlopen.disabled", cacheTitleId);
+	{
+		std::error_code dEc;
+		if (fs::exists(disabledPath, dEc))
+		{
+			m_archiveWriteEnabled = false;
+			m_archiveFilesLoaded = 0;
+			m_archiveBaseBytes = 0;
+			cemuLog_log(LogType::Force, "Metal binary archive: switched off for this title because opening it crashed the app before (delete the compiled shaders in Settings to try again)");
+			return;
+		}
+	}
 	{
 		const uint64 hole = GetLargestAddressSpaceHole();
 		if (hole < ARCHIVE_MIN_FREE_HOLE_BYTES)
@@ -962,6 +976,15 @@ void MetalPipelineCache::OpenBinaryArchives(uint64 cacheTitleId)
 			files.clear();
 			std::fill(used.begin(), used.end(), false);
 			fs::remove(markerPath, mEc);
+			{
+				std::ofstream disabled(disabledPath, std::ios::binary);
+				disabled << "1";
+			}
+			m_archiveWriteEnabled = false;
+			m_archiveFilesLoaded = 0;
+			m_archiveBaseBytes = 0;
+			cemuLog_log(LogType::Force, "Metal binary archive: switched off for this title from now on");
+			return;
 		}
 		else if (!files.empty())
 		{
