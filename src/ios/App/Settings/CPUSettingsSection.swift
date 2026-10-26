@@ -28,7 +28,7 @@ struct CPUSettingsSection: View {
                 }
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: recompilerEnabled) { newValue in
+            .onValueChange(of: recompilerEnabled) { newValue in
                 cemu_bridge_set_recompiler_enabled(newValue)
             }
 
@@ -45,7 +45,7 @@ struct CPUSettingsSection: View {
                     }
                 }
                 .tint(EspressUTheme.accentText)
-                .onChange(of: favourAccuracy) { newValue in
+                .onValueChange(of: favourAccuracy) { newValue in
                     cemu_bridge_set_favour_accuracy(newValue)
                     if newValue { favourPerformance = false }
                 }
@@ -62,7 +62,7 @@ struct CPUSettingsSection: View {
                     }
                 }
                 .tint(EspressUTheme.accentText)
-                .onChange(of: favourPerformance) { newValue in
+                .onValueChange(of: favourPerformance) { newValue in
                     cemu_bridge_set_favour_performance(newValue)
                     if newValue { favourAccuracy = false }
                 }
@@ -79,7 +79,7 @@ struct CPUSettingsSection: View {
                     }
                 }
                 .tint(EspressUTheme.accentText)
-                .onChange(of: oneCoreMode) { newValue in
+                .onValueChange(of: oneCoreMode) { newValue in
                     cemu_bridge_set_low_power_mode(newValue)
                 }
 
@@ -105,7 +105,7 @@ struct CPUSettingsSection: View {
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .onChange(of: coreModeRaw) { newValue in
+                .onValueChange(of: coreModeRaw) { newValue in
                     cemu_bridge_set_cpu_core_mode((CoreMode(rawValue: newValue) ?? CoreMode.defaultValue).bridgeValue)
                 }
             }
@@ -131,7 +131,7 @@ struct CPUSettingsSection: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: coolDownThresholdRaw) { _ in
+                    .onValueChange(of: coolDownThresholdRaw) { _ in
                         thermal.thresholdChanged()
                     }
                     Text((ThermalSettings.Threshold(rawValue: coolDownThresholdRaw) ?? ThermalSettings.defaultThreshold).summary)

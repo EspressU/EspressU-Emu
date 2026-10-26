@@ -21,6 +21,8 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> mtlCommandBuffers{0};
 		std::atomic<uint32_t> tvPresents{0};
 		std::atomic<uint32_t> padPresents{0};
+		std::atomic<uint32_t> tvAndPadSameFramePresents{0};
+		std::atomic<uint32_t> padPresentsHeldBack{0};
 
 		std::atomic<uint32_t> shaderCompiles{0};
 		std::atomic<uint64_t> shaderCompileNs{0};

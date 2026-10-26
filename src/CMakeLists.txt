@@ -75,7 +75,7 @@ if(BUILD_HEADLESS_DYLIB)
     set_target_properties(CemuBin PROPERTIES
         CXX_VISIBILITY_PRESET default
         VISIBILITY_INLINES_HIDDEN OFF
-        MACOSX_FRAMEWORK_IDENTIFIER com.am4rdev.EspressU.Cemu
+        MACOSX_FRAMEWORK_IDENTIFIER dev.espressu.EspressU.Cemu
         FRAMEWORK TRUE
     )
     if(IOS)
@@ -115,6 +115,8 @@ if(IOS)
 		ios/Bridge/CemuBridge.mm
 		ios/Bridge/IOSLiveLog.h
 		ios/Bridge/IOSLiveLog.cpp
+		ios/Bridge/IOSReport.h
+		ios/Bridge/IOSReport.cpp
 		ios/Bridge/IOSMotion.h
 		ios/Bridge/IOSMotion.mm
 		ios/Bridge/CemuDeviceCaps.h
@@ -146,6 +148,7 @@ if(IOS)
 		"-framework CoreMotion"
 		"-framework Metal"
 		"-framework QuartzCore"
+		"-weak_framework MetalFX"
 	)
 endif()
 

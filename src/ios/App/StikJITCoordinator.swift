@@ -591,7 +591,7 @@ final class LocalDevVPNMonitor: ObservableObject {
         monitor.pathUpdateHandler = { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
-        monitor.start(queue: DispatchQueue(label: "com.am4rdev.EspressU.localdevvpn"))
+        monitor.start(queue: DispatchQueue(label: "dev.espressu.EspressU.localdevvpn"))
         pathMonitor = monitor
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }

@@ -141,7 +141,7 @@ struct TouchLabPadOverlay: View {
             .onAppear {
                 syncGamepadSize()
             }
-            .onChange(of: screens) { _ in syncGamepadSize() }
+            .onValueChange(of: screens) { _ in syncGamepadSize() }
     }
 
     private var revision: Int {

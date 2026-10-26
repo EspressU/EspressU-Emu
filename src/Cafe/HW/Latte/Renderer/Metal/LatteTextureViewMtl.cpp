@@ -2,6 +2,8 @@
 #include "Cafe/HW/Latte/Renderer/Metal/LatteTextureMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 #include "Metal/MTLTexture.hpp"
 
 uint32 LatteTextureMtl_AdjustTextureCompSel(Latte::E_GX2SURFFMT format, uint32 compSel)
@@ -171,8 +173,27 @@ MTL::Texture* LatteTextureViewMtl::CreateSwizzledView(uint32 gpuSamplerSwizzle)
     levelCount = std::min(levelCount, m_baseTexture->maxPossibleMipLevels - baseLevel);
     levelCount = std::max(levelCount, (uint32)1);
 
+    MTL::Texture* baseTexture = m_baseTexture->GetTexture();
+    if (m_baseTexture->IsNullSubstitute())
+    {
+        // The stand-in has a single mip and may have fewer layers than the guest texture.
+        baseLevel = 0;
+        levelCount = 1;
+        const uint32 layers = (uint32)std::max<NS::UInteger>(1, baseTexture->arrayLength() * (baseTexture->textureType() == MTL::TextureTypeCubeArray ? 6 : 1));
+        baseLayer = std::min(baseLayer, layers - 1);
+        layerCount = std::min(layerCount, layers - baseLayer);
+    }
+
     auto pixelFormat = GetMtlPixelFormat(format, m_baseTexture->isDepth);
-    MTL::Texture* texture = m_baseTexture->GetTexture()->newTextureView(pixelFormat, textureType, NS::Range::Make(baseLevel, levelCount), NS::Range::Make(baseLayer, layerCount), swizzle);
+    MTL::Texture* texture = baseTexture->newTextureView(pixelFormat, textureType, NS::Range::Make(baseLevel, levelCount), NS::Range::Make(baseLayer, layerCount), swizzle);
+    if (!texture)
+    {
+        MetalFaultHistory::Record(MetalFaultHistory::Kind::TextureView, 0,
+            fmt::format("view of pixel format {} as type {}, mips {}+{}, layers {}+{}", (uint32)pixelFormat, (uint32)textureType, baseLevel, levelCount, baseLayer, layerCount));
+        cemuLog_logOnce(LogType::Force, "Metal: could not create a texture view; sampling a null texture instead");
+        HostTuning::Count(HostTuning::GetStats().viewFallbacks);
+        texture = m_mtlr->GetNullSampledTexture(dim, false, m_baseTexture->isDepth)->retain();
+    }
 
     return texture;
 }

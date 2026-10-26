@@ -91,7 +91,7 @@ struct MotionSettingsSection: View {
                 }
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: motionEnabled) { _ in MotionSettings.applyToBridge() }
+            .onValueChange(of: motionEnabled) { _ in MotionSettings.applyToBridge() }
 
             if motionEnabled {
                 if advanced {
@@ -119,7 +119,7 @@ struct MotionSettingsSection: View {
                 Text("Controller").tag(MotionSettings.sourceController)
             }
             .pickerStyle(.segmented)
-            .onChange(of: source) { _ in MotionSettings.applyToBridge() }
+            .onValueChange(of: source) { _ in MotionSettings.applyToBridge() }
             Text(statusText)
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)
@@ -136,16 +136,16 @@ struct MotionSettingsSection: View {
                     .foregroundColor(EspressUTheme.secondaryText)
             }
             Slider(value: $sensitivity, in: MotionSettings.minSensitivity...MotionSettings.maxSensitivity)
-                .onChange(of: sensitivity) { _ in MotionSettings.applyToBridge() }
+                .onValueChange(of: sensitivity) { _ in MotionSettings.applyToBridge() }
         }
 
         DisclosureGroup("If aim feels backwards") {
             Toggle("Reverse left and right", isOn: $invertHorizontal)
-                .onChange(of: invertHorizontal) { _ in MotionSettings.applyToBridge() }
+                .onValueChange(of: invertHorizontal) { _ in MotionSettings.applyToBridge() }
             Toggle("Reverse up and down", isOn: $invertVertical)
-                .onChange(of: invertVertical) { _ in MotionSettings.applyToBridge() }
+                .onValueChange(of: invertVertical) { _ in MotionSettings.applyToBridge() }
             Toggle("Log motion values", isOn: $logValues)
-                .onChange(of: logValues) { _ in MotionSettings.applyToBridge() }
+                .onValueChange(of: logValues) { _ in MotionSettings.applyToBridge() }
             Text("Leave these off unless aiming turns the wrong way. The log writes one line a second to the engine log, to report when something looks off.")
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)

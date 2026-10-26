@@ -6,6 +6,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalOutputShaderCache.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalAttachmentsInfo.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalOutputUpscaler.h"
 #include "Common/DeviceCapabilities.h"
 
 enum MetalGeneralShaderType
@@ -274,6 +275,7 @@ public:
 	void Initialize() override;
 	void Shutdown() override;
 	bool IsPadWindowActive() override;
+	bool WantsPadFrame() override { return m_padFrameWanted; }
 
 	bool GetVRAMInfo(int& usageInMB, int& totalInMB) const override;
 
@@ -291,6 +293,7 @@ public:
 	void Flush(bool waitIdle = false) override;
 	void LabelEncoder(MTL::CommandEncoder* encoder, const char* kind);
 	void UpdateMemoryStatsAndRelievePressure();
+	void FreeMemoryAfterSystemWarning();
 	void NotifyLatteCommandProcessorIdle() override;
 
 	bool ImguiBegin(bool mainWindow) override;
@@ -595,6 +598,22 @@ private:
 
 	class MetalMemoryManager* m_memoryManager;
 	class MetalOutputShaderCache* m_outputShaderCache;
+	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
+	std::unique_ptr<Metal4OutputStage> m_metal4Output;
+	bool m_metal4OutputUnavailable = false;
+
+	// GamePad pacing (HostTuning::padPresentPacing).
+	bool m_padFrameWanted = true;
+	uint32 m_padPacingFrame = 0;
+	uint32 m_padHeldUntilFrame = 0;
+	uint32 m_padHeldLogs = 0;
+	void UpdatePadPacing();
+
+	// Diagnostics log of the HostTuning options (HostTuning::diagnosticsLog).
+	void ReportTuningDiagnostics();
+	std::chrono::steady_clock::time_point m_tuningReportSince{};
+	std::vector<uint64> m_tuningReportLast;
+	uint32 m_tuningReportFrames = 0;
 	class MetalPipelineCache* m_pipelineCache;
 	class MetalDepthStencilCache* m_depthStencilCache;
 	class MetalSamplerCache* m_samplerCache;
@@ -684,6 +703,7 @@ private:
 	}
 
 	void SwapBuffer(bool mainWindow);
+	void UpdateMetal4Output();
 
 	MetalDrawBreadcrumb* BeginDrawBreadcrumb();
 	void DumpDrawBreadcrumbs(uint32 firstDraw, uint32 lastDraw, bool haveRange);

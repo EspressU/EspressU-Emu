@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import UIKit
 
 private struct NativeOverlayCard {
@@ -195,7 +196,7 @@ struct NativeCoreOverlayView: View {
         ZStack { content }
             .allowsHitTesting(false)
             .onAppear { cemu_bridge_set_native_overlay(active) }
-            .onChange(of: active) { newValue in
+            .onValueChange(of: active) { newValue in
                 cemu_bridge_set_native_overlay(newValue)
             }
             .onDisappear { cemu_bridge_set_native_overlay(false) }

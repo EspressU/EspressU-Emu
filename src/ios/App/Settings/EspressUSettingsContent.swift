@@ -91,10 +91,62 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
         ]
 
+        let metal4 = cemu_bridge_metal4_output_supported()
+        let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.metal4", title: "Metal 4 output",
+                         detail: metal4 ? "Not recommended yet: still needs work, and in tests games ran no faster, sometimes slower. Puts finished frames on screen through a separate Metal 4 queue."
+                                        : "Not recommended yet, still needs work. Needs iOS 26 and an A14 or M1 chip or newer.",
+                         control: .toggle(values.bool(PerformanceTuning.metal4OutputKey, PerformanceTuning.metal4OutputDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         }),
+                         enabled: metal4),
+            SettingsItem(id: "tuning.metalFx", title: "MetalFX upscaling",
+                         detail: "Sharper enlarging of the finished picture with Apple's MetalFX on Metal. Costs a little GPU time. Not used with a graphic pack's own output filter.",
+                         control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.padPacing", title: "Keep the TV smooth with both screens",
+                         detail: "With TV and GamePad on screen, the GamePad is drawn every second frame and waits while it is slow to show.",
+                         control: .toggle(values.bool(PerformanceTuning.padPresentPacingKey, PerformanceTuning.padPresentPacingDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.padLowRes", title: "Lower-resolution GamePad screen",
+                         detail: "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.",
+                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.jitOverlaps", title: "No duplicate JIT work",
+                         detail: "JIT threads no longer compile the same game code at the same time and throw one result away. Leaves more CPU for the game.",
+                         control: .toggle(values.bool(PerformanceTuning.jitSkipOverlapsKey, PerformanceTuning.jitSkipOverlapsDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
+                         detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
+                         control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.diagnostics", title: "Log the experimental options",
+                         detail: "Every 5 seconds writes to log.txt what each option above did and whether it works, lines start with [Tuning]. log.txt is in EspressU's Logs folder in the Files app.",
+                         control: .toggle(values.bool(PerformanceTuning.diagnosticsLogKey, PerformanceTuning.diagnosticsLogDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",
+                         detail: "When iOS runs low on memory, drops textures the game can reload. Can stop a crash; can cause a short hitch.",
+                         control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+            SettingsItem(id: "tuning.faultHistory", title: "Keep a GPU memory failure history",
+                         detail: "Notes failed graphics allocations and GPU faults in a small file. Shown in Device report and logs.",
+                         control: .toggle(values.bool(PerformanceTuning.gpuFaultHistoryKey, PerformanceTuning.gpuFaultHistoryDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
+        ]
+
         return [
             SettingsGroup(id: "cpu", title: "CPU", items: cpu),
             SettingsGroup(id: "speed", title: "Speed and accuracy", items: speed),
             SettingsGroup(id: "heat", title: "Heat", items: heat),
+            SettingsGroup(id: "experimental", title: "Experimental", items: experimental),
         ]
     }
 

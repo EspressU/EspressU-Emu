@@ -1,5 +1,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalBufferAllocator.h"
 #include "Cemu/Logging/CemuLogging.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 #include <chrono>
 
 MetalBufferChunkedHeap::~MetalBufferChunkedHeap()
@@ -14,6 +15,7 @@ uint32 MetalBufferChunkedHeap::allocateNewChunk(uint32 chunkIndex, uint32 minimu
 	MTL::Buffer* buffer = m_mtlr->GetDevice()->newBuffer(allocationSize, m_options);
 	if (!buffer)
 	{
+		MetalFaultHistory::Record(MetalFaultHistory::Kind::HeapBuffer, allocationSize, fmt::format("chunk {} (minimum {} bytes)", chunkIndex, minimumAllocationSize));
 		uint32 numChunks = 0;
 		size_t totalSize = 0, freeSize = 0;
 		GetStats(numChunks, totalSize, freeSize);
@@ -93,6 +95,7 @@ void MetalSynchronizedRingAllocator::allocateAdditionalUploadBuffer(uint32 sizeR
 		if (s_failures <= 3)
 			IOSBridge_LogAllocationFailure("Metal staging buffer", bufferAllocSize);
 #endif
+		MetalFaultHistory::Record(MetalFaultHistory::Kind::StagingBuffer, bufferAllocSize, fmt::format("needed {} bytes, {} buffers alive", sizeRequiredForAlloc, m_buffers.size()));
 		m_consecutiveFailures = std::min<uint32>(m_consecutiveFailures + 1, 16);
 		m_failedRequiredSize = sizeRequiredForAlloc;
 		m_retryNotBefore = now + std::chrono::milliseconds(std::min<uint32>(2000, 250u << std::min<uint32>(m_consecutiveFailures - 1, 3)));

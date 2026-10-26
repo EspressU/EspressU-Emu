@@ -94,6 +94,7 @@ enum SettingsDefaults {
         cemu_bridge_set_display_gamma(Float(DisplayGammaSetting.defaultValue))
         cemu_bridge_set_override_app_gamma(false)
         cemu_bridge_set_override_gamma_value(Float(OverrideGammaSetting.defaultValue))
+        PerformanceTuning.applyDefaultsToBridge()
 
         cemu_bridge_set_tv_audio_enabled(AudioSettings.defaultTvEnabled)
         cemu_bridge_set_tv_volume(Int32(AudioSettings.defaultTvVolume))

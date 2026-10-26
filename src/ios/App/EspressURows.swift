@@ -415,7 +415,7 @@ struct SettingsDropdownOverlay: View {
                         .frame(maxHeight: 420)
                         .fixedSize(horizontal: false, vertical: true)
                         .onAppear { proxy.scrollTo(current.index, anchor: .center) }
-                        .onChange(of: state?.index) { index in
+                        .onValueChange(of: state?.index) { index in
                             guard let index else { return }
                             withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(index, anchor: .center) }
                         }

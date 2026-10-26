@@ -41,6 +41,9 @@ rm -rf "$IDEVICE_OUT"
 mkdir -p "$IDEVICE_OUT"
 cp "$WORK/stikjit/idevice/libidevice_ffi.a" "$WORK/stikjit/idevice/idevice.h" "$IDEVICE_OUT/"
 
+# Use an explicit no-argument C prototype in the vendored libplist declaration.
+sed -i '' 's/libplist_version();/libplist_version(void);/' "$IDEVICE_OUT/idevice.h"
+
 rm -rf "$OUT"
 xcodebuild -create-xcframework \
   -framework "$FRAMEWORK" \

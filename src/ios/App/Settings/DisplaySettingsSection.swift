@@ -113,7 +113,7 @@ struct DisplaySettingsSection: View {
                 }
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: externalDisplaySystemEnabled) { _ in
+            .onValueChange(of: externalDisplaySystemEnabled) { _ in
                 DisplayRouter.shared.reapplyForExternalDisplaySystemToggle()
             }
 
@@ -130,7 +130,7 @@ struct DisplaySettingsSection: View {
                     }
                 }
                 .tint(EspressUTheme.accentText)
-                .onChange(of: swapScreens) { _ in
+                .onValueChange(of: swapScreens) { _ in
                     DisplayRouter.shared.rerouteForScreenLayoutChange()
                 }
 
@@ -152,7 +152,7 @@ struct DisplaySettingsSection: View {
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
                 }
-                .onChange(of: deviceShows) { _ in
+                .onValueChange(of: deviceShows) { _ in
                     DisplayRouter.shared.rerouteForScreenLayoutChange()
                 }
 

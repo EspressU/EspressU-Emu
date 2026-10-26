@@ -304,7 +304,7 @@ private struct ModernPhotoPickerButton: View {
             Label("Choose from Photos", systemImage: "photo.on.rectangle")
         }
         .buttonStyle(EspressUSecondaryButtonStyle())
-        .onChange(of: item) { newItem in
+        .onValueChange(of: item) { newItem in
             guard let newItem else { return }
             Task {
                 guard let data = try? await newItem.loadTransferable(type: Data.self) else {

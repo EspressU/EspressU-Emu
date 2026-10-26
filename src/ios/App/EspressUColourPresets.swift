@@ -48,8 +48,8 @@ enum EspressUColourPresets {
 }
 
 extension UTType {
-    static let espressuLayout = UTType(exportedAs: "com.am4rdev.espressu.layout", conformingTo: .json)
-    static let espressuColour = UTType(exportedAs: "com.am4rdev.espressu.colour", conformingTo: .json)
+    static let espressuLayout = UTType(exportedAs: "dev.espressu.layout", conformingTo: .json)
+    static let espressuColour = UTType(exportedAs: "dev.espressu.colour", conformingTo: .json)
 }
 
 struct EspressULayoutDocument: FileDocument {

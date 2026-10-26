@@ -16,6 +16,7 @@
 #include "util/helpers/helpers.h"
 #include "util/MemMapper/MemMapper.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -26,6 +27,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <atomic>
+#include <deque>
 #include <libkern/OSCacheControl.h>
 #if BOOST_OS_IOS
 #include <os/proc.h>
@@ -492,7 +494,7 @@ struct PPCInvalidationRange
 struct
 {
     FSpinlock             recompilerSpinlock;
-    std::queue<MPTR>      targetQueue;
+    std::deque<MPTR>      targetQueue;
     std::vector<PPCInvalidationRange> invalidationRanges;
 } PPCRecompilerState;
 
@@ -543,7 +545,7 @@ void PPCRecompiler_visitAddressNoBlock(uint32 enterAddress)
         PPCRecompilerState.recompilerSpinlock.unlock();
         return;
     }
-    PPCRecompilerState.targetQueue.emplace(enterAddress);
+    PPCRecompilerState.targetQueue.emplace_back(enterAddress);
     ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[enterAddress / 4] = PPCRecompiler_leaveRecompilerCode_visited;
     PPCRecompilerState.recompilerSpinlock.unlock();
     s_threadPool.Notify();
@@ -563,7 +565,7 @@ bool PPCRecompiler_drainQueue()
         return false;
     }
     uint32 enterAddress = PPCRecompilerState.targetQueue.front();
-    PPCRecompilerState.targetQueue.pop();
+    PPCRecompilerState.targetQueue.pop_front();
     auto funcPtr = ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[enterAddress / 4];
 
     if (funcPtr != PPCRecompiler_leaveRecompilerCode_visited)
@@ -1049,6 +1051,72 @@ bool PPCRecompiler_makeRecompiledFunctionActive(uint32 initialEntryPoint, PPCFun
     return true;
 }
 
+namespace
+{
+	// Functions the worker threads are compiling right now. Several workers used to compile overlapping code
+	// from different entry points at once; all but the first result were thrown away. With
+	// HostTuning::jitSkipOverlappingCompiles an entry inside a function being compiled waits for it instead,
+	// and is usually covered by its entry points by then.
+	struct InFlightCompile
+	{
+		uint32 start;
+		uint32 end;
+		std::vector<uint32> waiting;
+	};
+	std::mutex s_inFlightMutex;
+	std::vector<InFlightCompile> s_inFlightCompiles;
+
+	// Registers range as being compiled; false when it overlaps one that is, in which case address waits for it.
+	bool PPCRecompiler_claimRange(uint32 address, uint32 start, uint32 end)
+	{
+		std::lock_guard lock(s_inFlightMutex);
+		for (auto& compile : s_inFlightCompiles)
+		{
+			if (start < compile.end && compile.start < end)
+			{
+				compile.waiting.push_back(address);
+				return false;
+			}
+		}
+		s_inFlightCompiles.push_back({start, end, {}});
+		return true;
+	}
+
+	void PPCRecompiler_releaseRange(uint32 start, uint32 end)
+	{
+		std::vector<uint32> waiting;
+		{
+			std::lock_guard lock(s_inFlightMutex);
+			for (auto it = s_inFlightCompiles.begin(); it != s_inFlightCompiles.end(); ++it)
+			{
+				if (it->start == start && it->end == end)
+				{
+					waiting = std::move(it->waiting);
+					s_inFlightCompiles.erase(it);
+					break;
+				}
+			}
+		}
+		if (waiting.empty())
+			return;
+		// Entries the finished function did not cover go to the front of the queue: they have been running in the
+		// interpreter while they waited, which is what made loading slower.
+		bool requeued = false;
+		PPCRecompilerState.recompilerSpinlock.lock();
+		for (uint32 address : waiting)
+		{
+			if (ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[address / 4] == PPCRecompiler_leaveRecompilerCode_visited)
+			{
+				PPCRecompilerState.targetQueue.emplace_front(address);
+				requeued = true;
+			}
+		}
+		PPCRecompilerState.recompilerSpinlock.unlock();
+		if (requeued)
+			s_threadPool.Notify();
+	}
+}
+
 static void PPCRecompiler_recompileAtAddressImpl(uint32 address)
 {
 	cemu_assert_debug(ppcRecompilerInstanceData->ppcRecompilerDirectJumpTable[address / 4] == PPCRecompiler_leaveRecompilerCode_visited);
@@ -1060,6 +1128,25 @@ static void PPCRecompiler_recompileAtAddressImpl(uint32 address)
 	{
 		cemu_assert_debug(false);
 	}
+
+	const uint32 claimStart = range.startAddress;
+	const uint32 claimEnd = range.startAddress + std::max<uint32>(range.length, 4);
+	bool claimed = false;
+	if (HostTuning::Get().jitSkipOverlappingCompiles.load(std::memory_order_relaxed))
+	{
+		if (!PPCRecompiler_claimRange(address, claimStart, claimEnd))
+		{
+			HostTuning::Count(HostTuning::GetStats().jitWaited);
+			return;
+		}
+		claimed = true;
+	}
+	struct ReleaseClaim
+	{
+		bool active;
+		uint32 start, end;
+		~ReleaseClaim() { if (active) PPCRecompiler_releaseRange(start, end); }
+	} releaseClaim{claimed, claimStart, claimEnd};
 
 	PPCRecompilerState.recompilerSpinlock.lock();
 
@@ -1090,7 +1177,8 @@ static void PPCRecompiler_recompileAtAddressImpl(uint32 address)
 	}
 	try
 	{
-		PPCRecompiler_makeRecompiledFunctionActive(address, range, func, functionEntryPoints);
+		const bool active = PPCRecompiler_makeRecompiledFunctionActive(address, range, func, functionEntryPoints);
+		HostTuning::Count(active ? HostTuning::GetStats().jitCompiled : HostTuning::GetStats().jitDiscarded);
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -1616,7 +1704,7 @@ void PPCRecompiler_Shutdown()
     s_threadPool.Stop();
 
     while (!PPCRecompilerState.targetQueue.empty())
-        PPCRecompilerState.targetQueue.pop();
+        PPCRecompilerState.targetQueue.pop_front();
     PPCRecompilerState.invalidationRanges.clear();
 
     rangeStore_ppcRanges.clear();

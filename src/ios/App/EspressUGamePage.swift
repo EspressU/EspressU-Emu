@@ -76,7 +76,7 @@ struct EspressUGamePage: View {
             .animation(.easeOut(duration: 0.15), value: dropdown)
             .animation(.easeOut(duration: 0.2), value: input.showsFocus)
             .onAppear { isWide = wide }
-            .onChange(of: wide) { isWide = $0 }
+            .onValueChange(of: wide) { isWide = $0 }
         }
         .onAppear(perform: appear)
         .onDisappear { input.stop() }
@@ -209,7 +209,7 @@ struct EspressUGamePage: View {
                 .frame(maxWidth: 760)
                 .frame(maxWidth: .infinity)
             }
-            .onChange(of: focus) { id in
+            .onValueChange(of: focus) { id in
                 guard let id else { return }
                 withAnimation(.easeOut(duration: 0.2)) {
                     if id == "play" || id == "favourite" {

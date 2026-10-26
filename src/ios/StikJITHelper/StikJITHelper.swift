@@ -5,7 +5,7 @@ import StikJIT
 
 @objc(StikJITHelperHandler)
 final class StikJITHelperHandler: NSObject, NSExtensionRequestHandling {
-    private static let queue = DispatchQueue(label: "com.am4rdev.EspressU.StikJITHelper", qos: .userInitiated)
+    private static let queue = DispatchQueue(label: "dev.espressu.EspressU.StikJITHelper", qos: .userInitiated)
 
     func beginRequest(with context: NSExtensionContext) {
         let item = context.inputItems.first as? NSExtensionItem
@@ -71,6 +71,8 @@ private final class HelperWork {
             return reply(ok: false, readiness: "unreachable", reason: reason)
         case .preparationFailed(let reason):
             return reply(ok: false, readiness: "notReady", reason: reason)
+        @unknown default:
+            return reply(ok: false, readiness: "notReady", reason: "Unknown device readiness. Update EspressU and try again.")
         }
     }
 

@@ -2,6 +2,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalCommon.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalMemoryManager.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalVoidVertexPipeline.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 
 #include "CafeSystem.h"
 #include "Cemu/Logging/CemuLogging.h"
@@ -371,6 +372,7 @@ void* MetalMemoryManager::AcquireTextureUploadBuffer(size_t size)
             catch (const std::bad_alloc&)
             {
                 std::vector<uint8>().swap(m_textureUploadBuffer);
+                MetalFaultHistory::Record(MetalFaultHistory::Kind::UploadBuffer, size, "CPU-side texture upload buffer");
                 cemuLog_logOnce(LogType::Force, "Metal: could not allocate a {} byte texture upload buffer, skipping the upload", size);
                 LatteWait::Get().evictionRequested.store(true);
                 return nullptr;

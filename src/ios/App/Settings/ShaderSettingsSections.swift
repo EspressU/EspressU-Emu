@@ -10,7 +10,7 @@ struct ShaderCompilationSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: asyncShaderCompile) { newValue in
+            .onValueChange(of: asyncShaderCompile) { newValue in
                 cemu_bridge_set_async_shader_compile(newValue)
             }
         } header: {
@@ -43,7 +43,7 @@ struct ShaderCacheSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: asyncShaderCompile) { newValue in
+            .onValueChange(of: asyncShaderCompile) { newValue in
                 cemu_bridge_set_async_shader_compile(newValue)
             }
             SettingsRow(label: "Size on disk", value: Self.formatBytes(learnedCacheBytes + compiledCacheBytes))

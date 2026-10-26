@@ -105,7 +105,7 @@ struct HomeMenuEventsModifier: ViewModifier {
         content
             .onAppear { HomeMenuRouter.shared.connectToBridge() }
             .onReceive(HomeMenuRouter.shared.events) { onEvent($0) }
-            .onChange(of: isOpen) { open in cemu_bridge_set_menu_capture(open) }
+            .onValueChange(of: isOpen) { open in cemu_bridge_set_menu_capture(open) }
             .onDisappear { cemu_bridge_set_menu_capture(false) }
     }
 }
@@ -192,7 +192,7 @@ struct HomeMenuOverlay: View {
                     }
                     .padding(4)
                 }
-                .onChange(of: focus) { _ in
+                .onValueChange(of: focus) { _ in
                     let current = rows
                     if current.indices.contains(focus) {
                         withAnimation(.easeInOut(duration: 0.15)) { reader.scrollTo(current[focus].id) }

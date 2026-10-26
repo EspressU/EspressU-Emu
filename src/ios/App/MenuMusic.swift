@@ -207,7 +207,7 @@ struct MenuMusicSettingsGroup: View {
             }
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: enabled) { _ in MenuMusic.shared.refresh() }
+        .onValueChange(of: enabled) { _ in MenuMusic.shared.refresh() }
 
         if enabled {
             Picker("Song", selection: $trackRaw) {
@@ -222,7 +222,7 @@ struct MenuMusicSettingsGroup: View {
                     }
                 }
             }
-            .onChange(of: trackRaw) { _ in MenuMusic.shared.refresh() }
+            .onValueChange(of: trackRaw) { _ in MenuMusic.shared.refresh() }
 
             Button {
                 importing = true
@@ -258,7 +258,7 @@ struct MenuMusicSettingsGroup: View {
                 Image(systemName: "speaker.fill").foregroundColor(.secondary)
                 Slider(value: $volume, in: 0...1)
                     .tint(EspressUTheme.accentText)
-                    .onChange(of: volume) { _ in MenuMusic.shared.refresh() }
+                    .onValueChange(of: volume) { _ in MenuMusic.shared.refresh() }
                 Image(systemName: "speaker.wave.3.fill").foregroundColor(.secondary)
             }
             .accessibilityElement(children: .combine)
@@ -282,6 +282,6 @@ struct RespectSilentModeToggle: View {
             }
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: respect) { _ in MenuMusic.shared.restart() }
+        .onValueChange(of: respect) { _ in MenuMusic.shared.restart() }
     }
 }

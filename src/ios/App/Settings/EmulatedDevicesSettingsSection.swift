@@ -19,7 +19,7 @@ struct EmulatedDevicesSettingsSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: skylanderPortalEnabled) { newValue in
+            .onValueChange(of: skylanderPortalEnabled) { newValue in
                 cemu_bridge_set_emulate_skylander_portal(newValue)
             }
             Toggle(isOn: $infinityBaseEnabled) {
@@ -27,7 +27,7 @@ struct EmulatedDevicesSettingsSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: infinityBaseEnabled) { newValue in
+            .onValueChange(of: infinityBaseEnabled) { newValue in
                 cemu_bridge_set_emulate_infinity_base(newValue)
             }
             Toggle(isOn: $dimensionsToypadEnabled) {
@@ -35,7 +35,7 @@ struct EmulatedDevicesSettingsSection: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
             }
             .tint(EspressUTheme.accentText)
-            .onChange(of: dimensionsToypadEnabled) { newValue in
+            .onValueChange(of: dimensionsToypadEnabled) { newValue in
                 cemu_bridge_set_emulate_dimensions_toypad(newValue)
             }
             NavigationLink("Manage Figures") {

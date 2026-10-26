@@ -8,6 +8,7 @@
 #include "PPCInterpreterHelper.h"
 #include "Cafe/HW/Espresso/Debugger/Debugger.h"
 #include "Cafe/HW/Espresso/Debugger/GDBStub.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 class PPCItpCafeOSUsermode
 {
@@ -410,6 +411,9 @@ struct PPCBlockRef
     uint16 count;
     PPCBlockTerm term;
     uint8 _pad;
+    // Block linking: table slot + 1 of the block that ran after this one when it fell through (0) and when it
+    // branched away (1). Only a hint; a link is followed only if that slot still holds the block for the new address.
+    uint32 links[2];
 };
 
 class PPCBlockCache
@@ -1427,6 +1431,7 @@ public:
         ref->firstEntry = firstEntry;
         ref->count = (uint16)count;
         ref->term = term;
+        ref->links[0] = ref->links[1] = 0;
         return ref;
     }
 
@@ -1505,6 +1510,11 @@ public:
     static void executeTimesliceCached(PPCInterpreter_t* hCPU)
     {
         PPCBlockCache* cache = &PPCBlockCache_getForCurrentThread();
+        const bool linkBlocks = HostTuning::Get().interpreterBlockLinking.load(std::memory_order_relaxed);
+        PPCBlockRef* previous = nullptr;
+        uint32 previousEnd = 0;
+        uint64 blocksRun = 0, linkHits = 0, decodes = 0;
+        uint32 previousClears = cache->m_clears;
         while (hCPU->remainingCycles > 0)
         {
             const uint32 gen = s_blockCacheGeneration.load(std::memory_order_acquire);
@@ -1513,12 +1523,47 @@ public:
                 cache->clear("code invalidated");
                 cache->m_generation = gen;
             }
+            if (cache->m_clears != previousClears) [[unlikely]]
+            {
+                previous = nullptr;
+                previousClears = cache->m_clears;
+            }
 
             const uint32 ip = (uint32)hCPU->instructionPointer;
-            PPCBlockRef* block = cache->lookup(ip);
-            if (!block) [[unlikely]]
-                block = decodeBlock(hCPU, *cache, ip);
+            PPCBlockRef* block = nullptr;
+            const uint32 linkSlot = ip == previousEnd ? 0 : 1;
+            if (previous)
+            {
+                // Follow the link of the block that just ran instead of hashing the address again.
+                const uint32 link = previous->links[linkSlot];
+                if (link)
+                {
+                    PPCBlockRef* candidate = cache->m_table.data() + (link - 1);
+                    if (candidate->count != 0 && candidate->startAddr == ip)
+                    {
+                        block = candidate;
+                        linkHits++;
+                    }
+                }
+            }
+            if (!block)
+            {
+                block = cache->lookup(ip);
+                if (!block) [[unlikely]]
+                {
+                    block = decodeBlock(hCPU, *cache, ip);
+                    decodes++;
+                    if (cache->m_clears != previousClears) [[unlikely]]
+                    {
+                        previous = nullptr;
+                        previousClears = cache->m_clears;
+                    }
+                }
+                if (previous)
+                    previous->links[linkSlot] = (uint32)(block - cache->m_table.data()) + 1;
+            }
 
+            blocksRun++;
             const uint32 count = block->count;
             const PPCBlockTerm term = block->term;
             const uint32 straight = (term == PPCBlockTerm::None) ? count : count - 1;
@@ -1554,8 +1599,23 @@ public:
             case PPCBlockTerm::Generic:
                 e->fn(hCPU, e->opcode);
                 cache = &PPCBlockCache_getForCurrentThread();
-                break;
+                // The instruction may have switched threads or host cores; do not link across that.
+                previous = nullptr;
+                previousClears = cache->m_clears;
+                continue;
             }
+            if (linkBlocks)
+            {
+                previous = block;
+                previousEnd = ip + count * 4;
+            }
+        }
+        if (HostTuning::Get().diagnosticsLog.load(std::memory_order_relaxed)) [[unlikely]]
+        {
+            auto& stats = HostTuning::GetStats();
+            stats.itpBlocks.fetch_add(blocksRun, std::memory_order_relaxed);
+            stats.itpLinkHits.fetch_add(linkHits, std::memory_order_relaxed);
+            stats.itpDecodes.fetch_add(decodes, std::memory_order_relaxed);
         }
     }
 

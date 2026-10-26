@@ -1,3 +1,4 @@
+#include "Cafe/HW/Latte/Core/FrameTimeStats.h"
 #include "Cafe/HW/Latte/ISA/RegDefines.h"
 
 #include "Cafe/HW/Latte/Core/Latte.h"
@@ -638,6 +639,7 @@ void LatteRenderTarget_itHLESwapScanBuffer()
 	LattePerformanceMonitor_frameEnd();
 	LatteGPUState.frameCounter++;
 	g_renderer->SwapBuffers(true, true);
+	FrameTimeStats::Get().NoteFrame();
 
 	catchOpenGLError();
 	performanceMonitor.gpuTime_frameTime.beginMeasuring();
@@ -949,7 +951,7 @@ void LatteRenderTarget_itHLECopyColorBufferToScanBuffer(MPTR colorBufferPtr, uin
 	const auto outputSources = windowInfo.output_sources.load();
 	const bool isTV = (renderTarget & RENDER_TARGET_TV) != 0;
 	const bool isDRC = (renderTarget & RENDER_TARGET_DRC) != 0;
-	if ((visibleOutputs & 2u) && ((outputSources & 2u) ? isTV : isDRC) && g_renderer->IsPadWindowActive())
+	if ((visibleOutputs & 2u) && ((outputSources & 2u) ? isTV : isDRC) && g_renderer->IsPadWindowActive() && g_renderer->WantsPadFrame())
 		LatteRenderTarget_copyToBackbuffer(texView, true);
 	if ((visibleOutputs & 1u) && ((outputSources & 1u) ? isDRC : isTV))
 		LatteRenderTarget_copyToBackbuffer(texView, false);

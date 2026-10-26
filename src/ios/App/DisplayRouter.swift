@@ -214,12 +214,15 @@ final class DisplayRouter: ObservableObject {
         ThermalMonitor.shared.startObserving()
 
         let center = NotificationCenter.default
-        let names: [Notification.Name] = [
-            UIScreen.didConnectNotification,
-            UIScreen.didDisconnectNotification,
+        var names: [Notification.Name] = [
             UIScreen.modeDidChangeNotification,
+            UIScene.willConnectNotification,
+            UIScene.didDisconnectNotification,
             UIScene.didActivateNotification,
         ]
+        if #unavailable(iOS 16.0) {
+            names += [UIScreen.didConnectNotification, UIScreen.didDisconnectNotification]
+        }
         for name in names {
             center.addObserver(forName: name, object: nil, queue: .main) { note in
                 let noteName = note.name
@@ -672,8 +675,20 @@ final class DisplayRouter: ObservableObject {
         cemu_bridge_set_visible_outputs(showTV, showPad)
     }
 
+    private var connectedScreens: [UIScreen] {
+        if #available(iOS 16.0, *) {
+            var screens = [UIScreen.main]
+            for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                if !screens.contains(where: { $0 === scene.screen }) { screens.append(scene.screen) }
+            }
+            return screens
+        } else {
+            return UIScreen.screens
+        }
+    }
+
     private func externalScreen() -> UIScreen? {
-        UIScreen.screens.first { $0 !== UIScreen.main }
+        connectedScreens.first { $0 !== UIScreen.main }
     }
 
     func externalSceneDidChange(reason: String) {
@@ -697,7 +712,7 @@ final class DisplayRouter: ObservableObject {
     }
 
     private func describeScreens() -> String {
-        let parts = UIScreen.screens.map { screen -> String in
+        let parts = connectedScreens.map { screen -> String in
             let role = screen === UIScreen.main ? "main" : (screen.mirrored != nil ? "external (mirroring this device)" : "external")
             return "\(role) \(Int(screen.bounds.width))x\(Int(screen.bounds.height))@\(screen.scale)x"
         }

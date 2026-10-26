@@ -68,7 +68,7 @@ struct EspressUSettingsView: View {
             .animation(.easeOut(duration: 0.15), value: dropdown)
             .animation(.easeOut(duration: 0.2), value: input.showsFocus)
             .onAppear { isWide = wide }
-            .onChange(of: wide) { isWide = $0 }
+            .onValueChange(of: wide) { isWide = $0 }
         }
         .preferredColorScheme(EspressUAppearance.colorScheme)
         .onAppear(perform: appear)
@@ -76,7 +76,7 @@ struct EspressUSettingsView: View {
             ControllerMappingSession.shared.cancel()
             input.stop()
         }
-        .onChange(of: scenePhase) { phase in
+        .onValueChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             jitActive = JITStatus.isActive
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { jitActive = JITStatus.isActive }
@@ -354,12 +354,12 @@ struct EspressUSettingsView: View {
                 }
                 .padding(.bottom, isWide ? 24 : phoneBottomRoom)
             }
-            .onChange(of: focus) { id in
+            .onValueChange(of: focus) { id in
                 guard let id else { return }
                 withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
             }
-            .onChange(of: category) { _ in proxy.scrollTo("top", anchor: .top) }
-            .onChange(of: legacy) { _ in proxy.scrollTo("top", anchor: .top) }
+            .onValueChange(of: category) { _ in proxy.scrollTo("top", anchor: .top) }
+            .onValueChange(of: legacy) { _ in proxy.scrollTo("top", anchor: .top) }
         }
     }
 
@@ -698,6 +698,7 @@ struct EspressUSettingsView: View {
             NetworkServiceSettingsSection()
         case .diagnostics:
             DeviceReportSection()
+            GpuFaultHistorySection()
             DiagnosticsSection()
         case .about: AboutSettingsSection()
         case .networkService: CustomServersSettingsSection()

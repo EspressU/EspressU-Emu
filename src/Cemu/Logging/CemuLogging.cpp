@@ -124,6 +124,13 @@ bool cemuLog_advancedPPCLoggingEnabled()
 	return GetConfig().advanced_ppc_logging;
 }
 
+static std::atomic<void (*)(const char*, size_t)> s_logTee{nullptr};
+
+void cemuLog_setTee(void (*sink)(const char* text, size_t length))
+{
+	s_logTee.store(sink);
+}
+
 void cemuLog_thread()
 {
 	SetThreadName("cemuLog_thread");
@@ -145,12 +152,21 @@ void cemuLog_thread()
 			LogContext.file_stream.write(entry.data(), entry.size());
 
 		LogContext.file_stream.flush();
+
+		if (auto* tee = s_logTee.load(std::memory_order_relaxed))
+		{
+			// One block per batch, so lines from other writers of the sink cannot land in the middle of a line.
+			std::string block;
+			for (const auto& entry : cache_copy)
+				block += entry;
+			tee(block.data(), block.size());
+		}
 	}
 }
 
 fs::path cemuLog_GetLogFilePath()
 {
-    return ActiveSettings::GetUserDataPath("log.txt");
+    return ActiveSettings::GetUserDataPath("Logs/log.txt");
 }
 
 void cemuLog_createLogFile(bool triggeredByCrash)
@@ -160,6 +176,8 @@ void cemuLog_createLogFile(bool triggeredByCrash)
 		return;
 
 	const auto path = cemuLog_GetLogFilePath();
+	std::error_code ec;
+	fs::create_directories(path.parent_path(), ec);
 	LogContext.file_stream.open(fs::resolvePathCI(path), std::ios::out);
 	if (LogContext.file_stream.fail())
 	{

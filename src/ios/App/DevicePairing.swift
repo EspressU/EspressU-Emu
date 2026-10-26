@@ -64,14 +64,19 @@ final class DevicePairing: NSObject, ObservableObject {
         service.publish()
         self.service = service
 
+        let hostID = ObjectIdentifier(host)
         host.run(pin: { [weak self] pin in
-            guard let self, self.host === host else { return }
-            self.state = .pin(pin)
-            self.log("device asked for the PIN")
-            Self.notify(title: "EspressU pairing", body: "Enter this PIN in Settings: \(pin)")
+            Task { @MainActor [weak self] in
+                guard let self, self.host.map(ObjectIdentifier.init) == hostID else { return }
+                self.state = .pin(pin)
+                self.log("device asked for the PIN")
+                Self.notify(title: "EspressU pairing", body: "Enter this PIN in Settings: \(pin)")
+            }
         }, completion: { [weak self] file, deviceName, failure, cancelled in
-            guard let self, self.host === host else { return }
-            self.finish(file: file, deviceName: deviceName, failure: failure, cancelled: cancelled)
+            Task { @MainActor [weak self] in
+                guard let self, self.host.map(ObjectIdentifier.init) == hostID else { return }
+                self.finish(file: file, deviceName: deviceName, failure: failure, cancelled: cancelled)
+            }
         })
     }
 

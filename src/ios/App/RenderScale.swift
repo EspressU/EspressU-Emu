@@ -140,11 +140,14 @@ enum FullSpeedRenders {
 
 enum PadSurfaceScale {
     static let maxLongSidePixels: Double = 1708
+    /// The Wii U GamePad's own width, used when the lower-resolution GamePad screen is chosen.
+    static let lowResolutionLongSidePixels: Double = 854
 
     static func scale(forPoints size: CGSize, renderScale: Double) -> Double {
         let longSide = Double(max(size.width, size.height))
         guard longSide > 0 else { return renderScale }
-        return max(0.5, min(renderScale, maxLongSidePixels / longSide))
+        let lowResolution = PerformanceTuning.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault)
+        return max(0.5, min(renderScale, (lowResolution ? lowResolutionLongSidePixels : maxLongSidePixels) / longSide))
     }
 }
 

@@ -86,7 +86,7 @@ struct AudioSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: tvEnabled) { newValue in
+        .onValueChange(of: tvEnabled) { newValue in
             cemu_bridge_set_tv_audio_enabled(newValue)
         }
 
@@ -103,7 +103,7 @@ struct AudioSettingsSection: View {
                 .pickerStyle(.menu)
                 .tint(EspressUTheme.accentText)
                 .foregroundColor(EspressUTheme.brownDarkest)
-                .onChange(of: tvChannelsRaw) { newValue in
+                .onValueChange(of: tvChannelsRaw) { newValue in
                     cemu_bridge_set_tv_channels(Int32(newValue))
                 }
             }
@@ -116,7 +116,7 @@ struct AudioSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: padEnabled) { newValue in
+        .onValueChange(of: padEnabled) { newValue in
             cemu_bridge_set_pad_audio_enabled(newValue)
         }
 
@@ -133,7 +133,7 @@ struct AudioSettingsSection: View {
                 .pickerStyle(.menu)
                 .tint(EspressUTheme.accentText)
                 .foregroundColor(EspressUTheme.brownDarkest)
-                .onChange(of: padChannelsRaw) { newValue in
+                .onValueChange(of: padChannelsRaw) { newValue in
                     cemu_bridge_set_pad_channels(Int32(newValue))
                 }
             }
@@ -146,7 +146,7 @@ struct AudioSettingsSection: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
         }
         .tint(EspressUTheme.accentText)
-        .onChange(of: microphoneEnabled) { newValue in
+        .onValueChange(of: microphoneEnabled) { newValue in
             guard newValue else {
                 cemu_bridge_set_microphone_enabled(false)
                 return

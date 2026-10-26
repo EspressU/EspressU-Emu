@@ -26,10 +26,54 @@ struct DeviceReportSection: View {
                 Label(deviceReportCopied ? "Copied" : "Copy device report",
                       systemImage: deviceReportCopied ? "checkmark" : "doc.on.doc")
             }
+
+            Button {
+                SessionReport.share()
+            } label: {
+                Label("Share EspressU report", systemImage: "square.and.arrow.up")
+            }
+
+            Button(role: .destructive) {
+                cemu_bridge_report_clear()
+            } label: {
+                Label("Delete EspressU report", systemImage: "trash")
+            }
         } header: {
             SettingsSectionHeader("This Device", icon: "iphone", accent: .system)
         } footer: {
-            InfoButton.footer("Send this with any bug report. It lists your chip, memory and app build.")
+            InfoButton.footer("For any bug, crash or speed comparison, share the EspressU report: device, settings, the whole log, crashes and a performance summary per game. Every session goes into the same file until you delete it here.")
+        }
+        .foregroundColor(EspressUTheme.brownDarkest)
+    }
+}
+
+struct GpuFaultHistorySection: View {
+    @State private var history = String(cString: cemu_bridge_gpu_fault_history())
+
+    var body: some View {
+        Section {
+            Text(history.isEmpty ? "Nothing recorded." : history)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundColor(EspressUTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !history.isEmpty {
+                Button {
+                    UIPasteboard.general.string = history
+                } label: {
+                    Label("Copy history", systemImage: "doc.on.doc")
+                }
+                Button(role: .destructive) {
+                    cemu_bridge_clear_gpu_fault_history()
+                    history = ""
+                } label: {
+                    Label("Clear history", systemImage: "trash")
+                }
+            }
+        } header: {
+            SettingsSectionHeader("GPU Memory Failures", icon: "memorychip", accent: .system)
+        } footer: {
+            InfoButton.footer("The last graphics allocations that failed and GPU faults, newest first. Turn it on in Performance > Experimental.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }

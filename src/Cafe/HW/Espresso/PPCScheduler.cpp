@@ -6,6 +6,7 @@
 
 #include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/CafeSystem.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 uint32 ppcThreadQuantum = 45000;
 
@@ -108,6 +109,8 @@ void PPCCore_InitializePointer(bool recompilerEnabled)
         attemptEnterAddr = PPCInterpreter_jumpToInstruction;
         attemptEnter = PPCCore_executeInterpreter;
         attemptEnterThread = PPCCore_executeInterpreter;
+        cemuLog_log(LogType::Force, "No JIT: running the block-cache interpreter, block linking {}",
+            HostTuning::Get().interpreterBlockLinking.load() ? "on" : "off");
     }
 }
 

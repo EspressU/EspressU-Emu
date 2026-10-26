@@ -43,7 +43,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
 
     static let repoPage = URL(string: "https://github.com/cemu-project/cemu_graphic_packs")!
     private static let latestReleaseAPI = URL(string: "https://api.github.com/repos/cemu-project/cemu_graphic_packs/releases/latest")!
-    private static let sessionIdentifier = "com.am4rdev.EspressU.graphicpacks"
+    private static let sessionIdentifier = "dev.espressu.EspressU.graphicpacks"
 
     enum Phase: Equatable {
         case idle
@@ -80,8 +80,8 @@ final class GraphicPackStore: NSObject, ObservableObject {
         }
     }
 
-    private let bridgeQueue = DispatchQueue(label: "com.am4rdev.EspressU.graphicpacks.bridge", qos: .userInitiated)
-    private let workQueue = DispatchQueue(label: "com.am4rdev.EspressU.graphicpacks.install", qos: .utility)
+    private let bridgeQueue = DispatchQueue(label: "dev.espressu.EspressU.graphicpacks.bridge", qos: .userInitiated)
+    private let workQueue = DispatchQueue(label: "dev.espressu.EspressU.graphicpacks.install", qos: .utility)
     private let defaults = UserDefaults.standard
     private var cancelRequested = false
     private var apiTask: URLSessionDataTask?

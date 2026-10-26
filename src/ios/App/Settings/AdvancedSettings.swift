@@ -191,6 +191,11 @@ enum AdvancedSettings {
         AdvancedSetting(TopBarAutoHide.handleSizeKey, TopBarAutoHide.defaultHandleSize.rawValue),
     ], applyToBridge: nil)
 
+    private static let performanceTuning = AdvancedGroup(name: "Performance tuning",
+                                                         settings: PerformanceTuning.advancedSettings) {
+        PerformanceTuning.applyToBridge()
+    }
+
     private static let diagnostics = AdvancedGroup(name: "Diagnostics", settings: [
         AdvancedSetting(LaunchLogSettings.showKey, false),
         AdvancedSetting(PadDiagnostics.enabledKey, PadDiagnostics.defaultEnabled),
@@ -213,6 +218,7 @@ enum AdvancedSettings {
         motionTuning,
         stickFeel,
         topBar,
+        performanceTuning,
         diagnostics,
         libraryOrganization,
     ]

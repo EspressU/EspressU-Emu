@@ -52,7 +52,7 @@ struct EspressUIntroView: View {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) { appeared = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + Self.fullPlay) { finish() }
         }
-        .onChange(of: isGameRunning) { running in
+        .onValueChange(of: isGameRunning) { running in
             guard running else { return }
             let remaining = max(0, Self.minimumPlay - Date().timeIntervalSince(shownAt))
             DispatchQueue.main.asyncAfter(deadline: .now() + remaining) { finish() }

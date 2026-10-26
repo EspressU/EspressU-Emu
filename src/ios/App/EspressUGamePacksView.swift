@@ -49,7 +49,7 @@ struct EspressUGamePacksView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 32)
                     }
-                    .onChange(of: focus) { id in
+                    .onValueChange(of: focus) { id in
                         guard let id else { return }
                         withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
                     }

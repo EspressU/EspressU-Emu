@@ -2,6 +2,8 @@
 #include "Cafe/HW/Latte/Renderer/Metal/LatteTextureViewMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Core/HostTuning.h"
 
 LatteTextureMtl::LatteTextureMtl(class MetalRenderer* mtlRenderer, Latte::E_DIM dim, MPTR physAddress, MPTR physMipAddress, Latte::E_GX2SURFFMT format, uint32 width, uint32 height, uint32 depth, uint32 pitch, uint32 mipLevels, uint32 swizzle,
 	Latte::E_HWTILEMODE tileMode, bool isDepth, bool isRenderTarget)
@@ -83,9 +85,24 @@ LatteTextureMtl::LatteTextureMtl(class MetalRenderer* mtlRenderer, Latte::E_DIM 
 	m_texture = mtlRenderer->GetDevice()->newTexture(desc);
 	if (!m_texture)
 	{
-		cemuLog_logOnce(LogType::Force, "Metal: could not allocate a {}x{} guest texture; substituting a null texture", width, height);
-		m_texture = mtlRenderer->GetNullTexture2D()->retain();
+		const uint64 wantedBytes = mtlRenderer->GetDevice()->heapTextureSizeAndAlign(desc).size;
+		MetalFaultHistory::Record(MetalFaultHistory::Kind::Texture, wantedBytes,
+			fmt::format("{}x{}x{}, {} mips, pixel format {}, {}", effectiveBaseWidth, effectiveBaseHeight, effectiveBaseDepth, mipLevels, (uint32)pixelFormat, isRenderTarget ? "render target" : "sampled"));
+
+		// A stand-in with the same type, pixel format and layer count keeps every view the game later asks for
+		// valid; only its size and mip chain shrink. The generic 2D null texture is the last resort.
+		desc->setWidth(std::min<sint32>(effectiveBaseWidth, 16));
+		desc->setHeight(std::min<sint32>(effectiveBaseHeight, 16));
+		if (textureType == MTL::TextureType3D)
+			desc->setDepth(1);
+		desc->setMipmapLevelCount(1);
+		m_texture = mtlRenderer->GetDevice()->newTexture(desc);
+		cemuLog_logOnce(LogType::Force, "Metal: could not allocate a {}x{} guest texture; substituting a {} texture", width, height,
+			m_texture ? "small texture of the same format" : "null");
+		if (!m_texture)
+			m_texture = mtlRenderer->GetNullTexture2D()->retain();
 		m_isNullSubstitute = true;
+		HostTuning::Count(HostTuning::GetStats().substituteTextures);
 		LatteWait::Get().evictionRequested.store(true);
 	}
 }

@@ -76,7 +76,7 @@ struct NotificationSettingsSection: View {
             .labelsHidden()
             .tint(EspressUTheme.accentText)
         }
-        .onChange(of: positionRaw) { newValue in
+        .onValueChange(of: positionRaw) { newValue in
             cemu_bridge_set_notification_position(Int32(newValue))
         }
     }
@@ -85,7 +85,7 @@ struct NotificationSettingsSection: View {
         ColorPicker("Text colour", selection: packedColourBinding($textColor), supportsOpacity: false)
             .font(.system(size: 15, weight: .semibold, design: .rounded))
             .disabled(isOff)
-            .onChange(of: textColor) { newValue in
+            .onValueChange(of: textColor) { newValue in
                 cemu_bridge_set_notification_text_color(UInt32(truncatingIfNeeded: newValue))
             }
     }
@@ -105,7 +105,7 @@ struct NotificationSettingsSection: View {
                 in: 50...200, step: 25)
         }
         .disabled(isOff)
-        .onChange(of: textScale) { newValue in
+        .onValueChange(of: textScale) { newValue in
             cemu_bridge_set_notification_text_scale(Int32(newValue))
         }
     }
@@ -117,7 +117,7 @@ struct NotificationSettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: controllerProfilesEnabled) { newValue in
+        .onValueChange(of: controllerProfilesEnabled) { newValue in
             cemu_bridge_set_notification_controller_profiles(newValue)
         }
     }
@@ -129,7 +129,7 @@ struct NotificationSettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: controllerBatteryEnabled) { newValue in
+        .onValueChange(of: controllerBatteryEnabled) { newValue in
             cemu_bridge_set_notification_controller_battery(newValue)
         }
     }
@@ -141,7 +141,7 @@ struct NotificationSettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: shaderCompilingEnabled) { newValue in
+        .onValueChange(of: shaderCompilingEnabled) { newValue in
             cemu_bridge_set_notification_shader_compiling(newValue)
         }
     }
@@ -153,7 +153,7 @@ struct NotificationSettingsSection: View {
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
-        .onChange(of: friendsEnabled) { newValue in
+        .onValueChange(of: friendsEnabled) { newValue in
             cemu_bridge_set_notification_friends(newValue)
         }
     }

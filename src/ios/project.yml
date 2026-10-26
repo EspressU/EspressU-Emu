@@ -1,14 +1,14 @@
 name: EspressU
 
 options:
-  bundleIdPrefix: com.am4rdev
+  bundleIdPrefix: dev.espressu
   deploymentTarget:
     iOS: '15.0'
   xcodeVersion: '15.0'
 
 settings:
   PRODUCT_NAME: EspressU
-  PRODUCT_BUNDLE_IDENTIFIER: com.am4rdev.EspressU
+  PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU
   SDKROOT: iphoneos
   IPHONEOS_DEPLOYMENT_TARGET: '15.0'
   CODE_SIGN_IDENTITY: iPhone Developer
@@ -21,9 +21,12 @@ settings:
     - '$(SRCROOT)/../../build-ios/out'
   LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks'
   GENERATE_INFOPLIST_FILE: 'YES'
+  # Neither target declares App Intents; skip the unused metadata extraction step.
+  LM_SKIP_METADATA_EXTRACTION: 'YES'
   INFOPLIST_FILE: 'Info-AlternateIcons.plist'
+  INFOPLIST_KEY_UIRequiresFullScreen: 'YES'
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-  MARKETING_VERSION: '1.2'
+  MARKETING_VERSION: '1.3'
   CURRENT_PROJECT_VERSION: '1'
   INFOPLIST_KEY_CFBundleDisplayName: EspressU
   INFOPLIST_KEY_UILaunchScreen_Generation: 'YES'
@@ -111,7 +114,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: StikJITHelper
-        PRODUCT_BUNDLE_IDENTIFIER: com.am4rdev.EspressU.StikJITHelper
+        PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU.StikJITHelper
         INFOPLIST_FILE: StikJITHelper/Info.plist
         GENERATE_INFOPLIST_FILE: 'NO'
         CODE_SIGN_ENTITLEMENTS: ''

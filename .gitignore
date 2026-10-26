@@ -61,3 +61,14 @@ bin/gameProfiles/*
 ._*
 __pycache__/
 build-espressu-ipa.sh
+
+# --- Local assistant files ---
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.claudeignore
+docs/ARCHITECTURE.md
+.mcp.json
+
+# Personal Xcode settings for local Swift packages
+**/.swiftpm/xcode/xcuserdata/

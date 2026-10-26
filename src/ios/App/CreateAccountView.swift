@@ -54,7 +54,7 @@ struct CreateAccountView: View {
                                 .monospacedDigit()
                                 .accessibilityLabel("\(miiName.count) of 10 characters used")
                         }
-                        .onChange(of: miiName) { newValue in
+                        .onValueChange(of: miiName) { newValue in
                             let trimmedName = String(newValue.prefix(10))
                             if trimmedName != newValue {
                                 miiName = trimmedName

@@ -59,8 +59,8 @@ struct EspressUOnboardingView: View {
             input.resume()
             importPairingFile(result)
         }
-        .onChange(of: page) { focus = defaultFocus(for: $0) }
-        .onChange(of: scenePhase) { phase in
+        .onValueChange(of: page) { focus = defaultFocus(for: $0) }
+        .onValueChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             input.resume()
         }
