@@ -23,6 +23,9 @@ namespace CA
 // Each output cycles through a few frame slots with their own command allocator, argument table and
 // target texture, so several frames can be in flight. All stage resources live in one residency set.
 //
+// Experimental and not recommended yet: in tests games ran no faster with it, sometimes slower, and it needs
+// more work before it should be switched on by default or advised to anyone.
+//
 // Everything here needs iOS 26 and a GPU of the Metal 4 family. Create() returns nullptr otherwise,
 // and BeginFrame() returns nullptr whenever a frame cannot go this way; the caller then uses its
 // regular drawable for that frame.

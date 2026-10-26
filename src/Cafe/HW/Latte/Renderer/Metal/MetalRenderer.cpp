@@ -4726,7 +4726,7 @@ void MetalRenderer::UpdateMetal4Output()
             cemuLog_log(LogType::Force, "Metal: the Metal 4 output path is not available on this device or iOS version, presenting as before");
             return;
         }
-        cemuLog_log(LogType::Force, "Metal: TV and GamePad frames are now presented through a Metal 4 command queue");
+        cemuLog_log(LogType::Force, "Metal: TV and GamePad frames are now presented through a Metal 4 command queue (experimental, not recommended yet, still needs work)");
     }
     else
     {
