@@ -1,9 +1,7 @@
 #include "Cafe/Account/Account.h"
 #include "Cafe/CafeSystem.h"
-#include "Cemu/ncrypto/ncrypto.h"
 #include "config/ActiveSettings.h"
 #include "config/CemuConfig.h"
-#include "config/NetworkSettings.h"
 
 #include <boost/nowide/convert.hpp>
 #include <sstream>
@@ -70,7 +68,7 @@ std::string IOSAccounts_List()
 			<< (int)account.GetGender() << '\x1F'
 			<< SanitizeField(account.GetEmail()) << '\x1F'
 			<< account.GetCountry() << '\x1F'
-			<< (account.IsValidOnlineAccount() ? '1' : '0');
+			<< '0';
 	}
 	return out.str();
 }
@@ -168,29 +166,6 @@ bool IOSAccounts_SetGender(uint32_t persistentId, int gender)
 	});
 }
 
-bool IOSAccounts_SetEmail(uint32_t persistentId, const char* email)
-{
-	return MutateAccount(persistentId, [&](Account& account) {
-		account.SetEmail(email ? email : "");
-	});
-}
-
-bool IOSAccounts_SetCountry(uint32_t persistentId, int country)
-{
-	return MutateAccount(persistentId, [&](Account& account) {
-		account.SetCountry((uint32)country);
-	});
-}
-
-bool IOSAccounts_SetBirthdate(uint32_t persistentId, uint16_t year, uint8_t month, uint8_t day)
-{
-	return MutateAccount(persistentId, [&](Account& account) {
-		account.SetBirthYear(year);
-		account.SetBirthMonth(month);
-		account.SetBirthDay(day);
-	});
-}
-
 uint32_t IOSAccounts_ActivePersistentId()
 {
 	return GetConfig().account.m_persistent_id.GetValue();
@@ -202,74 +177,3 @@ void IOSAccounts_SetActivePersistentId(uint32_t persistentId)
 	GetConfigHandle().Save();
 }
 
-bool IOSAccounts_IsOnlineValid(uint32_t persistentId)
-{
-	const Account* account = FindAccount(persistentId);
-	return account && account->IsValidOnlineAccount();
-}
-
-std::string IOSAccounts_OnlineHint()
-{
-	const uint32_t persistentId = GetConfig().account.m_persistent_id.GetValue();
-	const NetworkService service = (NetworkService)GetConfig().GetAccountNetworkService(persistentId);
-	if (service != NetworkService::Pretendo && service != NetworkService::Nintendo)
-		return {};
-	const Account* account = FindAccount(persistentId);
-	if (account && account->IsValidOnlineAccount() && ActiveSettings::HasRequiredOnlineFiles())
-		return {};
-	return "A Pretendo ID can't be created or linked inside EspressU. Link it on a real Wii U, then import that console's account.dat, otp.bin and seeprom.bin in Settings > Network Service.";
-}
-
-int IOSAccounts_OnlineError(uint32_t persistentId)
-{
-	const Account* account = FindAccount(persistentId);
-	if (!account)
-		return -1;
-	return (int)account->GetOnlineAccountError();
-}
-
-std::string IOSAccounts_CountriesList()
-{
-	std::ostringstream out;
-	bool first = true;
-	for (int i = 0; i < NCrypto::GetCountryCount(); ++i)
-	{
-		const char* country = NCrypto::GetCountryAsString(i);
-		if (!country || (i != 0 && std::string(country) == "NN"))
-			continue;
-		if (!first)
-			out << '\x1E';
-		first = false;
-		out << i << '\x1F' << country;
-	}
-	return out.str();
-}
-
-int IOSAccounts_NetworkService(uint32_t persistentId)
-{
-	return (int)GetConfig().GetAccountNetworkService(persistentId);
-}
-
-void IOSAccounts_SetNetworkService(uint32_t persistentId, int service)
-{
-	if (service < (int)NetworkService::Offline || service > (int)NetworkService::Custom)
-		return;
-	GetConfig().SetAccountSelectedService(persistentId, (NetworkService)service);
-	GetConfigHandle().Save();
-}
-
-bool IOSAccounts_CustomNetworkServiceAvailable()
-{
-	return NetworkConfig::XMLExists();
-}
-
-bool IOSAccounts_ReloadCustomNetworkService()
-{
-	NetworkConfig::Reload();
-	return NetworkConfig::XMLExists();
-}
-
-bool IOSAccounts_IsValidNetworkServicesXML(const char* path)
-{
-	return path && NetworkConfig::IsValidFile(fs::path(path));
-}

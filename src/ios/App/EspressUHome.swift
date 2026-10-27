@@ -23,12 +23,9 @@ struct EspressUHomeActions {
     let importFile: () -> Void
     let importFolder: () -> Void
     let importPickedGame: (URL) -> Void
-    let importPickedContent: (URL, DlcUpdateImport.ContentKind) -> Void
-    let importKeys: () -> Void
     let linkFolder: () -> Void
     let linkFile: () -> Void
-    let importDLC: () -> Void
-    let importUpdate: () -> Void
+    let importContentFolder: () -> Void
 }
 
 private struct HomeGridOffsetKey: PreferenceKey {
@@ -69,23 +66,18 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ObservedObject private var uiStyle = UIStyleStore.shared
     @ObservedObject private var playStats = LibraryPlayStats.shared
-    @ObservedObject private var vpn = LocalDevVPNMonitor.shared
     @State private var gridAppeared = false
     @State private var keyboardUp = false
     @State private var selectedId: String?
     @State private var showingSearch = false
     @State private var showingAdd = false
-    @State private var showingJIT = false
-    @StateObject private var jitPanel = EspressUJITPanelModel()
     @State private var optionsGameId: String?
     @State private var optionsFocus = 0
     @State private var optionsArmed: String?
     @State private var importerMode: ImporterMode?
-    @State private var importerPurpose: ImporterMode = .gameFolder
 
     private enum ImporterMode: Equatable {
         case gameFolder
-        case content(DlcUpdateImport.ContentKind)
     }
     @State private var insets = EdgeInsets()
     @State private var screenSize = CGSize(width: 800, height: 600)
@@ -274,21 +266,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .transition(.scale(scale: 0.94).combined(with: .opacity))
             }
 
-            if showingJIT {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .onTapGesture { showingJIT = false }
-                    .transition(.opacity)
-                EspressUJITPanel(model: jitPanel, showsFocus: pad.showsFocus, backSymbol: pad.backSymbol,
-                                 maxHeight: screenSize.height - insets.top - max(insets.bottom, 12) - 12)
-                    .padding(.horizontal, 16)
-                    .padding(.leading, insets.leading)
-                    .padding(.trailing, insets.trailing)
-                    .padding(.top, insets.top + 12)
-                    .padding(.bottom, max(insets.bottom, 12))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isPhone ? .bottom : .center)
-                    .transition(.scale(scale: 0.94).combined(with: .opacity))
-            }
         }
         .ignoresSafeArea()
         .background(
@@ -312,17 +289,13 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         }
         .fileImporter(
             isPresented: Binding(get: { importerMode != nil }, set: { if !$0 { importerMode = nil } }),
-            allowedContentTypes: importerPurpose == .gameFolder ? [.folder] : [.folder, .item]
+            allowedContentTypes: [.folder]
         ) { result in
-            let mode = importerPurpose
             importerMode = nil
             switch result {
             case .success(let url):
                 cemu_bridge_log_checkpoint("fileImporter: picked \(url.path)")
-                switch mode {
-                case .gameFolder: actions.importPickedGame(url)
-                case .content(let kind): actions.importPickedContent(url, kind)
-                }
+                actions.importPickedGame(url)
             case .failure(let error):
                 cemu_bridge_log_checkpoint("fileImporter: failed \(error.localizedDescription)")
             }
@@ -331,7 +304,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedId)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingAdd)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: optionsGameId)
-        .animation(.spring(response: 0.3, dampingFraction: 0.86), value: showingJIT)
         .animation(isPhone ? .spring(response: 0.5, dampingFraction: 0.9) : .easeInOut(duration: 0.2), value: showingSearch)
         .onValueChange(of: games.map(\.id)) { ids in
             if let selectedId, !ids.contains(selectedId) { self.selectedId = nil }
@@ -814,7 +786,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     }
 
     private var allBarItems: [EspressUMenuBar.Item] {
-        let jitOn = JITStatus.isActive && vpn.isConnected
         return [
             .init(title: "Add", systemImage: "plus", tint: EspressUTheme.accentText, isOn: showingAdd) {
                 showingAdd.toggle()
@@ -830,11 +801,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 showingSearch.toggle()
                 if !showingSearch { searchText = "" }
             },
-            .init(title: !jitPanel.enabled ? "No JIT" : (jitOn ? "JIT on" : "JIT"), systemImage: "bolt.fill",
-                  tint: jitOn && jitPanel.enabled ? Color(UIColor.systemGreen) : EspressUTheme.brownMid, isOn: showingJIT) {
-                showingAdd = false
-                openJITPanel()
-            },
             .init(title: "Settings", systemImage: "gearshape.fill", tint: EspressUTheme.brownDark, isOn: false) {
                 showingAdd = false
                 actions.openSettings()
@@ -849,9 +815,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             return
         }
         ControllerScreenCursor.shared.reset()
-        if showingJIT {
-            jitPanel.handle(command)
-        } else if optionsGameId != nil {
+        if optionsGameId != nil {
             handleOptions(command)
         } else if showingAdd {
             handleAddPanel(command)
@@ -943,13 +907,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         default:
             break
         }
-    }
-
-    private func openJITPanel() {
-        jitPanel.close = { showingJIT = false }
-        jitPanel.openSettings = actions.openSettings
-        jitPanel.open()
-        showingJIT = true
     }
 
     private func handleAddPanel(_ command: ControllerMenuCommand) {
@@ -1154,26 +1111,22 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     private var addGroups: [(String, [AddOption])] {
         [
             ("Add games", [
-                AddOption(id: "file", title: "Game file", detail: "A .wua, .wux, .wud or .rpx",
+                AddOption(id: "file", title: "Game file", detail: "A decrypted .wua or a .rpx",
                           systemImage: "doc.fill", action: actions.importFile),
-                AddOption(id: "folder", title: "Game folder", detail: "A dumped game folder",
-                          systemImage: "folder.fill", action: { importerPurpose = .gameFolder; importerMode = .gameFolder }),
+                AddOption(id: "folder", title: "Game folder", detail: "A decrypted game folder",
+                          systemImage: "folder.fill", action: { importerMode = .gameFolder }),
                 AddOption(id: "romsInFiles", title: "Roms folder in Files", detail: "Drag games in, then come back",
                           systemImage: "folder.badge.plus", action: { Self.openInFiles(Self.documentsFolder("Roms")) })
+            ]),
+            ("Updates and DLC", [
+                AddOption(id: "contentFolder", title: "Update or DLC folder", detail: "A decrypted folder for a game you have",
+                          systemImage: "shippingbox.fill", action: actions.importContentFolder)
             ]),
             ("Keep games where they are", [
                 AddOption(id: "linkFolder", title: "Link a folder", detail: "Drive, SD card or iCloud. Nothing is copied",
                           systemImage: "externaldrive.fill.badge.plus", action: actions.linkFolder),
                 AddOption(id: "linkFile", title: "Link a game file", detail: "Play it right where it is",
                           systemImage: "link", action: actions.linkFile)
-            ]),
-            ("Updates, DLC and keys", [
-                AddOption(id: "update", title: "Update", detail: "A folder or .wua for a game you have",
-                          systemImage: "arrow.triangle.2.circlepath", action: { importerPurpose = .content(.update); importerMode = .content(.update) }),
-                AddOption(id: "dlc", title: "DLC", detail: "A folder or .wua for a game you have",
-                          systemImage: "shippingbox.fill", action: { importerPurpose = .content(.dlc); importerMode = .content(.dlc) }),
-                AddOption(id: "keys", title: "Keys", detail: "keys.txt for encrypted games",
-                          systemImage: "key.fill", action: actions.importKeys)
             ])
         ]
     }

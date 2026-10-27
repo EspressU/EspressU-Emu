@@ -9,8 +9,6 @@ extension EspressUSettingsView {
         var advanced: [SettingsItem] = []
         var advancedHint = ""
         switch category {
-        case .jit:
-            groups = jitGroups
         case .performance:
             groups = performanceGroups
         case .graphics:
@@ -115,13 +113,8 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
-            SettingsItem(id: "tuning.jitOverlaps", title: "No duplicate JIT work",
-                         detail: "JIT threads no longer compile the same game code at the same time and throw one result away. Leaves more CPU for the game.",
-                         control: .toggle(values.bool(PerformanceTuning.jitSkipOverlapsKey, PerformanceTuning.jitSkipOverlapsDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
-                         detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
+            SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter",
+                         detail: "Jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
                          control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
@@ -151,11 +144,7 @@ extension EspressUSettingsView {
     }
 
     private static var cpuModeTitle: String {
-        switch cemu_bridge_cpu_mode() {
-        case 2: return "Recompiler"
-        case 1: return "Interpreter"
-        default: return "Not decided yet"
-        }
+        "Interpreter"
     }
 
     private var graphicsGroups: [SettingsGroup] {
@@ -202,8 +191,6 @@ extension EspressUSettingsView {
                          detail: "Also the learned shaders. Games stutter while they relearn them.",
                          control: .action("Clear", destructive: true, confirm: true, run: { clearShaders(includeLearned: true) }),
                          enabled: shaderLearned + shaderCompiled > 0),
-            SettingsItem(id: "gfx.packs", title: "Graphic packs", detail: "Fixes and extras for each game.",
-                         control: .link("", .graphicPacks)),
         ]
 
         return [
@@ -432,19 +419,19 @@ extension EspressUSettingsView {
                 SettingsItem(id: "lib.sort", title: "Sort by", detail: "The order of the games on the home screen.",
                              control: .choice(LibrarySortOrder.allCases.map { SettingsOption(id: $0.rawValue, title: $0.title) },
                                               values.string("espressu.library.sortOrder", LibrarySortOrder.title.rawValue))),
+                SettingsItem(id: "lib.mods", title: "Mods", detail: "Import and switch on your own mods.",
+                             control: .link("", .graphicPacks)),
                 SettingsItem(id: "lib.linked", title: "Linked folders", detail: "Game folders that stay where they are.",
                              control: .link("", .linkedFolders)),
             ]),
             SettingsGroup(id: "files", title: "Your files", items: [
-                SettingsItem(id: "data.keys", title: "Wii U keys", detail: "Needed for encrypted dumps (.wud, .wux).",
-                             control: .link("", .keys)),
                 SettingsItem(id: "data.files", title: "Files and storage", detail: "Where EspressU keeps games, saves and more.",
                              control: .link("", .files)),
                 SettingsItem(id: "data.backup", title: "Back up and restore", detail: "Save every setting to a file, or load one.",
                              control: .link("", .backup)),
             ]),
-            SettingsGroup(id: "online", title: "Online", items: [
-                SettingsItem(id: "data.account", title: "Account", detail: "Your Wii U account for saves and online play.",
+            SettingsGroup(id: "profile", title: "Profile", items: [
+                SettingsItem(id: "data.account", title: "Profile", detail: "Your local profile for game saves.",
                              control: .link("", .account)),
             ]),
         ]
@@ -463,7 +450,7 @@ extension EspressUSettingsView {
 
         let help: [SettingsItem] = [
             SettingsItem(id: "sys.guide", title: "Show the welcome guide again",
-                         detail: "Walks through games, JIT and controllers.",
+                         detail: "Walks through importing games and setting up controllers.",
                          control: .action("Open", destructive: false, confirm: false, run: {
                              OnboardingState.reset()
                              close()
@@ -480,7 +467,7 @@ extension EspressUSettingsView {
             SettingsItem(id: "sys.about", title: "About and licences", detail: "Credits and open-source licences.",
                          control: .link("", .about)),
             SettingsItem(id: "sys.reset", title: "Reset all settings",
-                         detail: "Back to how EspressU came, Built-in JIT and its pairing file included. Games, saves and keys stay. The welcome guide opens again.",
+                         detail: "Back to how EspressU came. Games and saves stay. The welcome guide opens again.",
                          control: .action("Reset", destructive: true, confirm: true, run: {
                              SettingsDefaults.reset(includingPerGameOverrides: false)
                              UserDefaults.standard.set(SettingsMode.advanced.rawValue, forKey: SettingsMode.storageKey)
@@ -494,6 +481,13 @@ extension EspressUSettingsView {
             SettingsGroup(id: "look", title: "Look", items: look),
             SettingsGroup(id: "help", title: "Help", items: help),
             SettingsGroup(id: "about", title: "About", items: about),
+            SettingsGroup(id: "community", title: "Community", items: [
+                SettingsItem(id: "sys.discord", title: "Join the Discord",
+                             detail: "Opens the EspressU community server in your browser.",
+                             control: .action("Open", destructive: false, confirm: false, run: {
+                                 if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
+                             })),
+            ]),
         ]
     }
 }

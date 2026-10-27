@@ -41,7 +41,7 @@ enum RenderScale: String, CaseIterable, Identifiable {
         switch self {
         case .native:   return "Sharpest. Four times the pixels of Balanced, and the shortest battery life."
         case .high:     return "Slightly softer than Native, noticeably cheaper to draw."
-        case .balanced: return "Still above the Wii U's own 720p. The best trade on most games."
+        case .balanced: return "Still above the game's own 720p. The best trade on most games."
         case .battery:  return "Softest, coolest, longest-running. Use it when a game won't hold its frame rate."
         }
     }
@@ -62,26 +62,8 @@ enum RenderScale: String, CaseIterable, Identifiable {
         return storedChoice
     }
 
-    static var deviceDefault: RenderScale {
-        #if os(iOS)
-        if DeviceCapabilities.current.startsAtHighRenderScale {
-            return .high
-        }
-        let screen = UIScreen.main
-        let nativeScale = Double(screen.scale)
-        let longEdge = Double(max(screen.bounds.width, screen.bounds.height)) * nativeScale
-        let shortEdge = Double(min(screen.bounds.width, screen.bounds.height)) * nativeScale
-        let memoryGiB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824.0
-        let pixelBudget: Double = memoryGiB >= 5.0 ? 2_500_000 : (memoryGiB >= 3.0 ? 2_000_000 : 1_600_000)
-        let ladder: [RenderScale] = [.balanced, .high, .native]
-        func pixels(_ scale: RenderScale) -> Double { longEdge * scale.factor * shortEdge * scale.factor }
-        let sharpEnough = ladder.first { longEdge * $0.factor >= 1_100 } ?? .native
-        if pixels(sharpEnough) <= pixelBudget { return sharpEnough }
-        return ladder.last { pixels($0) <= pixelBudget } ?? .balanced
-        #else
-        return .balanced
-        #endif
-    }
+    /// The interpreter-only build starts at Balanced on every device; the user can raise it.
+    static var deviceDefault: RenderScale { .balanced }
 }
 
 enum OneCoreMode {
@@ -140,7 +122,7 @@ enum FullSpeedRenders {
 
 enum PadSurfaceScale {
     static let maxLongSidePixels: Double = 1708
-    /// The Wii U GamePad's own width, used when the lower-resolution GamePad screen is chosen.
+    /// The GamePad's own width, used when the lower-resolution GamePad screen is chosen.
     static let lowResolutionLongSidePixels: Double = 854
 
     static func scale(forPoints size: CGSize, renderScale: Double) -> Double {

@@ -130,14 +130,6 @@ struct EspressURowList: View {
                     .multilineTextAlignment(.trailing)
             }
 
-        case .modeSwitch(let binding):
-            JITModeSwitch(isOn: binding.wrappedValue) { on in
-                focus = item.id
-                binding.wrappedValue = on
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-
         case .banner(let view):
             view
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -258,7 +250,7 @@ enum EspressURowLogic {
     static func activate(_ item: SettingsItem, armed: Binding<String?>,
                          dropdown: Binding<SettingsDropdownState?>? = nil) {
         switch item.control {
-        case .toggle(let binding), .modeSwitch(let binding):
+        case .toggle(let binding):
             binding.wrappedValue.toggle()
         case .choice(let options, let binding):
             guard !options.isEmpty else { return }
@@ -277,10 +269,6 @@ enum EspressURowLogic {
 
     static func adjust(_ item: SettingsItem, by direction: Int) -> Bool {
         switch item.control {
-        case .modeSwitch(let binding):
-            let on = direction < 0
-            if binding.wrappedValue != on { binding.wrappedValue = on }
-            return true
         case .choice(let options, let binding):
             guard let index = options.firstIndex(where: { $0.id == binding.wrappedValue }) else {
                 if let first = options.first { binding.wrappedValue = first.id }

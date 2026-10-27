@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var showingGameBrowser = true
     @State private var showingFavorites = false
     @State private var sharedImportError: String?
-    static let sharedGameExtensions: Set<String> = ["wua", "wud", "wux", "rpx"]
+    static let sharedGameExtensions: Set<String> = ["wua", "rpx"]
 
     private func openSharedFile(_ url: URL) {
         guard url.isFileURL, Self.sharedGameExtensions.contains(url.pathExtension.lowercased()) else { return }
@@ -86,7 +86,6 @@ struct ContentView: View {
         } message: {
             Text(sharedImportError ?? "")
         }
-        .stikJITOverlay()
         .onReceive(NotificationCenter.default.publisher(for: .espressuReopenOnboarding)) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { showOnboarding = true }
         }
@@ -110,7 +109,7 @@ struct BootFailureView: View {
     private var name: String { game.displayTitle ?? game.title }
 
     private static let crashLogHint =
-        "If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report."
+        "If you report this, share the EspressU report: Settings > Device report and logs > Share report."
 
     private var title: String {
         if needsCleanRestart { return "Restart needed before \(name)" }
@@ -118,20 +117,10 @@ struct BootFailureView: View {
         return endedWhileRunning ? "\(name) stopped" : "Couldn't start \(name)"
     }
 
-    @State private var keysAdded: Int?
-    @State private var keysError: String?
-
-    private var needsKeys: Bool {
-        guard !needsCleanRestart, !endedWhileRunning, keysAdded == nil, !WiiUKeys.keysFileExists() else { return false }
-        return ["wux", "wud", "iso", "tmd"].contains(URL(fileURLWithPath: game.romPath).pathExtension.lowercased())
-    }
-
     private var plainLine: String {
         if needsCleanRestart { return "Close EspressU and open it again from your Home Screen, then start a game." }
         if driveWasLost { return "The drive or folder this game is stored on was disconnected. Connect it again, go back and start the game again." }
         if endedWhileRunning { return "The game stopped. Go back and try it again. If it keeps happening, close and reopen EspressU." }
-        if needsKeys { return "This game is encrypted, so it needs a keys.txt file to start." }
-        if let keysAdded { return "Added \(keysAdded) key\(keysAdded == 1 ? "" : "s"). Go back and start the game again. If it still won't start, close and reopen EspressU." }
         return "This game didn't start. Try again. If it keeps happening, close and reopen EspressU."
     }
 
@@ -144,23 +133,6 @@ struct BootFailureView: View {
                     content
                         .frame(maxWidth: .infinity, minHeight: proxy.size.height)
                 }
-            }
-        }
-    }
-
-    private func importKeys() {
-        DocumentImport.present(contentTypes: [.item]) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                do {
-                    keysAdded = try WiiUKeys.importKeys(from: url)
-                    keysError = nil
-                } catch {
-                    keysError = error.localizedDescription
-                }
-            case .failure(let error):
-                keysError = error.localizedDescription
             }
         }
     }
@@ -183,26 +155,6 @@ struct BootFailureView: View {
                 .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
-
-            if let keysError {
-                Text(keysError)
-                    .font(.system(.footnote))
-                    .foregroundColor(EspressUTheme.alertOnDark)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 480)
-            }
-
-            if needsKeys {
-                Button(action: importKeys) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "key.fill")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Import keys.txt")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                }
-                .buttonStyle(EspressUPrimaryButtonStyle())
-            }
 
             DisclosureGroup("Details") {
                 VStack(spacing: 10) {
@@ -376,8 +328,7 @@ struct GameBrowserView: View {
     @State private var showingSettings = false
     @State private var gamePageTarget: GameMetadata?
     @AppStorage(LibraryTapAction.storageKey) private var tapActionRaw = LibraryTapAction.defaultValue.rawValue
-    @State private var decryptTarget: GameMetadata?
-    @State private var coverArtTarget: GameMetadata?
+    @State private var coverArtTarget: CoverRequest?
     @ObservedObject private var perGameSettings = PerGameSettingsStore.shared
     @ObservedObject private var playStats = LibraryPlayStats.shared
     @ObservedObject private var customNames = LibraryCustomNames.shared
@@ -389,7 +340,6 @@ struct GameBrowserView: View {
     @State private var pendingGameRemoval: GameMetadata?
     private static let fileImportTypes: [UTType] = [.item]
     private static let folderImportTypes: [UTType] = [.folder, .directory]
-    private static let dlcUpdateImportTypes: [UTType] = [.folder, .directory, .item]
 
     @AppStorage("espressu.library.sortOrder") private var sortOrderRaw = LibrarySortOrder.title.rawValue
     private var sortOrder: LibrarySortOrder {
@@ -401,11 +351,8 @@ struct GameBrowserView: View {
     @State private var pendingOverwriteConfirmation: (name: String, resume: (Bool) -> Void)?
     @State private var removingContentMessage: String?
 
-    @State private var dlcImportErrorMessage: String?
-    @State private var pendingManualMatchConfirmation: (source: URL, kind: DlcUpdateImport.ContentKind, game: GameMetadata)?
-    @State private var pendingRemoval: (game: GameMetadata, kind: DlcUpdateImport.ContentKind)?
-    @State private var gamePickerContext: (source: URL, kind: DlcUpdateImport.ContentKind)?
-    @State private var dlcUpdateSuccessMessage: String?
+    @State private var importErrorMessage: String?
+    @State private var importSuccessMessage: String?
 
     var filteredGames: [GameMetadata] {
         let gamesToShow = showingFavorites ? gameManager.favorites : gameManager.games
@@ -429,59 +376,20 @@ struct GameBrowserView: View {
         (LibraryGrouping(rawValue: groupingRaw) ?? .none).sections(for: filteredGames, stats: playStats)
     }
 
-    private func installFromInbox() async {
-        for _ in 0..<40 where gameManager.isLoading { try? await Task.sleep(nanoseconds: 250_000_000) }
-        guard gameManager.emulationState == .idle else { return }
-        let report = await EspressUInbox.process(library: gameManager.games)
-        guard !report.isEmpty else { return }
-        if report.failed.isEmpty {
-            dlcUpdateSuccessMessage = EspressUInbox.summary(report)
-        } else {
-            dlcImportErrorMessage = EspressUInbox.summary(report)
-        }
-    }
-
-    private func withJIT(_ start: @escaping () -> Void) {
-        guard StikJITCoordinator.shared.launchNeedsJIT else { start(); return }
-        StikJITCoordinator.shared.acquireForLaunch { outcome in
-            guard outcome != .cancelled, gameManager.emulationState == .idle else { return }
-            start()
-        }
-    }
-
     var body: some View {
         withAlerts(withSheets(
             libraryScreen
             .onValueChange(of: scenePhase) { phase in
                 if phase == .active {
-                    if gameManager.emulationState == .idle { StikJITCoordinator.shared.autoEnableIfPossible() }
                     Task {
                         await gameManager.rescanIfIdle()
-                        await installFromInbox()
                     }
                 }
-            }
-            .task { await installFromInbox() }
-            .onReceive(Timer.publish(every: 10, on: .main, in: .common).autoconnect()) { _ in
-                guard scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
-                StikJITCoordinator.shared.autoEnableIfPossible()
-            }
-            .onReceive(LocalDevVPNMonitor.shared.$isConnected.removeDuplicates().dropFirst()) { connected in
-                guard connected, scenePhase == .active, gameManager.emulationState == .idle, !JITStatus.isUsable else { return }
-                StikJITCoordinator.shared.autoEnableIfPossible()
-            }
-            .task {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
-                if gameManager.emulationState == .idle { StikJITCoordinator.shared.autoEnableIfPossible() }
             }
             .onReceive(NotificationCenter.default.publisher(for: .espressuReopenOnboarding)) { _ in
                 showingSettings = false
             }
             .onAppear {
-                LocalDevVPNMonitor.shared.start()
-                #if os(iOS)
-                if gameManager.emulationState == .idle { GameControlHints.restoreGlobals() }
-                #endif
                 gameManager.confirmOverwrite = { name in
                     await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
                         pendingOverwriteConfirmation = (name: name, resume: { continuation.resume(returning: $0) })
@@ -523,18 +431,15 @@ struct GameBrowserView: View {
                 toggleFavorite: { gameManager.toggleFavorite($0) },
                 openGamePage: { gamePageTarget = $0 },
                 renameGame: { renameTarget = $0 },
-                changeCover: { coverArtTarget = $0 },
+                changeCover: { coverArtTarget = CoverRequest(game: $0) },
                 removeGame: { removeGameNow($0) },
                 openSettings: { showingSettings = true },
                 importFile: { beginImport(contentTypes: Self.fileImportTypes) },
                 importFolder: { beginImport(contentTypes: Self.folderImportTypes) },
                 importPickedGame: { handleImport(.success([$0])) },
-                importPickedContent: { runDlcUpdateImport(from: $0, kind: $1, longPressedGame: nil, manualMatch: nil) },
-                importKeys: { beginKeysImport() },
                 linkFolder: { beginLink(contentTypes: Self.folderImportTypes) },
                 linkFile: { beginLink(contentTypes: Self.fileImportTypes) },
-                importDLC: { beginGeneralDlcUpdateImport(kind: .dlc) },
-                importUpdate: { beginGeneralDlcUpdateImport(kind: .update) }
+                importContentFolder: { beginContentImport(for: nil) }
             ),
             lead: { EmptyView() },
             gameMenu: { game in gameMenu(for: game) }
@@ -594,11 +499,6 @@ struct GameBrowserView: View {
                         } label: {
                             Label("Game folder", systemImage: "folder")
                         }
-                        Button {
-                            beginKeysImport()
-                        } label: {
-                            Label("Keys (keys.txt)", systemImage: "key")
-                        }
                         Divider()
                         Button {
                             beginLink(contentTypes: Self.folderImportTypes)
@@ -609,17 +509,6 @@ struct GameBrowserView: View {
                             beginLink(contentTypes: Self.fileImportTypes)
                         } label: {
                             Label("Link a game file\u{2026}", systemImage: "link")
-                        }
-                        Divider()
-                        Button {
-                            beginGeneralDlcUpdateImport(kind: .dlc)
-                        } label: {
-                            Label("Import DLC\u{2026}", systemImage: "shippingbox")
-                        }
-                        Button {
-                            beginGeneralDlcUpdateImport(kind: .update)
-                        } label: {
-                            Label("Import Update\u{2026}", systemImage: "arrow.triangle.2.circlepath")
                         }
                     } label: {
                         Image(systemName: "doc.badge.plus")
@@ -738,7 +627,7 @@ struct GameBrowserView: View {
             gameManager: gameManager,
             onPlay: { playGame(game) },
             onOpenPage: { gamePageTarget = game },
-            onChangeCoverArt: { coverArtTarget = game },
+            onChangeCoverArt: { coverArtTarget = CoverRequest(game: game) },
             onRename: { renameTarget = game }
         )
         Divider()
@@ -754,19 +643,15 @@ struct GameBrowserView: View {
         if game.isExternal {
             Task {
                 guard await gameManager.externalGameIsReady(game), gameManager.emulationState == .idle else { return }
-                withJIT {
-                    selectedGame = game
-                    gameManager.launchGame(game)
-                    showingGameBrowser = false
-                }
+                selectedGame = game
+                gameManager.launchGame(game)
+                showingGameBrowser = false
             }
             return
         }
-        withJIT {
-            selectedGame = game
-            gameManager.launchGame(game)
-            showingGameBrowser = false
-        }
+        selectedGame = game
+        gameManager.launchGame(game)
+        showingGameBrowser = false
     }
 
     private func removeGameNow(_ game: GameMetadata) {
@@ -776,7 +661,7 @@ struct GameBrowserView: View {
             do {
                 try await gameManager.removeGame(game)
             } catch {
-                dlcImportErrorMessage = error.localizedDescription
+                importErrorMessage = error.localizedDescription
             }
             removingContentMessage = nil
         }
@@ -796,85 +681,29 @@ struct GameBrowserView: View {
                     store: perGameSettings,
                     gameManager: gameManager,
                     onPlay: { playGame(game) },
-                    onDecrypt: { decryptTarget = game },
-                    onImportDLC: { beginDlcUpdateImport(for: game, kind: .dlc) },
-                    onImportUpdate: { beginDlcUpdateImport(for: game, kind: .update) },
-                    onRemoveDLC: { pendingRemoval = (game: game, kind: .dlc) },
-                    onRemoveUpdate: { pendingRemoval = (game: game, kind: .update) },
+                    onImportContent: { beginContentImport(for: game) },
                     onRemoveGame: { removeGameNow(game) }
                 )
             }
-            .sheet(item: $decryptTarget) { game in
-                DecryptROMView(game: game)
-            }
-            .sheet(item: $coverArtTarget) { game in
-                EspressUCoverPicker(game: game, gameManager: gameManager)
-            }
-            .sheet(isPresented: Binding(
-                get: { gamePickerContext != nil },
-                set: { if !$0 { gamePickerContext = nil } }
-            )) {
-                if let context = gamePickerContext {
-                    DlcUpdateGamePickerSheet(games: gameManager.games, kind: context.kind) { game in
-                        runDlcUpdateImport(from: context.source, kind: context.kind, longPressedGame: nil, manualMatch: game)
-                    }
-                }
-            }
+            .coverFileImporter(request: $coverArtTarget, gameManager: gameManager)
     }
 
     private func withAlerts<Content: View>(_ content: Content) -> some View {
         content
-            .alert("Added", isPresented: .constant(dlcUpdateSuccessMessage != nil), presenting: dlcUpdateSuccessMessage) { _ in
-                Button("OK") { dlcUpdateSuccessMessage = nil }
-            } message: { message in
-                Text(message)
-            }
             .alert("Couldn't add that game", isPresented: .constant(romImportErrorMessage != nil), presenting: romImportErrorMessage) { _ in
                 Button("OK") { romImportErrorMessage = nil }
             } message: { message in
                 Text(message)
             }
-            .alert("Couldn't import", isPresented: .constant(dlcImportErrorMessage != nil), presenting: dlcImportErrorMessage) { _ in
-                Button("OK") { dlcImportErrorMessage = nil }
+            .alert("Added", isPresented: .constant(importSuccessMessage != nil), presenting: importSuccessMessage) { _ in
+                Button("OK") { importSuccessMessage = nil }
             } message: { message in
                 Text(message)
             }
-            .alert(
-                "No automatic match",
-                isPresented: .constant(pendingManualMatchConfirmation != nil),
-                presenting: pendingManualMatchConfirmation
-            ) { pending in
-                Button("Add to \"\(pending.game.title)\"") {
-                    pendingManualMatchConfirmation = nil
-                    runDlcUpdateImport(from: pending.source, kind: pending.kind, longPressedGame: pending.game, manualMatch: pending.game)
-                }
-                Button("Cancel", role: .cancel) { pendingManualMatchConfirmation = nil }
-            } message: { pending in
-                Text("Couldn't automatically match this \(pending.kind.displayName) to a game already in your library. Add it to \"\(pending.game.title)\" - the game you long-pressed?")
-            }
-            .confirmationDialog(
-                "Remove content?",
-                isPresented: .constant(pendingRemoval != nil),
-                titleVisibility: .visible,
-                presenting: pendingRemoval
-            ) { pending in
-                Button("Remove", role: .destructive) {
-                    pendingRemoval = nil
-                    removingContentMessage = "Removing \(pending.kind.displayName) for \"\(pending.game.title)\"…"
-                    Task {
-                        do {
-                            _ = try await Task.detached {
-                                try DlcUpdateImport.remove(kind: pending.kind, for: pending.game)
-                            }.value
-                        } catch {
-                            dlcImportErrorMessage = error.localizedDescription
-                        }
-                        removingContentMessage = nil
-                    }
-                }
-                Button("Cancel", role: .cancel) { pendingRemoval = nil }
-            } message: { pending in
-                Text("Remove the \(pending.kind.displayName) installed for \"\(pending.game.title)\"? This can't be undone - you'll need to import it again.")
+            .alert("Couldn't import", isPresented: .constant(importErrorMessage != nil), presenting: importErrorMessage) { _ in
+                Button("OK") { importErrorMessage = nil }
+            } message: { message in
+                Text(message)
             }
             .confirmationDialog(
                 pendingGameRemoval?.removeConfirmTitle ?? "Remove this game?",
@@ -917,23 +746,6 @@ struct GameBrowserView: View {
             } message: { pending in
                 Text("\"\(pending.name)\" already exists in your library. Replacing it can't be undone.")
             }
-    }
-
-    private func beginKeysImport() {
-        DocumentImport.present(contentTypes: Self.fileImportTypes) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                do {
-                    let count = try WiiUKeys.importKeys(from: url)
-                    dlcUpdateSuccessMessage = "Added \(count) key\(count == 1 ? "" : "s"). Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first."
-                } catch {
-                    dlcImportErrorMessage = error.localizedDescription
-                }
-            case .failure(let error):
-                dlcImportErrorMessage = error.localizedDescription
-            }
-        }
     }
 
     private func beginLink(contentTypes: [UTType]) {
@@ -980,6 +792,26 @@ struct GameBrowserView: View {
         }
     }
 
+    private func beginContentImport(for game: GameMetadata?) {
+        // Folders can not be picked in copy mode (Open stays greyed out), so the folder is opened in place and copied by the import.
+        DocumentImport.present(contentTypes: Self.folderImportTypes) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                Task {
+                    do {
+                        let added = try await DlcUpdateImport.import(from: url, library: gameManager.games, matching: game)
+                        importSuccessMessage = "Added the \(added.kind.displayName) for \"\(added.matchedGame.title)\"."
+                    } catch {
+                        importErrorMessage = error.localizedDescription
+                    }
+                }
+            case .failure(let error):
+                importErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard let provider = providers.first(where: { $0.canLoadObject(ofClass: URL.self) }) else {
             return false
@@ -991,94 +823,6 @@ struct GameBrowserView: View {
             }
         }
         return true
-    }
-
-    private func beginDlcUpdateImport(for game: GameMetadata, kind: DlcUpdateImport.ContentKind) {
-        DocumentImport.present(contentTypes: Self.dlcUpdateImportTypes, asCopy: true) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                runDlcUpdateImport(from: url, kind: kind, longPressedGame: game, manualMatch: game)
-            case .failure(let error):
-                dlcImportErrorMessage = error.localizedDescription
-            }
-        }
-    }
-
-    private func beginGeneralDlcUpdateImport(kind: DlcUpdateImport.ContentKind) {
-        DocumentImport.present(contentTypes: Self.dlcUpdateImportTypes, asCopy: true) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                runDlcUpdateImport(from: url, kind: kind, longPressedGame: nil, manualMatch: nil)
-            case .failure(let error):
-                dlcImportErrorMessage = error.localizedDescription
-            }
-        }
-    }
-
-    private func runDlcUpdateImport(
-        from url: URL,
-        kind: DlcUpdateImport.ContentKind,
-        longPressedGame: GameMetadata?,
-        manualMatch: GameMetadata?
-    ) {
-        Task {
-            do {
-                let result = try await DlcUpdateImport.import(
-                    from: url,
-                    kind: kind,
-                    library: gameManager.games,
-                    manualMatch: manualMatch
-                )
-                if let matched = result.matchedGame {
-                    dlcUpdateSuccessMessage = "Added \(kind.displayName) for \"\(matched.title)\"."
-                }
-                DocumentImport.discardPickerCopy(url)
-            } catch DlcUpdateImport.ImportError.noBaseGameMatch {
-                if let longPressedGame {
-                    pendingManualMatchConfirmation = (source: url, kind: kind, game: longPressedGame)
-                } else {
-                    gamePickerContext = (source: url, kind: kind)
-                }
-            } catch {
-                DocumentImport.discardPickerCopy(url)
-                cemu_bridge_log_checkpoint("Import: \(kind.displayName) failed: \(error.localizedDescription)")
-                dlcImportErrorMessage = error.localizedDescription
-            }
-        }
-    }
-}
-
-struct DlcUpdateGamePickerSheet: View {
-    let games: [GameMetadata]
-    let kind: DlcUpdateImport.ContentKind
-    let onPick: (GameMetadata) -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        EspressUNavigation {
-            ZStack {
-                EspressUTheme.backgroundGradient.ignoresSafeArea()
-                List(games) { game in
-                    Button {
-                        onPick(game)
-                        dismiss()
-                    } label: {
-                        Text(game.title)
-                            .foregroundColor(EspressUTheme.brownDarkest)
-                    }
-                }
-            }
-            .navigationTitle("Add \(kind.displayName) to which game?")
-            .espressuOpaqueNavigationBar(EspressUTheme.formGround)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-        }
     }
 }
 
@@ -1408,7 +1152,6 @@ struct EmulatorViewOptimized: View {
     @AppStorage(EmulatedDevicesSettings.infinityBaseKey) private var infinityBaseEnabled = EmulatedDevicesSettings.defaultEnabled
     @AppStorage(EmulatedDevicesSettings.dimensionsToypadKey) private var dimensionsToypadEnabled = EmulatedDevicesSettings.defaultEnabled
     @State private var showEmulatedDevices = false
-    @State private var showAmiibo = false
     private var anyEmulatedDeviceEnabled: Bool {
         skylanderPortalEnabled || infinityBaseEnabled || dimensionsToypadEnabled
     }
@@ -1537,8 +1280,6 @@ struct EmulatorViewOptimized: View {
         case .homeButton:
             if showEmulatedDevices {
                 showEmulatedDevices = false
-            } else if showAmiibo {
-                showAmiibo = false
             } else if showHomeMenu {
                 if !showingBackConfirmation { closeHomeMenu() }
             } else {
@@ -1554,7 +1295,7 @@ struct EmulatorViewOptimized: View {
     @ViewBuilder private var homeMenuLayer: some View {
         HomeMenuOverlay(
             gameName: gameName,
-            isActive: !showingBackConfirmation && !showEmulatedDevices && !showAmiibo,
+            isActive: !showingBackConfirmation && !showEmulatedDevices,
             screenLayout: $screenLayout,
             isDualScreen: displayRouter.placement == .dualScreen,
             canQuit: true,
@@ -1568,7 +1309,6 @@ struct EmulatorViewOptimized: View {
                     isRunning = true
                 },
                 swapScreens: swapScreensFromHomeMenu,
-                scanAmiibo: { showAmiibo = true },
                 toggleTouchControls: {
                     if padHidden {
                         padControlsHidden = false
@@ -1834,13 +1574,6 @@ struct EmulatorViewOptimized: View {
         .sheet(isPresented: $showEmulatedDevices) {
             EmulatedDevicesView()
         }
-        .sheet(isPresented: $showAmiibo) {
-            AmiiboSheet { message in
-                showAmiibo = false
-                closeHomeMenu()
-                gameManager.showLaunchNotice(message)
-            }
-        }
     }
 
     private var launchIntroVisible: Bool {
@@ -1858,7 +1591,6 @@ struct EmulatorViewOptimized: View {
             && !showHomeMenu
             && !isEditingControlLayout
             && !showEmulatedDevices
-            && !showAmiibo
             && !showingBackConfirmation
             && !showsStallCard
             && !topBarTouched

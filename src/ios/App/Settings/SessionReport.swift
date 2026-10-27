@@ -8,13 +8,12 @@ import UIKit
 /// The front end's part of EspressU-Report.txt: every setting at game launch, and sharing the file.
 enum SessionReport {
     /// Keys that hold accounts, pairing data or secrets stay out of a report that is meant to be sent around.
-    private static let privateKeyParts = ["account", "pairing", "token", "password", "secret", "nnid", "pnid", "mii", "friend", "bookmark"]
+    private static let privateKeyParts = ["account", "token", "password", "secret", "mii", "friend", "bookmark"]
 
     static func settingsText(gameID: String?, title: String?) -> String {
         let defaults = UserDefaults.standard.dictionaryRepresentation()
         var lines: [String] = []
         lines.append("Mode: \(SettingsMode.current.rawValue)")
-        if let title { lines.append("Game: \(title)") }
         for key in defaults.keys.sorted() where key.hasPrefix("espressu.") {
             let lower = key.lowercased()
             guard !privateKeyParts.contains(where: { lower.contains($0) }) else { continue }
@@ -45,9 +44,47 @@ enum SessionReport {
             .map { URL(fileURLWithPath: $0) }
     }
 
+    /// Removes anything that could name the user or their files: absolute paths and game file names.
+    static func redact(_ text: String) -> String {
+        let patterns = [
+            #"file:///[^\s"'<>]*"#,
+            #"/(?:var|private|Users|Library|tmp|Applications|System|usr|Volumes)/[^\s"'<>,;)\]]*"#,
+            #"[^\s"'<>/\\]+\.(?:wua|rpx|wuhb|elf|wud|wux|iso|png|jpe?g)"#,
+        ]
+        var result = text
+        for (index, pattern) in patterns.enumerated() {
+            guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { continue }
+            let range = NSRange(result.startIndex..., in: result)
+            result = expression.stringByReplacingMatches(in: result, options: [], range: range,
+                                                         withTemplate: index == 2 ? "<file>" : "<path>")
+        }
+        return result
+    }
+
+    /// Temporary, redacted copies of the report files. The originals are never shared.
+    static func redactedCopies() -> [URL] {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("EspressU-Report", isDirectory: true)
+        try? FileManager.default.removeItem(at: folder)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return files.compactMap { url in
+            guard let data = try? Data(contentsOf: url) else { return nil }
+            let text = String(decoding: data.suffix(1_500_000), as: UTF8.self)
+            let destination = folder.appendingPathComponent(url.lastPathComponent)
+            do {
+                try redact(text).write(to: destination, atomically: true, encoding: .utf8)
+                return destination
+            } catch {
+                return nil
+            }
+        }
+    }
+
+    /// What the shared file contains, for the confirmation shown before it is shared.
+    static let contentsDescription = "The report has your device model, iOS version, the EspressU version, your settings and an anonymous game ID, plus the app's log lines. File paths and game file names are removed. It is not sent anywhere: it only goes where you choose in the next step."
+
     @MainActor
     static func share() {
-        let items = files
+        let items = redactedCopies()
         guard !items.isEmpty,
               let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
               var top = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else { return }

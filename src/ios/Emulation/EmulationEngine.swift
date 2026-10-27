@@ -35,10 +35,6 @@ final class EmulationEngine: ObservableObject {
         path.withCString { cemu_bridge_boot_title($0) }
     }
 
-    nonisolated static func reloadAndCountKeys() -> Int {
-        Int(cemu_bridge_reload_and_count_keys())
-    }
-
     func refreshStatus() {
         isRunning = cemu_bridge_is_title_running()
         statusText = String(cString: cemu_bridge_status_text())

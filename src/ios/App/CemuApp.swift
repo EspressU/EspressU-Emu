@@ -9,9 +9,7 @@ struct CemuApp: App {
 
     init() {
         DeviceCapabilities.bootstrap()
-        DeviceConnection.shared.start()
         SettingsMode.chooseInitialModeIfNeeded()
-        JITSettings.migrate()
         RemovedSettingsCleanup.run()
         LegacyLogCleanup.run()
         MotionSettings.startObservingControllers()
@@ -27,7 +25,7 @@ struct CemuApp: App {
         cemu_bridge_log_checkpoint("CemuApp.init() reached")
 
         if let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            for folder in ["keys", "Roms"] {
+            for folder in ["Roms"] {
                 try? FileManager.default.createDirectory(
                     at: documents.appendingPathComponent(folder),
                     withIntermediateDirectories: true

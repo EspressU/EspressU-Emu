@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-/// Where the GamePad picture is on screen, so touches on it can reach the Wii U touchscreen.
+/// Where the GamePad picture is on screen, so touches on it can reach the GamePad touchscreen.
 struct CremaScreenState: Equatable {
     var gamepad: CGRect?
 }

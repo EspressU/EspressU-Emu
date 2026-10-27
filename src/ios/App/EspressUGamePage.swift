@@ -7,39 +7,34 @@ struct EspressUGamePage: View {
     @ObservedObject var store: PerGameSettingsStore
     @ObservedObject var gameManager: GameManager
     let onPlay: () -> Void
-    let onDecrypt: () -> Void
-    let onImportDLC: () -> Void
-    let onImportUpdate: () -> Void
-    let onRemoveDLC: () -> Void
-    let onRemoveUpdate: () -> Void
+    let onImportContent: () -> Void
     let onRemoveGame: () -> Void
 
     @ObservedObject private var stats = LibraryPlayStats.shared
-    @ObservedObject private var data = GameDataStore.shared
     @ObservedObject private var names = LibraryCustomNames.shared
     @StateObject private var input = ControllerMenuInput()
     @Environment(\.dismiss) private var dismiss
 
     private enum PageSheet: String, Identifiable {
-        case cover, rename, packs, match
+        case rename
         var id: String { rawValue }
     }
 
     @State private var sheet: PageSheet?
+    @State private var coverRequest: CoverRequest?
+    @State private var contentRevision = 0
     @State private var focus: String? = "play"
     @State private var armed: String?
     @State private var dropdown: SettingsDropdownState?
     @State private var isWide = true
     @State private var sizeOnDisk: Int64?
     @State private var shaderBytes: Int64?
-    @State private var showsWholeSummary = false
     @State private var openSections: Set<String> = []
     @StateObject private var files = GameFilesController()
     @State private var lastRowFocus: String?
     @State private var lastHeroFocus = "play"
 
     private var live: GameMetadata { gameManager.games.first { $0.id == game.id } ?? game }
-    private var info: GameInfo? { data.info(for: game.id) }
     private var key: String { live.settingsKey }
 
     var body: some View {
@@ -81,16 +76,12 @@ struct EspressUGamePage: View {
         .onDisappear { input.stop() }
         .sheet(item: $sheet, onDismiss: { input.resume() }) { which in
             switch which {
-            case .cover:
-                EspressUCoverPicker(game: live, gameManager: gameManager)
             case .rename:
                 EspressURenameView(game: live)
-            case .packs:
-                EspressUGamePacksView(game: live)
-            case .match:
-                GameMatchPickerView(game: live, gameManager: gameManager)
             }
         }
+        .coverFileImporter(request: $coverRequest, gameManager: gameManager)
+        .onValueChange(of: coverRequest == nil) { gone in if gone { input.resume() } }
     }
 
     private func appear() {
@@ -112,8 +103,13 @@ struct EspressUGamePage: View {
     }
 
     private func open(_ next: PageSheet) {
-        if next == .cover || next == .rename || next == .packs { input.pause() }
+        input.pause()
         sheet = next
+    }
+
+    private func chooseCover(_ source: CoverSource) {
+        input.pause()
+        coverRequest = CoverRequest(game: live, source: source)
     }
 
     private func hero(coverSide: CGFloat) -> some View {
@@ -129,11 +125,6 @@ struct EspressUGamePage: View {
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
-                if let by = info?.publisher ?? info?.developer {
-                    Text(by)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(EspressUTheme.brownMid)
-                }
                 chips
             }
 
@@ -173,8 +164,6 @@ struct EspressUGamePage: View {
     private var chips: some View {
         var items: [(String, String)] = []
         items.append(("globe", live.region ?? "Region unknown"))
-        if let players = info?.localPlayers { items.append(("person.2.fill", players == 1 ? "1 player" : "1–\(players) players")) }
-        if let genre = info?.genres.first { items.append(("tag.fill", genre.capitalized)) }
         return HStack(spacing: 8) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 Label(item.1, systemImage: item.0)
@@ -197,9 +186,6 @@ struct EspressUGamePage: View {
                         header.id("play")
                     }
                     statsCard
-                    if info?.bestSynopsis != nil || info == nil {
-                        aboutCard
-                    }
                     EspressURowList(groups: groups, focus: $focus, armed: $armed,
                                     showsFocus: input.showsFocus, stacked: !isWide, dropdown: $dropdown)
                 }
@@ -249,35 +235,6 @@ struct EspressUGamePage: View {
                 .espressUSurface(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
         }
-    }
-
-    private var aboutCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("ABOUT")
-                .font(.footnote.weight(.semibold))
-                .tracking(0.6)
-                .foregroundColor(EspressUTheme.brownMid)
-            if let text = info?.bestSynopsis?.text {
-                Text(text)
-                    .font(.body)
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                    .lineLimit(showsWholeSummary ? nil : 4)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button(showsWholeSummary ? "Less" : "More") {
-                    withAnimation(.easeOut(duration: 0.2)) { showsWholeSummary.toggle() }
-                }
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(EspressUTheme.accentText)
-            } else {
-                Text("GameTDB has nothing on this game yet. Choose the right entry under Game info to get its summary and details.")
-                    .font(.subheadline)
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private var groups: [SettingsGroup] {
@@ -391,15 +348,10 @@ struct EspressUGamePage: View {
     }
 
     private var filesGroup: SettingsGroup {
-        let packsOn = live.titleId == nil ? 0
-            : GraphicPackStore.shared.packs.filter { $0.enabled && ($0.universal || $0.appliesTo(titleId: live.titleId)) && !$0.universal }.count
         let busy = files.busy
         var items: [SettingsItem] = [
-            SettingsItem(id: "files.packs", title: "Graphic packs",
-                         detail: packsOn > 0 ? "\(packsOn) on for this game." : "Resolution, frame rate, fixes and mods.",
-                         control: .action("Open", destructive: false, confirm: false, run: { open(.packs) })),
             SettingsItem(id: "files.exportSave", title: "Export game saves",
-                         detail: "Writes the save in the Wii U's own format.",
+                         detail: "Writes the save to a folder in Files.",
                          control: .action("Export", destructive: false, confirm: false, run: { files.exportSave(for: live) }),
                          enabled: GameSaveTransfer.hasSave(for: live)),
             SettingsItem(id: "files.importSave", title: "Import a game save folder",
@@ -459,63 +411,53 @@ struct EspressUGamePage: View {
     }
 
     private var contentGroup: SettingsGroup {
+        _ = contentRevision
         let installed = DlcUpdateImport.installedContent(for: live)
         var items: [SettingsItem] = [
-            SettingsItem(id: "content.update", title: "Update",
-                         detail: installed.hasUpdate ? nil : "Add one from Add on the home screen.",
-                         control: .info(installed.hasUpdate ? "Installed" : "Not installed", nil)),
-            SettingsItem(id: "content.dlc", title: "DLC",
-                         detail: installed.hasDLC ? nil : "Add one from Add on the home screen.",
-                         control: .info(installed.hasDLC ? "Installed" : "Not installed", nil))
+            SettingsItem(id: "content.update", title: "Update", control: .info(installed.hasUpdate ? "Installed" : "Not installed", nil)),
+            SettingsItem(id: "content.dlc", title: "DLC", control: .info(installed.hasDLC ? "Installed" : "Not installed", nil)),
+            SettingsItem(id: "content.add", title: "Add an update or DLC",
+                         detail: "Pick a decrypted folder. Encrypted content is refused.",
+                         control: .action("Choose", destructive: false, confirm: false, run: { closeThen(onImportContent) })),
         ]
         if installed.hasUpdate {
             items.append(SettingsItem(id: "content.removeUpdate", title: "Remove the update",
-                                      control: .action("Remove", destructive: true, confirm: false, run: { closeThen(onRemoveUpdate) })))
+                                      control: .action("Remove", destructive: true, confirm: true, run: {
+                                          try? DlcUpdateImport.remove(kind: .update, for: live)
+                                          contentRevision += 1
+                                      })))
         }
         if installed.hasDLC {
             items.append(SettingsItem(id: "content.removeDLC", title: "Remove the DLC",
-                                      control: .action("Remove", destructive: true, confirm: false, run: { closeThen(onRemoveDLC) })))
-        }
-        if gameSupportsDecryptToFiles(romPath: live.romPath) {
-            items.append(SettingsItem(id: "content.decrypt", title: "Decrypt", detail: "Writes a decrypted copy to Files.",
-                                      control: .action("Start", destructive: false, confirm: false, run: { closeThen(onDecrypt) })))
+                                      control: .action("Remove", destructive: true, confirm: true, run: {
+                                          try? DlcUpdateImport.remove(kind: .dlc, for: live)
+                                          contentRevision += 1
+                                      })))
         }
         return SettingsGroup(id: "content", title: "Updates and DLC", items: items)
     }
 
     private var infoGroup: SettingsGroup {
-        var items: [SettingsItem] = []
-        if let info {
-            if let p = info.publisher { items.append(SettingsItem(id: "info.publisher", title: "Publisher", control: .info(p, nil))) }
-            if let d = info.developer { items.append(SettingsItem(id: "info.developer", title: "Developer", control: .info(d, nil))) }
-            if !info.genres.isEmpty {
-                items.append(SettingsItem(id: "info.genre", title: "Genre",
-                                          control: .info(info.genres.map { $0.capitalized }.joined(separator: ", "), nil)))
-            }
-            if !info.languages.isEmpty {
-                items.append(SettingsItem(id: "info.languages", title: "Languages",
-                                          control: .info(info.languages.joined(separator: ", "), nil)))
-            }
-        }
-        items.append(SettingsItem(id: "info.install", title: "Install",
-                                  control: .info(live.installLabel ?? live.installKey.replacingOccurrences(of: "install:", with: ""), nil)))
-        items.append(SettingsItem(id: "info.match", title: info == nil ? "Find this game on GameTDB" : "Wrong game?",
-                                  detail: "Choose the right GameTDB entry for the summary and details.",
-                                  control: .action("Choose", destructive: false, confirm: false, run: { open(.match) })))
-        let summary = [info?.publisher ?? info?.developer, info?.genres.first?.capitalized].compactMap { $0 }.joined(separator: " · ")
+        let items: [SettingsItem] = [
+            SettingsItem(id: "info.install", title: "Install",
+                         control: .info(live.installLabel ?? live.installKey.replacingOccurrences(of: "install:", with: ""), nil))
+        ]
         return SettingsGroup(id: "info", title: "About this game",
-                             items: section("info", "Game info", summary: summary.isEmpty ? "Publisher, genre, languages and install" : summary, items: items))
+                             items: section("info", "Game info", summary: "Where this game is installed", items: items))
     }
 
     private var manageGroup: SettingsGroup {
         var items: [SettingsItem] = [
-            SettingsItem(id: "manage.cover", title: "Cover", detail: "Photos, Files or GameTDB.",
-                         control: .action("Change", destructive: false, confirm: false, run: { open(.cover) }))
+            SettingsItem(id: "manage.coverPhotos", title: "Cover from photos", detail: "Pick a picture from your photo library.",
+                         control: .action("Choose", destructive: false, confirm: false, run: { chooseCover(.photos) })),
+            SettingsItem(id: "manage.coverFiles", title: "Cover from Files", detail: "Pick an image file.",
+                         control: .action("Choose", destructive: false, confirm: false, run: { chooseCover(.files) })),
         ]
-        if gameManager.hasManualCoverOverride(forGameID: game.id) {
-            items.append(SettingsItem(id: "manage.removeCover", title: "Use the automatic cover",
-                                      control: .action("Remove", destructive: true, confirm: true,
-                                                       run: { gameManager.removeManualCover(forGameID: game.id) })))
+        if gameManager.hasManualCoverOverride(forGameID: live.id) {
+            items.append(SettingsItem(id: "manage.removeCover", title: "Reset cover",
+                                      detail: "Go back to the game's own icon.",
+                                      control: .action("Reset", destructive: true, confirm: false,
+                                                       run: { gameManager.removeManualCover(forGameID: live.id) })))
         }
         items.append(SettingsItem(id: "manage.rename", title: "Name", detail: live.cardName.name,
                                   control: .action("Rename", destructive: false, confirm: false, run: { open(.rename) })))
@@ -534,7 +476,6 @@ struct EspressUGamePage: View {
 
     private func handle(_ command: ControllerMenuCommand) {
         if let sheet {
-            if sheet == .match { ControllerScreenCursor.shared.handle(command) }
             return
         }
         if dropdown != nil {

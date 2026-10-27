@@ -26,7 +26,7 @@ enum TimebaseScale: Int, CaseIterable, Identifiable {
     var summary: String {
         switch self {
         case .realTime:
-            return "Normal game speed. Right when the recompiler is running."
+            return "Normal game speed."
         case .half, .quarter:
             return "Slows the game a little. Try this first if a game runs but stutters."
         case .eighth:

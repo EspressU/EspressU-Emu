@@ -44,7 +44,6 @@
 
 #include "Cafe/CafeSystem.h"
 #include "Cafe/OS/libs/nn_ac/nn_ac_reachability.h"
-#include "Cafe/Filesystem/FST/KeyCache.h"
 #include "Cafe/HW/Latte/Core/Latte.h"
 #include "Cafe/HW/Latte/Core/LatteOverlay.h"
 #include "Cafe/HW/Latte/Core/LatteShader.h"
@@ -54,7 +53,6 @@
 #include "Cafe/HW/Latte/Core/HostTuning.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 #include "Cafe/HW/Latte/Renderer/Metal/Metal4OutputStage.h"
-void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
 #include "IOSReport.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
@@ -98,33 +96,14 @@ void CemuUIKit_SetPadTouch(CGFloat x, CGFloat y, bool down);
 void* GCControllerBridge_add(const GCBridgeControllerDesc* desc);
 void GCControllerBridge_remove(void* handle);
 void GCControllerBridge_notifyChanged(void);
-int csops(pid_t pid, unsigned int ops, void* useraddr, size_t usersize);
 }
 
 int IOSTitleLaunch_PrepareForegroundTitle(const char* path);
 const char* IOSTitleLaunch_LastErrorDetail();
-int IOSTitleLaunch_ReloadAndCountKeys();
-int IOSTitleLaunch_PrepareForegroundTitleById(uint64_t titleId);
-int IOSTitleDecrypt_ExtractToFolder(const char* srcPath, const char* destFolderPath,
-    std::atomic_bool& cancelRequested,
-    const std::function<void(uint64_t bytesWritten, uint32_t filesWritten)>& progressCallback);
-int IOSTitleDecrypt_ExtractToWua(const char* srcPath, const char* destPath,
-    std::atomic_bool& cancelRequested,
-    const std::function<void(uint64_t bytesWritten, uint32_t filesWritten)>& progressCallback);
-int IOSWuaContent_Build(const std::vector<std::string>& srcs, const char* destPath,
-    std::atomic_bool& cancelRequested,
-    const std::function<void(uint64_t bytesWritten, uint32_t filesWritten)>& progressCallback);
-std::string IOSWuaContent_ListTitles(const char* wuaPath);
-std::string IOSCoverArt_DeriveGameTdbId(const char* romPath);
-std::string IOSCoverArt_GetTitleName(const char* romPath);
-bool IOSDlcUpdateImport_DeriveTitleId(const char* romPath, uint64_t* titleIdOut);
-bool IOSDlcUpdateImport_ReadTmdTitleId(const char* tmdPath, uint64_t* titleIdOut);
-uint64_t IOSDlcUpdateImport_DeriveBaseTitleId(uint64_t titleId);
-int IOSDlcUpdateImport_GetTitleType(uint64_t titleId);
-void IOSDlcUpdateImport_GetMlcTitlePathComponents(uint64_t titleId, char* outUpperHex, char* outLowerHex);
-bool IOSDlcUpdateImport_Inspect(const char* romPath, uint64_t* outTitleId, uint16_t* outVersion,
-    int* outRegion, int* outInvalidReason);
-uint64_t IOSDlcUpdateImport_DeriveContentTitleId(uint64_t baseTitleId, bool isUpdate);
+std::string IOSTitleInfo_GetTitleName(const char* romPath);
+bool IOSTitleInfo_DeriveTitleId(const char* romPath, uint64_t* titleIdOut);
+uint64_t IOSTitleInfo_DeriveBaseTitleId(uint64_t titleId);
+bool IOSTitleInfo_Inspect(const char* romPath, uint64_t* outTitleId, uint16_t* outVersion, int* outRegion, int* outInvalidReason);
 int IOSEmulatedDevices_SlotCount(int device);
 std::string IOSEmulatedDevices_SlotNames(int device);
 std::string IOSEmulatedDevices_FigureList(int device, int slot);
@@ -132,11 +111,6 @@ std::string IOSEmulatedDevices_Load(int device, int slot, const char* path);
 std::string IOSEmulatedDevices_Clear(int device, int slot);
 std::string IOSEmulatedDevices_Create(int device, uint32_t figureId, uint16_t variant, const char* path);
 std::string IOSEmulatedDevices_MoveDimensions(int fromSlot, int toSlot);
-bool nnNfp_isInitialized();
-bool nnNfp_touchNfcTagFromFile(const fs::path& filePath, uint32* nfcError);
-std::string IOSGraphicPacks_List();
-void IOSGraphicPacks_Refresh();
-void IOSGraphicPacks_SetEnabled(int index, bool enabled);
 void IOSAccounts_Refresh();
 std::string IOSAccounts_List();
 bool IOSAccounts_HasFreeSlot();
@@ -148,20 +122,8 @@ bool IOSAccounts_Create(uint32_t persistentId, const char* miiName, uint16_t bir
 bool IOSAccounts_Delete(uint32_t persistentId);
 bool IOSAccounts_SetMiiName(uint32_t persistentId, const char* miiName);
 bool IOSAccounts_SetGender(uint32_t persistentId, int gender);
-bool IOSAccounts_SetEmail(uint32_t persistentId, const char* email);
-bool IOSAccounts_SetCountry(uint32_t persistentId, int country);
-bool IOSAccounts_SetBirthdate(uint32_t persistentId, uint16_t year, uint8_t month, uint8_t day);
 uint32_t IOSAccounts_ActivePersistentId();
 void IOSAccounts_SetActivePersistentId(uint32_t persistentId);
-bool IOSAccounts_IsOnlineValid(uint32_t persistentId);
-int IOSAccounts_OnlineError(uint32_t persistentId);
-std::string IOSAccounts_OnlineHint();
-std::string IOSAccounts_CountriesList();
-int IOSAccounts_NetworkService(uint32_t persistentId);
-void IOSAccounts_SetNetworkService(uint32_t persistentId, int service);
-bool IOSAccounts_CustomNetworkServiceAvailable();
-bool IOSAccounts_ReloadCustomNetworkService();
-bool IOSAccounts_IsValidNetworkServicesXML(const char* path);
 bool IOSTitlePause_Pause();
 bool IOSTitlePause_Resume();
 bool IOSTitlePause_IsPaused();
@@ -223,7 +185,7 @@ namespace {
             case 6: return "realloc";
             case 7: return "malloc tiny";
             case 11: return "malloc nano";
-            case 21: return "IOKit";
+            case 21: return "system service";
             case 30: return "stack";
             case 31: return "guard";
             case 33: return "dylib";
@@ -663,27 +625,11 @@ extern "C" const char* cemu_bridge_device_report(void)
     return report.c_str();
 }
 
-size_t PPCRecompiler_getJitArenaSize();
-size_t PPCRecompiler_getJitArenaUsed();
-
 const char* cemu_bridge_memory_headroom_summary(void) {
     static thread_local std::string summary;
     const uint64_t avail = (uint64_t)os_proc_available_memory();
-    const uint64_t arena = (uint64_t)PPCRecompiler_getJitArenaSize();
-
-    char buf[256];
-    if (arena == 0) {
-        snprintf(buf, sizeof(buf),
-            "%llu MB headroom - no JIT arena, so this launch is running the interpreter",
-            (unsigned long long)(avail / (1024ull * 1024ull)));
-    } else {
-        const uint64_t used = (uint64_t)PPCRecompiler_getJitArenaUsed();
-        snprintf(buf, sizeof(buf), "%llu MB headroom - JIT arena %llu MB reserved, %llu MB in use%s",
-            (unsigned long long)(avail / (1024ull * 1024ull)),
-            (unsigned long long)(arena / (1024ull * 1024ull)),
-            (unsigned long long)(used / (1024ull * 1024ull)),
-            arena < ((uint64_t)DeviceCaps::GetBudgets().jitArenaStartMB << 20) ? " (reduced - less room than the JIT asked for)" : "");
-    }
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%llu MB available to this app", (unsigned long long)(avail / (1024ull * 1024ull)));
     summary = buf;
     return summary.c_str();
 }
@@ -800,10 +746,8 @@ namespace {
 
     constexpr int kCpuModeUndecided   = 0;
     constexpr int kCpuModeInterpreter = 1;
-    constexpr int kCpuModeRecompiler  = 2;
 
     std::atomic<int> g_cpuMode{kCpuModeUndecided};
-    std::atomic<bool> g_recompilerRequested{false};
     std::atomic<bool> g_favourAccuracy{false};
     std::atomic<bool> g_favourPerformance{false};
     std::atomic<bool> g_fullSpeedRenders{false};
@@ -842,30 +786,6 @@ static void ios_timebase_ladder_stop();
 
 namespace {
 
-NSString* ios_first_entry_with_length(NSString* dir, NSUInteger length)
-{
-    NSArray<NSString*>* entries = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:dir error:nil];
-    for (NSString* entry in entries)
-        if (entry.length == length)
-            return [dir stringByAppendingPathComponent:entry];
-    return nil;
-}
-
-bool ios_has_txm_classic()
-{
-    if ([NSProcessInfo processInfo].isiOSAppOnMac)
-        return false;
-    static NSString* const kImg4 = @"usr/standalone/firmware/FUD/Ap,TrustedExecutionMonitor.img4";
-    if (NSString* boot = ios_first_entry_with_length(@"/System/Volumes/Preboot", 36))
-    {
-        if (NSString* file = ios_first_entry_with_length([boot stringByAppendingPathComponent:@"boot"], 96))
-            return access([[file stringByAppendingPathComponent:kImg4] fileSystemRepresentation], F_OK) == 0;
-    }
-    if (NSString* preboot = ios_first_entry_with_length(@"/private/preboot", 96))
-        return access([[preboot stringByAppendingPathComponent:kImg4] fileSystemRepresentation], F_OK) == 0;
-    return false;
-}
-
 bool ios_chip(char& series, int& number)
 {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
@@ -884,79 +804,6 @@ bool ios_chip(char& series, int& number)
 bool ios_os_at_least(NSInteger major, NSInteger minor)
 {
     return [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:(NSOperatingSystemVersion){major, minor, 0}];
-}
-
-bool ios_has_txm()
-{
-    char series = 0;
-    int number = 0;
-    const bool known = ios_chip(series, number);
-    if (ios_os_at_least(27, 0))
-    {
-        if (known && series == 'A')
-            return number > 12;
-        return true;
-    }
-    if (ios_os_at_least(26, 6) && !ios_has_txm_classic())
-    {
-        if (!known)
-            return false;
-        return series == 'M' ? number >= 2 : number >= 15;
-    }
-    return ios_has_txm_classic();
-}
-
-void ios_configure_jit_environment()
-{
-    if (ios_os_at_least(19, 0))
-    {
-        const bool txm = ![NSProcessInfo processInfo].isiOSAppOnMac && ios_has_txm();
-        setenv("DUAL_MAPPED_JIT", "1", 1);
-        setenv("HAS_TXM", txm ? "1" : "0", 1);
-    }
-    else
-    {
-        setenv("HAS_TXM", "0", 1);
-    }
-    cemu_bridge_log_checkpoint((std::string("JIT environment: DUAL_MAPPED_JIT=") + (getenv("DUAL_MAPPED_JIT") ? getenv("DUAL_MAPPED_JIT") : "unset") +
-        " HAS_TXM=" + (getenv("HAS_TXM") ? getenv("HAS_TXM") : "unset")).c_str());
-}
-
-bool ios_process_is_debugged(uint32_t& flagsOut)
-{
-    flagsOut = 0;
-    return csops(getpid(), 0  , &flagsOut, sizeof(flagsOut)) == 0 && (flagsOut & 0x10000000u) != 0;
-}
-
-bool ios_jit_probe_impl()
-{
-    // CS_DEBUGGED stays set after the JIT helper let go, so the flag alone doesn't prove JIT works right now.
-    // Where the recompiler maps its code like PPCRecompiler_allocateDualMap (not on TXM), map a page the same way.
-    const char* dual = getenv("DUAL_MAPPED_JIT");
-    const char* txm = getenv("HAS_TXM");
-    if (!dual || strcmp(dual, "1") != 0 || (txm && strcmp(txm, "1") == 0))
-        return true;
-    const size_t size = 16384;
-    void* rx = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-    if (rx == MAP_FAILED)
-    {
-        cemu_bridge_log_checkpoint("JIT probe: the system refused executable memory");
-        return false;
-    }
-    vm_address_t rw = 0;
-    vm_prot_t curProt = VM_PROT_NONE, maxProt = VM_PROT_NONE;
-    kern_return_t kr = vm_remap(mach_task_self(), &rw, (vm_size_t)size, 0, VM_FLAGS_ANYWHERE,
-                                mach_task_self(), (vm_address_t)rx, FALSE, &curProt, &maxProt, VM_INHERIT_NONE);
-    bool ok = false;
-    if (kr == KERN_SUCCESS)
-    {
-        ok = vm_protect(mach_task_self(), rw, (vm_size_t)size, FALSE, VM_PROT_READ | VM_PROT_WRITE) == KERN_SUCCESS;
-        vm_deallocate(mach_task_self(), rw, (vm_size_t)size);
-    }
-    munmap(rx, size);
-    if (!ok)
-        cemu_bridge_log_checkpoint("JIT probe: couldn't make a writable alias of executable memory");
-    return ok;
 }
 
 namespace {
@@ -1110,8 +957,6 @@ namespace {
 
 void ios_apply_cpu_mode(bool announce = false)
 {
-    uint32_t csFlags = 0;
-    const bool debugged = ios_process_is_debugged(csFlags) && ios_jit_probe_impl();
     uint64_t titleId = 0;
     if (announce)
         titleId = CafeSystem::GetForegroundTitleId();
@@ -1125,31 +970,10 @@ void ios_apply_cpu_mode(bool announce = false)
     g_coresRunning.store(singleCore ? 1 : 3);
     g_autoPickedMulti.store(cores.autoPickedMulti);
 
-    if (!g_recompilerRequested.load() || !debugged)
-    {
-        if (announce)
-        {
-            if (!g_recompilerRequested.load())
-                cemuLog_log(LogType::Force, "Recompiler not used: the recompiler (JIT) setting is off");
-            else
-                cemuLog_log(LogType::Force, "Recompiler not used: the recompiler is on in Settings but no JIT enabler is attached to this process (cs_flags 0x{:08x}, CS_DEBUGGED not set)", csFlags);
-        }
-        config.cpu_mode = singleCore ? CPUMode::SinglecoreInterpreter : CPUMode::MulticoreInterpreter;
-        g_cpuMode.store(kCpuModeInterpreter);
-        if (!g_recompilerRequested.load())
-            snprintf(detail, sizeof(detail), "The recompiler is off in Settings, so the %s interpreter is running. Cores: %s.",
-                singleCore ? "single-core" : "multi-core", cores.reason.c_str());
-        else
-            snprintf(detail, sizeof(detail), "The recompiler is on in Settings, but no JIT enabler is attached (cs_flags 0x%08x), "
-                "so the %s interpreter is running. Launch through StikJIT, SideStore or LiveContainer to use the recompiler. Cores: %s.",
-                csFlags, singleCore ? "single-core" : "multi-core", cores.reason.c_str());
-        setCpuModeDetail(detail);
-        return;
-    }
-    config.cpu_mode = singleCore ? CPUMode::SinglecoreRecompiler : CPUMode::MulticoreRecompiler;
-    g_cpuMode.store(kCpuModeRecompiler);
-    snprintf(detail, sizeof(detail), "A JIT enabler is attached, so the AArch64 recompiler runs this launch. Cores: %s.",
-        cores.reason.c_str());
+    config.cpu_mode = singleCore ? CPUMode::SinglecoreInterpreter : CPUMode::MulticoreInterpreter;
+    g_cpuMode.store(kCpuModeInterpreter);
+    snprintf(detail, sizeof(detail), "EspressU runs the PowerPC CPU with its interpreter, on %s. Cores: %s.",
+        singleCore ? "one core" : "three cores", cores.reason.c_str());
     setCpuModeDetail(detail);
 }
 
@@ -1292,8 +1116,6 @@ namespace {
         const char* waitReason[32] = {};
         uint64_t waitNs[32] = {};
         uint32_t waitCount[32] = {};
-        uint32_t jitBlocks = 0, jitInvalidations = 0, jitArenaReleases = 0, jitArenaAllocFails = 0;
-        uint64_t jitCompileNs = 0;
         uint32_t gpuDraws = 0, gpuTexHashes = 0;
         uint64_t gpuBeginNs = 0, gpuTexUpdateNs = 0, gpuTexHashNs = 0, gpuTexHashBytes = 0;
         uint64_t gpuExecNs = 0, gpuIndexNs = 0, gpuFlushNs = 0, gpuBufferNs = 0, gpuSnapshotCompareBytes = 0, gpuSnapshotCopyBytes = 0;
@@ -1344,11 +1166,6 @@ namespace {
             s.textureDecodesByFormat[i] = c.textureDecodesByFormat[i].load(std::memory_order_relaxed);
             s.textureDecodeNsByFormat[i] = c.textureDecodeNsByFormat[i].load(std::memory_order_relaxed);
         }
-        s.jitBlocks = c.jitBlocks.load(std::memory_order_relaxed);
-        s.jitCompileNs = c.jitCompileNs.load(std::memory_order_relaxed);
-        s.jitInvalidations = c.jitInvalidations.load(std::memory_order_relaxed);
-        s.jitArenaReleases = c.jitArenaReleases.load(std::memory_order_relaxed);
-        s.jitArenaAllocFails = c.jitArenaAllocFails.load(std::memory_order_relaxed);
         s.gpuDraws = c.gpuDraws.load(std::memory_order_relaxed);
         s.gpuTexHashes = c.gpuTexHashes.load(std::memory_order_relaxed);
         s.gpuBeginNs = c.gpuBeginNs.load(std::memory_order_relaxed);
@@ -1411,8 +1228,6 @@ namespace {
         const double pipelineMs = (double)(b.pipelineCompileNs - a.pipelineCompileNs) / 1e6;
         const uint32_t textureDecodes = b.textureDecodes - a.textureDecodes;
         const double textureDecodeMs = (double)(b.textureDecodeNs - a.textureDecodeNs) / 1e6;
-        const uint32_t jitBlocks = b.jitBlocks - a.jitBlocks;
-        const double jitMs = (double)(b.jitCompileNs - a.jitCompileNs) / 1e6;
         const int thermal = ios_thermal_state();
 
         int verdict;
@@ -1461,26 +1276,23 @@ namespace {
 
         if (logHeader)
         {
-            cemuLog_log(LogType::Force, "perf: device {} | emulated cores on {} host thread(s) | async shaders {} | recompiler arena {} MB",
-                cemu_bridge_device_summary(), (uint32_t)hostThreads, GetConfig().async_compile.GetValue() ? "on" : "off",
-                (uint64_t)(PPCRecompiler_getJitArenaSize() / (1024 * 1024)));
+            cemuLog_log(LogType::Force, "perf: device {} | emulated cores on {} host thread(s) | async shaders {}",
+                cemu_bridge_device_summary(), (uint32_t)hostThreads, GetConfig().async_compile.GetValue() ? "on" : "off");
         }
         if (logHeader)
         {
             std::string cpuDetail = getCpuModeDetail();
-            cemuLog_log(LogType::Force, "perf: cpu path {} | {}", g_cpuMode.load() == kCpuModeRecompiler ? "recompiler" : "interpreter", cpuDetail);
+            cemuLog_log(LogType::Force, "perf: cpu path interpreter | {}", cpuDetail);
         }
         cemuLog_log(LogType::Force,
             "perf {:.0f}s: fps host {:.1f} game {:.1f} vsync {:.1f} (speed {:.0f}%) | ppc thread run {:.0f}% wait {:.0f}% | "
             "gpu thread busy {:.0f}% idle {:.0f}% sync {:.0f}% (drawable {:.0f} ms) | metal gpu {:.1f} ms/frame ({:.0f}% busy, {:.1f} cb/frame) | "
             "compiled shaders {} ({:.0f} ms) pipelines {} ({:.0f} ms, {} on the gpu thread) | texture decodes {} ({:.0f} ms) | "
-            "jit blocks {} ({:.0f} ms) invalidated {} arena released {} alloc-failed {} used {}/{} MB | thermal {} | limit: {}",
+            "thermal {} | limit: {}",
             dt, hostFps, guestFps, vsyncRate, speedPct, ppcRun * 100.0, ppcWait * 100.0,
             gpuThreadBusy * 100.0, gpuIdle * 100.0, gpuSync * 100.0, (double)(b.drawableWaitNs - a.drawableWaitNs) / 1e6,
             mtlMsPerFrame, mtlBusy * 100.0, cbPerFrame,
             shaders, shaderMs, pipelines, pipelineMs, pipelinesOnGpuThread, textureDecodes, textureDecodeMs,
-            jitBlocks, jitMs, b.jitInvalidations - a.jitInvalidations, b.jitArenaReleases - a.jitArenaReleases, b.jitArenaAllocFails - a.jitArenaAllocFails,
-            (uint64_t)(PPCRecompiler_getJitArenaUsed() / (1024 * 1024)), (uint64_t)(PPCRecompiler_getJitArenaSize() / (1024 * 1024)),
             ios_thermal_name(thermal), PerfTelemetry::BottleneckName(verdict));
 
         if (textureDecodeMs >= 50.0)
@@ -1540,16 +1352,6 @@ namespace {
         }
 
         {
-            static double s_sinceJitMap = 0.0;
-            s_sinceJitMap += dt;
-            if (s_sinceJitMap >= 30.0)
-            {
-                s_sinceJitMap = 0.0;
-                PPCRecompiler_DumpJitMap(ActiveSettings::GetUserDataPath("jitmap.txt"));
-            }
-        }
-
-        {
             const double perFrame = frames > 0.0 ? 1.0 / (frames * 1e6) : 0.0;
             auto ms = [&](uint64_t x, uint64_t y) { return (double)(x - y) * perFrame; };
             const double busyMs = gpuThreadBusy * wallNs * perFrame;
@@ -1573,7 +1375,7 @@ namespace {
         char line[200];
         snprintf(line, sizeof(line), "host %.1f game %.1f fps | ppc %.0f%% gpu thread %.0f%% metal %.1f ms | %s%s",
             hostFps, guestFps, ppcRun * 100.0, gpuThreadBusy * 100.0, mtlMsPerFrame, PerfTelemetry::BottleneckName(verdict),
-            g_cpuMode.load() == kCpuModeRecompiler ? "" : (g_recompilerRequested.load() ? " | interpreter (no JIT enabler)" : " | interpreter (recompiler off)"));
+            "");
         std::lock_guard<std::mutex> lock(g_perfLineMutex);
         g_perfLine = line;
     }
@@ -2873,16 +2675,6 @@ bool cemu_bridge_vsync_enabled(void) {
     return GetConfig().vsync.GetValue() != 0;
 }
 
-void cemu_bridge_set_recompiler_enabled(bool enabled) {
-    g_recompilerRequested.store(enabled);
-    if (g_initialized.load())
-        ios_apply_cpu_mode();
-}
-
-bool cemu_bridge_recompiler_enabled(void) {
-    return g_recompilerRequested.load();
-}
-
 void cemu_bridge_set_favour_accuracy(bool enabled) {
     g_favourAccuracy.store(enabled);
     if (g_initialized.load())
@@ -2938,9 +2730,6 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
         tuning.diagnosticsLog.store(value != 0);
         break;
-    case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
-        tuning.jitSkipOverlappingCompiles.store(value != 0);
-        break;
     }
 }
 
@@ -2964,8 +2753,6 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.padLowResolution.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
         return tuning.diagnosticsLog.load() ? 1 : 0;
-    case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
-        return tuning.jitSkipOverlappingCompiles.load() ? 1 : 0;
     }
     return 0;
 }
@@ -3006,59 +2793,6 @@ const char* cemu_bridge_gpu_fault_history(void) {
 
 void cemu_bridge_clear_gpu_fault_history(void) {
     MetalFaultHistory::Clear();
-}
-
-double cemu_bridge_device_temperature_celsius(void) {
-    static dispatch_once_t once;
-    static void* ioKitHandle = nullptr;
-    static uint32_t (*fnServiceGetMatchingService)(uint32_t, CFDictionaryRef) = nullptr;
-    static CFMutableDictionaryRef (*fnServiceMatching)(const char*) = nullptr;
-    static CFTypeRef (*fnRegistryEntryCreateCFProperty)(uint32_t, CFStringRef, CFAllocatorRef, uint32_t) = nullptr;
-    static int (*fnObjectRelease)(uint32_t) = nullptr;
-
-    dispatch_once(&once, ^{
-        ioKitHandle = dlopen("/System/Library/Frameworks/IOKit.framework/IOKit", RTLD_LAZY);
-        if (!ioKitHandle)
-            return;
-        fnServiceGetMatchingService = (uint32_t (*)(uint32_t, CFDictionaryRef))dlsym(ioKitHandle, "IOServiceGetMatchingService");
-        fnServiceMatching = (CFMutableDictionaryRef (*)(const char*))dlsym(ioKitHandle, "IOServiceMatching");
-        fnRegistryEntryCreateCFProperty = (CFTypeRef (*)(uint32_t, CFStringRef, CFAllocatorRef, uint32_t))dlsym(ioKitHandle, "IORegistryEntryCreateCFProperty");
-        fnObjectRelease = (int (*)(uint32_t))dlsym(ioKitHandle, "IOObjectRelease");
-    });
-
-    if (!fnServiceGetMatchingService || !fnServiceMatching || !fnRegistryEntryCreateCFProperty)
-        return NAN;
-
-    static const char* kServices[] = { "AppleSmartBattery", "IOPMPowerSource" };
-    for (const char* service : kServices)
-    {
-        CFMutableDictionaryRef match = fnServiceMatching(service);
-        if (!match)
-            continue;
-        uint32_t entry = fnServiceGetMatchingService(0  , match);
-        if (!entry)
-            continue;
-        CFTypeRef value = fnRegistryEntryCreateCFProperty(entry, CFSTR("Temperature"), kCFAllocatorDefault, 0);
-        if (fnObjectRelease)
-            fnObjectRelease(entry);
-        if (!value)
-            continue;
-        double celsius = NAN;
-        if (CFGetTypeID(value) == CFNumberGetTypeID())
-        {
-            int32_t raw = 0;
-            if (CFNumberGetValue((CFNumberRef)value, kCFNumberSInt32Type, &raw))
-            {
-                if (raw > 1000)      celsius = raw / 100.0;
-                else if (raw > 100)  celsius = raw / 10.0;
-                else                 celsius = (double)raw;
-            }
-        }
-        CFRelease(value);
-        if (!std::isnan(celsius) && celsius > -20.0 && celsius < 120.0)
-            return celsius;
-    }
-    return NAN;
 }
 
 void cemu_bridge_set_thermal_throttle_micros(uint32_t micros) {
@@ -3123,16 +2857,8 @@ bool cemu_bridge_low_power_mode(void) {
     return g_lowPowerMode.load();
 }
 
-bool cemu_bridge_has_txm(void) {
-    return ![NSProcessInfo processInfo].isiOSAppOnMac && ios_has_txm();
-}
-
 int cemu_bridge_cpu_mode(void) {
     return g_cpuMode.load();
-}
-
-bool cemu_bridge_jit_probe(void) {
-    return ios_jit_probe_impl();
 }
 
 const char* cemu_bridge_cpu_mode_detail(void) {
@@ -3152,7 +2878,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
     cemu_device_caps_initialize();
     cemu_bridge_log_checkpoint(cemu_device_caps_line());
     cemu_bridge_start_memory_watchdog();
-    ios_configure_jit_environment();
 
     fs::path userDataPath = (mlcPath && mlcPath[0] != '\0') ? fs::path(mlcPath) : fs::path(".");
     std::error_code ec;
@@ -3166,8 +2891,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
     const std::string userData = userDataPath.string();
     const std::string cache = (userDataPath / "cache").string();
     const std::string data = dataPath.string();
-
-    KeyCache_ResetForNewPaths();
 
     cemu_bridge_log_checkpoint("initialize: about to call CemuInitialize()");
     try
@@ -3359,44 +3082,9 @@ CemuBridgeStatus cemu_bridge_boot_title(const char* path) {
         return CEMU_BRIDGE_CORE_NOT_BUILT;
     }
 
-    static const char kMlcTitlePrefix[] = "mlc-title:";
-    if (strncmp(path, kMlcTitlePrefix, sizeof(kMlcTitlePrefix) - 1) == 0) {
-        char* end = nullptr;
-        const unsigned long long titleId = strtoull(path + sizeof(kMlcTitlePrefix) - 1, &end, 16);
-        if (end == path + sizeof(kMlcTitlePrefix) - 1 || *end != '\0' || titleId == 0) {
-            setStatus("boot_title: bad title id.");
-            return CEMU_BRIDGE_BAD_ARG;
-        }
-        return cemu_bridge_boot_title_id(titleId);
-    }
-
     cemu_bridge_log_checkpoint("boot_title: about to prepare title");
     int prepared = IOSTitleLaunch_PrepareForegroundTitle_Guarded(path);
     cemu_bridge_log_checkpoint("boot_title: prepare returned");
-    return ios_boot_prepared_title(prepared);
-}
-
-CemuBridgeStatus cemu_bridge_boot_title_id(uint64_t titleId) {
-    if (titleId == 0) {
-        setStatus("boot_title_id: empty title id.");
-        return CEMU_BRIDGE_BAD_ARG;
-    }
-    if (!g_initialized.load()) {
-        setStatus("The emulator core is not initialized.");
-        return CEMU_BRIDGE_CORE_NOT_BUILT;
-    }
-    cemu_bridge_log_checkpoint("boot_title_id: about to prepare title");
-    int prepared = 13;
-    try
-    {
-        prepared = IOSTitleLaunch_PrepareForegroundTitleById(titleId);
-    }
-    catch (...)
-    {
-        cemu_bridge_log_checkpoint(("boot_title_id: preparing the title threw: " + cemu_describe_current_exception()).c_str());
-        CafeSystem::AbortPreparedTitle();
-    }
-    cemu_bridge_log_checkpoint("boot_title_id: prepare returned");
     return ios_boot_prepared_title(prepared);
 }
 
@@ -3411,36 +3099,16 @@ static CemuBridgeStatus ios_boot_prepared_title(int prepared) {
             setStatus("Unable to mount title (bad/outdated path).");
             return CEMU_BRIDGE_UNABLE_TO_MOUNT;
         case 3:
-            setStatus("This game is encrypted and no key in keys.txt opens it. Put the keys.txt you dumped from your own Wii U in EspressU's \"keys\" folder in the Files app (or import it in Settings), then relaunch EspressU and try again.");
-            return CEMU_BRIDGE_NO_DISC_KEY;
-        case 4:
-            setStatus("This game folder is missing title.tik (the ticket), which EspressU needs to decrypt it. Copy title.tik into the folder next to title.tmd, or add this game's title key to keys.txt.");
-            return CEMU_BRIDGE_NO_TITLE_TIK;
-        case 7:
-            setStatus("This game folder's title.tmd couldn't be read. The file may be damaged or incomplete - copy the whole folder again.");
-            return CEMU_BRIDGE_BAD_TITLE_TMD;
-        case 8:
-            setStatus("This game folder's title.tik (the ticket) couldn't be read, so EspressU can't decrypt it. The file may be damaged - copy it again, or add this game's title key to keys.txt.");
-            return CEMU_BRIDGE_BAD_TITLE_TIK;
-        case 9:
-            setStatus("EspressU couldn't decrypt this game folder. Its title.tik doesn't unlock the .app files (the ticket may belong to another console, or the files are damaged). Check that title.tmd, title.tik and the .app files are from the same download.");
-            return CEMU_BRIDGE_TITLE_KEY_INVALID;
-        case 10: {
-            const std::string missingFile = IOSTitleLaunch_LastErrorDetail();
-            setStatus(("This game folder is missing " + (missingFile.empty() ? std::string("a .app file") : missingFile) + ", which title.tmd lists. Copy every .app file from the download into the folder.").c_str());
-            return CEMU_BRIDGE_MISSING_CONTENT;
-        }
+            setStatus("This game is encrypted. EspressU only runs decrypted games (.wua or decrypted folders). Prepare it with your own tools.");
+            return CEMU_BRIDGE_ENCRYPTED;
         case 6:
-            setStatus("That looks like an update or DLC. Launch the base game instead.");
+            setStatus("This looks like an update or add-on without its base game. Add the base game first.");
             return CEMU_BRIDGE_BASE_NOT_FOUND;
-        case 11:
-            setStatus("That system title isn't installed. Import it in Settings > Wii U Menu.");
-            return CEMU_BRIDGE_UNABLE_TO_MOUNT;
         case 13:
             setStatus("EspressU hit an internal error while opening this game. The files may be damaged. Details are in the crash log.");
             return CEMU_BRIDGE_UNABLE_TO_MOUNT;
         default:
-            setStatus("Not a Wii U title this build can launch.");
+            setStatus("EspressU can not launch this file.");
             return CEMU_BRIDGE_UNSUPPORTED;
     }
 
@@ -3496,19 +3164,6 @@ CemuBridgeStatus cemu_bridge_boot_rpx(const char* rpxPath) {
     return cemu_bridge_boot_title(rpxPath);
 }
 
-int cemu_bridge_reload_and_count_keys(void) {
-    if (!g_initialized.load())
-        return -1;
-    return IOSTitleLaunch_ReloadAndCountKeys();
-}
-
-void cemu_bridge_prepare_keys_before_init(const char* mlcPath) {
-    if (!mlcPath || mlcPath[0] == '\0')
-        return;
-    const fs::path userDataRoot(mlcPath);
-    KeyCache_SetPreInitKeyFiles(userDataRoot.parent_path() / "keys" / "keys.txt", userDataRoot / "keys.txt");
-}
-
 double cemu_bridge_get_fps(void) {
     return g_framesPerSecond.load();
 }
@@ -3526,124 +3181,10 @@ void cemu_bridge_get_progress(CemuBridgeProgress* out) {
     out->guest_flip_requests = (unsigned int)LatteGPUState.flipRequestCount.load();
 }
 
-static std::atomic<bool> g_decryptRunning{false};
-static std::atomic<bool> g_decryptCompleted{false};
-static std::atomic<bool> g_decryptCancelRequested{false};
-static std::atomic<int> g_decryptResultStatus{0};
-static std::atomic<uint64_t> g_decryptBytesWritten{0};
-static std::atomic<uint32_t> g_decryptFilesWritten{0};
-static std::thread g_decryptThread;
-static std::mutex g_decryptThreadMutex;
-
-static bool StartDecryptJob(const std::function<int(const std::function<void(uint64_t, uint32_t)>&)>& job) {
-    if (g_decryptRunning.exchange(true))
-        return false;
-
-    std::lock_guard lock{g_decryptThreadMutex};
-    if (g_decryptThread.joinable())
-        g_decryptThread.join();
-    g_decryptCompleted.store(false);
-    g_decryptCancelRequested.store(false);
-    g_decryptBytesWritten.store(0);
-    g_decryptFilesWritten.store(0);
-
-    g_decryptThread = std::thread([job]() {
-        ios_bridge_thread_begin("EspressU decrypt", false);
-        auto progress = [](uint64_t bytesWritten, uint32_t filesWritten) {
-            g_decryptBytesWritten.store(bytesWritten);
-            g_decryptFilesWritten.store(filesWritten);
-        };
-        int status = 5;
-        try {
-            status = job(progress);
-        } catch (...) {
-            std::string message = "decrypt: threw: " + cemu_describe_current_exception();
-            cemu_bridge_log_checkpoint(message.c_str());
-        }
-        g_decryptResultStatus.store(status);
-        g_decryptCompleted.store(true);
-        g_decryptRunning.store(false);
-    });
-    return true;
-}
-
-bool cemu_bridge_start_decrypt(const char* srcPath, const char* destPath, bool toWua) {
-    if (!srcPath || srcPath[0] == '\0' || !destPath || destPath[0] == '\0')
-        return false;
-    std::string src(srcPath);
-    std::string dest(destPath);
-    return StartDecryptJob([src, dest, toWua](const std::function<void(uint64_t, uint32_t)>& progress) {
-        return toWua
-            ? IOSTitleDecrypt_ExtractToWua(src.c_str(), dest.c_str(), g_decryptCancelRequested, progress)
-            : IOSTitleDecrypt_ExtractToFolder(src.c_str(), dest.c_str(), g_decryptCancelRequested, progress);
-    });
-}
-
-bool cemu_bridge_start_wua_build(const char* sourcePathsNewlineSeparated, const char* destPath) {
-    if (!sourcePathsNewlineSeparated || !destPath || destPath[0] == '\0')
-        return false;
-    std::vector<std::string> sources;
-    std::string list(sourcePathsNewlineSeparated);
-    size_t start = 0;
-    while (start <= list.size()) {
-        size_t end = list.find('\n', start);
-        if (end == std::string::npos)
-            end = list.size();
-        if (end > start)
-            sources.push_back(list.substr(start, end - start));
-        start = end + 1;
-    }
-    if (sources.empty())
-        return false;
-    std::string dest(destPath);
-    return StartDecryptJob([sources, dest](const std::function<void(uint64_t, uint32_t)>& progress) {
-        return IOSWuaContent_Build(sources, dest.c_str(), g_decryptCancelRequested, progress);
-    });
-}
-
-int cemu_bridge_wua_list_titles(const char* wuaPath, char* outLines, size_t outSize) {
-    if (!wuaPath || !outLines || outSize == 0)
-        return -1;
-    std::string lines = IOSWuaContent_ListTitles(wuaPath);
-    int count = 0;
-    for (char c : lines)
-        if (c == '\n')
-            count++;
-    size_t length = std::min(lines.size(), outSize - 1);
-    memcpy(outLines, lines.data(), length);
-    outLines[length] = '\0';
-    return count;
-}
-
-void cemu_bridge_get_decrypt_progress(CemuBridgeDecryptProgress* out) {
-    if (!out)
-        return;
-    *out = CemuBridgeDecryptProgress{};
-    out->is_running = g_decryptRunning.load();
-    out->completed = g_decryptCompleted.load();
-    out->result_status = g_decryptResultStatus.load();
-    out->bytes_written = g_decryptBytesWritten.load();
-    out->files_written = g_decryptFilesWritten.load();
-}
-
-void cemu_bridge_cancel_decrypt(void) {
-    g_decryptCancelRequested.store(true);
-}
-
-bool cemu_bridge_derive_gametdb_id(const char* romPath, char* outGameID, size_t outGameIDSize) {
-    if (!romPath || !outGameID || outGameIDSize < 7)
-        return false;
-    std::string id = IOSCoverArt_DeriveGameTdbId(romPath);
-    if (id.size() != 6)
-        return false;
-    memcpy(outGameID, id.c_str(), 7);
-    return true;
-}
-
 bool cemu_bridge_get_title_name(const char* romPath, char* outName, size_t outNameSize) {
     if (!romPath || !outName || outNameSize == 0)
         return false;
-    const std::string name = IOSCoverArt_GetTitleName(romPath);
+    const std::string name = IOSTitleInfo_GetTitleName(romPath);
     if (name.empty())
         return false;
     size_t length = std::min(name.size(), outNameSize - 1);
@@ -3657,48 +3198,16 @@ bool cemu_bridge_get_title_name(const char* romPath, char* outName, size_t outNa
 bool cemu_bridge_derive_title_id(const char* romPath, uint64_t* outTitleId) {
     if (!romPath || !outTitleId)
         return false;
-    return IOSDlcUpdateImport_DeriveTitleId(romPath, outTitleId);
-}
-
-bool cemu_bridge_read_tmd_title_id(const char* tmdPath, uint64_t* outTitleId) {
-    return IOSDlcUpdateImport_ReadTmdTitleId(tmdPath, outTitleId);
-}
-
-uint64_t cemu_bridge_derive_base_title_id(uint64_t titleId) {
-    return IOSDlcUpdateImport_DeriveBaseTitleId(titleId);
-}
-
-int cemu_bridge_get_title_type(uint64_t titleId) {
-    return IOSDlcUpdateImport_GetTitleType(titleId);
-}
-
-void cemu_bridge_get_mlc_title_path_components(uint64_t titleId, char* outUpperHex, char* outLowerHex) {
-    if (!outUpperHex || !outLowerHex)
-        return;
-    IOSDlcUpdateImport_GetMlcTitlePathComponents(titleId, outUpperHex, outLowerHex);
+    return IOSTitleInfo_DeriveTitleId(romPath, outTitleId);
 }
 
 bool cemu_bridge_inspect_title(const char* romPath, uint64_t* outTitleId, uint16_t* outVersion,
     int* outRegion, int* outInvalidReason) {
-    return IOSDlcUpdateImport_Inspect(romPath, outTitleId, outVersion, outRegion, outInvalidReason);
+    return IOSTitleInfo_Inspect(romPath, outTitleId, outVersion, outRegion, outInvalidReason);
 }
 
-uint64_t cemu_bridge_derive_content_title_id(uint64_t baseTitleId, bool isUpdate) {
-    return IOSDlcUpdateImport_DeriveContentTitleId(baseTitleId, isUpdate);
-}
-
-void cemu_bridge_graphic_packs_refresh(void) {
-    IOSGraphicPacks_Refresh();
-}
-
-const char* cemu_bridge_graphic_packs_list(void) {
-    static thread_local std::string g_graphicPacksList;
-    g_graphicPacksList = IOSGraphicPacks_List();
-    return g_graphicPacksList.c_str();
-}
-
-void cemu_bridge_graphic_pack_set_enabled(int index, bool enabled) {
-    IOSGraphicPacks_SetEnabled(index, enabled);
+uint64_t cemu_bridge_derive_base_title_id(uint64_t titleId) {
+    return IOSTitleInfo_DeriveBaseTitleId(titleId);
 }
 
 const char* cemu_bridge_accounts_list(void) {
@@ -3744,70 +3253,12 @@ bool cemu_bridge_account_set_gender(uint32_t persistentId, int gender) {
     return IOSAccounts_SetGender(persistentId, gender);
 }
 
-bool cemu_bridge_account_set_email(uint32_t persistentId, const char* email) {
-    return IOSAccounts_SetEmail(persistentId, email);
-}
-
-bool cemu_bridge_account_set_country(uint32_t persistentId, int country) {
-    return IOSAccounts_SetCountry(persistentId, country);
-}
-
-bool cemu_bridge_account_set_birthdate(uint32_t persistentId, uint16_t year, uint8_t month, uint8_t day) {
-    return IOSAccounts_SetBirthdate(persistentId, year, month, day);
-}
-
 uint32_t cemu_bridge_active_account_persistent_id(void) {
     return IOSAccounts_ActivePersistentId();
 }
 
 void cemu_bridge_set_active_account_persistent_id(uint32_t persistentId) {
     IOSAccounts_SetActivePersistentId(persistentId);
-}
-
-int cemu_bridge_account_online_error(uint32_t persistentId) {
-    return IOSAccounts_OnlineError(persistentId);
-}
-
-bool cemu_bridge_account_is_online_valid(uint32_t persistentId) {
-    return IOSAccounts_IsOnlineValid(persistentId);
-}
-
-const char* cemu_bridge_countries_list(void) {
-    static thread_local std::string g_countriesList;
-    g_countriesList = IOSAccounts_CountriesList();
-    return g_countriesList.c_str();
-}
-
-CemuBridgeNetworkService cemu_bridge_network_service(uint32_t persistentId) {
-    return (CemuBridgeNetworkService)IOSAccounts_NetworkService(persistentId);
-}
-
-void cemu_bridge_set_network_service(uint32_t persistentId, CemuBridgeNetworkService service) {
-    IOSAccounts_SetNetworkService(persistentId, (int)service);
-}
-
-bool cemu_bridge_custom_network_service_available(void) {
-    return IOSAccounts_CustomNetworkServiceAvailable();
-}
-
-bool cemu_bridge_reload_custom_network_service(void) {
-    return IOSAccounts_ReloadCustomNetworkService();
-}
-
-bool cemu_bridge_network_services_xml_is_valid(const char* path) {
-    return IOSAccounts_IsValidNetworkServicesXML(path);
-}
-
-void cemu_bridge_set_device_network(CemuBridgeDeviceNetwork kind) {
-    nn_ac::SetDeviceReachable(kind != CEMU_BRIDGE_DEVICE_NETWORK_OFFLINE);
-}
-
-bool cemu_bridge_console_appears_connected(void) {
-    return nn_ac::IsConsoleConnected();
-}
-
-bool cemu_bridge_online_play_enabled(void) {
-    return ActiveSettings::IsOnlineEnabled();
 }
 
 void cemu_bridge_set_emulate_skylander_portal(bool enabled) {
@@ -3872,27 +3323,6 @@ const char* cemu_bridge_usb_device_move_dimensions(int fromSlot, int toSlot) {
     static thread_local std::string g_usbDeviceMoveError;
     g_usbDeviceMoveError = IOSEmulatedDevices_MoveDimensions(fromSlot, toSlot);
     return g_usbDeviceMoveError.empty() ? nullptr : g_usbDeviceMoveError.c_str();
-}
-
-const char* cemu_bridge_touch_amiibo(const char* path) {
-    static thread_local std::string g_amiiboError;
-    if (!path || path[0] == '\0') {
-        g_amiiboError = "No amiibo file was chosen.";
-        return g_amiiboError.c_str();
-    }
-    if (!g_titleRunning.load() || !nnNfp_isInitialized()) {
-        g_amiiboError = "No game is waiting for an amiibo right now. Start a game that uses amiibo, get to the point where it asks you to tap one, then scan again.";
-        return g_amiiboError.c_str();
-    }
-    uint32_t nfcError = 0;
-    if (nnNfp_touchNfcTagFromFile(fs::path(path), &nfcError)) {
-        g_amiiboError.clear();
-        return nullptr;
-    }
-    g_amiiboError = (nfcError == 2)
-        ? "That file isn't a valid amiibo dump. EspressU needs a full amiibo dump (a .bin or .nfc file of 532 bytes or more, usually 540 or 572)."
-        : "EspressU couldn't read that amiibo file.";
-    return g_amiiboError.c_str();
 }
 
 static constexpr int kTimebaseShiftMin = 0;
@@ -4323,13 +3753,12 @@ const char* cemu_bridge_status_text(void) {
     {
         char line[96];
         snprintf(line, sizeof(line), "The game closed itself (exit status %d).", exitStatus);
-        const std::string hint = IOSAccounts_OnlineHint();
-        setStatus((hint.empty() ? std::string(line) : std::string(line) + " If it closed after an online account prompt: " + hint).c_str());
+        setStatus(line);
     }
     if (g_titleRunning.load() && IOSSystemImplementation_TitleSwitchFailed() && IOSSystemImplementation_SystemAppletRequested())
-        setStatus("The game tried to open the Wii U's account or system settings, which EspressU can't run. A Pretendo ID can't be created or linked inside EspressU: link it on a real Wii U, then import that console's account.dat, otp.bin and seeprom.bin in Settings > Network Service.");
+        setStatus("The game tried to open a system screen, which EspressU can't run.");
     else if (g_titleRunning.load() && IOSSystemImplementation_TitleSwitchFailed())
-        setStatus("The Wii U Menu tried to open another title and it couldn't be started. Check that game is in your library and its keys are installed, then launch it from the library instead.");
+        setStatus("The game tried to open another title, which EspressU can't start. Launch it from the library instead.");
     if (statusIsEmpty())
         setStatus(cemu_bridge_is_title_running() ? "Title running." : "Core ready (no title running).");
     return getStatus();

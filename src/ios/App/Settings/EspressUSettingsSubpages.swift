@@ -27,17 +27,13 @@ extension EspressUSettingsView {
         case .figures: return figuresGroups
         case .overlay: return overlayGroups
         case .linkedFolders: return linkedFoldersGroups
-        case .keys: return keysGroups
+        case .graphicPacks: return graphicPacksGroups
         case .files: return filesGroups
         case .backup: return backupGroups
         case .account: return accountGroups
         case .diagnostics: return diagnosticsGroups
         case .about: return aboutGroups
-        case .graphicPacks: return graphicPacksGroups
-        case .graphicPackGame: return graphicPackGameGroups
-        case .graphicPack: return graphicPackGroups
         case .controllerMapping: return controllerMappingGroups
-        case .networkService: return customServerGroups
         case .licences: return licencesGroups
         case .figureManager: return nil
         }
@@ -46,11 +42,52 @@ extension EspressUSettingsView {
     func subpageOpened(_ page: LegacySettingsPage) {
         switch page {
         case .account: cemu_bridge_accounts_refresh()
-        case .graphicPacks: GraphicPackStore.shared.onOpen()
-        case .graphicPack: loadPackDetails()
         default: break
         }
         values.refresh()
+    }
+
+    private var graphicPacksGroups: [SettingsGroup] {
+        let packs = UserGraphicPacks.list()
+        let busy = UserGraphicPacks.isBusy
+        var items: [SettingsItem] = []
+        if packs.isEmpty {
+            items.append(SettingsItem(id: "gp.none", title: "No mods imported", detail: "Mods are folders with a rules.txt. Import your own below.", control: .info("", nil)))
+        }
+        for pack in packs {
+            items.append(SettingsItem(id: "gp.\(pack.path)", title: pack.name,
+                                      detail: pack.universal ? "All games" : (pack.titleIds.isEmpty ? nil : "\(pack.titleIds.count) game(s)"),
+                                      control: .toggle(values.custom(get: { pack.enabled }, set: { on in
+                                          UserGraphicPacks.setEnabled(pack, on)
+                                          values.refresh()
+                                      })),
+                                      enabled: !busy))
+            items.append(SettingsItem(id: "gp.del.\(pack.path)", title: "Delete \(pack.name)",
+                                      control: .action("Delete", destructive: true, confirm: true, run: {
+                                          UserGraphicPacks.delete(pack)
+                                          values.refresh()
+                                      }),
+                                      enabled: !busy))
+        }
+        let add = [
+            SettingsItem(id: "gp.import", title: "Import a mod folder",
+                         detail: busy ? "Close the running game first." : "Pick a folder that contains rules.txt. EspressU includes no mods.",
+                         control: .action("Choose", destructive: false, confirm: false, run: {
+                             DocumentImport.present(contentTypes: [.folder]) { result in
+                                 switch result {
+                                 case .success(let urls):
+                                     guard let url = urls.first else { return }
+                                     do { try UserGraphicPacks.importPack(from: url); notes["gp.import"] = "Imported." }
+                                     catch { pageAlert = SettingsAlert(title: "Couldn't import", message: error.localizedDescription) }
+                                 case .failure(let error):
+                                     pageAlert = SettingsAlert(title: "Couldn't import", message: error.localizedDescription)
+                                 }
+                                 values.refresh()
+                             }
+                         }),
+                         enabled: !busy),
+        ]
+        return [SettingsGroup(id: "gp.list", title: "Your mods", items: items), SettingsGroup(id: "gp.add", title: "Add", items: add)]
     }
 
     private var emulatedClockGroups: [SettingsGroup] {
@@ -257,52 +294,12 @@ extension EspressUSettingsView {
         }
     }
 
-    private var keysGroups: [SettingsGroup] {
-        let exists = WiiUKeys.keysFileExists()
-        var items = [
-            SettingsItem(id: "keys.import", title: exists ? "Replace keys.txt" : "Import keys.txt",
-                         detail: "Only for encrypted games (.wud, .wux). Keys from your own Wii U, one per line. New keys apply to the next game you start.",
-                         control: .action("Choose", destructive: false, confirm: false, run: {
-                             DocumentImport.present(contentTypes: [.item], asCopy: true) { result in
-                                 switch result {
-                                 case .success(let urls):
-                                     guard let url = urls.first else { return }
-                                     do {
-                                         let count = try WiiUKeys.importKeys(from: url)
-                                         notes["keys.import"] = "Imported \(count) keys."
-                                     } catch {
-                                         pageAlert = SettingsAlert(title: "Couldn't import keys", message: error.localizedDescription)
-                                     }
-                                 case .failure(let error):
-                                     pageAlert = SettingsAlert(title: "Couldn't import keys", message: error.localizedDescription)
-                                 }
-                                 values.refresh()
-                             }
-                         })),
-        ]
-        if exists {
-            items.append(SettingsItem(id: "keys.count", title: "Keys loaded", control: .info("\(WiiUKeys.installedKeyCount())", nil)))
-            items.append(SettingsItem(id: "keys.remove", title: "Remove keys.txt",
-                                      detail: "Encrypted games won't run until you import keys again.",
-                                      control: .action("Remove", destructive: true, confirm: true, run: {
-                                          do { try WiiUKeys.removeKeys() } catch {
-                                              pageAlert = SettingsAlert(title: "Couldn't remove keys.txt", message: error.localizedDescription)
-                                          }
-                                          values.refresh()
-                                      })))
-        }
-        items.append(SettingsItem(id: "keys.files", title: "Or use Files",
-                                  detail: "Put keys.txt into the keys folder: Files › EspressU › keys.",
-                                  control: .info("", nil)))
-        return [SettingsGroup(id: "keys", title: "", items: items)]
-    }
-
     private var filesGroups: [SettingsGroup] {
         let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
             ?? "Could not resolve a Documents folder for this install."
         return [SettingsGroup(id: "files", title: "", items: [
             SettingsItem(id: "files.where", title: "Files › On My iPad › EspressU",
-                         detail: "Games, saves, shader caches and keys.txt live here. Installed through LiveContainer, the folder is under LiveContainer instead.",
+                         detail: "Games, saves and shader caches live here.",
                          control: .info("", nil)),
             SettingsItem(id: "files.path", title: "Full path", detail: path,
                          control: .action("Copy", destructive: false, confirm: false, run: {
@@ -347,7 +344,7 @@ extension EspressUSettingsView {
                 do {
                     let preview = try SettingsBackup.preview(of: url)
                     let games = preview.gameCount == 1 ? "1 game's own options" : "\(preview.gameCount) games' own options"
-                    var text = "This file has \(preview.settingCount) settings and \(games). Importing replaces all of your settings and every game's own options. Your library, keys and accounts are not touched."
+                    var text = "This file has \(preview.settingCount) settings and \(games). Importing replaces all of your settings and every game's own options. Your library and profiles are not touched."
                     if preview.skippedCount > 0 { text += " \(preview.skippedCount) entries can't be used and are skipped." }
                     pageAlert = SettingsAlert(title: "Replace your settings?", message: text, actions: [
                         .init(title: "Import and replace", destructive: true, run: {
@@ -372,32 +369,21 @@ extension EspressUSettingsView {
         let active = accounts.first { $0.persistentId == activeId }
         let locked = cemu_bridge_accounts_locked()
 
-        var accountDetail: String?
-        if locked {
-            accountDetail = "Accounts can't be changed while a game is running."
-        } else if let note = OnlineReadiness.note(accountId: activeId, service: NetworkService(cemu_bridge_network_service(activeId))) {
-            accountDetail = note
-        } else if let active, !active.isValidOnline {
-            accountDetail = "No saved NNID/PNID login, so it can't play online yet."
-        }
+        let accountDetail: String? = locked ? "Profiles can't be changed while a game is running." : nil
         let accountItems = [
-            SettingsItem(id: "acc.active", title: "Active account", detail: accountDetail,
+            SettingsItem(id: "acc.active", title: "Active profile", detail: accountDetail,
                          control: .choice(accounts.map { SettingsOption(id: String($0.persistentId), title: $0.displayNameWithId) },
                                           values.custom(get: { String(cemu_bridge_active_account_persistent_id()) }, set: { raw in
                                               if let id = UInt32(raw) { cemu_bridge_set_active_account_persistent_id(id) }
                                           })),
                          enabled: !locked && !accounts.isEmpty),
-            SettingsItem(id: "acc.create", title: "Create account", detail: nil,
+            SettingsItem(id: "acc.create", title: "Create profile", detail: nil,
                          control: .action("Create", destructive: false, confirm: false, run: { accountSheets.showingCreateAccount = true }),
                          enabled: !locked && cemu_bridge_accounts_has_free_slot()),
-            SettingsItem(id: "acc.import", title: "Import from Wii U",
-                         detail: "account.dat or its 800000XX folder, plus otp.bin and seeprom.bin for online play.",
-                         control: .action("Choose", destructive: false, confirm: false, run: { importingAccount = true }),
-                         enabled: !locked),
-            SettingsItem(id: "acc.delete", title: "Delete \(active?.displayName ?? "account")", detail: nil,
+            SettingsItem(id: "acc.delete", title: "Delete \(active?.displayName ?? "profile")", detail: nil,
                          control: .action("Delete", destructive: true, confirm: true, run: {
                              if let active, !cemu_bridge_account_delete(active.persistentId) {
-                                 pageAlert = SettingsAlert(title: "Couldn't delete", message: "Couldn't delete that account.")
+                                 pageAlert = SettingsAlert(title: "Couldn't delete", message: "Couldn't delete that profile.")
                              }
                              cemu_bridge_accounts_refresh()
                              values.refresh()
@@ -405,36 +391,8 @@ extension EspressUSettingsView {
                          enabled: !locked && accounts.count > 1 && active != nil),
         ]
 
-        let service = NetworkService(cemu_bridge_network_service(activeId))
-        let customAvailable = cemu_bridge_custom_network_service_available()
-        let services = NetworkService.allCases.filter { candidate in
-            if candidate == .nintendo { return service == .nintendo }
-            if candidate == .custom { return customAvailable || service == .custom }
-            return true
-        }
-        let missing = OnlineReadiness.missingItems(accountId: activeId)
-        let readiness: String
-        switch service {
-        case .offline: readiness = "Online play is off."
-        case .custom: readiness = customAvailable ? "Ready for online play (custom server)." : "Missing: a valid network_services.xml."
-        default: readiness = missing.isEmpty ? "Ready for online play." : "Missing: " + missing.joined(separator: ", ") + "."
-        }
-        let online = [
-            SettingsItem(id: "net.service", title: "Network service", detail: readiness,
-                         control: .choice(services.map { SettingsOption(id: String($0.rawValue), title: $0.string) },
-                                          values.custom(get: { String(NetworkService(cemu_bridge_network_service(cemu_bridge_active_account_persistent_id())).rawValue) },
-                                                        set: { raw in
-                                                            guard let value = services.first(where: { String($0.rawValue) == raw }) else { return }
-                                                            cemu_bridge_set_network_service(cemu_bridge_active_account_persistent_id(), value.bridgeValue)
-                                                        })),
-                         enabled: !locked && active != nil),
-            SettingsItem(id: "net.connection", title: "", control: .banner(AnyView(DeviceConnectionStatusRow()))),
-            SettingsItem(id: "net.custom", title: "Custom servers", detail: "A network_services.xml, like desktop Cemu reads.",
-                         control: .link("", .networkService)),
-        ]
         return [
-            SettingsGroup(id: "account", title: "Account", items: accountItems),
-            SettingsGroup(id: "online", title: "Online", items: online),
+            SettingsGroup(id: "account", title: "Profile", items: accountItems),
         ]
     }
 
@@ -443,7 +401,6 @@ extension EspressUSettingsView {
             + "\n" + PlatformCapabilities.summary
             + "\nthermal: " + ThermalMonitor.shared.description
             + " · heat " + HeatStatus.band.word
-            + (HeatStatus.temperatureCelsius.map { String(format: " (battery %.0f C)", $0) } ?? " (no sensor reading)")
     }
 
     private var diagnosticsGroups: [SettingsGroup] {
@@ -455,6 +412,14 @@ extension EspressUSettingsView {
                              control: .action("Copy", destructive: false, confirm: false, run: {
                                  UIPasteboard.general.string = report
                                  notes["diag.copy"] = "Copied."
+                             })),
+                SettingsItem(id: "diag.share", title: "Share report",
+                             detail: "Choose where the report goes. You see what it contains first.",
+                             control: .action("Share", destructive: false, confirm: false, run: {
+                                 pageAlert = SettingsAlert(title: "Share the report?", message: SessionReport.contentsDescription, actions: [
+                                     .init(title: "Share", run: { SessionReport.share() }),
+                                     .init(title: "Cancel", cancel: true),
+                                 ])
                              })),
                 SettingsItem(id: "diag.report", title: "", control: .banner(AnyView(
                     Text(report)
@@ -498,7 +463,8 @@ extension EspressUSettingsView {
             SettingsGroup(id: "about", title: "", items: [
                 SettingsItem(id: "about.version", title: "Version", detail: "EspressU is built on Cemu.", control: .info(version, nil)),
                 SettingsItem(id: "about.by", title: "Created by", control: .info("Amar", nil)),
-                SettingsItem(id: "about.github", title: "View on GitHub", detail: nil,
+                // The owner sets this to the public repository of the Store build (MPL-2.0 source availability).
+                SettingsItem(id: "about.github", title: "Source code on GitHub", detail: nil,
                              control: .action("Open", destructive: false, confirm: false, run: {
                                  if let url = URL(string: "https://github.com/EspressU/EspressU-Emu") { UIApplication.shared.open(url) }
                              })),
@@ -507,6 +473,20 @@ extension EspressUSettingsView {
                                  if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
                              })),
                 SettingsItem(id: "about.licences", title: "Open-source licences", control: .link("", .licences)),
+            ]),
+            SettingsGroup(id: "about.notes", title: "Notes", items: [
+                SettingsItem(id: "about.games", title: "Your games",
+                             detail: "EspressU includes no games and no console files. It runs games you own, in a decrypted format, and does not decrypt anything. You are responsible for where your files come from.",
+                             control: .info("", nil)),
+                SettingsItem(id: "about.source", title: "Source code",
+                             detail: "Files that come from Cemu and MuffinEMU are available under the Mozilla Public License 2.0. The source code of this build is available at the address above.",
+                             control: .info("", nil)),
+                SettingsItem(id: "about.credit", title: "Touch controls",
+                             detail: "The Crema touch controls are by EspressU and are used under the Crema Licence.",
+                             control: .info("", nil)),
+                SettingsItem(id: "about.trademark", title: "Trademarks",
+                             detail: "Wii U is a trademark of Nintendo. EspressU is not affiliated with Nintendo.",
+                             control: .info("", nil)),
             ]),
             SettingsGroup(id: "about.reset", title: "Reset", items: [
                 SettingsItem(id: "about.resetAll", title: "Reset settings and per-game options",

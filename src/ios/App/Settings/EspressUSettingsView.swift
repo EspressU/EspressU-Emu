@@ -16,7 +16,7 @@ struct EspressUSettingsView: View {
     @ObservedObject var accountSheets = AccountSheetRouter.shared
     @ObservedObject var uiStyle = UIStyleStore.shared
 
-    @State var category: SettingsCategory = .jit
+    @State var category: SettingsCategory = .performance
     @State var showingCategory = false
     /// Set just before dismissing, so the tint is gone at once instead of fading out over the library.
     @State var leaving = false
@@ -31,20 +31,8 @@ struct EspressUSettingsView: View {
     @State var dropdown: SettingsDropdownState?
     @State var pageAlert: SettingsAlert?
     @State var busyRows: Set<String> = []
-    @State var importingAccount = false
-    @ObservedObject var gameData = GameDataStore.shared
     @ObservedObject var externalLibrary = ExternalLibrary.shared
-    @ObservedObject var graphicPackStore = GraphicPackStore.shared
-    @State var selectedPackGame = ""
-    @State var selectedPackPath = ""
-    @State var packDetails: GraphicPackDetails?
     @State var returnFocus: [LegacySettingsPage: String] = [:]
-    @State var jitActive = JITStatus.isActive
-    @ObservedObject var jitCoordinator = StikJITCoordinator.shared
-    @ObservedObject var pairing = DevicePairing.shared
-    @State var importingPairing = false
-    @State var importingServer = false
-    @State var showingServerForm = false
     @State var shaderLearned: Int64 = 0
     @State var shaderCompiled: Int64 = 0
 
@@ -84,18 +72,7 @@ struct EspressUSettingsView: View {
         }
         .onValueChange(of: scenePhase) { phase in
             guard phase == .active else { return }
-            jitActive = JITStatus.isActive
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { jitActive = JITStatus.isActive }
             values.refresh()
-        }
-        .fileImporter(isPresented: $importingPairing, allowedContentTypes: [.propertyList, .xml, .data, .item]) { result in
-            importPairingFile(result)
-        }
-        .fileImporter(isPresented: $importingServer, allowedContentTypes: [.xml, .plainText, .data]) { result in
-            importCustomServer(result)
-        }
-        .sheet(isPresented: $showingServerForm, onDismiss: { values.refresh() }) {
-            CustomServerFormView()
         }
         .alert(pageAlert?.title ?? "", isPresented: Binding(
             get: { pageAlert != nil }, set: { if !$0 { pageAlert = nil } }), presenting: pageAlert) { alert in
@@ -108,17 +85,6 @@ struct EspressUSettingsView: View {
         } message: { alert in
             Text(alert.message)
         }
-        .background(AccountImportButton(locked: cemu_bridge_accounts_locked(), onChange: {
-            cemu_bridge_accounts_refresh()
-            values.refresh()
-        }, external: $importingAccount))
-        .alert(jitCoordinator.failure?.title ?? "", isPresented: Binding(
-            get: { jitCoordinator.failure != nil && jitCoordinator.failure?.offersInterpreter == false },
-            set: { if !$0 { jitCoordinator.failure = nil } })) {
-            Button("OK", role: .cancel) { jitCoordinator.failure = nil }
-        } message: {
-            Text(jitCoordinator.failure?.message ?? "")
-        }
         .sheet(isPresented: $accountSheets.showingCreateAccount, onDismiss: accountSheets.sheetClosed) {
             CreateAccountView()
         }
@@ -127,8 +93,6 @@ struct EspressUSettingsView: View {
     private func appear() {
         UserDefaults.standard.set(SettingsMode.advanced.rawValue, forKey: SettingsMode.storageKey)
         refreshShaderStats()
-        jitActive = JITStatus.isActive
-        jitCoordinator.refreshTXM()
         input.onCommand = handle
         input.isBlocked = { ControllerMappingSession.shared.isListening }
         input.isExclusive = true
@@ -235,6 +199,24 @@ struct EspressUSettingsView: View {
                 .controllerFocusRing(input.showsFocus && sidebarFocused && item == category,
                                      shape: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
+            Button { openDiscord() } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(EspressUTheme.accentText)
+                        .frame(width: 28, height: 28)
+                    Text("Join the Discord")
+                        .font(.body)
+                        .foregroundColor(EspressUTheme.brownDarkest)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 18)
+                .frame(minHeight: 54)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             Spacer(minLength: 0)
             if input.showsFocus {
                 sidebarHints
@@ -295,10 +277,40 @@ struct EspressUSettingsView: View {
                     }
                 }
                 .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                Button { openDiscord() } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(EspressUTheme.accentText)
+                            .frame(width: 28, height: 28)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Join the Discord")
+                                .font(.body.weight(.semibold))
+                                .foregroundColor(EspressUTheme.brownDarkest)
+                            Text("Opens the community server in your browser")
+                                .font(.footnote)
+                                .foregroundColor(EspressUTheme.brownMid)
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 16)
             .padding(.bottom, isWide ? 24 : phoneBottomRoom)
         }
+    }
+
+    private func openDiscord() {
+        if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
     }
 
     private func categoryPage(_ page: SettingsCategory, showsBack: Bool) -> some View {
@@ -312,14 +324,7 @@ struct EspressUSettingsView: View {
     }
 
     private func subpageTitle(_ page: LegacySettingsPage) -> String {
-        switch page {
-        case .graphicPackGame:
-            return selectedPackGame == GraphicPack.allGames ? "Every game" : selectedPackGame
-        case .graphicPack:
-            return GraphicPackStore.shared.packs.first { $0.path == selectedPackPath }?.displayName ?? page.title
-        default:
-            return page.title
-        }
+        page.title
     }
 
     private func rowsPage(title: String, summary: String, groups: [SettingsGroup], showsBack: Bool,
@@ -519,14 +524,6 @@ struct EspressUSettingsView: View {
         case .custom(let view):
             rowLabel(item) { view }
 
-        case .modeSwitch(let binding):
-            JITModeSwitch(isOn: binding.wrappedValue) { on in
-                focus = item.id
-                binding.wrappedValue = on
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-
         case .banner(let view):
             view
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -690,39 +687,10 @@ struct EspressUSettingsView: View {
 
     @ViewBuilder private func legacyContent(_ page: LegacySettingsPage) -> some View {
         switch page {
-        case .graphicPacks:
-            GraphicPacksView()
         case .figureManager:
             EmulatedDevicesView()
         default:
-            Form { legacySections(page) }
-                .settingsPageBackground()
-        }
-    }
-
-    @ViewBuilder private func legacySections(_ page: LegacySettingsPage) -> some View {
-        switch page {
-        case .emulatedClock: EmulatedClockSection()
-        case .figures: EmulatedDevicesSettingsSection()
-        case .overlay:
-            OverlaySettingsSection()
-            NotificationSettingsSection()
-        case .graphicPacks: EmptyView()
-        case .linkedFolders:
-            Section { LinkedLocationsRows(gameManager: gameManager) }
-        case .keys: KeysSettingsSection()
-        case .files: FilesSettingsSection()
-        case .backup: SettingsBackupSection()
-        case .account:
-            AccountSettingsSection()
-            NetworkServiceSettingsSection()
-        case .diagnostics:
-            DeviceReportSection()
-            GpuFaultHistorySection()
-            DiagnosticsSection()
-        case .about: AboutSettingsSection()
-        case .networkService: CustomServersSettingsSection()
-        case .figureManager, .licences, .graphicPackGame, .graphicPack, .controllerMapping: EmptyView()
+            EmptyView()
         }
     }
 
@@ -1026,7 +994,7 @@ struct EspressUSettingsView: View {
 
     private func activate(_ item: SettingsItem) {
         switch item.control {
-        case .toggle(let binding), .modeSwitch(let binding):
+        case .toggle(let binding):
             binding.wrappedValue.toggle()
         case .choice(let options, let binding):
             guard !options.isEmpty else { return }
@@ -1058,10 +1026,6 @@ struct EspressUSettingsView: View {
         case .padButton(_, _, _, _, let reset?):
             guard direction > 0 else { return false }
             reset()
-            return true
-        case .modeSwitch(let binding):
-            let on = direction < 0
-            if binding.wrappedValue != on { binding.wrappedValue = on }
             return true
         case .choice(let options, let binding):
             guard let index = options.firstIndex(where: { $0.id == binding.wrappedValue }) else {

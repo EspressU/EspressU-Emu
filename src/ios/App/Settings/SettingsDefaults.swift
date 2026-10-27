@@ -64,15 +64,11 @@ enum SettingsDefaults {
         }
         UIStyleStore.shared.reloadFromDefaults()
         pushDefaultsToBridge()
-        DevicePairing.shared.cancel()
-        StikJITSetup.removePairingFile()
-        StikJITCoordinator.shared.settingsWereReset()
         NotificationCenter.default.post(name: .espressuSettingsWereReset, object: nil)
     }
 
     @MainActor
     private static func pushDefaultsToBridge() {
-        cemu_bridge_set_recompiler_enabled(true)
         cemu_bridge_set_favour_accuracy(false)
         cemu_bridge_set_favour_performance(FavourPerformance.defaultValue)
         cemu_bridge_set_full_speed_renders(FullSpeedRenders.defaultValue, Int32(FullSpeedRenders.defaultShaderMode.rawValue))

@@ -342,26 +342,7 @@ struct GameOptionsView: View {
             InfoButton.footer(
                 "\"Use Global Default\" follows Settings; On or Off sets this game only. Changes apply the next time you start the game.",
                 title: "Overrides",
-                text: "Compile shaders in the background builds shaders while the game keeps running. Most games want this on; Nano Assault Neo breaks with it, so it can be set per game.\n\nFavour accuracy is slower but more accurate, and can fix a game that glitches or crashes. It also keeps the game on one CPU core. See Settings > CPU.\n\nCPU cores picks how many cores run the game. Auto decides for each game and device.\n\n\"Use Global Default\" follows the matching setting in Settings, even if you change it later. On or Off sets this game only.\n\nChanges apply the next time you start the game."
-            )
-        }
-    }
-
-    private var graphicPacksSection: some View {
-        Section {
-            NavigationLink {
-                GraphicPacksView(game: game)
-            } label: {
-                Label("Graphic Packs", systemImage: "wand.and.stars")
-                    .font(.subheadline.weight(.semibold))
-            }
-        } header: {
-            SettingsSectionHeader("Graphic packs", icon: "paintpalette", accent: .core)
-        } footer: {
-            InfoButton.footer(
-                "Resolution, frame rate, fixes and mods for this game. They apply the next time you start it.",
-                title: "Graphic packs",
-                text: "Graphic packs change how a game looks or plays: higher resolutions, frame-rate patches, fixes for known glitches and mods. Download the community packs, turn on the ones you want for this game, and pick their options. Nothing is turned on automatically.\n\nHigher resolutions cost speed and memory, and what is reasonable depends on the device, so the options show a suggestion for this one.\n\nPacks listed under All games apply to every game, not just this one. Packs apply the next time you start the game."
+                text: "Compile shaders in the background builds shaders while the game keeps running. Most games want this on; Nano Assault Neo breaks with it, so it can be set per game.\n\nFavour accuracy is slower but more accurate, and can fix a game that glitches or crashes. It also keeps the game on one CPU core. See Settings > Performance.\n\nCPU cores picks how many cores run the game. Auto decides for each game and device.\n\n\"Use Global Default\" follows the matching setting in Settings, even if you change it later. On or Off sets this game only.\n\nChanges apply the next time you start the game."
             )
         }
     }
@@ -382,7 +363,7 @@ struct GameOptionsView: View {
             InfoButton.footer(
                 "The save the game itself writes. Export is available once the game has saved.",
                 title: "Game saves",
-                text: "This is the save the game itself writes. It uses the Wii U\'s own format, so it can move between EspressU, desktop Cemu and a real console.\n\nExport writes a folder named after the game and title ID. Import accepts that folder, a folder named after the title ID from another Cemu install, or its \'user\' folder. Importing replaces the current save; the old one is first copied to save-backups in EspressU\'s Documents folder."
+                text: "This is the save the game itself writes. It uses the game\'s own save format, so it can move between EspressU and other Cemu-based apps.\n\nExport writes a folder named after the game and title ID. Import accepts that folder, a folder named after the title ID from another Cemu install, or its \'user\' folder. Importing replaces the current save; the old one is first copied to save-backups in EspressU\'s Documents folder."
             )
         }
     }
@@ -524,7 +505,6 @@ struct GameOptionsView: View {
                 AdvancedGameOptionsSection(game: game, store: store)
             }
             GameShaderCacheSection(game: game)
-            graphicPacksSection
             gameSavesSection
             shaderCachesSection
         }

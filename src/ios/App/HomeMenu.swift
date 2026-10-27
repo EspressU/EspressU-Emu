@@ -6,7 +6,6 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
     case screenLayout
     case touchControls
     case moveControls
-    case scanAmiibo
     case emulatedDevices
     case recentreAim
     case quit
@@ -26,7 +25,6 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
         case .touchControls: return "Touch controls"
         case .moveControls: return "Move controls"
         case .emulatedDevices: return "Emulated devices"
-        case .scanAmiibo: return "Scan amiibo"
         case .recentreAim: return "Recentre aim"
         case .quit: return "Quit game"
         }
@@ -39,7 +37,6 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
         case .touchControls: return "hand.raised.fill"
         case .moveControls: return "arrow.up.and.down.and.arrow.left.and.right"
         case .emulatedDevices: return "externaldrive.connected.to.line.below"
-        case .scanAmiibo: return "wave.3.right"
         case .recentreAim: return "scope"
         case .quit: return "xmark.circle"
         }
@@ -52,7 +49,6 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
         case .touchControls: return "Shows or hides the on-screen controls, for example to touch the GamePad screen."
         case .moveControls: return "Closes the menu and lets you drag the on-screen controls."
         case .emulatedDevices: return "Opens the figure portals that are turned on in Settings."
-        case .scanAmiibo: return "Opens a list of amiibo files to scan. The game has to be asking for an amiibo."
         case .recentreAim: return "Takes the way you are holding the device now as straight ahead, then goes back to the game."
         case .quit: return "Asks before leaving the game."
         }
@@ -115,7 +111,6 @@ struct HomeMenuActions {
     let moveControls: () -> Void
     let quit: () -> Void
     let swapScreens: () -> Void
-    let scanAmiibo: () -> Void
     let toggleTouchControls: () -> Void
     let emulatedDevices: () -> Void
 }
@@ -295,7 +290,6 @@ struct HomeMenuOverlay: View {
                                hint: destination.hint, action: actions.toggleTouchControls)
         case .moveControls: return make(actions.moveControls)
         case .emulatedDevices: return offersEmulatedDevices ? make(actions.emulatedDevices) : nil
-        case .scanAmiibo: return make(actions.scanAmiibo)
         case .recentreAim:
             return make {
                 cemu_bridge_motion_recenter()
@@ -317,7 +311,7 @@ struct HomeMenuOverlay: View {
         }
         if isDualScreen || screenLayout == .singleScreen {
             result.append(HomeMenuRow(id: "swap", title: "Swap TV and GamePad", symbol: "rectangle.2.swap",
-                                      hint: "Switches which Wii U screen is shown.", action: actions.swapScreens))
+                                      hint: "Switches which screen is shown.", action: actions.swapScreens))
         }
         result.append(HomeMenuRow(id: "back", title: "Back", symbol: "chevron.left",
                                   hint: "Returns to the HOME menu.", showsChevron: false, action: { show(.root) }))

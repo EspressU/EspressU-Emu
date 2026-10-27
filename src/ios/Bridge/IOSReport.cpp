@@ -340,13 +340,13 @@ void IOSReport_TitleStarted(uint64_t titleId, const std::string& name)
 	{
 		std::lock_guard lock(s_stateMutex);
 		s_titleId = titleId;
-		s_titleName = name;
+		s_titleName.clear(); // the report carries the anonymous title ID only, never a game name
 		s_titleStart = std::chrono::steady_clock::now();
 		s_titleRunning = true;
 		s_perf = PerfTotals{};
 	}
 	char line[256];
-	snprintf(line, sizeof(line), "[report] TITLE RUNNING %016llx %s", (unsigned long long)titleId, name.c_str());
+	snprintf(line, sizeof(line), "[report] TITLE RUNNING %016llx", (unsigned long long)titleId);
 	IOSReport_Line(line);
 }
 

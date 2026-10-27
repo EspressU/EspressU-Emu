@@ -148,7 +148,7 @@ final class ExternalLibrary: ObservableObject, @unchecked Sendable {
             case .notReadable(let name):
                 return "EspressU can't read \"\(name)\". If it's on a drive, make sure the drive is connected."
             case .unsupportedFile(let name):
-                return "\"\(name)\" isn't a Wii U game file EspressU can read. It accepts .wua, .wux, .wud, .iso, .rpx, .elf and .wuhb files."
+                return "\"\(name)\" isn't a game file EspressU can read. It accepts decrypted .wua, .rpx, .elf and .wuhb files."
             case .bookmarkFailed(let error):
                 return "Couldn't keep access to that location: \(error.localizedDescription)"
             }
@@ -242,17 +242,8 @@ final class ExternalLibrary: ObservableObject, @unchecked Sendable {
     private static let skippedFolderNames: Set<String> = ["$recycle.bin", "system volume information", "lost+found"]
 
     private static func walk(_ directory: URL, depth: Int, into found: inout [URL]) {
-        if GameManager.looksLikeWiiUDump(directory) {
+        if GameManager.looksLikeGameFolder(directory) {
             if GameManager.executableInDump(directory) != nil { found.append(directory) }
-            return
-        }
-        if GameManager.titleTmdInDump(directory) != nil {
-            found.append(directory)
-            return
-        }
-        let tmdChildren = GameManager.nusTitleFolders(in: directory, maxDepth: 1)
-        if tmdChildren.filter({ $0.kind == .base }).count == 1, tmdChildren.count > 1 {
-            found.append(directory)
             return
         }
         guard depth < maxDepth,

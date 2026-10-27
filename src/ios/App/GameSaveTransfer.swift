@@ -99,7 +99,7 @@ enum GameSaveTransfer {
         let title = game.title.components(separatedBy: unsafe).joined(separator: "-")
         let trimmed = String(title.prefix(60)).trimmingCharacters(in: .whitespacesAndNewlines)
         let id = resolvedTitleId(for: game).map { String(format: "%016llX", $0) } ?? "unknown"
-        return "\(trimmed.isEmpty ? "Wii U game" : trimmed) [\(id)] save"
+        return "\(trimmed.isEmpty ? "Game" : trimmed) [\(id)] save"
     }
 
     private enum PickedShape {
@@ -194,7 +194,7 @@ enum GameSaveTransfer {
             case .unknownTitleId:
                 return "EspressU couldn't read this game's title ID, so it doesn't know where its save lives."
             case .unrecognisedFolder:
-                return "That folder doesn't look like a Wii U save. Pick the folder named after the game's title ID, or the 'user' folder inside it."
+                return "That folder doesn't look like a game save. Pick the folder named after the game's title ID, or the 'user' folder inside it."
             case .cancelled:
                 return "Export cancelled."
             }

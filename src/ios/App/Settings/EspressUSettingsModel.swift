@@ -3,13 +3,12 @@
 import SwiftUI
 
 enum SettingsCategory: Int, CaseIterable, Identifiable {
-    case jit, performance, graphics, controls, screenSound, gamesData, system
+    case performance, graphics, controls, screenSound, gamesData, system
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
-        case .jit:         return "JIT"
         case .performance: return "Performance"
         case .graphics:    return "Graphics"
         case .controls:    return "Controls"
@@ -22,7 +21,6 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
     /// Each category keeps its own system colour, like the icons in the Settings app.
     var tint: Color {
         switch self {
-        case .jit:         return Color(UIColor.systemOrange)
         case .performance: return Color(UIColor.systemGreen)
         case .graphics:    return Color(UIColor.systemBlue)
         case .controls:    return Color(UIColor.systemPurple)
@@ -34,31 +32,28 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .jit:         return "Built-in JIT: on or off, status and pairing."
-        case .performance: return "How games run: the CPU and heat."
+        case .performance: return "How games run: the CPU and heat. Performance depends on the game and your device."
         case .graphics:    return "Picture quality, frame pacing and shaders."
         case .controls:    return "Controllers and motion."
         case .screenSound: return "Screen layout, brightness, volume and the microphone."
-        case .gamesData:   return "Your library, keys, files, backups and online."
+        case .gamesData:   return "Your library, files and backups."
         case .system:      return "Look, help and about EspressU."
         }
     }
 
     var hint: String {
         switch self {
-        case .jit:         return "Status, pairing"
         case .performance: return "CPU cores, speed, heat"
         case .graphics:    return "Resolution, shaders"
         case .controls:    return "Touch, controllers, motion"
         case .screenSound: return "Layout, brightness, volume"
-        case .gamesData:   return "Library, keys, backups"
+        case .gamesData:   return "Library, files, backups"
         case .system:      return "Look, help, about"
         }
     }
 
     var icon: String {
         switch self {
-        case .jit:         return "bolt.fill"
         case .performance: return "speedometer"
         case .graphics:    return "photo.on.rectangle"
         case .controls:    return "gamecontroller.fill"
@@ -70,42 +65,35 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 }
 
 enum LegacySettingsPage: String, Identifiable {
-    case emulatedClock, figures, overlay, graphicPacks, linkedFolders
-    case keys, files, backup, account, diagnostics, about
-    case figureManager, networkService, licences
-    case graphicPackGame, graphicPack, controllerMapping
+    case emulatedClock, figures, overlay, linkedFolders, graphicPacks
+    case files, backup, account, diagnostics, about
+    case figureManager, licences
+    case controllerMapping
 
     var id: String { rawValue }
 
     var parent: LegacySettingsPage? {
         switch self {
         case .figureManager: return .figures
-        case .networkService: return .account
         case .licences: return .about
-        case .graphicPackGame: return .graphicPacks
-        case .graphicPack: return .graphicPackGame
         default: return nil
         }
     }
 
     var summary: String {
         switch self {
-        case .emulatedClock: return "How fast the Wii U's clock runs."
+        case .emulatedClock: return "How fast the emulated console's clock runs."
         case .figures:       return "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions."
         case .overlay:       return "What EspressU shows on top of a game."
-        case .graphicPacks:  return "Mods and fixes for your games."
         case .linkedFolders: return "Game folders that stay where they are."
-        case .keys:          return "Needed for encrypted dumps (.wud, .wux)."
+        case .graphicPacks:  return "Mods you import yourself. They apply the next time you start a game."
         case .files:         return "Where EspressU keeps games, saves and more."
         case .backup:        return "Save every setting to a file, or load one."
-        case .account:       return "Your Wii U account for saves and online play."
+        case .account:       return "Your local profile for game saves."
         case .diagnostics:   return "For bug reports."
         case .about:         return "Credits and open-source licences."
         case .figureManager: return "Load, create or clear figures."
-        case .networkService: return "Which online service games connect to."
         case .licences:      return "The open-source code inside EspressU."
-        case .graphicPackGame: return "Packs made for this game. Changes apply the next time you start a game."
-        case .graphicPack:   return "Changes apply the next time you start a game."
         case .controllerMapping: return "Choose which controller button does what."
         }
     }
@@ -115,19 +103,15 @@ enum LegacySettingsPage: String, Identifiable {
         case .emulatedClock: return "Emulated clock"
         case .figures:       return "Figure portals"
         case .overlay:       return "Overlay and notifications"
-        case .graphicPacks:  return "Graphic packs"
         case .linkedFolders: return "Linked folders"
-        case .keys:          return "Wii U keys"
+        case .graphicPacks:  return "Mods"
         case .files:         return "Your files"
         case .backup:        return "Back up and restore"
-        case .account:       return "Account and online"
+        case .account:       return "Profile"
         case .diagnostics:   return "Device report and logs"
         case .about:         return "About EspressU"
         case .figureManager: return "Manage figures"
-        case .networkService: return "Network service"
         case .licences:      return "Open-source licences"
-        case .graphicPackGame: return "Graphic packs"
-        case .graphicPack:   return "Pack"
         case .controllerMapping: return "Controller buttons"
         }
     }
@@ -148,7 +132,6 @@ struct SettingsItem: Identifiable {
         case open(String, () -> Void)
         case info(String, Color?)
         case custom(AnyView)
-        case modeSwitch(Binding<Bool>)
         case banner(AnyView)
         case padButton(label: String, value: String, changed: Bool, run: () -> Void, reset: (() -> Void)?)
         case expand(Bool)

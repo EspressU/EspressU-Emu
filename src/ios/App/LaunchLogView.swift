@@ -122,7 +122,7 @@ struct LaunchLogView: View {
         let lower = line.lowercased()
         if lower.contains("crash") || lower.contains("failed") || lower.contains("error")
             || lower.contains("dropped a frame") || lower.contains("not present")
-            || lower.contains("no key in keys.txt decrypts it") {
+            || lower.contains("is encrypted") {
             return EspressUTheme.alertOnDark
         }
         if lower.contains("presented the first frame") || lower.contains("run title")
@@ -132,7 +132,7 @@ struct LaunchLogView: View {
             return .green
         }
         if lower.contains("ios display:") || lower.contains("ios data path")
-            || lower.contains("keys.txt reloaded") || lower.contains("title list initialized") {
+            || lower.contains("title list initialized") {
             return EspressUTheme.accentOnDark
         }
         return .white.opacity(0.72)

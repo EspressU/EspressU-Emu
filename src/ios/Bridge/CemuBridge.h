@@ -13,14 +13,9 @@ typedef enum {
     CEMU_BRIDGE_OK              = 0,
     CEMU_BRIDGE_INVALID_RPX     = 1,
     CEMU_BRIDGE_UNABLE_TO_MOUNT = 2,
-    CEMU_BRIDGE_NO_DISC_KEY     = 3,
-    CEMU_BRIDGE_NO_TITLE_TIK    = 4,
+    CEMU_BRIDGE_ENCRYPTED       = 3,
     CEMU_BRIDGE_UNSUPPORTED     = 5,
     CEMU_BRIDGE_BASE_NOT_FOUND  = 6,
-    CEMU_BRIDGE_BAD_TITLE_TMD   = 7,
-    CEMU_BRIDGE_BAD_TITLE_TIK   = 8,
-    CEMU_BRIDGE_TITLE_KEY_INVALID = 9,
-    CEMU_BRIDGE_MISSING_CONTENT = 10,
     CEMU_BRIDGE_CORE_NOT_BUILT  = 100,
     CEMU_BRIDGE_BAD_ARG         = 101,
 } CemuBridgeStatus;
@@ -31,13 +26,7 @@ void cemu_bridge_initialize(const char* mlcPath);
 
 CemuBridgeStatus cemu_bridge_boot_title(const char* path);
 
-CemuBridgeStatus cemu_bridge_boot_title_id(uint64_t titleId);
-
 CemuBridgeStatus cemu_bridge_boot_rpx(const char* rpxPath);
-
-int cemu_bridge_reload_and_count_keys(void);
-
-void cemu_bridge_prepare_keys_before_init(const char* mlcPath);
 
 void cemu_bridge_register_render_surface(void* uiView, int width, int height, double dpiScale);
 
@@ -79,37 +68,14 @@ typedef struct {
 
 void cemu_bridge_get_progress(CemuBridgeProgress* out);
 
-bool cemu_bridge_start_decrypt(const char* srcPath, const char* destPath, bool toWua);
-
-bool cemu_bridge_start_wua_build(const char* sourcePathsNewlineSeparated, const char* destPath);
-
-int cemu_bridge_wua_list_titles(const char* wuaPath, char* outLines, size_t outSize);
-
-typedef struct {
-    bool is_running;
-    bool completed;
-    int result_status;
-    unsigned long long bytes_written;
-    unsigned int files_written;
-} CemuBridgeDecryptProgress;
-
-void cemu_bridge_get_decrypt_progress(CemuBridgeDecryptProgress* out);
-
-void cemu_bridge_cancel_decrypt(void);
-
-bool cemu_bridge_derive_gametdb_id(const char* romPath, char* outGameID, size_t outGameIDSize);
-
 bool cemu_bridge_get_title_name(const char* romPath, char* outName, size_t outNameSize);
 
 bool cemu_bridge_derive_title_id(const char* romPath, uint64_t* outTitleId);
 
-bool cemu_bridge_read_tmd_title_id(const char* tmdPath, uint64_t* outTitleId);
-
 uint64_t cemu_bridge_derive_base_title_id(uint64_t titleId);
 
-int cemu_bridge_get_title_type(uint64_t titleId);
-
-void cemu_bridge_get_mlc_title_path_components(uint64_t titleId, char* outUpperHex, char* outLowerHex);
+bool cemu_bridge_inspect_title(const char* romPath, uint64_t* outTitleId, uint16_t* outVersion,
+    int* outRegion, int* outInvalidReason);
 
 typedef enum {
     CemuTitleValid = 0,
@@ -123,17 +89,6 @@ typedef enum {
     CemuTitleKeyInvalid = 8,
     CemuTitleMissingContentFile = 9,
 } CemuTitleInvalidReason;
-
-bool cemu_bridge_inspect_title(const char* romPath, uint64_t* outTitleId, uint16_t* outVersion,
-    int* outRegion, int* outInvalidReason);
-
-uint64_t cemu_bridge_derive_content_title_id(uint64_t baseTitleId, bool isUpdate);
-
-void cemu_bridge_graphic_packs_refresh(void);
-
-const char* cemu_bridge_graphic_packs_list(void);
-
-void cemu_bridge_graphic_pack_set_enabled(int index, bool enabled);
 
 typedef enum {
     CEMU_BRIDGE_USB_DEVICE_SKYLANDERS = 0,
@@ -162,8 +117,6 @@ const char* cemu_bridge_usb_device_create(CemuBridgeUSBDevice device, uint32_t f
 
 const char* cemu_bridge_usb_device_move_dimensions(int fromSlot, int toSlot);
 
-const char* cemu_bridge_touch_amiibo(const char* path);
-
 void cemu_bridge_set_timebase_shift(int shift);
 
 int cemu_bridge_get_timebase_shift(void);
@@ -172,14 +125,7 @@ void cemu_bridge_set_timebase_auto_enabled(bool enabled);
 
 bool cemu_bridge_timebase_auto_enabled(void);
 
-bool cemu_bridge_has_txm(void);
-
 int cemu_bridge_cpu_mode(void);
-bool cemu_bridge_jit_probe(void);
-
-void cemu_bridge_set_recompiler_enabled(bool enabled);
-bool cemu_bridge_recompiler_enabled(void);
-
 void cemu_bridge_set_favour_accuracy(bool enabled);
 
 void cemu_bridge_set_favour_performance(bool enabled);
@@ -214,8 +160,6 @@ void cemu_bridge_report_clear(void);
 
 const char* cemu_bridge_gpu_fault_history(void);
 void cemu_bridge_clear_gpu_fault_history(void);
-
-double cemu_bridge_device_temperature_celsius(void);
 
 void cemu_bridge_set_thermal_throttle_micros(uint32_t micros);
 
@@ -467,47 +411,9 @@ bool cemu_bridge_account_delete(uint32_t persistentId);
 
 bool cemu_bridge_account_set_mii_name(uint32_t persistentId, const char* miiName);
 bool cemu_bridge_account_set_gender(uint32_t persistentId, int gender);
-bool cemu_bridge_account_set_email(uint32_t persistentId, const char* email);
-bool cemu_bridge_account_set_country(uint32_t persistentId, int country);
-bool cemu_bridge_account_set_birthdate(uint32_t persistentId, uint16_t year, uint8_t month, uint8_t day);
 
 uint32_t cemu_bridge_active_account_persistent_id(void);
 void cemu_bridge_set_active_account_persistent_id(uint32_t persistentId);
-
-bool cemu_bridge_account_is_online_valid(uint32_t persistentId);
-
-int cemu_bridge_account_online_error(uint32_t persistentId);
-
-const char* cemu_bridge_countries_list(void);
-
-typedef enum {
-    CEMU_BRIDGE_NETWORK_OFFLINE  = 0,
-    CEMU_BRIDGE_NETWORK_NINTENDO = 1,
-    CEMU_BRIDGE_NETWORK_PRETENDO = 2,
-    CEMU_BRIDGE_NETWORK_CUSTOM   = 3,
-} CemuBridgeNetworkService;
-
-CemuBridgeNetworkService cemu_bridge_network_service(uint32_t persistentId);
-void cemu_bridge_set_network_service(uint32_t persistentId, CemuBridgeNetworkService service);
-
-bool cemu_bridge_custom_network_service_available(void);
-
-bool cemu_bridge_reload_custom_network_service(void);
-
-bool cemu_bridge_network_services_xml_is_valid(const char* path);
-
-typedef enum {
-    CEMU_BRIDGE_DEVICE_NETWORK_OFFLINE  = 0,
-    CEMU_BRIDGE_DEVICE_NETWORK_WIFI     = 1,
-    CEMU_BRIDGE_DEVICE_NETWORK_CELLULAR = 2,
-    CEMU_BRIDGE_DEVICE_NETWORK_OTHER    = 3,
-} CemuBridgeDeviceNetwork;
-
-void cemu_bridge_set_device_network(CemuBridgeDeviceNetwork kind);
-
-bool cemu_bridge_console_appears_connected(void);
-
-bool cemu_bridge_online_play_enabled(void);
 
 typedef enum {
     CEMU_BRIDGE_STICK_LEFT  = 0,

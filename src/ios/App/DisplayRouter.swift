@@ -256,7 +256,7 @@ final class DisplayRouter: ObservableObject {
         tvSurfaceRegistered = true
         applyPlacement(reason: "the TV surface was registered")
         let placed = tvGeometry()
-        log("routing the Wii U TV surface to \(tvOnExternalDisplay ? "the external display" : "this device") at \(cInt(placed.size.width))x\(cInt(placed.size.height)) points, \(placed.scale)x scale (placement=\(placementName))")
+        log("routing the TV surface to \(tvOnExternalDisplay ? "the external display" : "this device") at \(cInt(placed.size.width))x\(cInt(placed.size.height)) points, \(placed.scale)x scale (placement=\(placementName))")
     }
 
     func titleStopped() {
@@ -348,7 +348,7 @@ final class DisplayRouter: ObservableObject {
                 log("display change (\(reason)) -> placement=dualScreen: \(outputs)")
                 scheduleOutputCheck()
             case .deviceMirrored:
-                log("display change (\(reason)) -> placement=deviceMirrored: an external display is connected but this app has no window scene for it, which is what AirPlay/screen mirroring looks like from inside the app. The Wii U TV screen stays on this device and reaches the external display through the mirror; the GamePad screen is not rendered. \(outputs)")
+                log("display change (\(reason)) -> placement=deviceMirrored: an external display is connected but this app has no window scene for it, which is what AirPlay/screen mirroring looks like from inside the app. The TV screen stays on this device and reaches the external display through the mirror; the GamePad screen is not rendered. \(outputs)")
             case .deviceOnly:
                 log("display change (\(reason)) -> placement=deviceOnly: \(outputs)")
             }
@@ -371,15 +371,15 @@ final class DisplayRouter: ObservableObject {
             + "GamePad surface \(describePadSurface())"
         switch placement {
         case .deviceOnly:
-            return "external display: none; this device: the Wii U screens per Screen Layout (\(screenLayout.rawValue)) [\(surfaces)]"
+            return "external display: none; this device: the game screens per Screen Layout (\(screenLayout.rawValue)) [\(surfaces)]"
         case .deviceMirrored:
-            return "external display: mirror of this device; this device: Wii U TV screen [\(surfaces)]"
+            return "external display: mirror of this device; this device: TV screen [\(surfaces)]"
         case .dualScreen:
             let swapped = swapScreens
-            let external = swapped ? "Wii U GamePad screen" : "Wii U TV screen"
+            let external = swapped ? "GamePad screen" : "TV screen"
             let device: String
             switch deviceMode {
-            case .otherScreen: device = swapped ? "Wii U TV screen" : "Wii U GamePad screen"
+            case .otherScreen: device = swapped ? "TV screen" : "GamePad screen"
             case .sameScreen: device = external
             case .nothing: device = "no game picture, controls only"
             }

@@ -212,13 +212,14 @@ class GameManager: ObservableObject {
         Task {
             await loadGames()
         }
-        coverSourcesObserver = NotificationCenter.default.addObserver(
-            forName: .espressuCoverArtSourcesChanged, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.refreshAllCoverPaths() }
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.emulationState == .running else { return }
+                self.showLaunchNotice("Memory is low. If the game stops, close other apps and start it again.")
+            }
         }
     }
-
-    private var coverSourcesObserver: NSObjectProtocol?
 
     func refreshAllCoverPaths() {
         for game in games { refreshCoverPath(forGameID: game.id) }
@@ -237,8 +238,6 @@ class GameManager: ObservableObject {
         let romsPath = documentsPath.appendingPathComponent(romsDirectory)
 
         try? fileManager.createDirectory(at: romsPath, withIntermediateDirectories: true)
-
-        WiiUKeys.ensureDirectoryExists()
 
         let sweepStaging = !didSweepStaging
         didSweepStaging = true
@@ -321,19 +320,13 @@ class GameManager: ObservableObject {
         if sweepStaging {
             let staging = romsPath.appendingPathComponent(stagingDirectoryName)
             try? fileManager.removeItem(at: staging)
-            let dlcStaging = romsPath.deletingLastPathComponent().appendingPathComponent("mlc").appendingPathComponent(".incoming-dlcupdate")
-            try? fileManager.removeItem(at: dlcStaging)
         }
 
-        DlcUpdateImport.migrateMisplacedContentIfNeeded()
         GameSaveTransfer.migrateMisplacedSavesIfNeeded()
 
         guard let contents = try? fileManager.contentsOfDirectory(at: romsPath, includingPropertiesForKeys: nil) else {
             return nil
         }
-        let mlcFolder = romsPath.deletingLastPathComponent().appendingPathComponent("mlc").path
-        mlcFolder.withCString { cemu_bridge_prepare_keys_before_init($0) }
-        _ = cemu_bridge_reload_and_count_keys()
 
         let sortedContents = contents.sorted { $0.lastPathComponent < $1.lastPathComponent }
 
@@ -380,14 +373,10 @@ class GameManager: ObservableObject {
             _ = fileManager.fileExists(atPath: item.path, isDirectory: &isDirectory)
 
             if isDirectory.boolValue {
-                if Self.looksLikeWiiUDump(item), let rpx = Self.executableInDump(item) {
+                if Self.looksLikeGameFolder(item), let rpx = Self.executableInDump(item) {
                     gameID = item.lastPathComponent
                     bootPath = rpx.path
                     dumpDirectory = item
-                } else if let tmd = Self.nusBaseTitleTmd(in: item) {
-                    gameID = item.lastPathComponent
-                    bootPath = tmd.path
-                    dumpDirectory = tmd.deletingLastPathComponent()
                 } else {
                     continue
                 }
@@ -476,7 +465,7 @@ class GameManager: ObservableObject {
         return discoveredGames
     }
 
-    nonisolated static func looksLikeWiiUDump(_ directory: URL) -> Bool {
+    nonisolated static func looksLikeGameFolder(_ directory: URL) -> Bool {
         let fileManager = FileManager.default
         var isDirectory: ObjCBool = false
 
@@ -503,69 +492,15 @@ class GameManager: ObservableObject {
             .first
     }
 
-    nonisolated static func titleTmdInDump(_ directory: URL) -> URL? {
-        let entries = (try? FileManager.default.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: nil
-        )) ?? []
-        return entries.first { $0.lastPathComponent.caseInsensitiveCompare("title.tmd") == .orderedSame }
-    }
-
-    enum NUSFolderKind {
-        case base
-        case update
-        case dlc
-
-        var titleIdHighWord: UInt32 {
-            switch self {
-            case .base: return 0x00050000
-            case .update: return 0x0005000E
-            case .dlc: return 0x0005000C
-            }
+    /// Encrypted title folders (title.tmd and ticket next to .app files) are recognised only so they can be refused.
+    nonisolated static func looksEncrypted(_ directory: URL, maxDepth: Int = 2) -> Bool {
+        let entries = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
+        if entries.contains(where: { $0.lastPathComponent.caseInsensitiveCompare("title.tmd") == .orderedSame }) { return true }
+        guard maxDepth > 0 else { return false }
+        return entries.contains { entry in
+            (try? entry.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+                && looksEncrypted(entry, maxDepth: maxDepth - 1)
         }
-    }
-
-    nonisolated static func nusKind(ofTmd tmd: URL) -> NUSFolderKind {
-        var titleId: UInt64 = 0
-        let ok = tmd.path.withCString { cemu_bridge_read_tmd_title_id($0, &titleId) }
-        guard ok else { return .base }
-        switch UInt32(truncatingIfNeeded: titleId >> 32) {
-        case NUSFolderKind.update.titleIdHighWord: return .update
-        case NUSFolderKind.dlc.titleIdHighWord: return .dlc
-        default: return .base
-        }
-    }
-
-    nonisolated static func nusTitleFolders(in directory: URL, maxDepth: Int = 2) -> [(tmd: URL, kind: NUSFolderKind)] {
-        var found: [(tmd: URL, kind: NUSFolderKind)] = []
-        if let tmd = titleTmdInDump(directory) {
-            found.append((tmd, nusKind(ofTmd: tmd)))
-            return found
-        }
-        guard maxDepth > 0 else { return found }
-        let subfolders = ((try? FileManager.default.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: [.isDirectoryKey]
-        )) ?? [])
-            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
-        for subfolder in subfolders {
-            found.append(contentsOf: nusTitleFolders(in: subfolder, maxDepth: maxDepth - 1))
-        }
-        return found
-    }
-
-    nonisolated static func nusBaseTitleTmd(in directory: URL) -> URL? {
-        nusTitleFolders(in: directory).first { $0.kind == .base }?.tmd
-    }
-
-    nonisolated static func nusSubfolder(in directory: URL, kind: NUSFolderKind) -> URL? {
-        guard titleTmdInDump(directory) == nil else { return nil }
-        return nusTitleFolders(in: directory).first { $0.kind == kind }?.tmd.deletingLastPathComponent()
-    }
-
-    nonisolated static func looksLikeNUSDump(_ directory: URL) -> Bool {
-        nusBaseTitleTmd(in: directory) != nil
     }
 
     nonisolated static func deriveBaseTitleId(romPath: String) -> UInt64? {
@@ -630,12 +565,7 @@ class GameManager: ObservableObject {
                     || LibraryMetadataCache.cachedTitleName(for: game.id) == nil {
                     await self?.deriveAndApplyRegionAndTitleName(for: game)
                 }
-            }
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                GameDataStore.shared.scrapeIfNeeded(games: self.games)
-            }
-        }
+            }        }
     }
 
     private func applyCoverPath(_ coverPath: String, forGameID gameID: String) {
@@ -697,7 +627,7 @@ class GameManager: ObservableObject {
         let inspected = game.romPath.withCString { cPath in
             cemu_bridge_inspect_title(cPath, nil, &version, &regionBitmask, &invalidReason)
         }
-        if !inspected && (invalidReason == 3 || invalidReason == 4 || invalidReason == 8) {
+        if !inspected && invalidReason == 3 {
             return
         }
         let region = inspected ? Self.regionLabel(forBitmask: regionBitmask) : nil
@@ -743,16 +673,19 @@ class GameManager: ObservableObject {
 
     enum ROMImportError: LocalizedError {
         case invalidROM
-        case notAWiiUDump(String)
+        case notAGameFolder(String)
+        case encrypted
         case accessDenied
         case copyFailed(Error)
 
         var errorDescription: String? {
             switch self {
             case .invalidROM:
-                return "This isn't a Wii U game file EspressU can read. It accepts .wua, .wux, .wud, .iso, .rpx, .elf and .wuhb files, or a game folder. Encrypted games also need keys.txt."
-            case .notAWiiUDump(let name):
-                return "\"\(name)\" isn't a Wii U game dump. A dump folder needs code, content and meta folders inside it, or an encrypted game folder: title.tmd and title.tik next to its .app files."
+                return "This isn't a game file EspressU can read. It accepts decrypted .wua, .rpx, .elf and .wuhb files, or a decrypted game folder."
+            case .encrypted:
+                return "This game is encrypted. EspressU only runs decrypted games (.wua or decrypted folders). Prepare it with your own tools."
+            case .notAGameFolder(let name):
+                return "\"\(name)\" isn't a decrypted game folder. It needs code, content and meta folders inside it."
             case .accessDenied:
                 return "Couldn't access that file."
             case .copyFailed(let error):
@@ -775,7 +708,9 @@ class GameManager: ObservableObject {
         }
     }
 
-    nonisolated static let supportedROMExtensions: Set<String> = ["wux", "wud", "wua", "iso", "rpx", "wuhb", "elf"]
+    /// Disc images are encrypted dumps. They are refused with a message and never loaded.
+    nonisolated static let encryptedImageExtensions: Set<String> = ["wud", "wux", "iso"]
+    nonisolated static let supportedROMExtensions: Set<String> = ["wua", "rpx", "wuhb", "elf"]
 
     private nonisolated static let stagingDirectoryName = ".incoming"
 
@@ -795,8 +730,6 @@ class GameManager: ObservableObject {
         switch ext {
         case "rpx", "elf":
             return fileMagic(at: url) == Data([0x7F, 0x45, 0x4C, 0x46])
-        case "wux":
-            return fileMagic(at: url) == Data([0x57, 0x55, 0x58, 0x30])
         case "wuhb":
             return fileMagic(at: url) == Data([0x57, 0x55, 0x48, 0x42])
         default:
@@ -816,6 +749,9 @@ class GameManager: ObservableObject {
         var isDirectory: ObjCBool = false
         let exists = fileManager.fileExists(atPath: source.path, isDirectory: &isDirectory)
         guard exists else { throw ROMImportError.accessDenied }
+        if !isDirectory.boolValue, Self.encryptedImageExtensions.contains(source.pathExtension.lowercased()) {
+            throw ROMImportError.encrypted
+        }
 
         guard let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             throw ROMImportError.accessDenied
@@ -832,8 +768,9 @@ class GameManager: ObservableObject {
         }
 
         if isDirectory.boolValue {
-            guard Self.looksLikeWiiUDump(source) || Self.looksLikeNUSDump(source) else {
-                throw ROMImportError.notAWiiUDump(source.lastPathComponent)
+            if Self.looksEncrypted(source) { throw ROMImportError.encrypted }
+            guard Self.looksLikeGameFolder(source) else {
+                throw ROMImportError.notAGameFolder(source.lastPathComponent)
             }
 
             let stagingPath = romsPath.appendingPathComponent(Self.stagingDirectoryName)
@@ -877,8 +814,7 @@ class GameManager: ObservableObject {
             throw ROMImportError.copyFailed(error)
         }
 
-        let copyIsComplete = (looksLikeWiiUDump(stagedDirectory) && executableInDump(stagedDirectory) != nil)
-            || looksLikeNUSDump(stagedDirectory)
+        let copyIsComplete = looksLikeGameFolder(stagedDirectory) && executableInDump(stagedDirectory) != nil
         guard copyIsComplete else {
             try? fileManager.removeItem(at: stagedDirectory)
             throw ROMImportError.copyFailed(CocoaError(.fileReadCorruptFile))
@@ -1010,7 +946,6 @@ class GameManager: ObservableObject {
         let surfacePtr = Unmanaged.passRetained(uiView).toOpaque()
         cemu_bridge_register_render_surface(surfacePtr, width, height, dpiScale)
 
-        GameControlHints.applyBeforeLaunch(titleId: game.titleId)
 
         let romPath = game.romPath
         let gameID = game.settingsKey
@@ -1026,8 +961,6 @@ class GameManager: ObservableObject {
 
             TimebaseScale.applyStoredChoiceIfAny()
 
-            cemu_bridge_set_recompiler_enabled(
-                UserDefaults.standard.object(forKey: "espressu.cpu.recompiler") as? Bool ?? true)
             cemu_bridge_set_favour_accuracy(
                 PerGameSettingsStore.shared.effectiveFavourAccuracy(for: game.settingsKey))
             cemu_bridge_set_favour_performance(
@@ -1159,9 +1092,6 @@ class GameManager: ObservableObject {
                 var notice = ""
                 if notice.isEmpty && status == CEMU_BRIDGE_OK && ProcessInfo.processInfo.isLowPowerModeEnabled {
                     notice = "Low Power Mode is on, so games may run slowly. Turn it off in Control Centre for full speed."
-                }
-                if notice.isEmpty && status == CEMU_BRIDGE_OK, let onlineNotice = OnlineReadiness.launchNotice() {
-                    notice = onlineNotice
                 }
                 if !notice.isEmpty {
                     self.showLaunchNotice(notice)
@@ -1422,7 +1352,6 @@ final class TitleSwitchSettings {
         }
         #endif
         #if os(iOS)
-        GameControlHints.applyBeforeLaunch(titleId: titleId)
         #endif
     }
 }

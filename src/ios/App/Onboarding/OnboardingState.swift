@@ -42,6 +42,6 @@ struct SettingsOnboardingRow: View {
         } label: {
             Label("Show welcome guide again", systemImage: "hand.wave")
         }
-        .accessibilityHint("Reopens the first-launch guide to keys, games, speed and controls.")
+        .accessibilityHint("Reopens the first-launch guide to games and controllers.")
     }
 }

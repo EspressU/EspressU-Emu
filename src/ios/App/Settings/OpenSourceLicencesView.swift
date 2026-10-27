@@ -17,13 +17,10 @@ struct OpenSourceLicencesView: View {
         .init(name: "MuffinEMU (EspressU is based on it)", url: "https://github.com/MuffinEMU/Muffin-EMU", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
         .init(name: "Crema (EspressU's own touch controls)", url: "https://github.com/EspressU/EspressU-Emu/tree/main/src/ios/App/Crema", licence: "Crema Licence (non-commercial, open source, credit)", licenceURL: "https://github.com/EspressU/EspressU-Emu/blob/main/src/ios/App/Crema/LICENSE.txt"),
         .init(name: "EspressU's own files (marked in their header)", url: "https://github.com/EspressU/EspressU-Emu", licence: "EspressU Licence (non-commercial, open source, credit)", licenceURL: "https://github.com/EspressU/EspressU-Emu/blob/main/LICENSES/EspressU-Licence.txt"),
-        .init(name: "StikJIT (helper for the built-in JIT)", url: "https://github.com/StikDebug/StikJIT", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
-        .init(name: "idevice (bundled in StikJIT)", url: "https://github.com/jkcoxson/idevice", licence: "MIT", licenceURL: "https://opensource.org/license/mit"),
         .init(name: "ih264d (H.264 decoder)", url: "https://android.googlesource.com/platform/external/libavc/", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
+        .init(name: "ASTC Encoder (ARM)", url: "https://github.com/ARM-software/astc-encoder", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
         .init(name: "metal-cpp", url: "https://github.com/bkaradzic/metal-cpp", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
-        .init(name: "xbyak_aarch64", url: "https://github.com/fujitsu/xbyak_aarch64", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
         .init(name: "Dear ImGui", url: "https://github.com/ocornut/imgui", licence: "MIT", licenceURL: "https://github.com/ocornut/imgui/blob/master/LICENSE.txt"),
-        .init(name: "cubeb", url: "https://github.com/mozilla/cubeb", licence: "ISC", licenceURL: "https://github.com/mozilla/cubeb/blob/master/LICENSE"),
         .init(name: "ZArchive", url: "https://github.com/Exzap/ZArchive", licence: "MIT-0", licenceURL: "https://github.com/Exzap/ZArchive/blob/master/LICENSE"),
         .init(name: "Boost", url: "https://www.boost.org", licence: "BSL-1.0", licenceURL: "https://www.boost.org/LICENSE_1_0.txt"),
         .init(name: "fmt", url: "https://github.com/fmtlib/fmt", licence: "MIT", licenceURL: "https://github.com/fmtlib/fmt/blob/master/LICENSE"),
@@ -39,7 +36,7 @@ struct OpenSourceLicencesView: View {
         .init(name: "OpenSSL", url: "https://www.openssl.org", licence: "Apache-2.0", licenceURL: "https://www.openssl.org/source/license.html"),
         .init(name: "curl", url: "https://curl.se", licence: "curl License", licenceURL: "https://curl.se/docs/copyright.html"),
         .init(name: "SDL", url: "https://libsdl.org", licence: "zlib", licenceURL: "https://github.com/libsdl-org/SDL/blob/main/LICENSE.txt"),
-        .init(name: "Noto Sans CJK (JP, SC, KR, TC) \u{2013} the bundled Wii U shared-font replacements CafeStd, CafeCn, CafeKr and CafeTw", url: "https://github.com/notofonts/noto-cjk", licence: "SIL Open Font License 1.1", licenceURL: "https://openfontlicense.org")
+        .init(name: "Noto Sans CJK (JP, SC, KR, TC) \u{2013} the bundled shared-font replacements CafeStd, CafeCn, CafeKr and CafeTw", url: "https://github.com/notofonts/noto-cjk", licence: "SIL Open Font License 1.1", licenceURL: "https://openfontlicense.org")
     ]
 
     var body: some View {
