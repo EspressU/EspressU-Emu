@@ -129,6 +129,7 @@ private struct HomeMenuRow: Identifiable {
     var isPrimary = false
     var isDestructive = false
     var showsChevron = false
+    var showsSeparator: Bool { !isPrimary && !isDestructive }
     let action: () -> Void
 }
 
@@ -159,8 +160,8 @@ struct HomeMenuOverlay: View {
         GeometryReader { proxy in
             ZStack {
                 scrim
-                card(availableHeight: proxy.size.height)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                card(in: proxy)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
         .transition(.opacity)
@@ -172,26 +173,40 @@ struct HomeMenuOverlay: View {
     }
 
     private var scrim: some View {
-        EspressUTheme.scrim
+        Color.black.opacity(0.28)
             .ignoresSafeArea()
             .contentShape(Rectangle())
             .onTapGesture { actions.resume() }
             .accessibilityHidden(true)
     }
 
-    private func card(availableHeight: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
+    /// A floating glass panel inset from the screen edges, sized to its content, instead of a full-height slab.
+    private func card(in proxy: GeometryProxy) -> some View {
+        let insets = proxy.safeAreaInsets
+        let margin: CGFloat = 12
+        let chrome: CGFloat = 150
+        let maxRows = max(160, proxy.size.height - insets.top - insets.bottom - margin * 2 - chrome)
+        return VStack(alignment: .leading, spacing: 14) {
             header
             ScrollViewReader { reader in
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 10) {
-                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                    VStack(spacing: 0) {
+                        let current = rows
+                        ForEach(Array(current.enumerated()), id: \.element.id) { index, row in
                             HomeMenuRowView(row: row, isFocused: usingController && index == focus)
                                 .id(row.id)
+                            if index < current.count - 1, row.showsSeparator, current[index + 1].showsSeparator {
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.14))
+                                    .frame(height: EspressUTheme.hairlineWidth)
+                                    .padding(.leading, 52)
+                            }
                         }
                     }
-                    .padding(4)
+                    .background(GeometryReader { Color.clear.preference(key: HomeRowsHeightKey.self, value: $0.size.height) })
                 }
+                .frame(height: min(rowsHeight, maxRows))
+                .onPreferenceChange(HomeRowsHeightKey.self) { rowsHeight = $0 }
                 .onValueChange(of: focus) { _ in
                     let current = rows
                     if current.indices.contains(focus) {
@@ -200,17 +215,13 @@ struct HomeMenuOverlay: View {
                 }
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 22)
-        .frame(width: 340)
-        .frame(maxHeight: .infinity)
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .trailing) {
-            Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1)
-        }
+        .padding(.horizontal, 16)
+        .padding(.top, 20)
+        .padding(.bottom, 14)
+        .frame(width: 330)
+        .modifier(HomeMenuPanelBackground())
         .environment(\.colorScheme, .dark)
-        .ignoresSafeArea()
-        .transition(.move(edge: .leading))
+        .transition(.scale(scale: 0.94).combined(with: .opacity))
     }
 
     private var headerTitle: String {
@@ -224,7 +235,7 @@ struct HomeMenuOverlay: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(headerTitle)
-                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                .font(.title.weight(.bold))
                 .foregroundColor(.white)
                 .accessibilityAddTraits(.isHeader)
             switch page {
@@ -243,7 +254,7 @@ struct HomeMenuOverlay: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 8)
+        .padding(.horizontal, 4)
     }
 
     private var rows: [HomeMenuRow] {
@@ -367,51 +378,88 @@ private struct HomeMenuRowView: View {
 
     var body: some View {
         Button(action: row.action) {
-            HStack(spacing: 14) {
-                Image(systemName: row.symbol)
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundColor(iconColor)
-                    .frame(width: 40, height: 40)
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(iconFill))
-                    .accessibilityHidden(true)
-                Text(row.title)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundColor(row.isDestructive ? EspressUTheme.alertText : .white)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                if row.isSelected {
-                    Image(systemName: "checkmark").foregroundColor(EspressUTheme.pixelBlue)
-                } else if row.showsChevron {
-                    Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.4))
-                }
-            }
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(row.isPrimary ? EspressUTheme.pixelBlue.opacity(0.35) : Color.white.opacity(isFocused ? 0.2 : 0.08))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 3)
-                    .opacity(isFocused ? 1 : 0)
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            if row.isPrimary { primaryLabel } else { plainLabel }
         }
         .buttonStyle(.plain)
+        .padding(.vertical, row.isPrimary ? 4 : 0)
         .accessibilityLabel(row.title)
         .accessibilityHint(row.hint)
         .accessibilityAddTraits(row.isSelected ? .isSelected : [])
     }
 
-    private var iconFill: Color {
-        if row.isPrimary { return EspressUTheme.pixelBlue }
-        if row.isDestructive { return EspressUTheme.alertText.opacity(0.18) }
-        return Color.white.opacity(0.12)
+    /// The one prominent action: a capsule in the accent colour, like a system default button.
+    private var primaryLabel: some View {
+        HStack(spacing: 8) {
+            Image(systemName: row.symbol)
+                .font(.body.weight(.semibold))
+                .accessibilityHidden(true)
+            Text(row.title)
+                .font(.body.weight(.semibold))
+        }
+        .foregroundColor(EspressUTheme.onCremaTop)
+        .frame(maxWidth: .infinity, minHeight: 50)
+        .modifier(HomeMenuPrimaryBackground())
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.9), lineWidth: 2).opacity(isFocused ? 1 : 0))
+        .contentShape(Capsule())
     }
 
-    private var iconColor: Color {
-        if row.isPrimary { return .white }
-        return row.isDestructive ? EspressUTheme.alertText : .white
+    private var plainLabel: some View {
+        HStack(spacing: 12) {
+            Image(systemName: row.symbol)
+                .font(.system(size: 18, weight: .regular))
+                .foregroundColor(row.isDestructive ? EspressUTheme.alertText : .white.opacity(0.85))
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+            Text(row.title)
+                .font(.body)
+                .foregroundColor(row.isDestructive ? EspressUTheme.alertText : .white)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            if row.isSelected {
+                Image(systemName: "checkmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundColor(.white)
+            } else if row.showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundColor(.white.opacity(0.4))
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(isFocused ? 0.16 : 0))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.5), lineWidth: 1.5)
+                .opacity(isFocused ? 1 : 0)
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+private struct HomeMenuPrimaryBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular.tint(EspressUTheme.pixelBlue).interactive(), in: Capsule())
+        } else {
+            content.background(EspressUTheme.pixelBlue, in: Capsule())
+        }
+    }
+}
+
+private struct HomeMenuPanelBackground: ViewModifier {
+    private let shape = RoundedRectangle(cornerRadius: 32, style: .continuous)
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: shape)
+                .overlay(shape.strokeBorder(Color.white.opacity(0.12), lineWidth: EspressUTheme.hairlineWidth))
+        }
     }
 }
