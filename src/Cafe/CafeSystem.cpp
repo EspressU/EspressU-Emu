@@ -4,7 +4,6 @@
 #include "Cafe/GameProfile/GameProfile.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 #include "Cafe/HW/Espresso/Const.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/HW/Espresso/Debugger/Debugger.h"
 #include "Cafe/OS/RPL/rpl_symbol_storage.h"
 #include "audio/IAudioAPI.h"
@@ -24,7 +23,7 @@
 #include "Cafe/OS/libs/snd_core/ax.h"
 #include "Cafe/OS/RPL/rpl.h"
 #include "Cafe/HW/Latte/Core/Latte.h"
-#include "Cafe/Filesystem/FST/FST.h"
+#include "Cafe/Filesystem/FST/fstUtil.h"
 #include "Cafe/Filesystem/MlcTitleDirectoryCase.h"
 #include "Common/FileStream.h"
 #include "GamePatch.h"
@@ -807,7 +806,7 @@ namespace CafeSystem
 		}
 		gameProfile_load();
 		SetupMemorySpace();
-		PPCRecompiler_init();
+		PPCCore_InitializeInterpreter();
 		sPreparedTitleMemoryMapped = true;
 		r = PrepareExecutable();
 		if (r != PREPARE_STATUS_CODE::SUCCESS)
@@ -860,7 +859,7 @@ namespace CafeSystem
 		g_current_game_profile->ResetOptional();
 		ppcThreadQuantum = g_current_game_profile->GetThreadQuantum();
         SetupMemorySpace();
-        PPCRecompiler_init();
+        PPCCore_InitializeInterpreter();
 		sPreparedTitleMemoryMapped = true;
 		if (PrepareExecutable() != PREPARE_STATUS_CODE::SUCCESS)
 		{
@@ -876,7 +875,7 @@ namespace CafeSystem
 		for(auto& module : s_iosuModules)
 			module->TitleStart();
 		cemu_initForGame();
-		if ((ActiveSettings::GetCPUMode() == CPUMode::MulticoreRecompiler || ActiveSettings::GetCPUMode() == CPUMode::MulticoreInterpreter || LaunchSettings::ForceMultiCoreInterpreter()) && !LaunchSettings::ForceInterpreter())
+		if ((ActiveSettings::GetCPUMode() == CPUMode::MulticoreInterpreter || LaunchSettings::ForceMultiCoreInterpreter()) && !LaunchSettings::ForceInterpreter())
 			coreinit::OSSchedulerBegin(Espresso::CORE_COUNT);
 		else
 			coreinit::OSSchedulerBegin(1);
@@ -1049,12 +1048,6 @@ namespace CafeSystem
 			dangerous.emplace_back("PPC scheduler still active");
 		if (size_t modules = RPLLoader_GetLoadedModuleCount(); modules != 0)
 			dangerous.emplace_back(fmt::format("{} RPL module(s)/dependencies still loaded", modules));
-		if (size_t blocks = PPCRecompiler_GetReservedLookupBlockCount(); blocks != 0)
-			dangerous.emplace_back(fmt::format("{} PPC recompiler lookup block(s) still reserved", blocks));
-		if (size_t queued = PPCRecompiler_GetQueuedTargetCount(); queued != 0)
-			dangerous.emplace_back(fmt::format("{} PPC recompiler request(s) still queued", queued));
-		if (PPCRecompilerInitialized())
-			dangerous.emplace_back("PPC recompiler still initialized");
 		for (MMURange* range : memory_getMMURanges())
 		{
 			if (range->isMapped() && !range->isMappedEarly())
@@ -1158,9 +1151,8 @@ namespace CafeSystem
 		nn::act::ResetForNewTitle();
 		coreinit::FSResetMounts();
 		logPhase("resetting IOSU");
-        PPCRecompiler_Shutdown();
         GraphicPack2::Reset();
-		logPhase("resetting the recompiler and graphic packs");
+		logPhase("resetting graphic packs");
         UnmountCurrentTitle();
         MlcStorageUnmountAllTitles();
         UnmountBaseDirectories();
@@ -1177,8 +1169,6 @@ namespace CafeSystem
 		if (!sPreparedTitleMounted && !sPreparedTitleMemoryMapped)
 			return;
 		cemuLog_log(LogType::Force, "Discarding a prepared title that never started");
-		if (sPreparedTitleMemoryMapped)
-			PPCRecompiler_Shutdown();
 		GraphicPack2::Reset();
 		UnmountCurrentTitle();
 		MlcStorageUnmountAllTitles();

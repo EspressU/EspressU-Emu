@@ -34,8 +34,6 @@ public:
 
 	static std::optional<uint32> GetPersistentId() { return s_persistent_id; }
 
-	static uint32 GetPPCRecLowerAddr() { return ppcRec_limitLowerAddr; };
-	static uint32 GetPPCRecUpperAddr() { return ppcRec_limitUpperAddr; };
 
 private:
 	inline static std::optional<fs::path> s_load_game_file{};
@@ -55,8 +53,5 @@ private:
 
 	inline static std::optional<uint32> s_persistent_id{};
 
-	inline static uint32 ppcRec_limitLowerAddr{};
-	inline static uint32 ppcRec_limitUpperAddr{};
 
-	static bool ExtractorTool(std::wstring_view wud_path, std::string_view output_path, std::wstring_view log_path);
 };

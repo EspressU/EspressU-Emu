@@ -270,7 +270,6 @@ private:
 			m_cachedInfo = new CachedInfo(*other.m_cachedInfo);
 
 		m_mountpoints.clear();
-		m_wudVolume = nullptr;
 	}
 
 	bool DetectFormat(const fs::path& path, fs::path& pathOut, TitleDataFormat& formatOut);
@@ -286,7 +285,6 @@ private:
 	uint64 m_uid{};
 	InvalidReason m_invalidReason{ InvalidReason::NONE };
 	std::vector<std::pair<sint32, std::string>> m_mountpoints;
-	class FSTVolume* m_wudVolume{};
 	class ZArchiveReader* m_zarchive{};
 	class WUHBReader* m_wuhbreader{};
 	bool m_hasParsedXmlFiles{ false };

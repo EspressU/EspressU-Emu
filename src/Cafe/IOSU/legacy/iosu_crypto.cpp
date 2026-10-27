@@ -531,52 +531,10 @@ void iosuCrypto_loadSSLCertificates()
 
 void iosuCrypto_init()
 {
-	if (std::ifstream otp_file(fs::resolvePathCI(ActiveSettings::GetUserDataPath("otp.bin")), std::ifstream::in | std::ios::binary); otp_file.is_open())
-	{
-		otp_file.seekg(0, std::ifstream::end);
-		const auto length = otp_file.tellg();
-		otp_file.seekg(0, std::ifstream::beg);
-		if (length != 1024)
-		{
-			cemuLog_log(LogType::Force, "IOSU_CRYPTO: otp.bin has wrong size (must be 1024 bytes)");
-			hasOtpMem = false;
-		}
-		else
-		{
-			otp_file.read((char*)otpMem, 1024);
-			hasOtpMem = (bool)otp_file;
-		}
-	}
-	else
-	{
-		cemuLog_log(LogType::Force, "IOSU_CRYPTO: No otp.bin found. Online mode cannot be used");
-		hasOtpMem = false;
-	}
-
-	if (std::ifstream seeprom_file(fs::resolvePathCI(ActiveSettings::GetUserDataPath("seeprom.bin")), std::ifstream::in | std::ios::binary); seeprom_file.is_open())
-	{
-		seeprom_file.seekg(0, std::ifstream::end);
-		const auto length = seeprom_file.tellg();
-		seeprom_file.seekg(0, std::ifstream::beg);
-		if (length != 512)
-		{
-			cemuLog_log(LogType::Force, "IOSU_CRYPTO: seeprom.bin has wrong size (must be 512 bytes)");
-			hasSeepromMem = false;
-		}
-		else
-		{
-			seeprom_file.read((char*)seepromMem, 512);
-			hasSeepromMem = (bool)seeprom_file;
-		}
-	}
-	else
-	{
-		cemuLog_log(LogType::Force, "IOSU_CRYPTO: No Seeprom.bin found. Online mode cannot be used");
-		hasSeepromMem = false;
-	}
-
+	// EspressU never loads console identity files; online features are not part of this build.
+	hasOtpMem = false;
+	hasSeepromMem = false;
 	iosuCrypto_generateDeviceCertificate();
-	iosuCrypto_loadSSLCertificates();
 }
 
 bool iosuCrypto_checkRequirementMLCFile(std::string_view mlcSubpath, std::string& additionalErrorInfo_filePath)
@@ -592,49 +550,7 @@ bool iosuCrypto_checkRequirementMLCFile(std::string_view mlcSubpath, std::string
 
 sint32 iosuCrypt_checkRequirementsForOnlineMode(std::string& additionalErrorInfo)
 {
-	std::error_code ec;
-	const auto otp_file = ActiveSettings::GetUserDataPath("otp.bin");
-	if(!fs::exists(otp_file, ec))
-	{
-		return IOS_CRYPTO_ONLINE_REQ_OTP_MISSING;
-	}
-	const auto otpSize = fs::file_size(otp_file, ec);
-	if(otpSize != 1024)
-	{
-		return IOS_CRYPTO_ONLINE_REQ_OTP_CORRUPTED;
-	}
-	const auto seeprom_file = ActiveSettings::GetUserDataPath("seeprom.bin");
-	if (!fs::exists(seeprom_file, ec))
-	{
-		return IOS_CRYPTO_ONLINE_REQ_SEEPROM_MISSING;
-	}
-	const auto seepromSize = fs::file_size(seeprom_file, ec);
-	if (seepromSize != 512)
-	{
-		return IOS_CRYPTO_ONLINE_REQ_SEEPROM_CORRUPTED;
-	}
-
-	for (const auto& c : g_certificates)
-	{
-		std::string subPath = fmt::format("sys/title/0005001b/10054000/content/{}", boost::nowide::narrow(c.name));
-		if (iosuCrypto_checkRequirementMLCFile(subPath, additionalErrorInfo) == false)
-		{
-			cemuLog_log(LogType::Force, "Missing dumped file for online mode: {}", subPath);
-			return IOS_CRYPTO_ONLINE_REQ_MISSING_FILE;
-		}
-
-		if (*c.key)
-		{
-			std::string subPath = fmt::format("sys/title/0005001b/10054000/content/{}", boost::nowide::narrow(c.key));
-			if (iosuCrypto_checkRequirementMLCFile(subPath, additionalErrorInfo) == false)
-			{
-				cemuLog_log(LogType::Force, "Missing dumped file for online mode: {}", subPath);
-				return IOS_CRYPTO_ONLINE_REQ_MISSING_FILE;
-			}
-		}
-	}
-
-	return IOS_CRYPTO_ONLINE_REQ_OK;
+	return IOS_CRYPTO_ONLINE_REQ_OTP_MISSING;
 }
 
 std::vector<const wchar_t*> iosuCrypt_getCertificateKeys()

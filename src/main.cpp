@@ -10,7 +10,6 @@
 #include "config/LaunchSettings.h"
 #include "input/InputManager.h"
 #include "Cafe/Filesystem/fsc.h"
-#include "Cafe/Filesystem/FST/FST.h"
 
 #include "Cafe/CafeSystem.h"
 #include "Cafe/TitleList/TitleList.h"
@@ -26,7 +25,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #endif
 
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 
 #include "Cafe/IOSU/legacy/iosu_crypto.h"
 #include "Cafe/OS/libs/vpad/vpad.h"
@@ -164,7 +162,6 @@ void mainEmulatorLLE();
 void ppcAsmTest();
 void gx2CopySurfaceTest();
 void ExpressionParser_test();
-void FSTVolumeTest();
 void CRCTest();
 
 void UnitTests()
@@ -172,7 +169,6 @@ void UnitTests()
 	ExpressionParser_test();
 	gx2CopySurfaceTest();
 	ppcAsmTest();
-	FSTVolumeTest();
 	CRCTest();
 }
 
@@ -547,10 +543,6 @@ void CemuRun()
 {
     CemuPrepareRenderer();
     CafeSystem::LaunchForegroundTitle();
-}
-
-bool CemuInitJIT() {
-    return PPCRecompiler_Init26();
 }
 
 void CemuShutdown()

@@ -1,7 +1,6 @@
 #include "TitleInfo.h"
 #include "Cafe/Filesystem/fscDeviceHostFS.h"
 #include "Cafe/Filesystem/WUHB/WUHBReader.h"
-#include "Cafe/Filesystem/FST/FST.h"
 #include "pugixml.hpp"
 #include "Common/FileStream.h"
 #include <zarchive/zarchivereader.h>
@@ -9,92 +8,6 @@
 #include "util/crypto/crc32.h"
 #include "config/ActiveSettings.h"
 #include "util/helpers/helpers.h"
-#include "Cafe/Filesystem/FST/KeyCache.h"
-
-#include <mutex>
-#include <unordered_map>
-#include <unordered_set>
-
-namespace
-{
-	constexpr uint64 kOpenFailureMemoVersion = 2;
-
-	struct OpenFailure
-	{
-		uint64 stamp;
-		TitleInfo::InvalidReason reason;
-	};
-	std::mutex sOpenFailureMutex;
-	std::unordered_map<std::string, OpenFailure> sOpenFailures;
-	std::unordered_set<std::string> sLoggedOnce;
-
-	bool FirstTimeFor(std::string_view category, const fs::path& path)
-	{
-		std::string key(category);
-		key.push_back('|');
-		key.append(_pathToUtf8(path));
-		std::lock_guard lock(sOpenFailureMutex);
-		return sLoggedOnce.insert(std::move(key)).second;
-	}
-
-	uint64 OpenStamp(const fs::path& path, bool isNusTmd)
-	{
-		uint64 h = 1469598103934665603ull;
-		auto mix = [&](uint64 v) { h = (h ^ v) * 1099511628211ull; };
-		auto mixFile = [&](const fs::path& p)
-		{
-			std::error_code e;
-			const auto size = fs::file_size(p, e);
-			mix(e ? ~0ull : (uint64)size);
-			e.clear();
-			const auto time = fs::last_write_time(p, e);
-			mix(e ? 0ull : (uint64)time.time_since_epoch().count());
-		};
-		mixFile(path);
-		if (isNusTmd)
-		{
-			std::error_code e;
-			const fs::path folder = path.parent_path();
-			const auto folderTime = fs::last_write_time(folder, e);
-			mix(e ? 0ull : (uint64)folderTime.time_since_epoch().count());
-			mixFile(folder / "title.tik");
-		}
-		KeyCache_Prepare();
-		mix(KeyCache_GetFingerprint());
-		mix(kOpenFailureMemoVersion);
-		return h;
-	}
-
-	bool LookupOpenFailure(const fs::path& path, uint64 stamp, TitleInfo::InvalidReason& reasonOut)
-	{
-		std::lock_guard lock(sOpenFailureMutex);
-		auto it = sOpenFailures.find(_pathToUtf8(path));
-		if (it == sOpenFailures.end() || it->second.stamp != stamp)
-			return false;
-		reasonOut = it->second.reason;
-		return true;
-	}
-
-	void RememberOpenFailure(const fs::path& path, uint64 stamp, TitleInfo::InvalidReason reason)
-	{
-		std::lock_guard lock(sOpenFailureMutex);
-		sOpenFailures[_pathToUtf8(path)] = OpenFailure{stamp, reason};
-	}
-
-	const char* DescribeOpenFailure(TitleInfo::InvalidReason reason)
-	{
-		switch (reason)
-		{
-		case TitleInfo::InvalidReason::NO_DISC_KEY: return "no key in keys.txt decrypts this disc image";
-		case TitleInfo::InvalidReason::NO_TITLE_TIK: return "it has no title.tik and no key in keys.txt opens it";
-		case TitleInfo::InvalidReason::BAD_TITLE_TMD: return "its title.tmd is unreadable";
-		case TitleInfo::InvalidReason::BAD_TITLE_TIK: return "its title.tik is unreadable";
-		case TitleInfo::InvalidReason::TITLE_KEY_INVALID: return "neither its title.tik nor any key in keys.txt decrypts it";
-		case TitleInfo::InvalidReason::MISSING_CONTENT_FILE: return "a .app file listed in title.tmd is missing";
-		default: return "it could not be read";
-		}
-	}
-}
 
 CafeTitleFileType DetermineCafeSystemFileType(fs::path filePath)
 {
@@ -176,8 +89,6 @@ TitleInfo::TitleInfo(const TitleInfo::CachedInfo& cachedInfo)
 	if (cachedInfo.titleDataFormat != TitleDataFormat::HOST_FS &&
 		cachedInfo.titleDataFormat != TitleDataFormat::WIIU_ARCHIVE &&
 		cachedInfo.titleDataFormat != TitleDataFormat::WUHB &&
-		cachedInfo.titleDataFormat != TitleDataFormat::WUD &&
-		cachedInfo.titleDataFormat != TitleDataFormat::NUS &&
 		cachedInfo.titleDataFormat != TitleDataFormat::INVALID_STRUCTURE)
 		return;
 	if (cachedInfo.path.empty())
@@ -278,17 +189,12 @@ bool TitleInfo::DetectFormat(const fs::path& path, fs::path& pathOut, TitleDataF
 		}
 		else if (boost::iends_with(filenameStr, ".wud") ||
 				 boost::iends_with(filenameStr, ".wux") ||
-				 boost::iends_with(filenameStr, ".iso"))
+				 boost::iends_with(filenameStr, ".iso") ||
+				 boost::iequals(filenameStr, "title.tmd"))
 		{
-			formatOut = TitleDataFormat::WUD;
-			pathOut = path;
-			return true;
-		}
-		else if (boost::iequals(filenameStr, "title.tmd"))
-		{
-			formatOut = TitleDataFormat::NUS;
-			pathOut = path;
-			return true;
+			// Encrypted dumps are never opened.
+			SetInvalidReason(InvalidReason::NO_DISC_KEY);
+			return false;
 		}
 		else if (boost::iends_with(filenameStr, ".wua"))
 		{
@@ -342,9 +248,8 @@ bool TitleInfo::DetectFormat(const fs::path& path, fs::path& pathOut, TitleDataF
 		if (fileType == CafeTitleFileType::WUD ||
 			fileType == CafeTitleFileType::WUX)
 		{
-			formatOut = TitleDataFormat::WUD;
-			pathOut = path;
-			return true;
+			SetInvalidReason(InvalidReason::NO_DISC_KEY);
+			return false;
 		}
 	}
 	else
@@ -360,9 +265,8 @@ bool TitleInfo::DetectFormat(const fs::path& path, fs::path& pathOut, TitleDataF
 		{
 			if (boost::iequals(_pathToUtf8(entry.path().filename()), "title.tmd") && entry.is_regular_file(ec))
 			{
-				formatOut = TitleDataFormat::NUS;
-				pathOut = entry.path();
-				return true;
+				SetInvalidReason(InvalidReason::NO_DISC_KEY);
+				return false;
 			}
 		}
 	}
@@ -490,58 +394,6 @@ bool TitleInfo::Mount(std::string_view virtualPath, std::string_view subfolder, 
 			return false;
 		}
 	}
-	else if (m_titleFormat == TitleDataFormat::WUD || m_titleFormat == TitleDataFormat::NUS)
-	{
-		FSTVolume::ErrorCode fstError = FSTVolume::ErrorCode::UNKNOWN_ERROR;
-		uint64 openStamp = 0;
-		if (m_mountpoints.empty())
-		{
-			cemu_assert_debug(!m_wudVolume);
-			m_wudVolume = nullptr;
-			const bool memoise = m_titleFormat == TitleDataFormat::NUS;
-			if (memoise)
-				openStamp = OpenStamp(m_fullPath, true);
-			InvalidReason knownReason;
-			if (memoise && LookupOpenFailure(m_fullPath, openStamp, knownReason))
-			{
-				SetInvalidReason(knownReason);
-				return false;
-			}
-			if(m_titleFormat == TitleDataFormat::WUD)
-				m_wudVolume = FSTVolume::OpenFromDiscImage(m_fullPath, &fstError);
-			else
-				m_wudVolume = FSTVolume::OpenFromContentFolder(m_fullPath.parent_path(), &fstError);
-		}
-		if (!m_wudVolume)
-		{
-			if (fstError == FSTVolume::ErrorCode::DISC_KEY_MISSING)
-				SetInvalidReason(InvalidReason::NO_DISC_KEY);
-			else if (fstError == FSTVolume::ErrorCode::TITLE_TIK_MISSING)
-				SetInvalidReason(InvalidReason::NO_TITLE_TIK);
-			else if (fstError == FSTVolume::ErrorCode::BAD_TITLE_TMD)
-				SetInvalidReason(InvalidReason::BAD_TITLE_TMD);
-			else if (fstError == FSTVolume::ErrorCode::BAD_TITLE_TIK)
-				SetInvalidReason(InvalidReason::BAD_TITLE_TIK);
-			else if (fstError == FSTVolume::ErrorCode::TITLE_KEY_INVALID)
-				SetInvalidReason(InvalidReason::TITLE_KEY_INVALID);
-			else if (fstError == FSTVolume::ErrorCode::CONTENT_FILE_MISSING)
-				SetInvalidReason(InvalidReason::MISSING_CONTENT_FILE);
-			if (openStamp != 0 && m_invalidReason != InvalidReason::MISSING_CONTENT_FILE && KeyCache_GetAES128(0) != nullptr)
-				RememberOpenFailure(m_fullPath, openStamp, m_invalidReason);
-			if (FirstTimeFor(fmt::format("open{}|{:x}", (int)m_invalidReason, KeyCache_GetFingerprint()), m_fullPath))
-				cemuLog_log(LogType::Force, "Cannot open {}: {}", _pathToUtf8(m_fullPath), DescribeOpenFailure(m_invalidReason));
-			return false;
-		}
-		bool r = FSCDeviceWUD_Mount(virtualPath, subfolder, m_wudVolume, mountPriority);
-		cemu_assert_debug(r);
-		if (!r)
-		{
-			cemuLog_log(LogType::Force, "Failed to mount {} to {}", virtualPath, subfolder);
-			delete m_wudVolume;
-			m_wudVolume = nullptr;
-			return false;
-		}
-	}
 	else if (m_titleFormat == TitleDataFormat::WIIU_ARCHIVE)
 	{
 		if (!m_zarchive)
@@ -594,12 +446,6 @@ void TitleInfo::Unmount(std::string_view virtualPath)
 		std::erase(m_mountpoints, itr);
 		if (m_mountpoints.empty())
 		{
-			if (m_wudVolume)
-			{
-				cemu_assert_debug(m_titleFormat == TitleDataFormat::WUD || m_titleFormat == TitleDataFormat::NUS);
-				delete m_wudVolume;
-				m_wudVolume = nullptr;
-			}
             if (m_zarchive)
             {
                 _ZArchivePool_ReleaseInstance(m_fullPath, m_zarchive);
@@ -678,7 +524,7 @@ bool TitleInfo::ParseXmlInfo()
 	if ((allowMissingMetaXml == false && !m_parsedMetaXml) || !m_parsedAppXml || !m_parsedCosXml)
 	{
 		bool hasAnyXml = m_parsedMetaXml || m_parsedAppXml || m_parsedCosXml;
-		if (hasAnyXml && FirstTimeFor("xml", m_fullPath))
+		if (hasAnyXml)
 			cemuLog_log(LogType::Force, "Title has missing meta .xml files. Title path: {}", _pathToUtf8(m_fullPath));
 		delete m_parsedMetaXml;
 		delete m_parsedAppXml;
@@ -880,12 +726,6 @@ std::string TitleInfo::GetPrintPath() const
 	{
 	case TitleDataFormat::HOST_FS:
 		tmp.append(" [Folder]");
-		break;
-	case TitleDataFormat::WUD:
-		tmp.append(" [WUD]");
-		break;
-	case TitleDataFormat::NUS:
-		tmp.append(" [NUS]");
 		break;
 	case TitleDataFormat::WIIU_ARCHIVE:
 		tmp.append(" [WUA]");

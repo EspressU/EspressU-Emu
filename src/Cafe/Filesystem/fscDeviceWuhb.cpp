@@ -1,6 +1,6 @@
 #include "Filesystem/WUHB/WUHBReader.h"
 #include "Cafe/Filesystem/fsc.h"
-#include "Cafe/Filesystem/FST/FST.h"
+#include "Cafe/Filesystem/FST/fstUtil.h"
 
 class FSCDeviceWuhbFileCtx : public FSCVirtualFile
 {

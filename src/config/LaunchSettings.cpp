@@ -11,7 +11,7 @@
 #include "config/NetworkSettings.h"
 #include "util/crypto/aes128.h"
 
-#include "Cafe/Filesystem/FST/FST.h"
+#include "Cafe/Filesystem/FST/fstUtil.h"
 #include "util/helpers/StringHelpers.h"
 
 void requireConsole();
@@ -71,28 +71,20 @@ bool LaunchSettings::HandleCommandline(const std::vector<std::wstring>& args)
 
 		("account,a", po::value<std::string>(), "Persistent id of account")
 
-		("force-interpreter", po::value<bool>()->implicit_value(true), "Force interpreter CPU emulation, disables recompiler. Useful for debugging purposes where you want to get accurate memory accesses and stack traces.")
-		("force-multicore-interpreter", po::value<bool>()->implicit_value(true), "Force multi-core interpreter CPU emulation, disables recompiler. Only useful for getting stack traces, but slightly faster than the single-core interpreter mode.")
-		("enable-gdbstub", po::value<bool>()->implicit_value(true), "Enable GDB stub to debug executables inside Cemu using an external debugger");
+		("force-interpreter", po::value<bool>()->implicit_value(true), "Force interpreter CPU emulation. Useful for debugging purposes where you want to get accurate memory accesses and stack traces.")
+		("force-multicore-interpreter", po::value<bool>()->implicit_value(true), "Force multi-core interpreter CPU emulation. Only useful for getting stack traces, but slightly faster than the single-core interpreter mode.");
 
 	po::options_description hidden{ "Hidden options" };
 	hidden.add_options()
 		("nsight", po::value<bool>()->implicit_value(true), "NSight debugging options")
-		("legacy", po::value<bool>()->implicit_value(true), "Intel legacy graphic mode")
-		("ppcrec-lower-addr", po::value<std::string>(), "For debugging: Lower address allowed for PPC recompilation")
-		("ppcrec-upper-addr", po::value<std::string>(), "For debugging: Upper address allowed for PPC recompilation");
+		("legacy", po::value<bool>()->implicit_value(true), "Intel legacy graphic mode");
 
-	po::options_description extractor{ "Extractor tool" };
-	extractor.add_options()
-		("extract,e", po::wvalue<std::wstring>(), "Path to WUD or WUX file for extraction")
-		("path,p", po::value<std::string>(), "Path of file to extract (for example meta/meta.xml)")
-		("output,o", po::wvalue<std::wstring>(), "Output path for extracted file.");
 
 	po::options_description all;
-	all.add(desc).add(hidden).add(extractor);
+	all.add(desc).add(hidden);
 
 	po::options_description visible;
-	visible.add(desc).add(extractor);
+	visible.add(desc);
 
 	try
 	{
@@ -184,37 +176,6 @@ bool LaunchSettings::HandleCommandline(const std::vector<std::wstring>& args)
 		if(vm.count("force-multicore-interpreter"))
 			s_force_multicore_interpreter = vm["force-multicore-interpreter"].as<bool>();
 
-		if (vm.count("enable-gdbstub"))
-			s_enable_gdbstub = vm["enable-gdbstub"].as<bool>();
-
-		std::wstring extract_path, log_path;
-		std::string output_path;
-		if (vm.count("extract"))
-			extract_path = vm["extract"].as<std::wstring>();
-		if (vm.count("path"))
-			output_path = vm["path"].as<std::string>();
-		if (vm.count("output"))
-			log_path = vm["output"].as<std::wstring>();
-
-		if (vm.count("ppcrec-lower-addr"))
-		{
-			uint32 addr = (uint32)StringHelpers::ToInt64(vm["ppcrec-lower-addr"].as<std::string>());
-			ppcRec_limitLowerAddr = addr;
-		}
-		if (vm.count("ppcrec-upper-addr"))
-		{
-			uint32 addr = (uint32)StringHelpers::ToInt64(vm["ppcrec-upper-addr"].as<std::string>());
-			ppcRec_limitUpperAddr = addr;
-		}
-		if(ppcRec_limitLowerAddr != 0 && ppcRec_limitUpperAddr != 0)
-			cemuLog_log(LogType::Force, "PPCRec range limited to 0x{:08x}-0x{:08x}", ppcRec_limitLowerAddr, ppcRec_limitUpperAddr);
-
-		if(!extract_path.empty())
-		{
-			ExtractorTool(extract_path, output_path, log_path);
-			return false;
-		}
-
 		return true;
 	}
 	catch (const std::exception& ex)
@@ -228,60 +189,3 @@ bool LaunchSettings::HandleCommandline(const std::vector<std::wstring>& args)
 
 }
 
-bool LaunchSettings::ExtractorTool(std::wstring_view wud_path, std::string_view output_path, std::wstring_view log_path)
-{
-	if (output_path.empty())
-	{
-		requireConsole();
-		puts("Cannot extract files because no source path was specified (-p)\n");
-		return false;
-	}
-	AES128_init();
-	FSTVolume* srcVolume = FSTVolume::OpenFromDiscImage(fs::path(wud_path));
-	if (!srcVolume)
-	{
-		requireConsole();
-		puts(fmt::format("Unable to open \"%s\"\n", fs::path(wud_path).generic_string()).c_str());
-		return false;
-	}
-	bool fileFound = false;
-	std::vector<uint8> fileData = srcVolume->ExtractFile(output_path, &fileFound);
-	delete srcVolume;
-	if (!fileFound)
-	{
-		requireConsole();
-		puts(fmt::format("Unable to read file \"%s\"\n", output_path).c_str());
-		return false;
-	}
-	if (!log_path.empty())
-	{
-		try
-		{
-			fs::path filename(std::wstring{ log_path });
-
-			filename /= boost::nowide::widen(std::string(output_path));
-
-			fs::path p = filename;
-			p.remove_filename();
-
-			fs::create_directories(p);
-			std::ofstream file(fs::resolvePathCI(filename), std::ios::out | std::ios::binary);
-			file.write((const char*)fileData.data(), fileData.size());
-			file.flush();
-			file.close();
-		}
-		catch (const std::exception& ex)
-		{
-			cemuLog_log(LogType::Force, "can't write file: {}", ex.what());
-			puts(fmt::format("can't write file: %s\n", ex.what()).c_str());
-		}
-	}
-	else
-	{
-		requireConsole();
-		printf("%.*s", (int)fileData.size(), fileData.data());
-		fflush(stdout);
-	}
-
-	return true;
-}

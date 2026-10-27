@@ -190,7 +190,6 @@ std::optional<std::vector<uint8>> fsc_extractFile(const char* path, sint32 maxPr
 bool fsc_doesFileExist(const char* path, sint32 maxPriority = FSC_PRIORITY_MAX);
 bool fsc_doesDirectoryExist(const char* path, sint32 maxPriority = FSC_PRIORITY_MAX);
 
-bool FSCDeviceWUD_Mount(std::string_view mountPath, std::string_view destinationBaseDir, class FSTVolume* mountedVolume, sint32 priority);
 
 bool FSCDeviceWUA_Mount(std::string_view mountPath, std::string_view destinationBaseDir, class ZArchiveReader* archive, sint32 priority);
 

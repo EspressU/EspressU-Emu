@@ -400,41 +400,12 @@ fs::path Account::GetFileName(uint32 persistent_id)
 
 OnlineValidator Account::ValidateOnlineFiles() const
 {
+	// Online play is not part of this build: nothing is read from disk.
 	OnlineValidator result{};
-
-	const auto otp = ActiveSettings::GetUserDataPath("otp.bin");
-	if (!fs::exists(otp))
-		result.otp = OnlineValidator::FileState::Missing;
-	else if (fs::file_size(otp) != 1024)
-		result.otp = OnlineValidator::FileState::Corrupted;
-	else
-		result.otp = OnlineValidator::FileState::Ok;
-
-	const auto seeprom = ActiveSettings::GetUserDataPath("seeprom.bin");
-	if (!fs::exists(seeprom))
-		result.seeprom = OnlineValidator::FileState::Missing;
-	else if (fs::file_size(seeprom) != 512)
-		result.seeprom = OnlineValidator::FileState::Corrupted;
-	else
-		result.seeprom = OnlineValidator::FileState::Ok;
-
-	for(const auto& v : iosuCrypt_getCertificateKeys())
-	{
-		const auto p = ActiveSettings::GetMlcPath(L"sys/title/0005001b/10054000/content/{}", v);
-		if (!fs::exists(p) || !fs::is_regular_file(p))
-			result.missing_files.emplace_back(p.generic_wstring());
-	}
-
-	for (const auto& v : iosuCrypt_getCertificateNames())
-	{
-		const auto p = ActiveSettings::GetMlcPath(L"sys/title/0005001b/10054000/content/{}", v);
-		if (!fs::exists(p) || !fs::is_regular_file(p))
-			result.missing_files.emplace_back(p.generic_wstring());
-	}
-
-	result.valid_account = IsValidOnlineAccount();
+	result.otp = OnlineValidator::FileState::Missing;
+	result.seeprom = OnlineValidator::FileState::Missing;
+	result.valid_account = false;
 	result.account_error = GetOnlineAccountError();
-
 	return result;
 }
 
