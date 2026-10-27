@@ -318,7 +318,7 @@ extern "C" const char* cemu_audit_snapshot_json(void)
 	if (g_renderer)
 	{
 		const RendererAPI api = g_renderer->GetType();
-		j.S("api", api == RendererAPI::Metal ? "metal" : (api == RendererAPI::Vulkan ? "vulkan" : "opengl"));
+		j.S("api", api == RendererAPI::Metal ? "metal" : "opengl");
 		int usage = 0, total = 0;
 		const bool vram = g_renderer->GetVRAMInfo(usage, total);
 		j.B("vramKnown", vram);

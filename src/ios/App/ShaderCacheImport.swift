@@ -23,19 +23,12 @@ enum ShaderCacheImport {
         [UTType(filenameExtension: "bin"), .data].compactMap { $0 }
     }
 
-    static var selectedRenderer: RendererAPI {
-        RendererAPI(rawValue: UserDefaults.standard.integer(forKey: RendererAPI.storageKey)) ?? RendererAPI.defaultValue
-    }
-
     static func titleId(for game: GameMetadata) -> UInt64? {
         game.titleId ?? GameManager.deriveBaseTitleId(romPath: game.romPath)
     }
 
-    static func pipelineIsVulkan(fileName: String) -> Bool? {
-        let lower = fileName.lowercased()
-        if lower.contains("vkpipeline") { return true }
-        if lower.contains("mtlpipeline") { return false }
-        return nil
+    static func isForeignPipeline(fileName: String) -> Bool {
+        fileName.lowercased().contains("vkpipeline")
     }
 
     static func stage(_ picked: URL) throws -> URL {
@@ -49,9 +42,11 @@ enum ShaderCacheImport {
         return staged
     }
 
-    static func run(kind: Kind, game: GameMetadata, library: [GameMetadata], staged: URL, originalName: String,
-                    pipelineIsVulkan: Bool?) -> Outcome {
+    static func run(kind: Kind, game: GameMetadata, library: [GameMetadata], staged: URL, originalName: String) -> Outcome {
         defer { try? FileManager.default.removeItem(at: staged) }
+        if kind == .pipeline && isForeignPipeline(fileName: originalName) {
+            return Outcome(message: "\"\(originalName)\" is a pipeline cache from desktop Cemu. EspressU can't use those, only ones named ..._mtlpipeline.bin. Learned shaders from desktop Cemu can still be imported.", failed: true)
+        }
         guard let titleId = titleId(for: game) else {
             return Outcome(message: "Couldn't read this game's title ID, so there's no cache to put the file in.", failed: true)
         }
@@ -82,12 +77,11 @@ enum ShaderCacheImport {
                 : "\"\(originalName)\" is a learned-shader cache, not a pipeline cache. Use \"Import learned shaders\" for it.", failed: true)
         }
 
-        let renderer = selectedRenderer
         var added: Int32 = 0
         var already: Int32 = 0
         var skipped: Int32 = 0
         let result = staged.path.withCString {
-            cemu_bridge_cache_file_import(titleId, $0, kind.bridgeKind, Int32(renderer.rawValue), pipelineIsVulkan ?? false,
+            cemu_bridge_cache_file_import(titleId, $0, kind.bridgeKind,
                                           &added, &already, &skipped)
         }
         switch Int(result) {
@@ -103,8 +97,7 @@ enum ShaderCacheImport {
             return Outcome(message: "Couldn't import \"\(originalName)\" (code \(result)). Nothing was changed.", failed: true)
         }
 
-        return Outcome(message: successMessage(kind: kind, added: Int(added), already: Int(already), skipped: Int(skipped),
-                                               renderer: renderer, pipelineIsVulkan: pipelineIsVulkan),
+        return Outcome(message: successMessage(kind: kind, added: Int(added), already: Int(already), skipped: Int(skipped)),
                        failed: false)
     }
 
@@ -123,8 +116,7 @@ enum ShaderCacheImport {
         return "\"\(originalName)\" is a cache for a different game, not \(gameName). Nothing was imported."
     }
 
-    private static func successMessage(kind: Kind, added: Int, already: Int, skipped: Int,
-                                       renderer: RendererAPI, pipelineIsVulkan: Bool?) -> String {
+    private static func successMessage(kind: Kind, added: Int, already: Int, skipped: Int) -> String {
         let noun = kind == .shaders ? "shader" : "pipeline"
         let plural = { (n: Int) in "\(n) \(noun)\(n == 1 ? "" : "s")" }
         var parts: [String] = []
@@ -143,15 +135,9 @@ enum ShaderCacheImport {
         parts.append("The file you picked wasn't changed.")
         switch kind {
         case .shaders:
-            parts.append("Added to the \(renderer == .vulkan ? "Vulkan" : "Metal") shader file. Shaders from desktop Cemu are converted the first time you start the game, which is a normal shader load; after that they load as fast as the game's own.")
+            parts.append("Added to the Metal shader file. Shaders from desktop Cemu are converted the first time you start the game, which is a normal shader load; after that they load as fast as the game's own.")
         case .pipeline:
-            let fileIsVulkan = pipelineIsVulkan ?? false
-            let fileRenderer: RendererAPI = fileIsVulkan ? .vulkan : .metal
-            if fileRenderer != renderer {
-                parts.append("This is a \(fileIsVulkan ? "Vulkan" : "Metal") pipeline cache and the renderer is set to \(renderer == .vulkan ? "Vulkan" : "Metal"), so it won't be used until you switch in Settings > Graphics. It's saved under its own name and will be picked up then.")
-            } else {
-                parts.append("It's used the next time you start the game.")
-            }
+            parts.append("It's used the next time you start the game.")
             parts.append("A pipeline only loads when the shaders it uses are in the game's learned shaders, so import those too.")
         }
         return parts.joined(separator: " ")

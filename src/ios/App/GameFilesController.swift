@@ -6,15 +6,9 @@
 import SwiftUI
 
 final class GameFilesController: ObservableObject {
-    struct PendingPipeline {
-        let staged: URL
-        let name: String
-    }
-
     @Published private(set) var message: String?
     @Published private(set) var failed = false
     @Published private(set) var busy = false
-    @Published private(set) var pending: PendingPipeline?
 
     func exportSave(for game: GameMetadata) {
         GameSaveTransfer.export(game) { [weak self] result in
@@ -66,15 +60,7 @@ final class GameFilesController: ObservableObject {
                         }
                         return
                     }
-                    if kind == .pipeline, ShaderCacheImport.pipelineIsVulkan(fileName: name) == nil {
-                        DispatchQueue.main.async {
-                            self.busy = false
-                            self.pending = PendingPipeline(staged: staged, name: name)
-                        }
-                        return
-                    }
-                    self.run(kind, game: game, library: library, staged: staged, name: name,
-                             vulkan: ShaderCacheImport.pipelineIsVulkan(fileName: name))
+                    self.run(kind, game: game, library: library, staged: staged, name: name)
                 }
             case .failure(let error):
                 self.finish(ShaderCacheImport.Outcome(message: error.localizedDescription, failed: true))
@@ -82,25 +68,10 @@ final class GameFilesController: ObservableObject {
         }
     }
 
-    func answerPending(vulkan: Bool, for game: GameMetadata, library: [GameMetadata]) {
-        guard let pending else { return }
-        self.pending = nil
-        busy = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.run(.pipeline, game: game, library: library, staged: pending.staged, name: pending.name, vulkan: vulkan)
-        }
-    }
-
-    func discardPending() {
-        guard let pending else { return }
-        self.pending = nil
-        try? FileManager.default.removeItem(at: pending.staged)
-    }
-
     private func run(_ kind: ShaderCacheImport.Kind, game: GameMetadata, library: [GameMetadata],
-                                 staged: URL, name: String, vulkan: Bool?) {
+                                 staged: URL, name: String) {
         let outcome = ShaderCacheImport.run(kind: kind, game: game, library: library, staged: staged,
-                                            originalName: name, pipelineIsVulkan: vulkan)
+                                            originalName: name)
         DispatchQueue.main.async { self.finish(outcome) }
     }
 

@@ -11,16 +11,8 @@ import Metal
 
 enum RendererAPI: Int, CaseIterable, Identifiable {
     case metal = 2
-    case vulkan = 1
 
     var id: Int { rawValue }
-
-    var title: String {
-        switch self {
-        case .metal:  return "Metal"
-        case .vulkan: return "Vulkan (Experimental)"
-        }
-    }
 
     static let storageKey = "espressu.render.graphicsAPI"
     static let defaultValue: RendererAPI = .metal
@@ -68,25 +60,7 @@ enum OverrideGammaSetting {
     static let maxValue: Double = 3.0
 }
 
-enum MoltenVKBuild: String, CaseIterable, Identifiable {
-    case v143 = "1.4.3"
-    case v128 = "1.2.8"
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .v143: return "1.4.3 (default)"
-        case .v128: return "1.2.8"
-        }
-    }
-
-    static let storageKey = "espressu.render.moltenVK"
-    static let defaultValue: MoltenVKBuild = .v143
-}
-
 struct GraphicsSettingsSection: View {
-    @AppStorage(RendererAPI.storageKey) private var rendererRaw = RendererAPI.defaultValue.rawValue
     @AppStorage(UpscaleFilterSetting.storageKey) private var upscaleRaw = UpscaleFilterSetting.defaultValue.rawValue
     @AppStorage(DownscaleFilterSetting.storageKey) private var downscaleRaw = DownscaleFilterSetting.defaultValue.rawValue
     @AppStorage(RenderScale.storageKey) private var renderScaleRaw = RenderScale.deviceDefault.rawValue
@@ -94,7 +68,6 @@ struct GraphicsSettingsSection: View {
     @AppStorage(FullSpeedRenders.storageKey) private var fullSpeedRenders = FullSpeedRenders.defaultValue
     @AppStorage(FullSpeedRenders.shaderModeKey) private var fullSpeedShaderMode = FullSpeedRenders.defaultShaderMode.rawValue
     @AppStorage(FrameStretch.storageKey) private var frameStretchEnabled = FrameStretch.defaultValue
-    @AppStorage(MoltenVKBuild.storageKey) private var moltenVKRaw = MoltenVKBuild.defaultValue.rawValue
     @AppStorage("espressu.render.upsideDown") private var upsideDownEnabled = false
     @AppStorage(DisplayGammaSetting.storageKey) private var displayGamma = DisplayGammaSetting.defaultValue
     @AppStorage("espressu.render.framebufferFetch") private var framebufferFetchEnabled = true
@@ -115,10 +88,6 @@ struct GraphicsSettingsSection: View {
                 if fullSpeedRenders {
                     fullSpeedShaderPicker
                 }
-                rendererPicker
-                if rendererRaw == RendererAPI.vulkan.rawValue {
-                    moltenVKPicker
-                }
                 upscalePicker
                 downscalePicker
             }
@@ -131,9 +100,7 @@ struct GraphicsSettingsSection: View {
             stretchToggle
             if advanced {
                 upsideDownToggle
-                if rendererRaw == RendererAPI.metal.rawValue {
-                    framebufferFetchToggle
-                }
+                framebufferFetchToggle
                 gammaSlider
                 overrideGammaToggle
                 if overrideAppGammaEnabled {
@@ -145,68 +112,11 @@ struct GraphicsSettingsSection: View {
             SettingsSectionHeader("Graphics", icon: "cube.transparent", accent: .core)
         } footer: {
             InfoButton.footer(
-                "Metal is the default renderer. Vulkan (MoltenVK) may work better for some games; it applies on the next launch.",
+                "Metal draws the picture. Resolution, filters and gamma apply from the next game you start.",
                 title: "Graphics",
                 text: fullText)
         }
         .foregroundColor(EspressUTheme.brownDarkest)
-    }
-
-    private var rendererPicker: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Renderer")
-                .font(.footnote.weight(.semibold))
-            Picker("Renderer", selection: $rendererRaw) {
-                ForEach(RendererAPI.allCases) { api in
-                    Text(api.title).tag(api.rawValue)
-                }
-            }
-            .pickerStyle(.segmented)
-            .onValueChange(of: rendererRaw) { newValue in
-                if newValue == RendererAPI.vulkan.rawValue {
-                    UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailedBuild")
-                    UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailureReason")
-                }
-            }
-            Text("Experimental: Vulkan runs through MoltenVK on top of Metal. Some games may draw wrongly or stop, and if Vulkan fails the next launch switches back to Metal.")
-                .font(.system(size: 12))
-                .foregroundColor(EspressUTheme.secondaryText)
-            if let reason = UserDefaults.standard.string(forKey: "espressu.render.vulkanFailureReason"), !reason.isEmpty {
-                Text("Last Vulkan failure: \(reason)")
-                    .font(.system(size: 12))
-                    .foregroundColor(EspressUTheme.secondaryText)
-            }
-            if let failedBuild = UserDefaults.standard.string(forKey: "espressu.render.vulkanFailedBuild"),
-               rendererRaw == RendererAPI.metal.rawValue {
-                Text("Vulkan didn't start on this device with MoltenVK \(failedBuild). Metal is in use. Choosing Vulkan again tries it again.")
-                    .font(.system(size: 12))
-                    .foregroundColor(EspressUTheme.secondaryText)
-            }
-        }
-    }
-
-    private var moltenVKPicker: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("MoltenVK")
-                .font(.footnote.weight(.semibold))
-            Picker("MoltenVK", selection: $moltenVKRaw) {
-                ForEach(MoltenVKBuild.allCases) { build in
-                    Text(build.title).tag(build.rawValue)
-                }
-            }
-            .pickerStyle(.segmented)
-            Text(moltenVKCaption)
-                .font(.system(size: 12))
-                .foregroundColor(EspressUTheme.secondaryText)
-        }
-    }
-
-    private var moltenVKCaption: String {
-        let active = String(cString: cemu_bridge_active_moltenvk())
-        if !active.isEmpty && active != moltenVKRaw {
-            return "Running \(active) now. \(moltenVKRaw) is used from the next launch of EspressU."
-        }
-        return "Used by the Vulkan renderer only. A change applies the next time EspressU launches."
     }
 
     private var upscalePicker: some View {
@@ -377,10 +287,6 @@ struct GraphicsSettingsSection: View {
     private var fullText: String {
         """
         Steady frame rate puts rendering ahead of everything else EspressU does: the graphics thread gets first call on the fastest cores, each frame is shown at the game's own Wii U frame rate (steady, and never faster than the console), and debugging extras are skipped. Every shader the game has used before is built while the game loads, so those never cause a hitch or a flicker. The first time something brand new appears, its shader has to be built: "Wait for it" holds the frame until it's ready (a short hitch, never a missing object), "Keep going" draws without it once (no hitch, but it can be missing for a moment). Either way it's saved, so it happens only once. This choice wins over Favour accuracy, Favour performance and Compile shaders in the background. Takes effect the next time you start a game.
-
-        Metal is the default renderer. Vulkan (MoltenVK) goes through a translation layer and may work better for some games, at some cost to speed. Takes effect the next time you launch a game.
-
-        MoltenVK is the layer that turns Vulkan into Metal, so it only matters with the Vulkan renderer. 1.4.3 is the default; 1.2.8 is an older build that some games run better on. A change applies the next time EspressU starts.
 
         Filter when enlarging is used when EspressU draws the game's picture larger than the game rendered it; Filter when shrinking is used when drawing it smaller. Bicubic (the default for enlarging) is smoother than linear; Bicubic Hermite sharpens that further; Nearest Neighbor keeps hard pixel edges with no blending at all. Linear is the default for shrinking.
 

@@ -214,29 +214,11 @@ extension EspressUSettingsView {
 
     private var graphicsAdvanced: [SettingsItem] {
         let defaults = UserDefaults.standard
-        let renderer = defaults.object(forKey: RendererAPI.storageKey) as? Int ?? RendererAPI.defaultValue.rawValue
         let overrideGamma = defaults.object(forKey: "espressu.render.overrideAppGamma") as? Bool ?? false
         let filters = ScaleFilter.allCases.map { SettingsOption(id: String($0.rawValue), title: $0.title) }
         let gammaLabel: (Double) -> String = { String(format: "%.1f", $0) }
 
         var items: [SettingsItem] = [
-            SettingsItem(id: "gfx.renderer", title: "Renderer",
-                         detail: "Metal is the fastest. Vulkan is experimental; applies to the next game.",
-                         control: .choice([SettingsOption(id: String(RendererAPI.metal.rawValue), title: "Metal"),
-                                           SettingsOption(id: String(RendererAPI.vulkan.rawValue), title: "Vulkan")],
-                                          values.intChoice(RendererAPI.storageKey, RendererAPI.defaultValue.rawValue) { value in
-                                              if value == RendererAPI.vulkan.rawValue {
-                                                  UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailedBuild")
-                                                  UserDefaults.standard.removeObject(forKey: "espressu.render.vulkanFailureReason")
-                                              }
-                                          })),
-        ]
-        if renderer == RendererAPI.vulkan.rawValue {
-            items.append(SettingsItem(id: "gfx.moltenvk", title: "MoltenVK", detail: "Applies the next time EspressU starts.",
-                                      control: .choice(MoltenVKBuild.allCases.map { SettingsOption(id: $0.rawValue, title: $0.rawValue) },
-                                                       values.string(MoltenVKBuild.storageKey, MoltenVKBuild.defaultValue.rawValue))))
-        }
-        items += [
             SettingsItem(id: "gfx.upscale", title: "Filter when enlarging", detail: "Used when the picture is drawn larger.",
                          control: .choice(filters, values.intChoice(UpscaleFilterSetting.storageKey, UpscaleFilterSetting.defaultValue.rawValue))),
             SettingsItem(id: "gfx.downscale", title: "Filter when shrinking", detail: "Used when the picture is drawn smaller.",
@@ -244,10 +226,8 @@ extension EspressUSettingsView {
             SettingsItem(id: "gfx.flip", title: "Flip screen upside down", detail: "Only for screens that show the picture inverted.",
                          control: .toggle(values.bool("espressu.render.upsideDown", false) { cemu_bridge_set_render_upside_down($0) })),
         ]
-        if renderer == RendererAPI.metal.rawValue {
-            items.append(SettingsItem(id: "gfx.fetch", title: "Fast blending", detail: "A quicker way to blend on Metal. Applies to the next game.",
-                                      control: .toggle(values.bool("espressu.render.framebufferFetch", true) { cemu_bridge_set_framebuffer_fetch($0) })))
-        }
+        items.append(SettingsItem(id: "gfx.fetch", title: "Fast blending", detail: "A quicker way to blend on Metal. Applies to the next game.",
+                                  control: .toggle(values.bool("espressu.render.framebufferFetch", true) { cemu_bridge_set_framebuffer_fetch($0) })))
         items += [
             SettingsItem(id: "gfx.gamma", title: "Display gamma", detail: "2.2 is standard. Lower is brighter in the mid-tones.",
                          control: .slider(values.double(DisplayGammaSetting.storageKey, DisplayGammaSetting.defaultValue) { cemu_bridge_set_display_gamma(Float($0)) },

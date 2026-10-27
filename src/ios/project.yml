@@ -69,12 +69,6 @@ targets:
     dependencies:
       - framework: ../../build-ios/out/Cemu.framework
         embed: true
-      - framework: ../../dependencies/MoltenVK.xcframework
-        embed: true
-        link: false
-      - framework: ../../dependencies/MoltenVK128.framework
-        embed: true
-        link: false
       - target: StikJITHelper
       - framework: ../../dependencies/StikJIT.xcframework
         embed: true

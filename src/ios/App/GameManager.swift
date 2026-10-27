@@ -1047,8 +1047,6 @@ class GameManager: ObservableObject {
             PerformanceTuning.applyToBridge()
             SessionReport.pushSettings(gameID: game.settingsKey, title: game.displayTitle ?? game.title)
 
-            cemu_bridge_set_graphics_api(
-                Int32(clamping: UserDefaults.standard.object(forKey: "espressu.render.graphicsAPI") as? Int ?? 2))
             let filters = PerGameSettingsStore.shared.filtersToPush(for: game.settingsKey)
             cemu_bridge_set_upscale_filter(filters.upscale)
             cemu_bridge_set_downscale_filter(filters.downscale)
@@ -1158,7 +1156,7 @@ class GameManager: ObservableObject {
                 }
                 engine.refreshStatus()
                 self.lastStatusMessage = engine.statusText
-                var notice = String(cString: cemu_bridge_take_launch_notice())
+                var notice = ""
                 if notice.isEmpty && status == CEMU_BRIDGE_OK && ProcessInfo.processInfo.isLowPowerModeEnabled {
                     notice = "Low Power Mode is on, so games may run slowly. Turn it off in Control Centre for full speed."
                 }

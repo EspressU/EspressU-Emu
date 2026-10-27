@@ -17,8 +17,6 @@ enum SettingsDefaults {
         "espressu.theme.selectedId",
         "espressu.cpu.autoDemoted",
         "espressu.cpu.autoMultiPending",
-        "espressu.render.vulkanFailedBuild",
-        "espressu.render.vulkanFailureReason",
         "espressu.timebase.clearedAccidentalChoice",
     ]
 

@@ -189,7 +189,6 @@ enum SettingsBackup {
 
     private static let allowedStrings: [String: Set<String>] = [
         RenderScale.storageKey: Set(RenderScale.allCases.map(\.rawValue)),
-        MoltenVKBuild.storageKey: Set(MoltenVKBuild.allCases.map(\.rawValue)),
         CoreMode.storageKey: Set(CoreMode.allCases.map(\.rawValue)),
         SettingsMode.storageKey: Set(SettingsMode.allCases.map(\.rawValue)),
         TopBarAutoHide.handleSizeKey: Set(TopBarAutoHide.HandleSize.allCases.map(\.rawValue)),
@@ -198,7 +197,6 @@ enum SettingsBackup {
     ]
 
     private static let allowedInts: [String: ClosedRange<Int>] = [
-        RendererAPI.storageKey: 1...2,
         UpscaleFilterSetting.storageKey: 0...3,
         DownscaleFilterSetting.storageKey: 0...3,
         FullSpeedRenders.shaderModeKey: 0...1,

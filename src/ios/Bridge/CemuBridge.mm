@@ -80,7 +80,6 @@ __attribute__((constructor)) static void ios_crypto_init_at_load() { AES128_init
 namespace coreinit { void OSSetThermalThrottleMicros(uint32 micros); }
 
 extern "C" {
-bool CemuTakeRendererFallback(char* reasonOut, size_t capacity);
 void CemuInitialize(const char* execPath, const char* user_data_path, const char* config_path, const char* cache_path, const char* data_path);
 void CemuRun(void);
 void CemuPrepareRenderer(void);
@@ -836,7 +835,6 @@ namespace {
 
     std::atomic<bool> g_titleRunning{false};
     std::atomic<bool> g_padRegistered{false};
-    std::string g_activeMoltenVK;
 }
 
 static void ios_timebase_ladder_start();
@@ -2452,7 +2450,7 @@ int cemu_bridge_cache_stamp_kind(unsigned long long titleId, unsigned int stamp)
     return CEMU_CACHE_FILE_UNKNOWN;
 }
 
-int cemu_bridge_cache_file_import(unsigned long long titleId, const char* path, int kind, int renderer, bool pipelineIsVulkan,
+int cemu_bridge_cache_file_import(unsigned long long titleId, const char* path, int kind,
                                   int* outAdded, int* outAlreadyThere, int* outSkipped) {
     if (outAdded) *outAdded = 0;
     if (outAlreadyThere) *outAlreadyThere = 0;
@@ -2471,12 +2469,10 @@ int cemu_bridge_cache_file_import(unsigned long long titleId, const char* path, 
     std::filesystem::path destPath;
     uint32_t destStamp;
     if (kind == CEMU_CACHE_FILE_SHADERS) {
-        destPath = renderer == 1 ? ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_shaders.bin", titleId)
-                                 : ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_mtlshaders.bin", titleId);
+        destPath = ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_mtlshaders.bin", titleId);
         destStamp = LatteShaderCache_getShaderCacheExtraVersion(titleId);
     } else {
-        destPath = pipelineIsVulkan ? ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_vkpipeline.bin", titleId)
-                                    : ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_mtlpipeline.bin", titleId);
+        destPath = ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_mtlpipeline.bin", titleId);
         destStamp = LatteShaderCache_getPipelineCacheExtraVersion(titleId);
     }
     std::error_code ec;
@@ -2548,60 +2544,6 @@ bool cemu_bridge_async_shader_compile(void) {
 
 void cemu_bridge_set_stretch_to_fill(bool enabled) {
     GetConfig().fullscreen_scaling = enabled ? (sint32)kStretch : (sint32)kKeepAspectRatio;
-}
-
-static std::mutex g_launchNoticeMutex;
-static std::string g_launchNotice;
-
-static void ios_set_launch_notice(const std::string& notice) {
-    std::lock_guard<std::mutex> lock(g_launchNoticeMutex);
-    g_launchNotice = notice;
-}
-
-const char* cemu_bridge_take_launch_notice(void) {
-    static thread_local std::string snapshot;
-    std::lock_guard<std::mutex> lock(g_launchNoticeMutex);
-    snapshot = g_launchNotice;
-    g_launchNotice.clear();
-    return snapshot.c_str();
-}
-
-static NSString* const kVulkanFailedBuildKey = @"espressu.render.vulkanFailedBuild";
-static NSString* const kGraphicsAPIKey = @"espressu.render.graphicsAPI";
-static NSString* const kVulkanFailureReasonKey = @"espressu.render.vulkanFailureReason";
-
-static void ios_migrate_renderer_setting_to_metal() {
-    [[NSUserDefaults standardUserDefaults] setInteger:(NSInteger)kMetal forKey:kGraphicsAPIKey];
-}
-
-static void ios_report_renderer_fallback() {
-    char why[256];
-    if (!CemuTakeRendererFallback(why, sizeof(why)))
-        return;
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:[NSString stringWithUTF8String:g_activeMoltenVK.c_str()] forKey:kVulkanFailedBuildKey];
-    [defaults setObject:[NSString stringWithFormat:@"could not start: %s", why] forKey:kVulkanFailureReasonKey];
-    ios_migrate_renderer_setting_to_metal();
-    cemu_bridge_log_checkpoint((std::string("Renderer: Vulkan could not start (") + why + "). This launch uses Metal, and the saved renderer is now Metal.").c_str());
-    ios_set_launch_notice("Vulkan couldn't start on this iPad, so this game is using Metal. The renderer setting is back on Metal.");
-}
-
-void cemu_bridge_set_graphics_api(int api) {
-    if (api == (int)kVulkan) {
-        NSString* failedBuild = [[NSUserDefaults standardUserDefaults] stringForKey:kVulkanFailedBuildKey];
-        if (failedBuild.length > 0 && failedBuild.UTF8String && g_activeMoltenVK == failedBuild.UTF8String) {
-            cemu_bridge_log_checkpoint(("Renderer: Vulkan failed to start on this device with MoltenVK " + g_activeMoltenVK
-                + " earlier, so the saved Vulkan choice is replaced with Metal").c_str());
-            ios_migrate_renderer_setting_to_metal();
-            ios_set_launch_notice("Vulkan didn't start on this iPad last time, so EspressU is using Metal. You can try Vulkan again in Settings > Graphics.");
-            api = (int)kMetal;
-        }
-    }
-    GetConfig().graphic_api = (api == (int)kVulkan) ? kVulkan : kMetal;
-}
-
-int cemu_bridge_graphics_api(void) {
-    return (int)GetConfig().graphic_api.GetValue();
 }
 
 void cemu_bridge_set_upscale_filter(int filter) {
@@ -3200,10 +3142,6 @@ const char* cemu_bridge_cpu_mode_detail(void) {
     return detail;
 }
 
-const char* cemu_bridge_active_moltenvk(void) {
-    return g_activeMoltenVK.c_str();
-}
-
 bool cemu_bridge_core_available(void) {
     return true;
 }
@@ -3215,9 +3153,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
     cemu_bridge_log_checkpoint(cemu_device_caps_line());
     cemu_bridge_start_memory_watchdog();
     ios_configure_jit_environment();
-    setenv("MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS", "0", 1);
-    setenv("MVK_CONFIG_DEBUG", "0", 1);
-    setenv("MVK_CONFIG_MAX_ACTIVE_METAL_COMMAND_BUFFERS_PER_QUEUE", "128", 1);
 
     fs::path userDataPath = (mlcPath && mlcPath[0] != '\0') ? fs::path(mlcPath) : fs::path(".");
     std::error_code ec;
@@ -3231,24 +3166,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
     const std::string userData = userDataPath.string();
     const std::string cache = (userDataPath / "cache").string();
     const std::string data = dataPath.string();
-
-    {
-        NSString* choice = [[NSUserDefaults standardUserDefaults] stringForKey:@"espressu.render.moltenVK"];
-        const bool legacy = [choice isEqualToString:@"1.2.8"];
-        NSString* path = [[[NSBundle mainBundle] privateFrameworksPath] stringByAppendingPathComponent:
-            legacy ? @"MoltenVK128.framework/MoltenVK128" : @"MoltenVK.framework/MoltenVK"];
-        if ([[NSFileManager defaultManager] fileExistsAtPath:path])
-        {
-            setenv("ESPRESSU_MOLTENVK_PATH", path.fileSystemRepresentation, 1);
-            g_activeMoltenVK = legacy ? "1.2.8" : "1.4.3";
-            cemu_bridge_log_checkpoint(("MoltenVK: " + g_activeMoltenVK + " is the build for this launch (loaded only if the Vulkan renderer is selected)").c_str());
-        }
-        else
-        {
-            cemu_bridge_log_checkpoint((std::string("MoltenVK: ") + path.fileSystemRepresentation +
-                " is missing from the bundle - the core falls back to its own search").c_str());
-        }
-    }
 
     KeyCache_ResetForNewPaths();
 
@@ -3418,7 +3335,6 @@ void cemu_bridge_log_line(const char* message) {
 }
 
 static CemuBridgeStatus ios_boot_prepared_title(int prepared);
-static void ios_report_renderer_fallback();
 
 static int IOSTitleLaunch_PrepareForegroundTitle_Guarded(const char* path) {
     try
@@ -3563,13 +3479,12 @@ static CemuBridgeStatus ios_boot_prepared_title(int prepared) {
         cemu_bridge_log_checkpoint(message.c_str());
         CafeSystem::AbortPreparedTitle();
         g_renderer.reset();
-        setStatus("The title failed to start: the graphics renderer could not be created. Try the other renderer in Settings > Graphics. Details are in the crash log.");
+        setStatus("The title failed to start: the graphics renderer could not be created. Details are in the crash log.");
         return CEMU_BRIDGE_UNABLE_TO_MOUNT;
     }
     cemu_bridge_log_checkpoint("boot_title: CemuRun() returned");
     IOSReport_SetDevice(ios_report_device_text());
     IOSReport_TitleStarted(CafeSystem::GetForegroundTitleId(), CafeSystem::GetForegroundTitleName());
-    ios_report_renderer_fallback();
     ios_reset_video_stall_state();
     g_titleRunning.store(true);
     ios_timebase_ladder_start();
@@ -4132,7 +4047,6 @@ bool IOSBridge_RecreateRenderSurface() {
             ios_reset_video_stall_state();
             ios_apply_render_profile();
             CemuPrepareRenderer();
-            ios_report_renderer_fallback();
         }
         catch (...)
         {
@@ -4153,16 +4067,6 @@ bool IOSBridge_RecreateRenderSurface() {
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
     }
     return state->ok.load();
-}
-
-void IOSBridge_VulkanDeviceLost(const char* why) {
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:[NSString stringWithUTF8String:g_activeMoltenVK.c_str()] forKey:kVulkanFailedBuildKey];
-    [defaults setObject:[NSString stringWithFormat:@"stopped while running: %s", (why && *why) ? why : "unknown"] forKey:kVulkanFailureReasonKey];
-    ios_migrate_renderer_setting_to_metal();
-    cemu_bridge_log_checkpoint((std::string("Renderer: Vulkan failed while running with MoltenVK ") + g_activeMoltenVK
-        + " (" + (why ? why : "unknown") + "). The title is being stopped and the saved renderer is now Metal.").c_str());
-    IOSSystemImplementation_ReportFatal("Vulkan stopped working while this game was running (the GPU stopped responding or ran out of memory), so the game was stopped. The renderer is back on Metal for the next launch; you can try Vulkan again in Settings > Graphics.");
 }
 
 void IOSBridge_LogAllocationFailure(const char* what, uint64_t wantedBytes) {

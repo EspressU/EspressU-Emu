@@ -247,10 +247,7 @@ bool cemu_bridge_vsync_enabled(void);
 
 void cemu_bridge_set_stretch_to_fill(bool enabled);
 
-void cemu_bridge_set_graphics_api(int api);
-int cemu_bridge_graphics_api(void);
 
-const char* cemu_bridge_take_launch_notice(void);
 
 void cemu_bridge_set_upscale_filter(int filter);
 void cemu_bridge_set_downscale_filter(int filter);
@@ -340,8 +337,6 @@ int cemu_bridge_input_volume(void);
 void cemu_bridge_set_mic_blow(bool blowing);
 bool cemu_bridge_mic_blow(void);
 
-const char* cemu_bridge_active_moltenvk(void);
-
 long long cemu_bridge_clear_shader_cache(unsigned long long titleId, bool includeLearned);
 int cemu_bridge_shader_cache_stats(unsigned long long titleId, long long* outLearnedBytes, long long* outCompiledBytes);
 
@@ -373,7 +368,7 @@ void cemu_bridge_cache_file_inspect(unsigned long long titleId, const char* path
 
 int cemu_bridge_cache_stamp_kind(unsigned long long titleId, unsigned int stamp);
 
-int cemu_bridge_cache_file_import(unsigned long long titleId, const char* path, int kind, int renderer, bool pipelineIsVulkan,
+int cemu_bridge_cache_file_import(unsigned long long titleId, const char* path, int kind,
                                   int* outAdded, int* outAlreadyThere, int* outSkipped);
 
 const char* cemu_bridge_cpu_mode_detail(void);

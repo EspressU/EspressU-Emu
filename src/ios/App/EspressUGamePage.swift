@@ -411,22 +411,11 @@ struct EspressUGamePage: View {
                                           run: { files.importCache(.shaders, for: live, library: gameManager.games) }),
                          enabled: !busy),
             SettingsItem(id: "files.pipeline", title: "Import shader pipeline caches",
-                         detail: "A Vulkan cache only helps the Vulkan renderer and a Metal one only Metal. It is kept either way.",
+                         detail: "Only EspressU's own Metal pipeline caches (..._mtlpipeline.bin) work here.",
                          control: .action("Import", destructive: false, confirm: false,
                                           run: { files.importCache(.pipeline, for: live, library: gameManager.games) }),
                          enabled: !busy),
         ]
-        if files.pending != nil {
-            items.append(SettingsItem(id: "files.pendingVulkan", title: "Which renderer made this pipeline cache?",
-                                      detail: "The file name doesn't say. Desktop Cemu's are ..._vkpipeline.bin, EspressU's ..._mtlpipeline.bin.",
-                                      control: .action("Vulkan", destructive: false, confirm: false,
-                                                       run: { files.answerPending(vulkan: true, for: live, library: gameManager.games) })))
-            items.append(SettingsItem(id: "files.pendingMetal", title: "Made by EspressU (Metal)",
-                                      control: .action("Metal", destructive: false, confirm: false,
-                                                       run: { files.answerPending(vulkan: false, for: live, library: gameManager.games) })))
-            items.append(SettingsItem(id: "files.pendingCancel", title: "Cancel the import",
-                                      control: .action("Cancel", destructive: true, confirm: false, run: { files.discardPending() })))
-        }
         if busy {
             items.append(SettingsItem(id: "files.busy", title: "Importing…", control: .info("", nil)))
         }
