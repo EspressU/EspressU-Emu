@@ -27,6 +27,8 @@
 			<string>AppIcon</string>
 		</dict>
 	</dict>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_remotepairing-pairable-host._tcp</string>
