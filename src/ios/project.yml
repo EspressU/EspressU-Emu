@@ -34,6 +34,7 @@ settings:
   MARKETING_VERSION: '1.4'
   CURRENT_PROJECT_VERSION: '1'
   INFOPLIST_KEY_CFBundleDisplayName: EspressU
+  INFOPLIST_KEY_LSApplicationCategoryType: 'public.app-category.games'
   INFOPLIST_KEY_UILaunchScreen_Generation: 'YES'
   INFOPLIST_KEY_UIApplicationSceneManifest_Generation: 'YES'
   INFOPLIST_KEY_UISupportedInterfaceOrientations: 'UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight'
