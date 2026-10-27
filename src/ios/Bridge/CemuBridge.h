@@ -417,7 +417,6 @@ void cemu_bridge_start_memory_watchdog(void);
 
 void cemu_bridge_flush_pipeline_cache(void);
 
-const char* cemu_bridge_crash_log_path(void);
 
 void cemu_bridge_refresh_input_devices(void);
 

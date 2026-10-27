@@ -109,13 +109,8 @@ struct BootFailureView: View {
 
     private var name: String { game.displayTitle ?? game.title }
 
-    private static var crashLogHint: String {
-        let path = String(cString: cemu_bridge_crash_log_path())
-        guard !path.isEmpty else {
-            return "If you report this, include log.txt. No crash log could be opened this run, so there is no CemuCrashLog.txt to send."
-        }
-        return "If you report this, include log.txt and CemuCrashLog.txt. They are in:\n\(path)"
-    }
+    private static let crashLogHint =
+        "If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report."
 
     private var title: String {
         if needsCleanRestart { return "Restart needed before \(name)" }

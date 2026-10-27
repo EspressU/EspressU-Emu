@@ -176,19 +176,13 @@ const char* IOSSystemImplementation_FatalReason();
 void IOSSystemImplementation_ResetExit();
 
 namespace {
-    int g_crashLogFd = -1;
-    void cemu_crash_open_log();
-    char g_crashLogPath[1024] = {0};
-
-    // Everything written for a crash goes to CemuCrashLog.txt and to the session report.
+    // Everything written for a crash goes to the session report.
     void crash_fd_write(const void* data, size_t length) {
-        if (g_crashLogFd >= 0) write(g_crashLogFd, data, length);
         const int reportFd = IOSReport_Fd();
         if (reportFd >= 0) write(reportFd, data, length);
     }
 
     void crash_backtrace(void* const* frames, int count) {
-        if (g_crashLogFd >= 0) backtrace_symbols_fd(frames, count, g_crashLogFd);
         const int reportFd = IOSReport_Fd();
         if (reportFd >= 0) backtrace_symbols_fd(frames, count, reportFd);
     }
@@ -240,7 +234,6 @@ namespace {
     }
 
     void cemu_vm_report(const char* why, uint64_t wantedBytes) {
-        cemu_crash_open_log();
         struct Top { uint64_t size; uint64_t addr; unsigned tag; };
         Top top[5] = {};
         uint64_t tagBytes[256] = {};
@@ -441,26 +434,9 @@ namespace {
         raise(signum);
     }
 
-    void cemu_crash_open_log() {
-        if (g_crashLogFd >= 0)
-            return;
-        const char* home = getenv("HOME");
-        if (!home)
-            return;
-        char path[1024];
-        snprintf(path, sizeof(path), "%s/Documents/Logs", home);
-        mkdir(path, 0755);
-        snprintf(path, sizeof(path), "%s/Documents/Logs/CemuCrashLog.txt", home);
-        g_crashLogFd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        snprintf(g_crashLogPath, sizeof(g_crashLogPath), "%s", path);
-        void* warm[4];
-        backtrace(warm, 4);
-    }
-
     std::terminate_handler g_previousTerminateHandler = nullptr;
 
     void cemu_terminate_handler() {
-        cemu_crash_open_log();
         cemu_crash_write("\n=== CEMU TERMINATE ===\n");
         if (std::exception_ptr pending = std::current_exception())
         {
@@ -504,7 +480,8 @@ extern "C" __attribute__((constructor(101)))
 void cemu_bridge_install_early_crash_handler() {
     IOSReport_OpenEarly();
     cemuLog_setTee(IOSReport_Write);
-    cemu_crash_open_log();
+    void* warm[4];
+    backtrace(warm, 4);
     cemu_crash_write("=== Cemu process started (early constructor) ===\n");
     int sigs[] = {SIGSEGV, SIGBUS, SIGILL, SIGABRT, SIGTRAP, SIGFPE};
     for (int s : sigs) {
@@ -518,13 +495,7 @@ void cemu_bridge_install_early_crash_handler() {
     g_previousTerminateHandler = std::set_terminate(cemu_terminate_handler);
 }
 
-const char* cemu_bridge_crash_log_path(void) {
-    cemu_crash_open_log();
-    return g_crashLogPath;
-}
-
 void cemu_bridge_log_checkpoint(const char* message) {
-    cemu_crash_open_log();
     cemu_crash_write(message);
     cemu_crash_write("\n");
     ios_live_log_push(message);
@@ -535,7 +506,6 @@ extern "C" void cemu_ios_assert_hit(void) {
     const uint32_t n = ++hits;
     if (n > 20 && (n % 1000) != 0)
         return;
-    cemu_crash_open_log();
     char name[64];
     name[0] = '\0';
     pthread_getname_np(pthread_self(), name, sizeof(name));
@@ -3241,12 +3211,6 @@ bool cemu_bridge_core_available(void) {
 void cemu_bridge_initialize(const char* mlcPath) {
     if (g_initialized.exchange(true))
         return;
-    {
-        std::string where = "Crash log and checkpoints are being written to: ";
-        const char* crashPath = cemu_bridge_crash_log_path();
-        where += (crashPath && crashPath[0]) ? crashPath : "(nowhere - $HOME was not set, so no file could be opened)";
-        cemu_bridge_log_checkpoint(where.c_str());
-    }
     cemu_device_caps_initialize();
     cemu_bridge_log_checkpoint(cemu_device_caps_line());
     cemu_bridge_start_memory_watchdog();
@@ -4206,7 +4170,6 @@ void IOSBridge_LogAllocationFailure(const char* what, uint64_t wantedBytes) {
 }
 
 void IOSBridge_GPUThreadException(const char* type, const char* what) {
-    cemu_crash_open_log();
     cemu_bridge_log_checkpoint("\n=== GPU THREAD EXCEPTION ===");
     cemu_bridge_log_checkpoint((std::string("uncaught C++ exception on the GPU thread, type: ") + (type && *type ? type : "unknown")).c_str());
     cemu_bridge_log_checkpoint((std::string("what(): ") + (what && *what ? what : "(none)")).c_str());
@@ -4215,7 +4178,7 @@ void IOSBridge_GPUThreadException(const char* type, const char* what) {
     const int count = backtrace(frames, 32);
     crash_backtrace(frames, count);
     cemu_bridge_log_checkpoint("=== the title is being stopped ===");
-    IOSSystemImplementation_ReportFatal("The graphics engine hit an error and the game was stopped. The details are in CemuCrashLog.txt.");
+    IOSSystemImplementation_ReportFatal("The graphics engine hit an error and the game was stopped. The details are in the EspressU report.");
 }
 
 void cemu_bridge_pause(void) {
