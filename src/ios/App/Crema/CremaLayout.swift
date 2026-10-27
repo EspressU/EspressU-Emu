@@ -15,6 +15,7 @@ struct CremaSettings: Equatable {
     var stickSpacing: Double = ControllerLayoutSettings.defaultStickSpacing
     var shoulderOffset: Double = ControllerLayoutSettings.defaultShoulderOffset
     var deadzone: Double = ControllerLayoutSettings.defaultDeadzone
+    var elements = CremaElementOverrides()
 }
 
 /// Where every Crema control sits for a given screen. Pure geometry: no views, no touches.
@@ -28,6 +29,7 @@ struct CremaLayout {
         var centre: CGPoint
         var radius: CGFloat
         var claimRadius: CGFloat
+        var knobRadius: CGFloat
     }
 
     struct Arm {
@@ -41,6 +43,14 @@ struct CremaLayout {
         var reach: CGFloat
         var dead: CGFloat
         var arms: [Arm]
+        /// Size factor of the drawing, 1 unless the player resized it.
+        var scale: CGFloat = 1
+    }
+
+    struct FaceButton {
+        var key: CremaKey
+        var centre: CGPoint
+        var radius: CGFloat
     }
 
     struct Pill {
@@ -54,6 +64,9 @@ struct CremaLayout {
     var dpad = Cluster(centre: .zero, reach: 0, dead: 0, arms: [])
     var face = Cluster(centre: .zero, reach: 0, dead: 0, arms: [])
     var pills: [Pill] = []
+    var faceButtons: [FaceButton] = []
+    /// Where every control sits, for the editor.
+    var frames: [CremaElement: CGRect] = [:]
 
     /// The least height the controls need below the picture on a phone held upright.
     static let portraitMinimumHeight: CGFloat = 378
@@ -99,18 +112,59 @@ struct CremaLayout {
         // The two sides are deliberately staggered so nothing lines up in a perfect column: on the left the
         // stick sits further out and the D-pad further in, on the right the buttons sit further out.
         let stagger = 0.9 * u
+
+        // A control the player moved or resized: shifted by its offset, kept inside the screen. Controls left
+        // alone come back exactly as they were.
+        let boundsMinX = max(safe.left, 0)
+        let boundsMaxX = size.width - max(safe.right, 0)
+        let boundsMinY = topInset
+        let boundsMaxY = size.height - max(safe.bottom, 0)
+        func place(_ element: CremaElement, centre: CGPoint, half: CGSize) -> (centre: CGPoint, scale: CGFloat) {
+            let tweak = settings.elements[element]
+            let factor = tweak.isDefault ? 1 : CGFloat(tweak.scale)
+            var moved = centre
+            if !tweak.isDefault {
+                let hw = half.width * factor
+                let hh = half.height * factor
+                moved.x = min(max(centre.x + CGFloat(tweak.x) * u, boundsMinX + hw), max(boundsMaxX - hw, boundsMinX + hw))
+                moved.y = min(max(centre.y + CGFloat(tweak.y) * u, boundsMinY + hh), max(boundsMaxY - hh, boundsMinY + hh))
+            }
+            layout.frames[element] = CGRect(x: moved.x - half.width * factor, y: moved.y - half.height * factor,
+                                            width: half.width * factor * 2, height: half.height * factor * 2)
+            return (moved, factor)
+        }
+
+        func ring(_ side: CremaSide, _ element: CremaElement, at centre: CGPoint) -> Ring {
+            let placed = place(element, centre: centre, half: CGSize(width: 1.55 * u, height: 1.55 * u))
+            return Ring(side: side, centre: placed.centre, radius: 1.55 * u * placed.scale,
+                        claimRadius: 1.9 * u * placed.scale, knobRadius: 0.7 * u * placed.scale)
+        }
         layout.rings = [
-            Ring(side: .left, centre: CGPoint(x: leftX - 0.3 * u, y: leftStickY), radius: 1.55 * u, claimRadius: 1.9 * u),
-            Ring(side: .right, centre: CGPoint(x: rightX - stagger, y: rightStickY), radius: 1.55 * u, claimRadius: 1.9 * u),
+            ring(.left, .leftStick, at: CGPoint(x: leftX - 0.3 * u, y: leftStickY)),
+            ring(.right, .rightStick, at: CGPoint(x: rightX - stagger, y: rightStickY)),
         ]
+        let dpadPlaced = place(.dpad, centre: CGPoint(x: leftX + stagger, y: dpadY),
+                               half: CGSize(width: 1.75 * u, height: 1.75 * u))
         layout.dpad = Cluster(
-            centre: CGPoint(x: leftX + stagger, y: dpadY), reach: 1.85 * u, dead: 0.4 * u,
+            centre: dpadPlaced.centre, reach: 1.85 * u * dpadPlaced.scale, dead: 0.4 * u * dpadPlaced.scale,
             arms: [Arm(key: .up, angle: -.pi / 2), Arm(key: .right, angle: 0),
-                   Arm(key: .down, angle: .pi / 2), Arm(key: .left, angle: .pi)])
+                   Arm(key: .down, angle: .pi / 2), Arm(key: .left, angle: .pi)],
+            scale: dpadPlaced.scale)
+        let facePlaced = place(.faceButtons, centre: CGPoint(x: rightX + 0.3 * u, y: faceY),
+                               half: CGSize(width: 1.9 * u, height: 1.9 * u))
         layout.face = Cluster(
-            centre: CGPoint(x: rightX + 0.3 * u, y: faceY), reach: 2.05 * u, dead: 0.4 * u,
+            centre: facePlaced.centre, reach: 2.05 * u * facePlaced.scale, dead: 0.4 * u * facePlaced.scale,
             arms: [Arm(key: .x, angle: -.pi / 2), Arm(key: .a, angle: 0),
-                   Arm(key: .b, angle: .pi / 2), Arm(key: .y, angle: .pi)])
+                   Arm(key: .b, angle: .pi / 2), Arm(key: .y, angle: .pi)],
+            scale: facePlaced.scale)
+        for arm in layout.face.arms {
+            let distance = 1.3 * u * facePlaced.scale
+            layout.faceButtons.append(FaceButton(
+                key: arm.key,
+                centre: CGPoint(x: layout.face.centre.x + cos(arm.angle) * distance,
+                                y: layout.face.centre.y + sin(arm.angle) * distance),
+                radius: 0.58 * u * facePlaced.scale))
+        }
 
         let shoulderW = 2.3 * u
         let shoulderH = 0.95 * u
@@ -120,25 +174,33 @@ struct CremaLayout {
         let shoulderY = min(max(shoulderWish, topInset + 6), max(lowest, topInset + 6))
 
         let shoulderGap = 0.35 * u
-        func shoulder(_ key: CremaKey, x: CGFloat) -> Pill {
-            Pill(key: key, frame: CGRect(x: x, y: shoulderY, width: shoulderW, height: shoulderH), isRound: false)
+        func pill(_ key: CremaKey, _ element: CremaElement, frame: CGRect, isRound: Bool) -> Pill {
+            let placed = place(element, centre: CGPoint(x: frame.midX, y: frame.midY),
+                               half: CGSize(width: frame.width / 2, height: frame.height / 2))
+            let w = frame.width * placed.scale
+            let h = frame.height * placed.scale
+            return Pill(key: key, frame: CGRect(x: placed.centre.x - w / 2, y: placed.centre.y - h / 2, width: w, height: h),
+                        isRound: isRound)
+        }
+        func shoulder(_ key: CremaKey, _ element: CremaElement, x: CGFloat) -> Pill {
+            pill(key, element, frame: CGRect(x: x, y: shoulderY, width: shoulderW, height: shoulderH), isRound: false)
         }
         layout.pills = [
-            shoulder(.zl, x: leftX - shoulderGap / 2 - shoulderW),
-            shoulder(.l, x: leftX + shoulderGap / 2),
-            shoulder(.r, x: rightX - shoulderGap / 2 - shoulderW),
-            shoulder(.zr, x: rightX + shoulderGap / 2),
+            shoulder(.zl, .zl, x: leftX - shoulderGap / 2 - shoulderW),
+            shoulder(.l, .l, x: leftX + shoulderGap / 2),
+            shoulder(.r, .r, x: rightX - shoulderGap / 2 - shoulderW),
+            shoulder(.zr, .zr, x: rightX + shoulderGap / 2),
         ]
 
         let rowY = bottom - 0.7 * u
         let round = 1.0 * u
-        func system(_ key: CremaKey, x: CGFloat) -> Pill {
-            Pill(key: key, frame: CGRect(x: x - round / 2, y: rowY - round / 2, width: round, height: round), isRound: true)
+        func system(_ key: CremaKey, _ element: CremaElement, x: CGFloat) -> Pill {
+            pill(key, element, frame: CGRect(x: x - round / 2, y: rowY - round / 2, width: round, height: round), isRound: true)
         }
         layout.pills += [
-            system(.minus, x: midX - 1.9 * u),
-            system(.home, x: midX),
-            system(.plus, x: midX + 1.9 * u),
+            system(.minus, .minus, x: midX - 1.9 * u),
+            system(.home, .home, x: midX),
+            system(.plus, .plus, x: midX + 1.9 * u),
         ]
         return layout
     }
