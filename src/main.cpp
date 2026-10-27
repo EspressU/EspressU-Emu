@@ -22,10 +22,6 @@
 #include "Cemu/Logging/CemuLogging.h"
 #include "util/helpers/helpers.h"
 #include "config/ActiveSettings.h"
-#ifdef ENABLE_VULKAN
-#include "Cafe/HW/Latte/Renderer/Vulkan/VsyncDriver.h"
-#include "Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.h"
-#endif
 #ifdef ENABLE_METAL
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #endif
@@ -118,14 +114,6 @@ void reconfigureGLDrivers()
 #endif
 }
 
-void reconfigureVkDrivers()
-{
-#ifdef ENABLE_VULKAN
-    _putenvSafe("DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1=1");
-    _putenvSafe("DISABLE_VK_LAYER_VALVE_steam_fossilize_1=1");
-#endif
-}
-
 void WindowsInitCwd()
 {
 	#if BOOST_OS_WINDOWS
@@ -143,7 +131,6 @@ void WindowsInitCwd()
 void CemuCommonInit()
 {
 	reconfigureGLDrivers();
-	reconfigureVkDrivers();
 	AES128_init();
 	PPCTimer_init();
 
@@ -270,18 +257,12 @@ int main(int argc, char* argv[])
 
 #else
 
-int BreathOfTheWildChildProcessMain();
 #if BOOST_OS_IOS
 int main_cemu(int argc, char *argv[])
 #else
 int main(int argc, char *argv[])
 #endif
 {
-#if BOOST_OS_LINUX && defined(ENABLE_VULKAN)
-	if (getenv("CEMU_DETECT_RADV") != nullptr)
-		return BreathOfTheWildChildProcessMain();
-#endif
-
 #if BOOST_OS_LINUX || BOOST_OS_BSD
     XInitThreads();
 #endif
@@ -377,8 +358,6 @@ void CemuInitialize(const char* execPath, const char* user_data_path, const char
     PPCTimer_init();
 
     IAudioAPI::InitializeStatic();
-
-    InitializeGlobalVulkan();
 
     std::set<fs::path> failedAccess;
     ActiveSettings::SetPaths(true, execPath, user_data_path, config_path, cache_path, data_path, failedAccess);
@@ -546,26 +525,8 @@ bool SetInterpreter(bool interpreter) {
 
 void CemuUIKit_SetMetal(bool metals);
 
-static std::mutex sRendererFallbackMutex;
-static std::string sRendererFallbackReason;
-
-extern "C" bool CemuTakeRendererFallback(char* reasonOut, size_t capacity)
-{
-    std::lock_guard lock(sRendererFallbackMutex);
-    if (sRendererFallbackReason.empty())
-        return false;
-    if (reasonOut && capacity > 0)
-        snprintf(reasonOut, capacity, "%s", sRendererFallbackReason.c_str());
-    sRendererFallbackReason.clear();
-    return true;
-}
-
 void CemuPrepareRenderer()
 {
-    {
-        std::lock_guard lock(sRendererFallbackMutex);
-        sRendererFallbackReason.clear();
-    }
     bool usingMetal = false;
 #ifdef ENABLE_METAL
     if (ActiveSettings::GetGraphicsAPI() == kMetal)
@@ -573,55 +534,6 @@ void CemuPrepareRenderer()
         g_renderer = std::make_unique<MetalRenderer>();
         usingMetal = true;
     }
-#endif
-
-#ifdef ENABLE_VULKAN
-#ifdef ENABLE_METAL
-    auto fallBackToMetal = [&](const std::string& why)
-    {
-        cemuLog_log(LogType::Force, "Vulkan failed to start ({}). Using Metal for this launch.", why);
-        g_renderer.reset();
-        GetConfig().graphic_api = kMetal;
-        if (g_current_game_profile)
-            g_current_game_profile->ForceGraphicsAPI(kMetal);
-        g_renderer = std::make_unique<MetalRenderer>();
-        usingMetal = true;
-        std::lock_guard lock(sRendererFallbackMutex);
-        sRendererFallbackReason = why;
-    };
-    if (!g_renderer)
-    {
-        try
-        {
-            g_renderer = std::make_unique<VulkanRenderer>();
-        }
-        catch (const std::exception& ex)
-        {
-            fallBackToMetal(ex.what());
-        }
-    }
-    if (!g_renderer)
-        throw std::runtime_error("No renderer could be created");
-    try
-    {
-        CemuUIKit_SetMetal(usingMetal);
-        CemuUIKit_InitializeLayer(true);
-        CemuUIKit_InitializeLayer(false);
-    }
-    catch (const std::exception& ex)
-    {
-        if (usingMetal)
-            throw;
-        fallBackToMetal(ex.what());
-        CemuUIKit_SetMetal(true);
-        CemuUIKit_InitializeLayer(true);
-        CemuUIKit_InitializeLayer(false);
-    }
-    return;
-#else
-    if (!g_renderer)
-        g_renderer = std::make_unique<VulkanRenderer>();
-#endif
 #endif
 
     if (!g_renderer)

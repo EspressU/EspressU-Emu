@@ -35,10 +35,6 @@
     },
     "libpng",
     "glm",
-    {
-      "name": "glslang",
-      "default-features": false
-    },
     "zstd",
     "openssl",
     {
@@ -63,10 +59,6 @@
     }
   ],
   "overrides": [
-    {
-      "name": "glslang",
-      "version": "15.1.0"
-    },
     {
       "name": "sdl3",
       "version": "3.4.10"

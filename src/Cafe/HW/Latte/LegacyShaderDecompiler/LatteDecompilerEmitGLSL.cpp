@@ -579,7 +579,7 @@ void _emitPVPSAccessCode(LatteDecompilerShaderContext* shaderContext, LatteDecom
 }
 
 // Relative indexes are clamped to the declared array size. Robust buffer access makes an out-of-range read return zero
-// on desktop Vulkan and OpenGL, but MoltenVK does not honour it for these reads, and on Apple GPUs a read outside the
+// on desktop OpenGL, but not for these reads, and on Apple GPUs a read outside the
 // bound buffer is a GPU page fault. AR is clamped to [-256,255] by MOVA, so base+AR can still leave the array.
 void _emitUniformAccessIndexCode(LatteDecompilerShaderContext* shaderContext, LatteDecompilerALUInstruction* aluInstruction, sint32 operandIndex, sint32 arraySize)
 {
@@ -2758,7 +2758,7 @@ void _emitTEXVFetchCode(LatteDecompilerShaderContext* shaderContext, LatteDecomp
 		src->add("(");
 
 	// The index is whatever the register holds (with a float register file, its bit pattern), so a stray value reads far
-	// past the buffer: a GPU page fault under MoltenVK. The console bounds buffer fetches by the buffer's size.
+	// past the buffer: a GPU page fault. The console bounds buffer fetches by the buffer's size.
 	const sint32 ubuffIndex = texInstruction->textureFetch.textureIndex - 0x80;
 	const sint32 ubuffSize = (ubuffIndex >= 0 && ubuffIndex < LATTE_NUM_MAX_UNIFORM_BUFFERS) ?
 		shaderContext->analyzer.uniformBufferAccessTracker[ubuffIndex].DetermineSize(shaderContext->shaderBaseHash, LATTE_GLSL_DYNAMIC_UNIFORM_BLOCK_SIZE) : 1;
@@ -3038,21 +3038,9 @@ void _emitExportCode(LatteDecompilerShaderContext* shaderContext, LatteDecompile
 					src->add(" uf_alphaTestRef");
 					src->add(") == false) discard;" _CRLF);
 				}
-				const auto outputType = GetGLSLPixelOutputType(pixelColorOutputIndex, *shaderContext->contextRegistersNew);
-				if (outputType != GLSLPixelOutputType::Float)
-				{
-					src->add("#ifdef VULKAN" _CRLF);
-					src->addFmt("passPixelColor{} = {}(", pixelColorOutputIndex,
-						outputType == GLSLPixelOutputType::SignedInt ? "floatBitsToInt" : "floatBitsToUint");
-					_emitExportGPRReadCode(shaderContext, cfInstruction, LATTE_DECOMPILER_DTYPE_FLOAT, i);
-					src->add(");" _CRLF);
-					src->add("#else" _CRLF);
-				}
 				src->addFmt("passPixelColor{} = ", pixelColorOutputIndex);
 				_emitExportGPRReadCode(shaderContext, cfInstruction, LATTE_DECOMPILER_DTYPE_FLOAT, i);
 				src->add(";" _CRLF);
-				if (outputType != GLSLPixelOutputType::Float)
-					src->add("#endif" _CRLF);
 
 				if( cfInstruction->exportArrayBase+i >= 8 )
 					cemu_assert_unimplemented();

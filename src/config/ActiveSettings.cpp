@@ -1,9 +1,6 @@
 #include "Cafe/GameProfile/GameProfile.h"
 #include "Cafe/IOSU/legacy/iosu_crypto.h"
 #include "Cafe/HW/Latte/Core/Latte.h"
-#ifdef ENABLE_VULKAN
-#include "Cafe/HW/Latte/Renderer/Vulkan/VulkanAPI.h"
-#endif
 #include "Cafe/CafeSystem.h"
 #include "Cemu/Logging/CemuLogging.h"
 #include "config/ActiveSettings.h"
@@ -123,14 +120,6 @@ GraphicAPI ActiveSettings::GetGraphicsAPI()
 {
 	const GraphicAPI api = g_current_game_profile->GetGraphicsAPI().value_or(GetConfig().graphic_api);
 	std::optional<GraphicAPI> fallbackAPI;
-#ifdef ENABLE_VULKAN
-	if (g_vulkan_available)
-	{
-		if (api == kVulkan)
-			return api;
-		fallbackAPI = kVulkan;
-	}
-#endif
 #ifdef ENABLE_METAL
 	if (api == kMetal)
 		return api;

@@ -203,10 +203,7 @@ namespace GX2
 
 	bool GX2DrawDone()
 	{
-		bool forceFullSync = false;
-		if (g_renderer && g_renderer->GetType() == RendererAPI::Vulkan)
-			forceFullSync = true;
-		if (forceFullSync || ActiveSettings::WaitForGX2DrawDoneEnabled())
+		if (ActiveSettings::WaitForGX2DrawDoneEnabled())
 		{
 			GX2ReserveCmdSpace(2);
 			gx2WriteGather_submitU32AsBE(pm4HeaderType3(IT_HLE_SYNC_ASYNC_OPERATIONS, 1));

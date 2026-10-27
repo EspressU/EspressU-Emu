@@ -10,9 +10,6 @@
 #include "Cafe/HW/Latte/Core/FetchShader.h"
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
-#ifdef ENABLE_VULKAN
-#include "Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.h"
-#endif
 #include "util/helpers/helpers.h"
 
 bool LatteDecompiler_ParseCFInstruction(LatteDecompilerShaderContext* shaderContext, uint32 cfIndex, uint32 cfWord0, uint32 cfWord1, bool* endOfProgram, std::vector<LatteDecompilerCFInstruction>& instructionList)
@@ -943,9 +940,9 @@ void _LatteDecompiler_Process(LatteDecompilerShaderContext* shaderContext, uint8
 		LatteDecompiler_analyzeDataTypes(shaderContext);
 	if (shaderContext->shader->hasError == false)
 	{
-		if (g_renderer->GetType() == RendererAPI::OpenGL || g_renderer->GetType() == RendererAPI::Vulkan)
+		if (g_renderer->GetType() == RendererAPI::OpenGL)
 		{
-#if defined(ENABLE_OPENGL) || defined(ENABLE_VULKAN)
+#if defined(ENABLE_OPENGL)
 			LatteDecompiler_emitGLSLShader(shaderContext, shaderContext->shader);
 #endif
 		}

@@ -319,9 +319,7 @@ GraphicPack2::GraphicPack2(fs::path rulesPath, IniParser& rules)
 	auto option_rendererFilter = rules.FindOption("rendererFilter");
 	if (option_rendererFilter)
 	{
-		if (boost::iequals(*option_rendererFilter, "vulkan"))
-			m_renderer_api = RendererAPI::Vulkan;
-		else if (boost::iequals(*option_rendererFilter, "opengl"))
+		if (boost::iequals(*option_rendererFilter, "opengl"))
 			m_renderer_api = RendererAPI::OpenGL;
 		else if (boost::iequals(*option_rendererFilter, "metal"))
 			m_renderer_api = RendererAPI::Metal;
@@ -1108,7 +1106,7 @@ bool GraphicPack2::Deactivate()
 	return true;
 }
 
-const std::string* GraphicPack2::FindCustomShaderSource(uint64 shaderBaseHash, uint64 shaderAuxHash, GP_SHADER_TYPE type, bool isVulkanRenderer, bool isMetalRenderer)
+const std::string* GraphicPack2::FindCustomShaderSource(uint64 shaderBaseHash, uint64 shaderAuxHash, GP_SHADER_TYPE type, bool isMetalRenderer)
 {
 	for (const auto& gp : GraphicPack2::GetActiveGraphicPacks())
 	{
@@ -1116,9 +1114,6 @@ const std::string* GraphicPack2::FindCustomShaderSource(uint64 shaderBaseHash, u
 			[shaderBaseHash, shaderAuxHash, type](const auto& s) { return s.shader_base_hash == shaderBaseHash && s.shader_aux_hash == shaderAuxHash && s.type == type; });
 
 		if (it == gp->m_custom_shaders.end())
-			continue;
-
-		if (isVulkanRenderer && (*it).isPreVulkanShader)
 			continue;
 
 		if (isMetalRenderer != (*it).isMetalShader)
@@ -1304,7 +1299,6 @@ GraphicPack2::CustomShader GraphicPack2::LoadShader(const fs::path& path, uint64
 	shader.shader_base_hash = shader_base_hash;
 	shader.shader_aux_hash = shader_aux_hash;
 	shader.type = shader_type;
-	shader.isPreVulkanShader = this->m_version <= 3;
 	shader.isMetalShader = isMetalShader;
 
 	return shader;

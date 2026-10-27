@@ -7,9 +7,6 @@
 #include "Cafe/HW/Latte/LegacyShaderDecompiler/LatteDecompiler.h"
 #include "Cafe/HW/Latte/Core/FetchShader.h"
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
-#ifdef ENABLE_VULKAN
-#include "Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.h"
-#endif
 #include "Cafe/GraphicPack/GraphicPack2.h"
 #include "HW/Latte/Core/Latte.h"
 #include "HW/Latte/Renderer/Renderer.h"
@@ -318,7 +315,7 @@ void LatteShader_CreateRendererShader(LatteDecompilerShader* shader, bool compil
 
 	std::string shaderSrc;
 
-	const std::string* customShaderSrc = GraphicPack2::FindCustomShaderSource(shader->baseHash, shader->auxHash, gpShaderType, g_renderer->GetType() == RendererAPI::Vulkan, g_renderer->GetType() == RendererAPI::Metal);
+	const std::string* customShaderSrc = GraphicPack2::FindCustomShaderSource(shader->baseHash, shader->auxHash, gpShaderType, g_renderer->GetType() == RendererAPI::Metal);
 	if (customShaderSrc)
 	{
 		shaderSrc.assign(*customShaderSrc);
@@ -647,26 +644,6 @@ uint64 LatteSHRC_CalcPSAuxHash(LatteDecompilerShader* pixelShader, uint32* conte
 		auxHash += (uint64)dim;
 	}
 
-#ifdef ENABLE_VULKAN
-	if (g_renderer->GetType() == RendererAPI::Vulkan)
-	{
-		const uint64 auxHashWithoutTargets = auxHash;
-		bool hasIntegerTarget = false;
-		for (uint8 i = 0; i < LATTE_NUM_COLOR_TARGET; i++)
-		{
-			const uint32 format = (uint32)LatteMRT::GetColorBufferFormat(i, lcr);
-			const bool isInteger = (format & (uint32)Latte::E_GX2SURFFMT::FMT_BIT_INT) != 0;
-			const bool isSigned = (format & (uint32)Latte::E_GX2SURFFMT::FMT_BIT_SIGNED) != 0;
-			const uint8 dataType = isInteger ? (isSigned ? 2 : 1) : 0;
-
-			auxHash = std::rotl<uint64>(auxHash, 7);
-			auxHash += dataType;
-			hasIntegerTarget |= isInteger;
-		}
-		if (!hasIntegerTarget)
-			auxHash = auxHashWithoutTargets;
-	}
-#endif
 
 #ifdef ENABLE_METAL
 	if (g_renderer->GetType() == RendererAPI::Metal)
@@ -752,9 +729,6 @@ LatteDecompilerShader* LatteShader_CreateShaderFromDecompilerOutput(LatteDecompi
 	case RendererAPI::OpenGL:
 		shader->resourceMapping = decompilerOutput.resourceMappingGL;
 		break;
-	case RendererAPI::Vulkan:
-		shader->resourceMapping = decompilerOutput.resourceMappingVK;
-		break;
 	case RendererAPI::Metal:
 		shader->resourceMapping = decompilerOutput.resourceMappingMTL;
 		break;
@@ -795,14 +769,7 @@ std::atomic<bool> g_latteRelaxShaderMul{false};
 void LatteShader_GetDecompilerOptions(LatteDecompilerOptions& options, LatteConst::ShaderType shaderType, bool geometryShaderEnabled)
 {
 	options.usesGeometryShader = geometryShaderEnabled;
-	options.spirvInstrinsics.hasRoundingModeRTEFloat32 = false;
 	options.useTFViaSSBO = g_renderer->UseTFViaSSBO();
-#ifdef ENABLE_VULKAN
-	if (g_renderer->GetType() == RendererAPI::Vulkan)
-	{
-		options.spirvInstrinsics.hasRoundingModeRTEFloat32 = VulkanRenderer::GetInstance()->HasSPRIVRoundingModeRTE32();
-	}
-#endif
 	options.strictMul = !g_latteRelaxShaderMul.load(std::memory_order_relaxed)
 		&& g_current_game_profile->GetAccurateShaderMul() != AccurateShaderMulOption::False;
 }

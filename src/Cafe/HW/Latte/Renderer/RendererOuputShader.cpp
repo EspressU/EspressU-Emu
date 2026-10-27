@@ -347,55 +347,6 @@ void main(){
 		return vertex_source.str();
 }
 
-std::string RendererOutputShader::GetVulkanVertexSource(bool render_upside_down)
-{
-	std::ostringstream vertex_source;
-		vertex_source <<
-			R"(#version 450
-layout(location = 0) out vec2 passUV;
-
-out gl_PerVertex
-{
-   vec4 gl_Position;
-};
-
-void main(){
-	vec2 vPos;
-	vec2 vUV;
-	int vID = gl_VertexIndex;
-)";
-
-		if (render_upside_down)
-		{
-			vertex_source <<
-				R"(	if( vID == 0 ) { vPos = vec2(1.0,1.0); vUV = vec2(1.0,0.0); }
-	else if( vID == 1 ) { vPos = vec2(-1.0,1.0); vUV = vec2(0.0,0.0); }
-	else if( vID == 2 ) { vPos = vec2(-1.0,-1.0); vUV = vec2(0.0,1.0); }
-	else if( vID == 3 ) { vPos = vec2(-1.0,-1.0); vUV = vec2(0.0,1.0); }
-	else if( vID == 4 ) { vPos = vec2(1.0,-1.0); vUV = vec2(1.0,1.0); }
-	else if( vID == 5 ) { vPos = vec2(1.0,1.0); vUV = vec2(1.0,0.0); }
-	)";
-		}
-		else
-		{
-			vertex_source <<
-				R"(	if( vID == 0 ) { vPos = vec2(1.0,1.0); vUV = vec2(1.0,1.0); }
-	else if( vID == 1 ) { vPos = vec2(-1.0,1.0); vUV = vec2(0.0,1.0); }
-	else if( vID == 2 ) { vPos = vec2(-1.0,-1.0); vUV = vec2(0.0,0.0); }
-	else if( vID == 3 ) { vPos = vec2(-1.0,-1.0); vUV = vec2(0.0,0.0); }
-	else if( vID == 4 ) { vPos = vec2(1.0,-1.0); vUV = vec2(1.0,0.0); }
-	else if( vID == 5 ) { vPos = vec2(1.0,1.0); vUV = vec2(1.0,1.0); }
-	)";
-		}
-
-		vertex_source <<
-			R"(	passUV = vUV;
-	gl_Position = vec4(vPos, 0.0, 1.0);
-}
-)";
-		return vertex_source.str();
-}
-
 std::string RendererOutputShader::GetMetalVertexSource(bool render_upside_down)
 {
 	std::ostringstream vertex_source;
@@ -440,11 +391,7 @@ layout(location = 0) smooth in vec2 passUV;
 layout(binding = 0) uniform sampler2D textureSrc;
 layout(location = 0) out vec4 colorOut0;
 
-#ifdef VULKAN
-layout (binding = 1, std140)
-#else
 layout (binding = 0, std140)
-#endif
 uniform parameters {
 uniform vec2 textureSrcResolution;
 uniform vec2 nativeResolution;
@@ -512,24 +459,6 @@ void RendererOutputShader::InitializeStatic()
     	std::string vertex_source, vertex_source_ud;
 		vertex_source = GetOpenGlVertexSource(false);
 		vertex_source_ud = GetOpenGlVertexSource(true);
-
-    	s_copy_shader = new RendererOutputShader(vertex_source, s_copy_shader_source);
-    	s_copy_shader_ud = new RendererOutputShader(vertex_source_ud, s_copy_shader_source);
-
-    	s_bicubic_shader = new RendererOutputShader(vertex_source, s_bicubic_shader_source);
-    	s_bicubic_shader_ud = new RendererOutputShader(vertex_source_ud, s_bicubic_shader_source);
-
-    	s_hermit_shader = new RendererOutputShader(vertex_source, s_hermite_shader_source);
-    	s_hermit_shader_ud = new RendererOutputShader(vertex_source_ud, s_hermite_shader_source);
-		break;
-    }
-#endif
-#ifdef ENABLE_VULKAN
-    case RendererAPI::Vulkan:
-    {
-    	std::string vertex_source, vertex_source_ud;
-		vertex_source = GetVulkanVertexSource(false);
-		vertex_source_ud = GetVulkanVertexSource(true);
 
     	s_copy_shader = new RendererOutputShader(vertex_source, s_copy_shader_source);
     	s_copy_shader_ud = new RendererOutputShader(vertex_source_ud, s_copy_shader_source);

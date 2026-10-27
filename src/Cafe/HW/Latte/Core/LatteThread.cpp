@@ -221,7 +221,6 @@ static int Latte_ThreadEntryImpl()
 }
 
 #if BOOST_OS_IOS
-void IOSBridge_VulkanDeviceLost(const char* why);
 void IOSBridge_GPUThreadException(const char* type, const char* what);
 #endif
 
@@ -247,10 +246,6 @@ int Latte_ThreadEntry()
 	}
 	sLatteThreadFinishedInit = true;
 	g_isGPUInitFinished = true;
-#if BOOST_OS_IOS
-	if (g_renderer && g_renderer->GetType() == RendererAPI::Vulkan)
-		IOSBridge_VulkanDeviceLost("an exception escaped the GPU thread");
-#endif
 	while (!Latte_GetStopSignal())
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	try
