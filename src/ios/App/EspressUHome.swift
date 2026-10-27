@@ -106,6 +106,10 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private var isPhone: Bool { sizeClass == .compact }
 
+    // The phone grid has no carousel to flick through, so its backdrop changes faster.
+    private var backdropDebounce: Double { isPhone ? 0.05 : 0.25 }
+    private var backdropFade: Double { isPhone ? 0.3 : 0.8 }
+
     private var backdropPath: String? {
         games.indices.contains(centerIndex) ? games[centerIndex].coverPath : nil
     }
@@ -144,7 +148,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         backdropWork?.cancel()
         let work = DispatchWorkItem { runBackdropFade() }
         backdropWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + backdropDebounce, execute: work)
     }
 
     private func runBackdropFade() {
@@ -154,13 +158,14 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         backdropPaths[next] = path
         backdropOpacity[next] = 0
         backdropTop = next
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        let fade = backdropFade
+        DispatchQueue.main.asyncAfter(deadline: .now() + (isPhone ? 0.03 : 0.15)) {
             // One phase: the new cover fades in while the old one fades out, on the same curve.
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(.easeInOut(duration: fade)) {
                 backdropOpacity[next] = 1
                 backdropOpacity[1 - next] = 0
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + fade + 0.05) {
                 backdropBusy = false
                 if backdropPending != backdropPaths[backdropTop] { runBackdropFade() }
             }
