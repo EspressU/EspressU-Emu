@@ -6,16 +6,15 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>Wii U Game</string>
+			<string>Game</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.espressuemu.wiiu.wua</string>
-				<string>com.espressuemu.wiiu.disc</string>
-				<string>com.espressuemu.wiiu.rpx</string>
+				<string>dev.espressu.archive</string>
+				<string>dev.espressu.executable</string>
 			</array>
 		</dict>
 	</array>
@@ -29,14 +28,6 @@
 	</dict>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_remotepairing-pairable-host._tcp</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>audio</string>
-	</array>
 	<key>GCSupportsGameMode</key>
 	<true/>
 	<key>LSSupportsGameMode</key>
@@ -51,9 +42,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Wii U Archive</string>
+			<string>Game Archive</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.espressuemu.wiiu.wua</string>
+			<string>dev.espressu.archive</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -68,27 +59,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Wii U Disc Image</string>
+			<string>Homebrew Executable</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.espressuemu.wiiu.disc</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>wud</string>
-					<string>wux</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>Wii U Executable</string>
-			<key>UTTypeIdentifier</key>
-			<string>com.espressuemu.wiiu.rpx</string>
+			<string>dev.espressu.executable</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

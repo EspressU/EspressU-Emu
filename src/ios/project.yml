@@ -17,7 +17,8 @@ settings:
   PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU
   SDKROOT: iphoneos
   IPHONEOS_DEPLOYMENT_TARGET: '17.4'
-  CODE_SIGN_IDENTITY: iPhone Developer
+  CODE_SIGN_STYLE: Automatic
+  DEVELOPMENT_TEAM: ''
   CODE_SIGN_ENTITLEMENTS: Cemu.entitlements
   SWIFT_OBJC_BRIDGING_HEADER: Bridge/Cemu-Bridging-Header.h
   CLANG_ENABLE_MODULES: 'YES'
@@ -32,6 +33,7 @@ settings:
   INFOPLIST_FILE: 'Info-AlternateIcons.plist'
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   MARKETING_VERSION: '1.4'
+  # Bump CURRENT_PROJECT_VERSION for every TestFlight/App Store upload.
   CURRENT_PROJECT_VERSION: '1'
   INFOPLIST_KEY_CFBundleDisplayName: EspressU
   INFOPLIST_KEY_LSApplicationCategoryType: 'public.app-category.games'
@@ -41,8 +43,7 @@ settings:
   INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: 'UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight'
   INFOPLIST_KEY_GCSupportsControllerUserInteraction: 'YES'
   INFOPLIST_KEY_UIStatusBarHidden: 'YES'
-  INFOPLIST_KEY_NSMicrophoneUsageDescription: 'EspressU uses the microphone only when a Wii U game asks for GamePad microphone input.'
-  INFOPLIST_KEY_NSLocalNetworkUsageDescription: 'EspressU pairs with this device for its built-in JIT, and connects to game servers on your local network when you use a custom server hosted at home.'
+  INFOPLIST_KEY_NSMicrophoneUsageDescription: 'EspressU uses the microphone only while a game you are running asks for microphone input. Audio is never recorded or stored.'
   INFOPLIST_KEY_NSHumanReadableCopyright: 'EspressU, built on Cemu'
 
 targets:
@@ -70,18 +71,9 @@ targets:
     dependencies:
       - framework: ../../build-ios/out/Cemu.framework
         embed: true
-      - target: StikJITHelper
-      - framework: ../../dependencies/StikJIT.xcframework
-        embed: true
-        link: false
 
     settings:
       base:
-        HEADER_SEARCH_PATHS:
-          - '$(inherited)'
-          - '$(SRCROOT)/../../dependencies/idevice'
-        LIBRARY_SEARCH_PATHS: '$(inherited) $(SRCROOT)/../../dependencies/idevice'
-        OTHER_LDFLAGS: '$(inherited) -Wl,-hidden-lidevice_ffi -framework Security -framework SystemConfiguration -framework CFNetwork -lresolv'
         DEAD_CODE_STRIPPING: 'YES'
 
     postBuildScripts:
@@ -101,26 +93,3 @@ targets:
 
     scheme:
       gatherCoverageData: false
-
-  StikJITHelper:
-    type: app-extension
-    platform: iOS
-    deploymentTarget: '17.4'
-    sources:
-      - path: StikJITHelper
-        type: group
-    dependencies:
-      - framework: ../../dependencies/StikJIT.xcframework
-        embed: false
-    settings:
-      base:
-        PRODUCT_NAME: StikJITHelper
-        PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU.StikJITHelper
-        INFOPLIST_FILE: StikJITHelper/Info.plist
-        GENERATE_INFOPLIST_FILE: 'NO'
-        CODE_SIGN_ENTITLEMENTS: ''
-        SWIFT_OBJC_BRIDGING_HEADER: ''
-        ASSETCATALOG_COMPILER_APPICON_NAME: ''
-        APPLICATION_EXTENSION_API_ONLY: 'YES'
-        SKIP_INSTALL: 'YES'
-        LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'

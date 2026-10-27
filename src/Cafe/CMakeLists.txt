@@ -9,16 +9,8 @@ add_library(CemuCafe
   Filesystem/fscDeviceHostFS.h
   Filesystem/fscDeviceRedirect.cpp
   Filesystem/fscDeviceWua.cpp
-  Filesystem/fscDeviceWud.cpp
   Filesystem/fscDeviceWuhb.cpp
   Filesystem/fsc.h
-  Filesystem/FST/FST.cpp
-  Filesystem/FST/FST.h
-  Filesystem/FST/fstUtil.h
-  Filesystem/FST/KeyCache.cpp
-  Filesystem/FST/KeyCache.h
-  Filesystem/WUD/wud.cpp
-  Filesystem/WUD/wud.h
   Filesystem/WUHB/RomFSStructs.h
   Filesystem/WUHB/WUHBReader.cpp
   Filesystem/WUHB/WUHBReader.h
@@ -64,35 +56,6 @@ add_library(CemuCafe
   HW/Espresso/PPCSchedulerLLE.cpp
   HW/Espresso/PPCState.h
   HW/Espresso/PPCTimer.cpp
-  HW/Espresso/Recompiler/PPCFunctionBoundaryTracker.h
-  HW/Espresso/Recompiler/PPCRecompiler.cpp
-  HW/Espresso/Recompiler/PPCRecompiler.h
-  HW/Espresso/Recompiler/IML/IML.h
-  HW/Espresso/Recompiler/IML/IMLSegment.cpp
-  HW/Espresso/Recompiler/IML/IMLSegment.h
-  HW/Espresso/Recompiler/IML/IMLInstruction.cpp
-  HW/Espresso/Recompiler/IML/IMLInstruction.h
-  HW/Espresso/Recompiler/IML/IMLDebug.cpp
-  HW/Espresso/Recompiler/IML/IMLAnalyzer.cpp
-  HW/Espresso/Recompiler/IML/IMLOptimizer.cpp
-  HW/Espresso/Recompiler/IML/IMLRegisterAllocator.cpp
-  HW/Espresso/Recompiler/IML/IMLRegisterAllocator.h
-  HW/Espresso/Recompiler/IML/IMLRegisterAllocatorRanges.cpp
-  HW/Espresso/Recompiler/IML/IMLRegisterAllocatorRanges.h
-  HW/Espresso/Recompiler/PPCRecompilerImlGen.cpp
-  HW/Espresso/Recompiler/PPCRecompilerImlGenFPU.cpp
-  HW/Espresso/Recompiler/PPCRecompilerIml.h
-  HW/Espresso/Recompiler/PPCRecompilerThreadPool.h
-  HW/Espresso/Recompiler/PPCRecompilerIntermediate.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64AVX.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64BMI.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64FPU.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64Gen.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64GenFPU.cpp
-  HW/Espresso/Recompiler/BackendX64/BackendX64.h
-  HW/Espresso/Recompiler/BackendX64/X64Emit.hpp
-  HW/Espresso/Recompiler/BackendX64/x86Emitter.h
   HW/Latte/Common/RegisterSerializer.cpp
   HW/Latte/Common/RegisterSerializer.h
   HW/Latte/Common/ShaderSerializer.cpp
@@ -616,14 +579,6 @@ if(ENABLE_METAL)
         "-framework QuartzCore"
         "-weak_framework MetalFX"
     )
-endif()
-
-if(CEMU_ARCHITECTURE MATCHES "(aarch64)|(AARCH64)|(arm64)|(ARM64)")
-  target_sources(CemuCafe PRIVATE
-    HW/Espresso/Recompiler/BackendAArch64/BackendAArch64.cpp
-    HW/Espresso/Recompiler/BackendAArch64/BackendAArch64.h
-  )
-  target_link_libraries(CemuCafe PRIVATE xbyak_aarch64)
 endif()
 
 set_property(TARGET CemuCafe PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

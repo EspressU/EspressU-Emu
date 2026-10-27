@@ -75,10 +75,6 @@ endif()
 
 if(IOS)
 	target_sources(CemuBin PRIVATE
-		config/CemuConfigWrapper.h
-		config/CemuConfigWrapper.mm
-		config/GraphicPackWrapper.h
-		config/GraphicPackWrapper.mm
 		gui/uikit/EmulatedUSBDevices.h
 		gui/uikit/EmulatedUSBDevices.mm
 	)
@@ -104,15 +100,12 @@ if(IOS)
 		ios/Bridge/CemuDeviceCaps.h
 		ios/Bridge/IOSDeviceCaps.cpp
 		ios/Bridge/Core/IOSAccounts.cpp
-		ios/Bridge/Core/IOSCoverArt.cpp
-		ios/Bridge/Core/IOSDlcUpdateImport.cpp
+		ios/Bridge/Core/IOSTitleInfo.cpp
 		ios/Bridge/Core/IOSEmulatedDevices.cpp
 		ios/Bridge/Core/IOSGraphicPacks.cpp
 		ios/Bridge/Core/IOSSystemImplementation.cpp
-		ios/Bridge/Core/IOSTitleDecrypt.cpp
 		ios/Bridge/Core/IOSTitleLaunch.cpp
 		ios/Bridge/Core/IOSTitlePause.cpp
-		ios/Bridge/Core/IOSWuaContent.cpp
 	)
 	target_include_directories(CemuBin PRIVATE ios/Bridge)
 	if(ESPRESSU_AUDIT_HOOKS)

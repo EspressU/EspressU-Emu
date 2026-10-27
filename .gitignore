@@ -18,11 +18,6 @@ DerivedData/
 # XcodeGen output (generated from src/ios/project.yml)
 src/ios/*.xcodeproj/
 
-# Built by ci/build-stikjit.sh
-dependencies/StikJIT.xcframework/
-dependencies/.stikjit-commit
-dependencies/idevice/
-
 # --- Never commit: keys, firmware, games, signing material ---
 keys.txt
 otp.bin
@@ -60,7 +55,6 @@ bin/gameProfiles/*
 .DS_Store
 ._*
 __pycache__/
-build-espressu-ipa.sh
 
 # --- Local assistant files ---
 CLAUDE.md
