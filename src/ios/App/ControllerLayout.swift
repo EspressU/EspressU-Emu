@@ -12,6 +12,8 @@ enum ControllerLayoutSettings {
     static let deadzoneKey = "espressu.controls.stick.deadzone"
     static let stickSpacingKey = "espressu.controls.stickSpacing"
     static let shoulderOffsetKey = "espressu.controls.shoulderOffset"
+    /// One JSON string with every control the player moved or resized on its own (see `CremaElementOverrides`).
+    static let elementsKey = "espressu.controls.elements"
     static let hapticsKey = "espressu.pad.haptics"
     static let autoHideWithControllerKey = "espressu.controls.autoHideWithController"
 
@@ -35,6 +37,8 @@ enum ControllerLayoutSettings {
     static let maxShoulderOffset: Double = 1.5
     static let shoulderOffsetStep: Double = 0.25
 
+    static let defaultElements = ""
+
     static let defaultHaptics = true
     static let defaultAutoHideWithController = true
 
@@ -57,7 +61,7 @@ enum ControllerLayoutSettings {
     /// Puts size, opacity, spacing and shoulder height back to how EspressU ships them.
     static func reset() {
         let defaults = UserDefaults.standard
-        for key in [scaleKey, opacityKey, stickSpacingKey, shoulderOffsetKey] {
+        for key in [scaleKey, opacityKey, stickSpacingKey, shoulderOffsetKey, elementsKey] {
             defaults.removeObject(forKey: key)
         }
     }

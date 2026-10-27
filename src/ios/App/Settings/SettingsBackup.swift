@@ -215,6 +215,10 @@ enum SettingsBackup {
     ]
 
     private static func isAcceptable(_ value: Any, for key: String) -> Bool {
+        if key == ControllerLayoutSettings.elementsKey {
+            guard let text = value as? String else { return false }
+            return CremaElementOverrides(json: text) != nil
+        }
         if let allowed = allowedStrings[key] {
             guard let text = value as? String else { return false }
             return allowed.contains(text)
