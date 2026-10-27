@@ -3,7 +3,6 @@
 #include "Cemu/PPCAssembler/ppcAssembler.h"
 #include "Cafe/OS/RPL/rpl_structs.h"
 #include "Cafe/OS/RPL/rpl_symbol_storage.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/HW/Espresso/Debugger/DebugSymbolStorage.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 
@@ -383,7 +382,6 @@ void PatchEntryInstruction::applyPatch()
 	uint8* patchAddr = (uint8*)memory_base + addr;
 	memcpy(m_dataBackup, patchAddr, m_length);
 	memcpy(patchAddr, m_dataWithRelocs, m_length);
-	PPCRecompiler_invalidateRange(addr, addr + m_length);
     PPCInterpreter_invalidateBlockCacheRange(addr, m_length);
 }
 
@@ -397,7 +395,6 @@ void PatchEntryInstruction::undoPatch()
 	}
 	uint8* patchAddr = (uint8*)memory_base + addr;
 	memcpy(patchAddr, m_dataBackup, m_length);
-	PPCRecompiler_invalidateRange(addr, addr + m_length);
     PPCInterpreter_invalidateBlockCacheRange(addr, m_length);
 	rplSymbolStorage_removeRange(addr, m_length, RPL_STORED_SYMBOL_PATCH);
 	DebugSymbolStorage::ClearRange(addr, m_length);

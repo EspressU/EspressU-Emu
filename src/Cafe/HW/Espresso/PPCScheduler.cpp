@@ -4,7 +4,6 @@
 #include "Cafe/OS/libs/coreinit/coreinit_Thread.h"
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
 
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/CafeSystem.h"
 #include "Cafe/HW/Latte/Core/HostTuning.h"
 
@@ -59,28 +58,6 @@ void _PPCCore_callbackExit(PPCInterpreter_t* hCPU)
     hCPU->instructionPointer = 0;
 }
 
-static void PPCCore_executeWithJIT(PPCInterpreter_t* hCPU)
-{
-    PPCRecompiler_attemptEnter(hCPU, hCPU->instructionPointer);
-    while ((--hCPU->remainingCycles) >= 0)
-    {
-        PPCRecompiler_attemptEnter(hCPU, hCPU->instructionPointer);
-        if (hCPU->remainingCycles >= 0)
-            PPCInterpreterSlim_executeInstruction(hCPU);
-    }
-}
-
-static void PPCCore_executeWithJITThread(PPCInterpreter_t* hCPU)
-{
-    PPCRecompiler_attemptEnterWithoutRecompile(hCPU, hCPU->instructionPointer);
-    while ((--hCPU->remainingCycles) >= 0)
-    {
-        PPCRecompiler_attemptEnterWithoutRecompile(hCPU, hCPU->instructionPointer);
-        if (hCPU->remainingCycles >= 0)
-            PPCInterpreterSlim_executeInstruction(hCPU);
-    }
-}
-
 static void PPCCore_executeInterpreter(PPCInterpreter_t* hCPU)
 {
     PPCInterpreterSlim_executeTimeslice(hCPU);
@@ -96,22 +73,13 @@ void PPCCore_attemptToEnterAddr(PPCInterpreter_t* hCPU, uint32 enterAddress)
     attemptEnterAddr(hCPU, enterAddress);
 }
 
-void PPCCore_InitializePointer(bool recompilerEnabled)
+void PPCCore_InitializeInterpreter()
 {
-    if (recompilerEnabled)
-    {
-        attemptEnterAddr = PPCRecompiler_attemptEnter;
-        attemptEnter = PPCCore_executeWithJIT;
-        attemptEnterThread = PPCCore_executeWithJITThread;
-    }
-    else
-    {
-        attemptEnterAddr = PPCInterpreter_jumpToInstruction;
-        attemptEnter = PPCCore_executeInterpreter;
-        attemptEnterThread = PPCCore_executeInterpreter;
-        cemuLog_log(LogType::Force, "No JIT: running the block-cache interpreter, block linking {}",
-            HostTuning::Get().interpreterBlockLinking.load() ? "on" : "off");
-    }
+    attemptEnterAddr = PPCInterpreter_jumpToInstruction;
+    attemptEnter = PPCCore_executeInterpreter;
+    attemptEnterThread = PPCCore_executeInterpreter;
+    cemuLog_log(LogType::Force, "CPU: interpreter, block linking {}",
+        HostTuning::Get().interpreterBlockLinking.load() ? "on" : "off");
 }
 
 PPCInterpreter_t* PPCCore_executeCallbackInternal(uint32 functionMPTR)

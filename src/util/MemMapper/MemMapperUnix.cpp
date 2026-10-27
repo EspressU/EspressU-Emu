@@ -29,8 +29,7 @@ vm_prot_t GetProt(PAGE_PERMISSION flags)
     if (HAS_FLAG(flags, PAGE_PERMISSION::P_WRITE))
         p |= VM_PROT_WRITE;
 
-    if (HAS_FLAG(flags, PAGE_PERMISSION::P_EXECUTE))
-        p |= VM_PROT_EXECUTE;
+    // Executable memory is never requested: this build runs the interpreter only.
 
     return p;
 }
@@ -170,11 +169,9 @@ void FreeMemory(void* baseAddr, size_t size, bool fromReservation)
 	int GetProt(PAGE_PERMISSION permissionFlags)
 	{
 		int  p = 0;
-		if (HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_READ) && HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_WRITE) && HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_EXECUTE))
-			p = PROT_READ | PROT_WRITE | PROT_EXEC;
-		else if (HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_READ) && HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_WRITE) && !HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_EXECUTE))
+		if (HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_READ) && HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_WRITE))
 			p = PROT_READ | PROT_WRITE;
-		else if (HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_READ) && !HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_WRITE) && !HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_EXECUTE))
+		else if (HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_READ) && !HAS_FLAG(permissionFlags, PAGE_PERMISSION::P_WRITE))
 			p = PROT_READ;
 		else
 			cemu_assert_unimplemented();

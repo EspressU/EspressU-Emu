@@ -100,7 +100,6 @@ namespace DeviceCaps
 		uint64_t bufferCacheBytes = 164ull * 1024 * 1024;
 		uint64_t stagingChunkBytes = 32ull * 1024 * 1024;
 		uint64_t textureReadbackBytes = 32ull * 1024 * 1024;
-		uint32_t jitArenaStartMB = 512;
 		uint64_t evictLowFloorBytes = 600ull * 1024 * 1024;
 		uint64_t evictCriticalFloorBytes = 400ull * 1024 * 1024;
 		uint64_t minBootHeadroomBytes = 0;
@@ -134,7 +133,6 @@ namespace DeviceCaps
 		case Tier::Low:
 			b.bufferCacheBytes = 128 * MB;
 			b.stagingChunkBytes = 16 * MB;
-			b.jitArenaStartMB = 256;
 			b.multicoreViable = false;
 			break;
 		case Tier::Standard:
@@ -157,7 +155,6 @@ namespace DeviceCaps
 			b.bufferCacheBytes = cache;
 			b.stagingChunkBytes = scaled(b.stagingChunkBytes, 8 * MB);
 			b.textureReadbackBytes = scaled(b.textureReadbackBytes, 8 * MB);
-			b.jitArenaStartMB = (uint32_t)scaled((uint64_t)b.jitArenaStartMB, 128);
 			b.evictLowFloorBytes = scaled(b.evictLowFloorBytes, 50 * MB);
 			b.evictCriticalFloorBytes = scaled(b.evictCriticalFloorBytes, 50 * MB);
 		}

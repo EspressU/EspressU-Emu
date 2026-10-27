@@ -5,11 +5,11 @@
 
 import Foundation
 
-/// Experimental performance options. Each one is off by default and keeps the
-/// behaviour EspressU had before the option existed.
+/// Performance options. Everything is off by default except interpreter block
+/// linking and freeing memory on warnings, which keep the interpreter-only build steady.
 enum PerformanceTuning {
     static let freeMemoryOnWarningKey = "espressu.tuning.freeMemoryOnWarning"
-    static let freeMemoryOnWarningDefault = false
+    static let freeMemoryOnWarningDefault = true
     static let gpuFaultHistoryKey = "espressu.tuning.gpuFaultHistory"
     static let gpuFaultHistoryDefault = false
     static let metalFxUpscaleKey = "espressu.tuning.metalFxUpscale"
@@ -21,11 +21,9 @@ enum PerformanceTuning {
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
     static let interpreterBlockLinkingKey = "espressu.tuning.interpreterBlockLinking"
-    static let interpreterBlockLinkingDefault = false
+    static let interpreterBlockLinkingDefault = true
     static let diagnosticsLogKey = "espressu.tuning.diagnosticsLog"
     static let diagnosticsLogDefault = false
-    static let jitSkipOverlapsKey = "espressu.tuning.jitSkipOverlaps"
-    static let jitSkipOverlapsDefault = false
 
     static var advancedSettings: [AdvancedSetting] {
         [
@@ -37,7 +35,6 @@ enum PerformanceTuning {
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
             AdvancedSetting(diagnosticsLogKey, diagnosticsLogDefault),
-            AdvancedSetting(jitSkipOverlapsKey, jitSkipOverlapsDefault),
         ]
     }
 
@@ -62,8 +59,6 @@ enum PerformanceTuning {
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
                                bool(diagnosticsLogKey, diagnosticsLogDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS,
-                               bool(jitSkipOverlapsKey, jitSkipOverlapsDefault) ? 1 : 0)
     }
 
     static func applyDefaultsToBridge() {
@@ -75,6 +70,5 @@ enum PerformanceTuning {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, diagnosticsLogDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS, jitSkipOverlapsDefault ? 1 : 0)
     }
 }

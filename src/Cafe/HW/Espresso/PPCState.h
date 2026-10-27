@@ -210,7 +210,7 @@ using HLEIDX = sint32;
 
 HLEIDX PPCInterpreter_registerHLECall(HLECALL hleCall, std::string hleName);
 HLECALL PPCInterpreter_getHLECall(HLEIDX funcIndex);
-void PPCCore_InitializePointer(bool recompilerEnabled);
+void PPCCore_InitializeInterpreter();
 
 void PPCInterpreter_relinquishTimeslice();
 

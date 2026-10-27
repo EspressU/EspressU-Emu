@@ -1,7 +1,6 @@
 #include "Cafe/OS/common/OSCommon.h"
 #include "Cafe/OS/RPL/rpl.h"
 #include "Cafe/OS/libs/coreinit/coreinit_CodeGen.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Common/ExceptionHandler/ExceptionHandler.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 
@@ -105,7 +104,6 @@ namespace coreinit
 			uint8* currentState = memory_getPointerFromVirtualOffset(ea);
 			if (memcmp(currentState, cacheCopy, 32) != 0)
 			{
-				PPCRecompiler_invalidateRange(ea, ea+0x20);
                 PPCInterpreter_invalidateBlockCacheRange(ea, 0x20);
 
 				memcpy(cacheCopy, currentState, 32);
@@ -113,7 +111,7 @@ namespace coreinit
 		}
 	}
 
-	bool _avoidCodeGenJIT = false;
+	bool _avoidCodeGenJIT = false; // kept so the guest's request for a code-area mode switch is accepted
 
 	bool codeGenShouldAvoid()
 	{
@@ -124,7 +122,7 @@ namespace coreinit
 	{
 		if (!_avoidCodeGenJIT)
 		{
-			cemuLog_log(LogType::Force, "Disable JIT on dynamic code area");
+			cemuLog_log(LogType::Force, "Guest switched its code area to read-only mode");
 		}
 		_avoidCodeGenJIT = true;
 		return true;

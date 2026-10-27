@@ -20,11 +20,9 @@ namespace HostTuning
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
 		std::atomic<bool> padPresentPacing{false};
-		// Let the no-JIT block-cache interpreter jump from one cached block to the next through stored links
+		// Let the block-cache interpreter jump from one cached block to the next through stored links
 		// instead of a hash lookup per block.
 		std::atomic<bool> interpreterBlockLinking{false};
-		// Let a JIT worker wait for another one that is compiling the same function instead of compiling it twice.
-		std::atomic<bool> jitSkipOverlappingCompiles{false};
 		// Only reported: the front end sizes the GamePad surface itself.
 		std::atomic<bool> padLowResolution{false};
 		// Write a summary of what the options above actually did to the log every few seconds.
@@ -67,10 +65,6 @@ namespace HostTuning
 		std::atomic<uint64_t> itpBlocks{0};
 		std::atomic<uint64_t> itpLinkHits{0};
 		std::atomic<uint64_t> itpDecodes{0};
-		// JIT
-		std::atomic<uint64_t> jitCompiled{0};
-		std::atomic<uint64_t> jitDiscarded{0};
-		std::atomic<uint64_t> jitWaited{0};
 	};
 
 	inline Stats& GetStats()

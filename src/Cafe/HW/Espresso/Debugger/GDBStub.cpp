@@ -1,6 +1,6 @@
 #include "GDBStub.h"
 #include "Debugger.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
+#include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 #include "GDBBreakpoints.h"
 #include "util/helpers/helpers.h"
 #include "util/ThreadPool/ThreadPool.h"
@@ -822,9 +822,7 @@ void GDBServer::CMDWriteMemory(std::unique_ptr<CommandContext>& context)
 			values[i] = hexValue;
 		}
 	}
-	PPCRecompiler_invalidateRange(
-		static_cast<uint32>(addr),
-		static_cast<uint32>(addr + length));
+	PPCInterpreter_invalidateBlockCacheRange(static_cast<uint32>(addr), static_cast<uint32>(length));
 	return context->QueueResponse(RESPONSE_OK);
 }
 

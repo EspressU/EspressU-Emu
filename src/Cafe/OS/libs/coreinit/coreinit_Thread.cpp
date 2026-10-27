@@ -7,8 +7,6 @@
 #include "Cafe/OS/libs/snd_core/ax.h"
 #include "Cafe/HW/Espresso/Debugger/GDBStub.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
-
 #include <thread>
 #include <chrono>
 
@@ -534,7 +532,6 @@ namespace coreinit
 		__OSUnlockScheduler(thread);
 		OSRestoreInterrupts(im);
 		if (entrypoint)
-			PPCRecompiler_recompileIfUnvisited(entrypoint.GetMPTR());
 		return true;
 	}
 

@@ -8,29 +8,6 @@
 
 import SwiftUI
 
-enum HeatDisplayMode: String, CaseIterable, Identifiable {
-    case word
-    case celsius
-    case fahrenheit
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .word:       return "Word"
-        case .celsius:    return "°C"
-        case .fahrenheit: return "°F"
-        }
-    }
-
-    static let storageKey = "espressu.thermal.displayMode"
-    static var current: HeatDisplayMode {
-        guard let raw = UserDefaults.standard.string(forKey: storageKey),
-              let value = HeatDisplayMode(rawValue: raw) else { return .word }
-        return value
-    }
-}
-
 enum HeatBand: Int, Comparable {
     case cool = 0
     case fair
@@ -70,57 +47,24 @@ enum HeatBand: Int, Comparable {
         }
     }
 
-    static func from(celsius: Double) -> HeatBand {
-        switch celsius {
-        case ..<30:  return .cool
-        case ..<35:  return .fair
-        case ..<40:  return .warm
-        case ..<45:  return .hot
-        default:     return .extremelyHot
-        }
-    }
 }
 
 @MainActor
 enum HeatStatus {
-    static var temperatureCelsius: Double? {
-        let value = cemu_bridge_device_temperature_celsius()
-        return value.isNaN ? nil : value
-    }
-
+    /// Heat comes only from `ProcessInfo.thermalState`; iOS offers no public temperature reading.
     static var band: HeatBand {
-        if let celsius = temperatureCelsius {
-            return .from(celsius: celsius)
-        }
-        return .from(thermalState: ThermalMonitor.shared.state)
+        .from(thermalState: ThermalMonitor.shared.state)
     }
-
-    static func text(for mode: HeatDisplayMode) -> String {
-        let band = band
-        guard mode != .word else { return band.word }
-        guard let celsius = temperatureCelsius else { return band.word }
-        switch mode {
-        case .celsius:    return String(format: "%.0f°C", celsius)
-        case .fahrenheit: return String(format: "%.0f°F", celsius * 9.0 / 5.0 + 32.0)
-        case .word:       return band.word
-        }
-    }
-
-    static var hasRealTemperature: Bool { temperatureCelsius != nil }
 }
 
 struct HeatStatusBadge: View {
     @ObservedObject private var thermal = ThermalMonitor.shared
-    @AppStorage(HeatDisplayMode.storageKey) private var mode = HeatDisplayMode.word.rawValue
-
-    private var displayMode: HeatDisplayMode { HeatDisplayMode(rawValue: mode) ?? .word }
-
     var body: some View {
         let band = HeatStatus.band
         return HStack(spacing: 6) {
             Image(systemName: "thermometer.medium")
                 .font(.system(size: 12, weight: .bold))
-            Text(HeatStatus.text(for: displayMode))
+            Text(band.word)
                 .font(.system(size: 13, weight: .bold))
         }
         .foregroundColor(UIStyle.isClassic

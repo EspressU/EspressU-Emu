@@ -6,10 +6,8 @@ namespace MemMapper
 	{
 		P_READ = (0x01),
 		P_WRITE = (0x02),
-		P_EXECUTE = (0x04),
 		P_NONE = 0,
-		P_RW = (0x03),
-		P_RWX = (0x07)
+		P_RW = (0x03)
 	};
 	DEFINE_ENUM_FLAG_OPERATORS(PAGE_PERMISSION);
 

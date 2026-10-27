@@ -28,7 +28,6 @@ typedef struct CemuDeviceCaps {
     uint64_t bufferCacheBytes;
     uint64_t stagingChunkBytes;
     uint64_t minBootHeadroomBytes;
-    uint32_t jitArenaStartMB;
     uint32_t logicalCores;
     uint32_t perfCores;
     uint32_t effCores;

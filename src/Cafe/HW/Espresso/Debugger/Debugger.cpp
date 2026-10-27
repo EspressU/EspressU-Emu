@@ -2,7 +2,6 @@
 #include "Debugger.h"
 #include "Cafe/OS/RPL/rpl_structs.h"
 #include "Cemu/PPCAssembler/ppcAssembler.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 #include "Cemu/ExpressionParser/ExpressionParser.h"
 
@@ -138,7 +137,6 @@ void debugger_updateMemoryU32(uint32 address, uint32 newValue)
 		memChanged = true;
 	memory_writeU32(address, newValue);
     if(memChanged) {
-        PPCRecompiler_invalidateRange(address, address + 4);
         PPCInterpreter_invalidateBlockCacheRange(address, 4);
     }
 }
@@ -524,7 +522,6 @@ void debugger_createPatch(uint32 address, std::span<uint8> patchData)
 		if (hasActiveExecuteBP == false)
 		{
 			memcpy(memory_getPointerFromVirtualOffset(address + i * 4), patchData.data() + i * 4, 4);
-			PPCRecompiler_invalidateRange(address, address + 4);
             PPCInterpreter_invalidateBlockCacheRange(address, 4);
 		}
 	}
@@ -558,7 +555,6 @@ void debugger_removePatch(uint32 address)
 			}
 		}
 		memcpy(MEMPTR<void>(startAddress).GetPtr(), patch->origData.data(), patch->length);
-		PPCRecompiler_invalidateRange(startAddress, endAddress);
         PPCInterpreter_invalidateBlockCacheRange(startAddress, patch->length);
 		delete patch;
 		s_debuggerState.patches.erase(s_debuggerState.patches.begin() + i);
@@ -624,12 +620,10 @@ void debugger_handleLoggingBreakpoint(PPCInterpreter_t* hCPU, DebuggerBreakpoint
 void debugger_stepOverCurrentBreakpoint(PPCInterpreter_t* hCPU)
 {
 	std::unique_lock _l(s_debuggerState.breakpointsMtx);
-	PPCRecompiler_Enable();
 	MPTR bpAddress = hCPU->instructionPointer;
 	debugger_updateExecutionBreakpoint(bpAddress, true);
 	PPCInterpreterSlim_executeInstruction(hCPU);
 	debugger_updateExecutionBreakpoint(bpAddress);
-	PPCRecompiler_Disable();
 }
 
 void debugger_enterTW(PPCInterpreter_t* hCPU, bool isSingleStep)

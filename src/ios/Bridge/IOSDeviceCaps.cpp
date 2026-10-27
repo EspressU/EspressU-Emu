@@ -149,7 +149,6 @@ extern "C" void cemu_device_caps_get(CemuDeviceCaps* out)
     out->bufferCacheBytes = b.bufferCacheBytes;
     out->stagingChunkBytes = b.stagingChunkBytes;
     out->minBootHeadroomBytes = b.minBootHeadroomBytes;
-    out->jitArenaStartMB = b.jitArenaStartMB;
     out->logicalCores = i.logicalCores;
     out->perfCores = i.perfCores;
     out->effCores = i.effCores;

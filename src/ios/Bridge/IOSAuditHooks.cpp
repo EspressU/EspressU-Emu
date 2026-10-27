@@ -297,10 +297,6 @@ extern "C" const char* cemu_audit_snapshot_json(void)
 		j.U("pipelineCompiles", c.pipelineCompiles.load(r));
 		j.U("pipelineCompileNs", c.pipelineCompileNs.load(r));
 		j.U("pipelineSyncCompiles", c.pipelineSyncCompiles.load(r));
-		j.U("jitBlocks", c.jitBlocks.load(r));
-		j.U("jitCompileNs", c.jitCompileNs.load(r));
-		j.U("jitInvalidations", c.jitInvalidations.load(r));
-		j.U("jitArenaAllocFails", c.jitArenaAllocFails.load(r));
 		auto& s = PerfTelemetry::GetSummary();
 		j.B("summaryValid", s.valid.load(r));
 		j.F("hostFps", s.hostFps.load(r));

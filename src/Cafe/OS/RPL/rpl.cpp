@@ -5,7 +5,6 @@
 #include "Cafe/OS/RPL/rpl.h"
 #include "Cafe/OS/RPL/rpl_structs.h"
 #include "Cafe/OS/RPL/rpl_symbol_storage.h"
-#include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
 #include "Cafe/HW/Espresso/Interpreter/PPCInterpreterInternal.h"
 #include "Cafe/HW/Espresso/Debugger/Debugger.h"
 #include "Cafe/GraphicPack/GraphicPack2.h"
@@ -30,7 +29,6 @@ public:
 	{
 		uint32 allocSize = getAllocationSizeFromAddr(addr);
 		MPTR ppcAddr = memory_getVirtualOffsetFromPointer(addr);
-		PPCRecompiler_invalidateRange(ppcAddr, ppcAddr + allocSize);
         PPCInterpreter_invalidateBlockCacheRange(ppcAddr, allocSize);
 		VHeap::free(addr);
 	}
@@ -98,7 +96,6 @@ MPTR RPLLoader_AllocateCodeSpace(uint32 size, uint32 alignment)
 	cemu_assert_debug((alignment & (alignment - 1)) == 0);
 	MPTR codeAddr = memory_getVirtualOffsetFromPointer(rplLoaderHeap_codeArea2.alloc(size, alignment));
 	rplLoader_maxCodeAddress = std::max(rplLoader_maxCodeAddress, codeAddr + size);
-	PPCRecompiler_allocateRange(codeAddr, size);
 	return codeAddr;
 }
 
@@ -139,7 +136,6 @@ static void RPLLoader_PublishGeneratedCode(MPTR startAddress, uint32 size)
 	if (size == 0)
 		return;
 
-	PPCRecompiler_invalidateRange(startAddress, startAddress + size);
     PPCInterpreter_invalidateBlockCacheRange(startAddress, size);
 }
 
@@ -514,7 +510,6 @@ bool RPLLoader_LoadSections(sint32 aProcId, RPLModule* rplLoaderContext)
 	rplLoaderContext->regionMappingBase_loaderInfo = RPLLoader_AllocateDataSpace(rplLoaderContext, regionLoaderinfoSize, 0x1000);
 	rplLoaderContext->regionMappingBase_text = rplLoaderHeap_codeArea2.alloc(regionTextSize + 0x1000, 0x1000);
 	rplLoader_maxCodeAddress = std::max(rplLoader_maxCodeAddress, rplLoaderContext->regionMappingBase_text.GetMPTR() + regionTextSize + 0x1000);
-	PPCRecompiler_allocateRange(rplLoaderContext->regionMappingBase_text.GetMPTR(), regionTextSize + 0x1000);
 
 	if (rplLoaderContext->moduleName == "rs10_production")
 	{
@@ -1561,11 +1556,9 @@ RPLModule* RPLLoader_LoadFromMemory(uint8* rplData, sint32 size, std::string_vie
 
 void RPLLoader_FlushMemory(RPLModule* rpl)
 {
-	PPCRecompiler_invalidateRange(rpl->regionMappingBase_text.GetMPTR(), rpl->regionMappingBase_text.GetMPTR() + rpl->regionSize_text);
 	rpl->heapTrampolineArea.forEachBlock([](void* mem, uint32 size)
 	{
 		MEMPTR<void> memVirtual = mem;
-		PPCRecompiler_invalidateRange(memVirtual.GetMPTR(), memVirtual.GetMPTR() + size);
         PPCInterpreter_invalidateBlockCacheRange(memVirtual.GetMPTR(), size);
 	});
 }

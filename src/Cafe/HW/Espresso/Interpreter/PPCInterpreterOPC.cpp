@@ -3,9 +3,6 @@
 #include "PPCInterpreterHelper.h"
 
 #include "Cafe/OS/libs/coreinit/coreinit_CodeGen.h"
-
-#include "../Recompiler/PPCRecompiler.h"
-
 #include <float.h>
 #include "Cafe/HW/Latte/Core/LatteBufferCache.h"
 
@@ -220,7 +217,6 @@ void PPCInterpreter_BCCTR(PPCInterpreter_t* hCPU, uint32 Opcode)
 		{
 			hCPU->instructionPointer = (unsigned int)(hCPU->spr.CTR & 0xfffffffc);
 		}
-		PPCRecompiler_attemptEnter(hCPU, hCPU->instructionPointer);
 	}
 	else
 	{

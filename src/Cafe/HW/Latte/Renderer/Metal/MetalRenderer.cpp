@@ -4594,7 +4594,6 @@ void MetalRenderer::ReportTuningDiagnostics()
         &s.m4Frames, &s.m4Dropped, &s.m4RegularPath, &s.m4SlotTimeouts,
         &s.padSkippedFrames, &s.padSlowDrawables,
         &s.itpBlocks, &s.itpLinkHits, &s.itpDecodes,
-        &s.jitCompiled, &s.jitDiscarded, &s.jitWaited,
     };
     constexpr size_t kCounters = sizeof(counters) / sizeof(counters[0]);
     if (m_tuningReportLast.size() != kCounters)
@@ -4621,7 +4620,7 @@ void MetalRenderer::ReportTuningDiagnostics()
     const auto [memWarnings, memCleanups, memTextures, memMB, substitutes, viewFallbacks, faults,
         fxUpscales, fxRebuilds, fxFailures, fxNotEnlarged,
         m4Frames, m4Dropped, m4Regular, m4Timeouts,
-        padSkipped, padSlow, itpBlocks, itpHits, itpDecodes, jitCompiled, jitDiscarded, jitWaited] = d;
+        padSkipped, padSlow, itpBlocks, itpHits, itpDecodes] = d;
     const double tvFps = m_tuningReportFrames / seconds;
     m_tuningReportFrames = 0;
     m_tuningReportSince = now;
@@ -4634,8 +4633,8 @@ void MetalRenderer::ReportTuningDiagnostics()
     const bool padLow = options.padLowResolution.load();
     const bool linkOn = options.interpreterBlockLinking.load();
 
-    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} linking {} jit-no-duplicates {}",
-        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, linkOn, options.jitSkipOverlappingCompiles.load());
+    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} linking {}",
+        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, linkOn);
 
     // One line per option that is on, ending in what it means.
     if (memoryOn || memWarnings)
@@ -4671,18 +4670,10 @@ void MetalRenderer::ReportTuningDiagnostics()
             padSkipped, padSlow, padWidth, padHeight,
             !both ? "pacing idle: TV and GamePad are not both on screen" : (padOn && padSkipped == 0 ? "PROBLEM: both screens shown but nothing was paced" : "OK"));
     }
-    {
-        const bool skipOn = options.jitSkipOverlappingCompiles.load();
-        if (jitCompiled || jitDiscarded || jitWaited)
-            cemuLog_log(LogType::Force, "[Tuning] jit: functions compiled +{}, thrown away +{} ({:.0f}%), waited for an overlapping compile +{} (no-duplicates {}) -> {}",
-                jitCompiled, jitDiscarded, 100.0 * jitDiscarded / std::max<uint64>(1, jitCompiled + jitDiscarded), jitWaited, skipOn,
-                !skipOn && jitDiscarded > jitCompiled / 4 ? "much JIT work wasted, turn on No duplicate JIT work"
-                    : (skipOn && jitWaited == 0 && jitDiscarded > jitCompiled / 4 ? "PROBLEM: still wasting work" : "OK"));
-    }
     if (linkOn || itpBlocks)
         cemuLog_log(LogType::Force, "[Tuning] interpreter: blocks +{}, linked +{} ({:.0f}%), decoded +{} -> {}",
             itpBlocks, itpHits, itpBlocks ? 100.0 * itpHits / itpBlocks : 0.0, itpDecodes,
-            itpBlocks == 0 ? "not running (JIT is in use)" : (linkOn && itpHits == 0 ? "PROBLEM: linking on but never used" : "OK"));
+            itpBlocks == 0 ? "no blocks decoded yet" : (linkOn && itpHits == 0 ? "PROBLEM: linking on but never used" : "OK"));
 }
 
 void MetalRenderer::UpdatePadPacing()

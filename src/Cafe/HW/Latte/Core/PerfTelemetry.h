@@ -101,12 +101,6 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> gpuTexViewLookups{0};
 		std::atomic<uint64_t> gpuTexViewLookupNs{0};
 		std::atomic<uint64_t> gpuEndNs{0};
-
-		std::atomic<uint32_t> jitBlocks{0};
-		std::atomic<uint64_t> jitCompileNs{0};
-		std::atomic<uint32_t> jitInvalidations{0};
-		std::atomic<uint32_t> jitArenaReleases{0};
-		std::atomic<uint32_t> jitArenaAllocFails{0};
 	};
 
 	enum RenderPassBreak : int
