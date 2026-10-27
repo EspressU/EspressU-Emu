@@ -10,6 +10,7 @@ import SwiftUI
 
 /// The sheet shown while the player adjusts the on-screen controls. The controls behind it update live.
 struct CremaLayoutPanel: View {
+    let onEditElements: () -> Void
     let onDone: () -> Void
 
     @AppStorage(ControllerLayoutSettings.scaleKey) private var scale = ControllerLayoutSettings.defaultScale
@@ -23,7 +24,7 @@ struct CremaLayoutPanel: View {
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
             LayoutPanelFooter(
-                resetMessage: "Size, opacity, spacing, shoulder height, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.",
+                resetMessage: "Size, opacity, spacing, shoulder height, single moved or resized controls, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.",
                 onReset: reset,
                 onDone: onDone)
         })
@@ -31,6 +32,21 @@ struct CremaLayoutPanel: View {
 
     @ViewBuilder private var rows: some View {
         PanelCaption(text: "Tap a stick to click it. Slide across buttons to press them one after another. These settings apply to every game.")
+
+        Button(action: onEditElements) {
+            HStack {
+                Label("Edit individual controls", systemImage: "hand.draw")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .panelRowStyle()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
 
         PanelSliderRow("Control size", leadingIcon: "minus.magnifyingglass", trailingIcon: "plus.magnifyingglass",
                        value: $scale,

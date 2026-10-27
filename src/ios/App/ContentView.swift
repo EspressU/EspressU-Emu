@@ -1365,6 +1365,8 @@ struct EmulatorViewOptimized: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var isEditingControlLayout = false
+    @State private var isEditingSingleControls = false
+    @State private var selectedControl: CremaElement?
     @State private var padControlsHidden = false
     @State private var isPaused = false
     @State private var showHomeMenu = false
@@ -1442,13 +1444,32 @@ struct EmulatorViewOptimized: View {
     }
 
     private var layoutPanel: some View {
-        CremaLayoutPanel(onDone: finishEditingLayout)
+        Group {
+            if isEditingSingleControls {
+                CremaElementPanel(selection: $selectedControl, onDone: finishEditingSingleControls)
+            } else {
+                CremaLayoutPanel(onEditElements: startEditingSingleControls, onDone: finishEditingLayout)
+            }
+        }
+    }
+
+    private func startEditingSingleControls() {
+        cemu_bridge_release_all_buttons()
+        selectedControl = nil
+        withAnimation(.easeInOut(duration: 0.2)) { isEditingSingleControls = true }
+    }
+
+    private func finishEditingSingleControls() {
+        withAnimation(.easeInOut(duration: 0.2)) { isEditingSingleControls = false }
+        selectedControl = nil
     }
 
     private func finishEditingLayout() {
         withAnimation(.easeInOut(duration: 0.2)) {
             isEditingControlLayout = false
+            isEditingSingleControls = false
         }
+        selectedControl = nil
     }
 
     /// The on-screen controls are hidden when the player hid them in the home menu or a controller hides them, but
@@ -1642,7 +1663,9 @@ struct EmulatorViewOptimized: View {
                 CremaPad(
                     screens: cremaScreens,
                     enabled: !isPaused && !isEditingControlLayout,
-                    topInset: isPhonePortrait ? 0 : topBarHeight
+                    topInset: isPhonePortrait ? 0 : topBarHeight,
+                    editing: isEditingSingleControls,
+                    selection: $selectedControl
                 )
                 .onAppear { PadDiagnostics.shared.report(activePad: .crema) }
                 }

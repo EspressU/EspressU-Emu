@@ -44,7 +44,11 @@ struct CremaPad: View {
     let screens: CremaScreenState
     let enabled: Bool
     let topInset: CGFloat
+    /// While true, touches pick and drag individual controls instead of reaching the game.
+    var editing = false
+    var selection: Binding<CremaElement?> = .constant(nil)
 
+    @AppStorage(ControllerLayoutSettings.elementsKey) private var elementsJSON = ControllerLayoutSettings.defaultElements
     @AppStorage(ControllerLayoutSettings.scaleKey) private var scale = ControllerLayoutSettings.defaultScale
     @AppStorage(ControllerLayoutSettings.stickSpacingKey) private var stickSpacing = ControllerLayoutSettings.defaultStickSpacing
     @AppStorage(ControllerLayoutSettings.shoulderOffsetKey) private var shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
@@ -57,9 +61,11 @@ struct CremaPad: View {
             settings: CremaSettings(
                 scale: scale, stickSpacing: stickSpacing,
                 shoulderOffset: ControllerLayoutSettings.effectiveShoulderOffset(shoulderOffset),
-                deadzone: deadzone),
+                deadzone: deadzone,
+                elements: CremaElementOverrides(json: elementsJSON) ?? CremaElementOverrides()),
             opacity: opacity, haptics: haptics, enabled: enabled, topInset: topInset,
-            touchscreenFrame: screens.gamepad)
+            touchscreenFrame: screens.gamepad,
+            editing: editing, selection: selection, elementsJSON: $elementsJSON)
             .ignoresSafeArea()
     }
 }
@@ -71,6 +77,9 @@ private struct CremaRepresentable: UIViewRepresentable {
     let enabled: Bool
     let topInset: CGFloat
     let touchscreenFrame: CGRect?
+    let editing: Bool
+    let selection: Binding<CremaElement?>
+    let elementsJSON: Binding<String>
 
     func makeUIView(context: Context) -> CremaSurfaceView { CremaSurfaceView() }
 
@@ -81,6 +90,14 @@ private struct CremaRepresentable: UIViewRepresentable {
         view.topInset = topInset
         view.touchscreenFrame = touchscreenFrame
         view.isActive = enabled
+        view.selection = selection.wrappedValue
+        view.onSelect = { selection.wrappedValue = $0 }
+        view.onTweak = { element, tweak in
+            var all = CremaElementOverrides(json: elementsJSON.wrappedValue) ?? CremaElementOverrides()
+            all[element] = tweak
+            elementsJSON.wrappedValue = all.json
+        }
+        view.isEditing = editing
     }
 
     static func dismantleUIView(_ view: CremaSurfaceView, coordinator: ()) {

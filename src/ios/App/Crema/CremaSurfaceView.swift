@@ -28,6 +28,29 @@ final class CremaSurfaceView: UIView {
         }
     }
 
+    /// Edit mode: touches select and drag controls instead of reaching the game.
+    var isEditing = false {
+        didSet {
+            guard oldValue != isEditing else { return }
+            releaseEverything()
+            dragging = nil
+            refreshEditOverlay()
+        }
+    }
+    var selection: CremaElement? { didSet { if oldValue != selection { refreshEditOverlay() } } }
+    var onSelect: ((CremaElement?) -> Void)?
+    var onTweak: ((CremaElement, CremaElementTweak) -> Void)?
+
+    private struct Drag {
+        var touch: UITouch
+        var element: CremaElement
+        var startPoint: CGPoint
+        var startCentre: CGPoint
+    }
+
+    private var dragging: Drag?
+    private let editOverlay = CALayer()
+
     private enum Claim {
         case stick(side: CremaSide, began: TimeInterval, travel: CGFloat)
         case keys(Set<CremaKey>)
@@ -58,6 +81,7 @@ final class CremaSurfaceView: UIView {
         isMultipleTouchEnabled = true
         content.opacity = Float(padOpacity)
         layer.addSublayer(content)
+        layer.addSublayer(editOverlay)
     }
 
     @available(*, unavailable)
@@ -101,30 +125,52 @@ final class CremaSurfaceView: UIView {
             inner.strokeColor = UIColor.white.withAlphaComponent(0.22).cgColor
             inner.lineWidth = 1
             content.addSublayer(inner)
-            let knob = shape(CGPath(ellipseIn: circleRect(.zero, 0.7 * u), transform: nil), fill: Self.knobFill)
+            let knob = shape(CGPath(ellipseIn: circleRect(.zero, ring.knobRadius), transform: nil), fill: Self.knobFill)
             knob.position = ring.centre
             content.addSublayer(knob)
             knobLayers[ring.side] = knob
         }
 
-        addCross(layout.dpad, u: u)
+        addCross(layout.dpad, u: u * layout.dpad.scale)
 
-        for arm in layout.face.arms {
-            let centre = point(from: layout.face.centre, angle: arm.angle, distance: 1.3 * u)
-            addKey(arm.key, path: CGPath(ellipseIn: circleRect(centre, 0.58 * u), transform: nil),
-                   glyph: arm.key.label, glyphSize: 0.6 * u, glyphAt: centre)
+        for button in layout.faceButtons {
+            addKey(button.key, path: CGPath(ellipseIn: circleRect(button.centre, button.radius), transform: nil),
+                   glyph: button.key.label, glyphSize: button.radius * 0.6 / 0.58, glyphAt: button.centre)
         }
 
         let marks: [CremaKey: String] = [.minus: "\u{2212}", .plus: "+"]
         for pill in layout.pills {
+            let factor = pill.frame.height / (pill.isRound ? u : 0.95 * u)
             let path = pill.isRound
                 ? CGPath(ellipseIn: pill.frame, transform: nil)
-                : CGPath(roundedRect: pill.frame, cornerWidth: 0.32 * u, cornerHeight: 0.32 * u, transform: nil)
+                : CGPath(roundedRect: pill.frame, cornerWidth: 0.32 * u * factor, cornerHeight: 0.32 * u * factor, transform: nil)
             addKey(pill.key, path: path, glyph: marks[pill.key] ?? pill.key.label,
-                   glyphSize: pill.isRound ? 0.55 * u : 0.4 * u, glyphAt: CGPoint(x: pill.frame.midX, y: pill.frame.midY))
+                   glyphSize: (pill.isRound ? 0.55 * u : 0.4 * u) * factor, glyphAt: CGPoint(x: pill.frame.midX, y: pill.frame.midY))
         }
         CATransaction.commit()
         refreshVisuals()
+        refreshEditOverlay()
+    }
+
+    /// Dashed outlines around every control while editing, with the selected one picked out.
+    private func refreshEditOverlay() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        editOverlay.sublayers?.forEach { $0.removeFromSuperlayer() }
+        if isEditing {
+            for (element, frame) in layout.frames {
+                let chosen = element == selection
+                let box = frame.insetBy(dx: -layout.unit * 0.2, dy: -layout.unit * 0.2)
+                let outline = CAShapeLayer()
+                outline.path = CGPath(roundedRect: box, cornerWidth: layout.unit * 0.3, cornerHeight: layout.unit * 0.3, transform: nil)
+                outline.fillColor = chosen ? UIColor.systemYellow.withAlphaComponent(0.14).cgColor : UIColor.clear.cgColor
+                outline.strokeColor = chosen ? UIColor.systemYellow.cgColor : UIColor.white.withAlphaComponent(0.4).cgColor
+                outline.lineWidth = chosen ? 2.5 : 1
+                outline.lineDashPattern = chosen ? nil : [4, 3]
+                editOverlay.addSublayer(outline)
+            }
+        }
+        CATransaction.commit()
     }
 
     private static func glyphFont(_ size: CGFloat) -> UIFont {
@@ -275,7 +321,8 @@ final class CremaSurfaceView: UIView {
     }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        guard isActive, !isHidden, self.point(inside: point, with: event) else { return nil }
+        guard isActive || isEditing, !isHidden, self.point(inside: point, with: event) else { return nil }
+        if isEditing { return self }
         if layout.ring(at: point) != nil || !layout.keys(at: point).isEmpty { return self }
         if touchscreenLocal?.contains(point) == true { return self }
         return nil
@@ -284,23 +331,78 @@ final class CremaSurfaceView: UIView {
     // MARK: Touches
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isEditing { editBegan(touches); return }
         for touch in touches { begin(touch) }
         settle()
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isEditing { editMoved(touches); return }
         for touch in touches { move(touch) }
         settle()
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isEditing { editEnded(touches); return }
         for touch in touches { finish(touch, cancelled: false) }
         settle()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isEditing { editEnded(touches); return }
         for touch in touches { finish(touch, cancelled: true) }
         settle()
+    }
+
+    // MARK: Editing
+
+    private func element(at point: CGPoint) -> CremaElement? {
+        let slack = layout.unit * 0.25
+        return layout.frames
+            .filter { $0.value.insetBy(dx: -slack, dy: -slack).contains(point) }
+            .min { hypot(point.x - $0.value.midX, point.y - $0.value.midY) < hypot(point.x - $1.value.midX, point.y - $1.value.midY) }?
+            .key
+    }
+
+    private func editBegan(_ touches: Set<UITouch>) {
+        guard dragging == nil, let touch = touches.first else { return }
+        let p = touch.location(in: self)
+        guard let element = element(at: p), let frame = layout.frames[element] else {
+            selection = nil
+            onSelect?(nil)
+            return
+        }
+        selection = element
+        onSelect?(element)
+        dragging = Drag(touch: touch, element: element, startPoint: p, startCentre: CGPoint(x: frame.midX, y: frame.midY))
+    }
+
+    private func editMoved(_ touches: Set<UITouch>) {
+        guard let drag = dragging, touches.contains(drag.touch), layout.unit > 0 else { return }
+        let p = drag.touch.location(in: self)
+        let target = CGPoint(x: drag.startCentre.x + p.x - drag.startPoint.x, y: drag.startCentre.y + p.y - drag.startPoint.y)
+        var defaults = settings
+        defaults.elements = CremaElementOverrides()
+        let home = CremaLayout.make(size: bounds.size, safe: safeAreaInsets, topInset: topInset, settings: defaults)
+        guard let homeFrame = home.frames[drag.element] else { return }
+        let u = layout.unit
+        var tweak = settings.elements[drag.element]
+        tweak.x = Double((target.x - homeFrame.midX) / u)
+        tweak.y = Double((target.y - homeFrame.midY) / u)
+        // Let the layout clamp the move, then store what actually happened so the offset never runs past the edge.
+        var trial = settings
+        trial.elements[drag.element] = tweak
+        let placed = CremaLayout.make(size: bounds.size, safe: safeAreaInsets, topInset: topInset, settings: trial)
+        if let frame = placed.frames[drag.element] {
+            tweak.x = Double((frame.midX - homeFrame.midX) / u)
+            tweak.y = Double((frame.midY - homeFrame.midY) / u)
+        }
+        settings.elements[drag.element] = tweak
+        onTweak?(drag.element, tweak)
+    }
+
+    private func editEnded(_ touches: Set<UITouch>) {
+        if let drag = dragging, touches.contains(drag.touch) { dragging = nil }
     }
 
     private func claimedSticks() -> Set<CremaSide> {
