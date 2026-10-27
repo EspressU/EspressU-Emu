@@ -450,7 +450,7 @@ prudpClient::prudpClient(uint32 dstIp, uint16 dstPort, const char* key)
 	for (sint32 tries = 0; tries < 5; tries++)
 	{
 		m_srcPort = AllocateRandomSrcPRUDPPort();
-		m_socketUdp = socket(AF_INET, SOCK_DGRAM, 0);
+		m_socketUdp = (SOCKET)-1; // EspressU makes no network connections
 		struct sockaddr_in udpServer;
 		udpServer.sin_family = AF_INET;
 		udpServer.sin_addr.s_addr = INADDR_ANY;

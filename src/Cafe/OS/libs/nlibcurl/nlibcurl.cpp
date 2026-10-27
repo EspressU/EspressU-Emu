@@ -294,7 +294,7 @@ void CurlWorkerThread(CURL_t* curl, PPCConcurrentQueue<QueueMsg_t>* callerQueue,
 	resultMsg.order = QueueOrder_Result;
 
 	if (msg.order == QueueOrder_Perform)
-		resultMsg.result = ::curl_easy_perform(curl->curl);
+		resultMsg.result = CURLE_COULDNT_CONNECT; // EspressU makes no network requests
 	else if(msg.order == QueueOrder_Pause)
 		resultMsg.result = ::curl_easy_pause(curl->curl, msg.pause.bitmask);
 	else
@@ -515,6 +515,9 @@ CURLcode curl_global_init(uint32 flags)
 
 void export_curl_multi_init(PPCInterpreter_t* hCPU)
 {
+	// EspressU makes no network requests: the guest gets no handle.
+	osLib_returnFromFunction(hCPU, 0);
+	return;
 	CURLMPtr result{ PPCCoreCallback(g_nlibcurl.calloc, 1, ppcsizeof<CURLM_t>()) };
 	cemuLog_logDebug(LogType::Force, "curl_multi_init() -> 0x{:08x}", result.GetMPTR());
 	if (result)
@@ -813,6 +816,8 @@ void export_curl_share_cleanup(PPCInterpreter_t* hCPU)
 
 CURL_t* curl_easy_init()
 {
+	// EspressU makes no network requests: the guest gets no handle.
+	return nullptr;
 	if (g_nlibcurl.initialized == 0)
 	{
 		if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)

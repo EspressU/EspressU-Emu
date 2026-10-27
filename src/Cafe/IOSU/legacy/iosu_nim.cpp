@@ -243,7 +243,7 @@ namespace iosu
 			if (downloadsDisabled || onlineRequirements != IOS_CRYPTO_ONLINE_REQ_OK)
 			{
 				cemuLog_log(LogType::Force, "NIM: skipping the online update check ({})",
-					downloadsDisabled ? "not used by this title" : "otp.bin, seeprom.bin or the online certificates are missing");
+					downloadsDisabled ? "not used by this title" : "online services are not available");
 				g_nim.packages.clear();
 				g_nim.packageListReady = true;
 				return;

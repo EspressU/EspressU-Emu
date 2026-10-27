@@ -261,7 +261,7 @@ XMLConfigParser CemuConfig::Load(XMLConfigParser& parser)
 		NetworkService networkService = static_cast<NetworkService>(serviceIndex);
 		if (persistentId < Account::kMinPersistendId)
 			continue;
-		if(networkService == NetworkService::Offline || networkService == NetworkService::Nintendo || networkService == NetworkService::Pretendo || networkService == NetworkService::Custom)
+		if(networkService == NetworkService::Offline || networkService == NetworkService::Online1 || networkService == NetworkService::Online2 || networkService == NetworkService::Custom)
 			account.service_select.emplace(persistentId, networkService);
 	}
 	auto debug = parser.get("Debug");
@@ -513,22 +513,8 @@ void CemuConfig::SetGameListCustomName(uint64 titleId, std::string customName)
 
 NetworkService CemuConfig::GetAccountNetworkService(uint32 persistentId)
 {
-	auto it = account.service_select.find(persistentId);
-	if (it != account.service_select.end())
-	{
-		NetworkService serviceIndex = it->second;
-		if (serviceIndex != NetworkService::Offline &&
-			serviceIndex != NetworkService::Nintendo &&
-			serviceIndex != NetworkService::Pretendo &&
-			serviceIndex != NetworkService::Custom)
-			return NetworkService::Offline;
-		if( static_cast<NetworkService>(serviceIndex) == NetworkService::Custom && !NetworkConfig::XMLExists() )
-			return NetworkService::Offline;
-		return serviceIndex;
-	}
-	if(!account.legacy_online_enabled)
-		return NetworkService::Offline;
-	return static_cast<NetworkService>(account.legacy_active_service.GetValue() + 1);
+	// Online services are not part of this build.
+	return NetworkService::Offline;
 }
 
 void CemuConfig::SetAccountSelectedService(uint32 persistentId, NetworkService serviceIndex)

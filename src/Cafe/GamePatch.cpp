@@ -447,7 +447,7 @@ void GamePatch_scan()
 	}
 
 	const NetworkService service = ActiveSettings::GetNetworkService();
-	if (service != NetworkService::Nintendo
+	if (service != NetworkService::Online1
 		&& CafeSystem::GetForegroundTitleArgStr().ends_with("wave.rpx")
 		&& (hleAddr = hle_locate(miiverse_eshop_url_match_whitelist_func,
 			nullptr, sizeof(miiverse_eshop_url_match_whitelist_func))))

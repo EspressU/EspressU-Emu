@@ -258,7 +258,8 @@ bool CurlRequestHelper::submitRequest(bool isPost)
 	else
 		curl_easy_setopt(m_curl, CURLOPT_POST, 0);
 
-	int res = curl_easy_perform(m_curl);
+	// EspressU makes no network requests.
+	int res = CURLE_COULDNT_CONNECT;
 	if (res == CURLE_SSL_CONNECT_ERROR || res == CURLE_SSL_CERTPROBLEM || res == CURLE_PEER_FAILED_VERIFICATION || res == CURLE_SSL_CACERT_BADFILE)
 	{
 		static std::atomic_bool s_loggedTlsFailure{false};
@@ -270,9 +271,7 @@ bool CurlRequestHelper::submitRequest(bool isPost)
 	{
 		cemuLog_log(LogType::Force, "CURL web request failed with error {}. Retrying...", res);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		res = curl_easy_perform(m_curl);
-		if (res != CURLE_OK)
-			return false;
+		return false;
 	}
 
 	long httpCode = 0;
@@ -387,8 +386,8 @@ bool CurlSOAPHelper::submitRequest()
 	curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "EVL NUP 040800 Sep 18 2012 20:20:02");
 
-	auto res = curl_easy_perform(m_curl);
-	return res == CURLE_OK;
+	// EspressU makes no network requests.
+	return false;
 }
 
 namespace NAPI

@@ -65,30 +65,17 @@ bool ActiveSettings::DisplayDRCEnabled()
 
 CPUMode ActiveSettings::GetCPUMode()
 {
-#if BOOST_OS_IOS
+    // Interpreter only. The bridge picks one or three cores; anything else falls back to one core.
     if (g_current_game_profile)
     {
         const auto& profileMode = g_current_game_profile->GetCPUMode();
         if (profileMode && (*profileMode == CPUMode::SinglecoreInterpreter || *profileMode == CPUMode::MulticoreInterpreter))
             return *profileMode;
     }
-    return GetConfig().cpu_mode.GetValue();
-#else
-
-	auto mode = g_current_game_profile->GetCPUMode().value_or(CPUMode::Auto);
-
-	if (mode == CPUMode::Auto)
-	{
-		if (GetPhysicalCoreCount() >= 4)
-			mode = CPUMode::MulticoreRecompiler;
-		else
-			mode = CPUMode::SinglecoreRecompiler;
-	}
-	else if (mode == CPUMode::DualcoreRecompiler)
-		mode = CPUMode::MulticoreRecompiler;
-
-	return mode;
-#endif
+    const CPUMode configured = GetConfig().cpu_mode.GetValue();
+    if (configured == CPUMode::MulticoreInterpreter)
+        return configured;
+    return CPUMode::SinglecoreInterpreter;
 }
 
 uint8 ActiveSettings::GetTimerShiftFactor()
@@ -163,24 +150,18 @@ uint32 ActiveSettings::GetPersistentId()
 
 bool ActiveSettings::IsOnlineEnabled()
 {
-	if (GetConfig().GetAccountNetworkService(GetPersistentId()) == NetworkService::Custom)
-		return NetworkConfig::XMLExists();
-	if(!Account::GetAccount(GetPersistentId()).IsValidOnlineAccount())
-		return false;
-	if(!HasRequiredOnlineFiles())
-		return false;
-	NetworkService networkService = static_cast<NetworkService>(GetConfig().GetAccountNetworkService(GetPersistentId()));
-	return networkService == NetworkService::Nintendo || networkService == NetworkService::Pretendo || networkService == NetworkService::Custom;
+	// EspressU never connects to any service.
+	return false;
 }
 
 bool ActiveSettings::HasRequiredOnlineFiles()
 {
-	return s_has_required_online_files;
+	return false;
 }
 
 NetworkService ActiveSettings::GetNetworkService()
 {
-	return GetConfig().GetAccountNetworkService(GetPersistentId());
+	return NetworkService::Offline;
 }
 
 bool ActiveSettings::DumpShadersEnabled()

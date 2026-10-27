@@ -40,25 +40,3 @@ struct Account: Identifiable, Hashable {
         }
     }
 }
-
-struct AccountCountry: Identifiable, Hashable {
-    let code: Int
-    let name: String
-
-    var id: Int { code }
-
-    init?(fields: [Substring]) {
-        guard fields.count >= 2, let code = Int(fields[0]) else { return nil }
-
-        self.code = code
-        self.name = fields[1].isEmpty ? "\(code)" : String(fields[1])
-    }
-
-    static func loadAll() -> [AccountCountry] {
-        let raw = String(cString: cemu_bridge_countries_list())
-        guard !raw.isEmpty else { return [] }
-        return raw.split(separator: "\u{1E}").compactMap { record in
-            AccountCountry(fields: record.split(separator: "\u{1F}", omittingEmptySubsequences: false))
-        }
-    }
-}

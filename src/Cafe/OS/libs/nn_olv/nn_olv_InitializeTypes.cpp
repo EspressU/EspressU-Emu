@@ -163,15 +163,15 @@ namespace nn
 			std::string requestUrl;
 			switch (ActiveSettings::GetNetworkService())
 			{
-				case NetworkService::Pretendo:
-					requestUrl = PretendoURLs::OLVURL;
+				case NetworkService::Online2:
+					requestUrl = OfflineURLs::OLVURL;
 					break;
 				case NetworkService::Custom:
 					requestUrl = GetNetworkConfig().urls.OLV.GetValue();
 					break;
-				case NetworkService::Nintendo:
+				case NetworkService::Online1:
 				default:
-					requestUrl = NintendoURLs::OLVURL;
+					requestUrl = OfflineURLs::OLVURL;
 					break;
 			}
 
@@ -221,7 +221,7 @@ namespace nn
 
 			g_IsInitialized = true;
 
-			if(ActiveSettings::GetNetworkService() == NetworkService::Nintendo || (ActiveSettings::GetNetworkService() == NetworkService::Offline && (pParam->m_Flags & InitializeParam::FLAG_OFFLINE_MODE) == 0))
+			if(ActiveSettings::GetNetworkService() == NetworkService::Online1 || (ActiveSettings::GetNetworkService() == NetworkService::Offline && (pParam->m_Flags & InitializeParam::FLAG_OFFLINE_MODE) == 0))
 			{
 				g_IsOnlineMode = true;
 				g_IsOfflineDBMode = true;

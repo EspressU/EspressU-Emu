@@ -381,15 +381,15 @@ namespace iosu::boss
 			{
 				switch (ActiveSettings::GetNetworkService())
 				{
-				case NetworkService::Pretendo:
-					requestUrl = PretendoURLs::BOSSURL;
+				case NetworkService::Online2:
+					requestUrl = OfflineURLs::BOSSURL;
 					break;
 				case NetworkService::Custom:
 					requestUrl = GetNetworkConfig().urls.BOSS.GetValue();
 					break;
-				case NetworkService::Nintendo:
+				case NetworkService::Online1:
 				default:
-					requestUrl = NintendoURLs::BOSSURL;
+					requestUrl = OfflineURLs::BOSSURL;
 					break;
 				}
 			}

@@ -345,6 +345,14 @@ void nsysnetExport_socket(PPCInterpreter_t* hCPU)
 	ppcDefineParamS32(type, 1);
 	ppcDefineParamS32(protocol, 2);
 
+	// EspressU makes no network connections: sockets can not be created.
+	if (true)
+	{
+		_setSockError(0x2B);
+		osLib_returnFromFunction(hCPU, -1);
+		return;
+	}
+
 	if (sockLibReady == false)
 	{
 		_setSockError(0x2B);
@@ -1272,7 +1280,7 @@ void nsysnetExport_gethostbyname(PPCInterpreter_t* hCPU)
 
 	cemuLog_log(LogType::Socket, "gethostbyname(\"{}\")", name);
 
-	hostent* he = gethostbyname(name);
+	hostent* he = nullptr; // EspressU makes no network connections: no name lookups
 	if (he == NULL)
 	{
 		osLib_returnFromFunction(hCPU, MPTR_NULL);
@@ -1390,7 +1398,8 @@ void nsysnetExport_getaddrinfo(PPCInterpreter_t* hCPU)
 		hint.ai_protocol = 0;
 	}
 	struct addrinfo* result;
-	sint32 hr = getaddrinfo(nodeName, serviceName, &hint, &result);
+	sint32 hr = WSAHOST_NOT_FOUND; // EspressU makes no network connections: no name lookups
+	result = nullptr;
 	if (hr != 0)
 	{
 		cemuLog_log(LogType::Socket, "getaddrinfo failed with error {}", hr);
