@@ -3,14 +3,14 @@ name: EspressU
 options:
   bundleIdPrefix: dev.espressu
   deploymentTarget:
-    iOS: '15.0'
+    iOS: '17.4'
   xcodeVersion: '15.0'
 
 settings:
   PRODUCT_NAME: EspressU
   PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU
   SDKROOT: iphoneos
-  IPHONEOS_DEPLOYMENT_TARGET: '15.0'
+  IPHONEOS_DEPLOYMENT_TARGET: '17.4'
   CODE_SIGN_IDENTITY: iPhone Developer
   CODE_SIGN_ENTITLEMENTS: Cemu.entitlements
   SWIFT_OBJC_BRIDGING_HEADER: Bridge/Cemu-Bridging-Header.h
@@ -26,7 +26,7 @@ settings:
   INFOPLIST_FILE: 'Info-AlternateIcons.plist'
   INFOPLIST_KEY_UIRequiresFullScreen: 'YES'
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-  MARKETING_VERSION: '1.3'
+  MARKETING_VERSION: '1.4'
   CURRENT_PROJECT_VERSION: '1'
   INFOPLIST_KEY_CFBundleDisplayName: EspressU
   INFOPLIST_KEY_UILaunchScreen_Generation: 'YES'
@@ -47,7 +47,7 @@ targets:
   EspressU:
     type: application
     platform: iOS
-    deploymentTarget: '15.0'
+    deploymentTarget: '17.4'
 
     sources:
       - path: App
