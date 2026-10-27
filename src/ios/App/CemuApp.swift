@@ -46,7 +46,6 @@ struct CemuApp: App {
                 .espressuScrollEdgeBlurHidden()
                 .onValueChange(of: scenePhase) { phase in
                     if phase != .active {
-                        ControllerCustomLayout.shared.flushPending()
                         UserDefaults.standard.synchronize()
                     }
                 }

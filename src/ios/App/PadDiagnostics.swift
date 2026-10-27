@@ -18,9 +18,7 @@ final class PadDiagnostics: ObservableObject {
 
     enum ActivePad: String {
         case none = "none mounted"
-        case espressu = "EspressU pad"
-        case touchLab = "TouchLab pad"
-        case preview = "Preview pad (untested)"
+        case crema = "Crema"
     }
 
     @Published private(set) var activePad: ActivePad = .none
@@ -77,8 +75,6 @@ struct PadDiagnosticsOverlay: View {
     @ObservedObject private var diag = PadDiagnostics.shared
 
     let padControlsHidden: Bool
-    let previewPadEnabled: Bool
-    var touchLabScheme: String = ""
     let isEditingLayout: Bool
     let isPaused: Bool
 
@@ -94,7 +90,7 @@ struct PadDiagnosticsOverlay: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             row("pad", diag.activePad.rawValue,
-                warn: diag.activePad == .none || diag.activePad == .preview)
+                warn: diag.activePad == .none)
 
             row("inputs", "\(diag.inputCount)  last \(diag.lastInput)",
                 warn: diag.inputCount == 0)
@@ -110,24 +106,16 @@ struct PadDiagnosticsOverlay: View {
             Divider().background(Color.white.opacity(0.3))
 
             row("padHidden", padControlsHidden ? "YES" : "no", warn: padControlsHidden)
-            row("previewPad", previewPadEnabled ? "ON" : "off", warn: previewPadEnabled)
-            row("touchLab", touchLabScheme.isEmpty ? "off" : touchLabScheme, warn: false)
             row("editing", isEditingLayout ? "YES" : "no", warn: isEditingLayout)
             row("paused", isPaused ? "YES" : "no", warn: isPaused)
 
-            if diag.activePad == .preview {
-                Text("The experimental new pad is active. If controls don't respond, turn it off in Settings.")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.yellow)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: 240, alignment: .leading)
-            } else if buttonBindings == 0 {
+            if buttonBindings == 0 {
                 Text("The GamePad has no button bindings, so presses go nowhere while sticks still work. Settings > Controls > Controller buttons > Reset controller bindings.")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.yellow)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 240, alignment: .leading)
-            } else if diag.inputCount == 0 && diag.activePad == .espressu {
+            } else if diag.inputCount == 0 && diag.activePad == .crema {
                 Text("Pad is mounted but no touches are reaching it.")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.yellow)

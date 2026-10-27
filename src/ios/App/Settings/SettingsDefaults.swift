@@ -24,8 +24,6 @@ enum SettingsDefaults {
 
     private static let alwaysExcludedPrefixes = ["espressu.library.", "espressu.graphicPacks."]
 
-    private static let perGamePrefix = "espressu.touchlab.adaptive."
-
     private static let notPortableKeys: Set<String> = [
         PerGameSettingsStore.storageKey,
         "espressu.perGame.swappedGlobals",
@@ -43,7 +41,7 @@ enum SettingsDefaults {
         if alwaysExcludedKeys.contains(key) || notPortableKeys.contains(key) { return false }
         if alwaysExcludedPrefixes.contains(where: { key.hasPrefix($0) }) { return false }
         if notPortablePrefixes.contains(where: { key.hasPrefix($0) }) { return false }
-        return !key.hasPrefix(perGamePrefix)
+        return true
     }
 
     @MainActor
@@ -61,15 +59,12 @@ enum SettingsDefaults {
         for key in defaults.dictionaryRepresentation().keys where key.hasPrefix("espressu.") {
             if excluded.contains(key) { continue }
             if alwaysExcludedPrefixes.contains(where: { key.hasPrefix($0) }) { continue }
-            if !includingPerGameOverrides && key.hasPrefix(perGamePrefix) { continue }
             defaults.removeObject(forKey: key)
         }
         if includingPerGameOverrides {
             PerGameSettingsStore.shared.removeAllOverrides()
         }
         UIStyleStore.shared.reloadFromDefaults()
-        ControllerCustomLayout.shared.resetAll()
-        PreviewPadStore.shared.reloadFromDefaults()
         pushDefaultsToBridge()
         DevicePairing.shared.cancel()
         StikJITSetup.removePairingFile()

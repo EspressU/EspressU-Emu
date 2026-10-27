@@ -136,8 +136,6 @@ enum SettingsBackup {
         if !SettingsMode.isAdvanced { AdvancedSettings.clearAdvanced() }
 
         UIStyleStore.shared.reloadFromDefaults()
-        ControllerCustomLayout.shared.reloadFromDefaults()
-        PreviewPadStore.shared.reloadFromDefaults()
         DisplayRouter.shared.reapplyRenderScale(reason: "settings import")
         AdvancedSettings.applyToBridge()
         MotionSettings.applyToBridge()
@@ -212,7 +210,6 @@ enum SettingsBackup {
         OverrideGammaSetting.storageKey: OverrideGammaSetting.minValue...OverrideGammaSetting.maxValue,
         MotionSettings.sensitivityKey: MotionSettings.minSensitivity...MotionSettings.maxSensitivity,
         ControllerLayoutSettings.deadzoneKey: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
-        ControllerLayoutSettings.stickCurveKey: ControllerLayoutSettings.minStickCurve...ControllerLayoutSettings.maxStickCurve,
         ControllerLayoutSettings.scaleKey: ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale,
         ControllerLayoutSettings.opacityKey: 0.2...1.0,
     ]

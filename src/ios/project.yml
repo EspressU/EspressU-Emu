@@ -39,10 +39,6 @@ settings:
   INFOPLIST_KEY_NSLocalNetworkUsageDescription: 'EspressU pairs with this device for its built-in JIT, and connects to game servers on your local network when you use a custom server hosted at home.'
   INFOPLIST_KEY_NSHumanReadableCopyright: 'EspressU, built on Cemu'
 
-packages:
-  EspressUTouchLab:
-    path: Packages/EspressUTouchLab
-
 targets:
   EspressU:
     type: application
@@ -66,10 +62,6 @@ targets:
         type: group
 
     dependencies:
-      - package: EspressUTouchLab
-        product: TouchLabCore
-      - package: EspressUTouchLab
-        product: TouchLabUI
       - framework: ../../build-ios/out/Cemu.framework
         embed: true
       - framework: ../../dependencies/MoltenVK.xcframework

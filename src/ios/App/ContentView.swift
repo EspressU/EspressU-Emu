@@ -1366,7 +1366,6 @@ struct EmulatorViewOptimized: View {
     let game: GameMetadata
     @ObservedObject var gameManager: GameManager
     @Binding var isRunning: Bool
-    private let controllerSkin = WiiUControllerSkin.standard
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -1380,15 +1379,12 @@ struct EmulatorViewOptimized: View {
     @State private var padShownDespiteController = false
     @State private var pausedByLifecycle = false
     private static let titlePauseQueue = DispatchQueue(label: "espressu.title.pause", qos: .userInitiated)
-    @AppStorage(PreviewPadStore.enabledKey) private var previewPadEnabled = PreviewPadStore.defaultEnabled
-    @AppStorage(ControllerLayoutSettings.joystickKey) private var joystickMode = ControllerLayoutSettings.defaultJoystick
-    @State private var touchLabScreens = TouchLabScreenState()
+    @State private var cremaScreens = CremaScreenState()
     @State private var topBarHeight: CGFloat = 0
     @AppStorage(TopBarAutoHide.enabledKey) private var topBarAutoHideEnabled = TopBarAutoHide.defaultEnabled
     @State private var topBarHidden = false
     @GestureState private var topBarTouched = false
     @State private var voiceOverRunning = UIAccessibility.isVoiceOverRunning
-    @ObservedObject private var previewPad = PreviewPadStore.shared
     @AppStorage(DisplayLayoutSettings.showSwapButtonKey)
     private var showSwapButton = DisplayLayoutSettings.defaultShowSwapButton
     @ObservedObject private var displayRouter = DisplayRouter.shared
@@ -1420,36 +1416,8 @@ struct EmulatorViewOptimized: View {
         skylanderPortalEnabled || infinityBaseEnabled || dimensionsToypadEnabled
     }
 
-    private enum PadSystem {
-        case touchLab
-        case preview
-        case espressu
-    }
-
-    private var padSystem: PadSystem {
-        return .touchLab
-    }
-
     private var isPhonePortrait: Bool {
         UIDevice.current.userInterfaceIdiom == .phone && verticalSizeClass == .regular
-    }
-
-    @ViewBuilder private func belowPicture<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        let built = content()
-        if isPhonePortrait {
-            GeometryReader { geometry in
-                let pictures = visibleScreens.reduce(CGFloat(0)) { $0 + portraitScreenHeight(main: $1, in: geometry.size) }
-                let needed = ControllerGeometry.Portrait.minimumHeight(joystick: joystickMode)
-                let height = min(geometry.size.height, max(geometry.size.height - pictures, needed))
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    built
-                        .frame(height: height)
-                }
-            }
-        } else {
-            built
-        }
     }
 
     private var nativeOverlayActive: Bool {
@@ -1478,16 +1446,8 @@ struct EmulatorViewOptimized: View {
         }
     }
 
-    @ViewBuilder private var layoutPanel: some View {
-        let gameID = gameManager.currentGame?.settingsKey
-        switch padSystem {
-        case .touchLab:
-            TouchLabLayoutPanel(gameID: gameID, onDone: finishEditingLayout)
-        case .preview:
-            PreviewLayoutPanel(onDone: finishEditingLayout)
-        case .espressu:
-            EspressUPadLayoutPanel(onDone: finishEditingLayout)
-        }
+    private var layoutPanel: some View {
+        CremaLayoutPanel(onDone: finishEditingLayout)
     }
 
     private func finishEditingLayout() {
@@ -1611,61 +1571,7 @@ struct EmulatorViewOptimized: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            if padSystem == .preview {
-                GeometryReader { proxy in
-                    let insets = proxy.safeAreaInsets
-                    let full = proxy.frame(in: .local)
-                    let safeArea = CGRect(x: full.minX + insets.leading, y: full.minY + insets.top,
-                                          width: full.width - insets.leading - insets.trailing,
-                                          height: full.height - insets.top - insets.bottom)
-                    let resolved = previewPad.resolve(container: proxy.size, safeArea: safeArea,
-                                                      pointsPerInch: DeviceMetrics.current().pointsPerInch)
-                    let native = previewPad.effectiveDisplayMode(container: proxy.size) == .native
-                    ZStack(alignment: .topLeading) {
-                        MetalViewIOS(gameManager: gameManager)
-                    }
-                    .frame(width: native ? resolved.video.width : proxy.size.width,
-                          height: native ? resolved.video.height : proxy.size.height)
-                    .position(x: native ? resolved.video.midX : proxy.size.width / 2,
-                             y: native ? resolved.video.midY : proxy.size.height / 2)
-                    .clipped()
-
-                    if !padHidden {
-                        PreviewControllerPad(
-                            store: previewPad,
-                            onInput: { label, pressed in
-                                sendPadButton(label, pressed)
-                            },
-                            onStick: { stick, position in
-                                PadDiagnostics.shared.recordStick(stick, position)
-                                cemu_bridge_set_stick_axis(
-                                    stick == 0 ? CEMU_BRIDGE_STICK_LEFT : CEMU_BRIDGE_STICK_RIGHT,
-                                    Float(position.x), Float(position.y)
-                                )
-                            },
-                            isEditingLayout: $isEditingControlLayout
-                        )
-                        .onAppear { PadDiagnostics.shared.report(activePad: .preview) }
-                        .onDisappear { cemu_bridge_release_all_buttons() }
-                    }
-
-                    #if DEBUG
-                    VStack {
-                        Text("PAD DEBUG: \(PadDiagnostics.shared.lastInput) / \(PadDiagnostics.shared.lastStick)")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.yellow)
-                            .padding(6)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(6)
-                            .padding(.top, 4)
-                        Spacer()
-                    }
-                    .allowsHitTesting(false)
-                    #endif
-                }
-            } else {
-                screenLayoutComposition
-            }
+            screenLayoutComposition
 
             NativeCoreOverlayView(active: nativeOverlayActive, topInset: overlayTopInset)
 
@@ -1738,37 +1644,12 @@ struct EmulatorViewOptimized: View {
 
             if !padHidden {
                 Group {
-                if padSystem == .touchLab {
-                    TouchLabPadOverlay(
-                        gameID: gameManager.currentGame?.settingsKey,
-                        screens: touchLabScreens,
-                        enabled: !isPaused && !isEditingControlLayout,
-                        topInset: isPhonePortrait ? 0 : topBarHeight
-                    )
-                    .onAppear { PadDiagnostics.shared.report(activePad: .touchLab) }
-                } else if padSystem == .espressu {
-                    belowPicture {
-                    OptimizedControlPanel(
-                        skin: controllerSkin,
-                        onInput: { label, pressed in
-                            sendPadButton(label, pressed)
-                        },
-                        onStick: { stick, position in
-                            PadDiagnostics.shared.recordStick(stick, position)
-                            cemu_bridge_set_stick_axis(
-                                stick == 0 ? CEMU_BRIDGE_STICK_LEFT : CEMU_BRIDGE_STICK_RIGHT,
-                                Float(position.x),
-                                Float(position.y)
-                            )
-                        },
-                        isEditingLayout: $isEditingControlLayout,
-                        isPaused: isPaused,
-                        topInset: isPhonePortrait ? 0 : topBarHeight,
-                        portrait: isPhonePortrait
-                    )
-                    .onAppear { PadDiagnostics.shared.report(activePad: .espressu) }
-                    }
-                }
+                CremaPad(
+                    screens: cremaScreens,
+                    enabled: !isPaused && !isEditingControlLayout,
+                    topInset: isPhonePortrait ? 0 : topBarHeight
+                )
+                .onAppear { PadDiagnostics.shared.report(activePad: .crema) }
                 }
                 .dynamicTypeSize(...DynamicTypeSize.xLarge)
             }
@@ -1778,8 +1659,6 @@ struct EmulatorViewOptimized: View {
                     HStack {
                         PadDiagnosticsOverlay(
                             padControlsHidden: padHidden,
-                            previewPadEnabled: previewPadEnabled,
-                            touchLabScheme: TouchLabSettings.schemeID,
                             isEditingLayout: isEditingControlLayout,
                             isPaused: isPaused
                         )
@@ -2113,7 +1992,6 @@ struct EmulatorViewOptimized: View {
                 HStack(alignment: .top, spacing: 0) {
                     MetalViewIOS(gameManager: gameManager)
                         .frame(width: geometry.size.width - padWidth, height: geometry.size.height)
-                        .touchLabTVScreen()
 
                     padScreen
                         .frame(width: padWidth, height: padHeight)
@@ -2127,7 +2005,7 @@ struct EmulatorViewOptimized: View {
             }
         }
         .ignoresSafeArea(.all, edges: verticalSizeClass == .regular ? .horizontal : .all)
-        .trackTouchLabScreens($touchLabScreens, imageIsAspectFit: { !FrameStretch.isEnabled })
+        .trackCremaScreens($cremaScreens)
         .onAppear { updateVisibleOutputs() }
         .onValueChange(of: screenLayout) { _ in updateVisibleOutputs() }
         .onValueChange(of: localSwapped) { _ in updateVisibleOutputs() }
@@ -2160,7 +2038,7 @@ struct EmulatorViewOptimized: View {
     private func portraitScreenHeight(main: Bool, in size: CGSize) -> CGFloat {
         let full = size.width * 9.0 / 16.0
         guard !main, visibleScreens.count > 1 else { return full }
-        let room = size.height - full - ControllerGeometry.Portrait.minimumHeight(joystick: joystickMode)
+        let room = size.height - full - CremaLayout.portraitMinimumHeight
         return min(full, max(full * 0.55, room))
     }
 
@@ -2184,7 +2062,6 @@ struct EmulatorViewOptimized: View {
                             if padIsOnDeviceInDualScreen { sendPadTouch(value.location, down: false) }
                         }
                 )
-                .touchLabTVScreen()
         } else {
             padScreen
         }
@@ -2201,7 +2078,7 @@ struct EmulatorViewOptimized: View {
                     .onChanged { value in sendPadTouch(value.location, down: true) }
                     .onEnded { value in sendPadTouch(value.location, down: false) }
             )
-            .touchLabGamePadScreen()
+            .cremaGamePadScreen()
     }
 
     private func sendPadTouch(_ location: CGPoint, down: Bool) {
@@ -2236,44 +2113,6 @@ private struct HideSystemOverlaysIfAvailable: ViewModifier {
 private extension View {
     func hidingSystemOverlaysDuringPlay() -> some View {
         modifier(HideSystemOverlaysIfAvailable())
-    }
-}
-
-@MainActor private func sendPadButton(_ label: String, _ pressed: Bool) {
-    PadDiagnostics.shared.recordInput(label, pressed)
-    if label == "HOME" {
-        HomeMenuRouter.shared.padHome(pressed: pressed)
-        return
-    }
-    cemu_bridge_set_button_state(cemuBridgeButton(forLabel: label), pressed)
-}
-
-private func cemuBridgeButton(forLabel label: String) -> CemuBridgeButton {
-    switch label {
-    case "up":    return CEMU_BRIDGE_BUTTON_UP
-    case "down":  return CEMU_BRIDGE_BUTTON_DOWN
-    case "left":  return CEMU_BRIDGE_BUTTON_LEFT
-    case "right": return CEMU_BRIDGE_BUTTON_RIGHT
-
-    case "A": return CEMU_BRIDGE_BUTTON_A
-    case "B": return CEMU_BRIDGE_BUTTON_B
-    case "X": return CEMU_BRIDGE_BUTTON_X
-    case "Y": return CEMU_BRIDGE_BUTTON_Y
-
-    case "L":  return CEMU_BRIDGE_BUTTON_L
-    case "R":  return CEMU_BRIDGE_BUTTON_R
-    case "ZL": return CEMU_BRIDGE_BUTTON_ZL
-    case "ZR": return CEMU_BRIDGE_BUTTON_ZR
-
-    case "plus":  return CEMU_BRIDGE_BUTTON_PLUS
-    case "minus": return CEMU_BRIDGE_BUTTON_MINUS
-
-    case "L3": return CEMU_BRIDGE_BUTTON_STICK_L
-    case "R3": return CEMU_BRIDGE_BUTTON_STICK_R
-
-    case "HOME": return CEMU_BRIDGE_BUTTON_HOME
-
-    default: return CEMU_BRIDGE_BUTTON_NONE
     }
 }
 
