@@ -18,6 +18,8 @@ struct EspressUSettingsView: View {
 
     @State var category: SettingsCategory = .jit
     @State var showingCategory = false
+    /// Set just before dismissing, so the tint is gone at once instead of fading out over the library.
+    @State var leaving = false
     @State var legacy: LegacySettingsPage?
     @State var focus: String?
     @State var sidebarFocused = true
@@ -54,8 +56,8 @@ struct EspressUSettingsView: View {
                     .ignoresSafeArea()
                 // On phones the category list has no category open yet, so it gets no tint.
                 settingsBackdrop
-                    .opacity(wide || showingCategory || legacy != nil ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.25), value: showingCategory)
+                    .opacity(!leaving && (wide || showingCategory || legacy != nil) ? 1 : 0)
+                    .animation(leaving ? nil : .easeInOut(duration: 0.25), value: showingCategory)
 
                 Group {
                     if wide {
@@ -135,6 +137,9 @@ struct EspressUSettingsView: View {
     }
 
     func close() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { leaving = true }
         ControllerMappingSession.shared.cancel()
         input.stop()
         dismiss()
