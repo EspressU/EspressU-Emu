@@ -114,7 +114,7 @@ struct GameInfoSections: View {
                 showingPicker = true
             } label: {
                 Label("Wrong game? Choose\u{2026}", systemImage: "magnifyingglass")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
         } header: {
             SettingsSectionHeader("Match", icon: "link", accent: .content)
@@ -128,7 +128,7 @@ struct GameInfoSections: View {
             if let url = info.gameTdbURL {
                 Link(destination: url) {
                     Label("Open this game on GameTDB", systemImage: "safari")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
             }
             Text("Game data and covers from GameTDB (gametdb.com). Box art \u{00A9} respective publishers.")
@@ -148,13 +148,13 @@ struct GameInfoSections: View {
                     data.scrape(games: gameManager.games)
                 } label: {
                     Label("Scrape now", systemImage: "arrow.down.doc")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 Button {
                     showingPicker = true
                 } label: {
                     Label("Choose the game\u{2026}", systemImage: "magnifyingglass")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
             }
             if let error = data.scrapeError {
@@ -195,7 +195,7 @@ struct GameMatchPickerView: View {
     private var results: [TitleIndexRecord] { data.search(query, preferring: regions) }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             List {
                 if !data.hasTitleIndex {
                     Section {
@@ -213,7 +213,7 @@ struct GameMatchPickerView: View {
                                 choose(nil)
                             } label: {
                                 Label("Go back to automatic matching", systemImage: "arrow.uturn.backward")
-                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .font(.subheadline.weight(.semibold))
                             }
                         }
                     }
@@ -222,7 +222,7 @@ struct GameMatchPickerView: View {
                             Button { choose(rec.id) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(rec.titles.first ?? rec.id)
-                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        .font(.subheadline.weight(.semibold))
                                         .foregroundColor(EspressUTheme.brownDarkest)
                                     Text("\(RegionCode(rawValue: rec.region)?.name ?? rec.region), \(rec.id)")
                                         .font(.system(size: 12)).foregroundColor(EspressUTheme.secondaryText)
@@ -249,7 +249,6 @@ struct GameMatchPickerView: View {
             }
             .onAppear { if query.isEmpty { query = game.displayTitle ?? game.cardName.name } }
         }
-        .navigationViewStyle(.stack)
     }
 
     private func choose(_ tdbID: String?) {

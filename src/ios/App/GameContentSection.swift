@@ -28,7 +28,7 @@ struct GameContentSection: View {
                     ProgressView()
                         .scaleEffect(0.8, anchor: .center)
                     Text("Adding content...")
-                        .font(.system(size: 13, design: .rounded))
+                        .font(.footnote)
                 }
             } else {
                 Menu {
@@ -44,7 +44,7 @@ struct GameContentSection: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Packing into one .wua... \(progress.filesWritten) files, "
                         + ByteCountFormatter.string(fromByteCount: Int64(progress.bytesWritten), countStyle: .file))
-                        .font(.system(size: 13, design: .rounded))
+                        .font(.footnote)
                     Button("Cancel", role: .destructive) { cemu_bridge_cancel_decrypt() }
                 }
             } else {
@@ -64,12 +64,12 @@ struct GameContentSection: View {
             }
             if let message {
                 Text(message)
-                    .font(.system(size: 12, design: .rounded))
+                    .font(.caption)
                     .foregroundColor(EspressUTheme.secondaryText)
             }
             if let importMessage {
                 Text(importMessage)
-                    .font(.system(size: 12, design: .rounded))
+                    .font(.caption)
                     .foregroundColor(EspressUTheme.secondaryText)
             }
         } header: {

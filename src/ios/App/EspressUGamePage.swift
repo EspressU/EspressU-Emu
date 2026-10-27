@@ -46,8 +46,7 @@ struct EspressUGamePage: View {
         GeometryReader { geo in
             let wide = geo.size.width >= 700
             ZStack {
-                EspressUBackground()
-                    .ignoresSafeArea()
+                EspressUCoverGround(coverPath: live.coverPath)
                 if wide {
                     HStack(alignment: .top, spacing: 36) {
                         ScrollView(showsIndicators: false) {
@@ -121,18 +120,18 @@ struct EspressUGamePage: View {
         VStack(spacing: 18) {
             EspressUCover(game: live, radius: 30)
                 .frame(width: coverSide, height: coverSide)
-                .shadow(color: EspressUTheme.shadow.opacity(0.35), radius: 22, y: 10)
+                .shadow(color: Color.black.opacity(0.18), radius: 12, y: 4)
                 .accessibilityHidden(true)
 
             VStack(spacing: 6) {
                 Text(live.cardName.name)
-                    .font(.system(size: isWide ? 28 : 25, weight: .heavy, design: .rounded))
+                    .font(isWide ? .title.bold() : .title2.bold())
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 if let by = info?.publisher ?? info?.developer {
                     Text(by)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                 }
                 chips
@@ -144,7 +143,7 @@ struct EspressUGamePage: View {
                         Image(systemName: "play.fill")
                         Text("Play")
                     }
-                    .font(.system(size: 19, weight: .heavy, design: .rounded))
+                    .font(.headline)
                     .foregroundColor(EspressUTheme.onCremaTop)
                     .frame(maxWidth: 300, minHeight: 52)
                     .background(EspressUTheme.cremaTopGradient, in: Capsule())
@@ -160,7 +159,7 @@ struct EspressUGamePage: View {
                         Text(live.isFavorite ? "Favourite" : "Add to favourites")
                             .foregroundColor(EspressUTheme.brownDarkest)
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.body.weight(.semibold))
                     .frame(maxWidth: 300, minHeight: 46)
                     .espressUSurface(Capsule())
                 }
@@ -179,12 +178,12 @@ struct EspressUGamePage: View {
         return HStack(spacing: 8) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 Label(item.1, systemImage: item.0)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownMid)
                     .lineLimit(1)
                     .padding(.horizontal, 11)
                     .padding(.vertical, 6)
-                    .background(EspressUTheme.wrapper, in: Capsule())
+                    .background(Color.white.opacity(0.08), in: Capsule())
             }
         }
         .padding(.top, 4)
@@ -235,11 +234,11 @@ struct EspressUGamePage: View {
             ForEach(Array(tiles.enumerated()), id: \.offset) { _, stat in
                 VStack(alignment: .leading, spacing: 4) {
                     Label(stat.1, systemImage: stat.0)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                         .lineLimit(1)
                     Text(stat.2)
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -247,8 +246,7 @@ struct EspressUGamePage: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+                .espressUSurface(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
         }
     }
@@ -256,31 +254,30 @@ struct EspressUGamePage: View {
     private var aboutCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("ABOUT")
-                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                .font(.footnote.weight(.semibold))
                 .tracking(0.6)
                 .foregroundColor(EspressUTheme.brownMid)
             if let text = info?.bestSynopsis?.text {
                 Text(text)
-                    .font(.system(size: 16, design: .rounded))
+                    .font(.body)
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .lineLimit(showsWholeSummary ? nil : 4)
                     .fixedSize(horizontal: false, vertical: true)
                 Button(showsWholeSummary ? "Less" : "More") {
                     withAnimation(.easeOut(duration: 0.2)) { showsWholeSummary.toggle() }
                 }
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(EspressUTheme.accentText)
             } else {
                 Text("GameTDB has nothing on this game yet. Choose the right entry under Game info to get its summary and details.")
-                    .font(.system(size: 15, design: .rounded))
+                    .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+        .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private var groups: [SettingsGroup] {

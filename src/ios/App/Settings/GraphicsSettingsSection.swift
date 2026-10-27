@@ -155,7 +155,7 @@ struct GraphicsSettingsSection: View {
     private var rendererPicker: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Renderer")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
             Picker("Renderer", selection: $rendererRaw) {
                 ForEach(RendererAPI.allCases) { api in
                     Text(api.title).tag(api.rawValue)
@@ -188,7 +188,7 @@ struct GraphicsSettingsSection: View {
     private var moltenVKPicker: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("MoltenVK")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
             Picker("MoltenVK", selection: $moltenVKRaw) {
                 ForEach(MoltenVKBuild.allCases) { build in
                     Text(build.title).tag(build.rawValue)
@@ -235,7 +235,7 @@ struct GraphicsSettingsSection: View {
         Toggle(isOn: $fullSpeedRenders) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Steady frame rate")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                 Text(fullSpeedRenders
                      ? "Rendering comes first: steady frames at the game's own Wii U frame rate, never faster."
                      : "Off: frames are shown the moment they're ready.")
@@ -279,7 +279,7 @@ struct GraphicsSettingsSection: View {
     private var stretchToggle: some View {
         Toggle(isOn: $frameStretchEnabled) {
             Text("Stretch picture to fill the screen")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: frameStretchEnabled) { newValue in
@@ -290,7 +290,7 @@ struct GraphicsSettingsSection: View {
     private var upsideDownToggle: some View {
         Toggle(isOn: $upsideDownEnabled) {
             Text("Flip screen upside down")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: upsideDownEnabled) { newValue in
@@ -302,7 +302,7 @@ struct GraphicsSettingsSection: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Display gamma")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text(String(format: "%.1f", displayGamma))
                     .font(.system(size: 13, design: .monospaced))
@@ -322,7 +322,7 @@ struct GraphicsSettingsSection: View {
     private var framebufferFetchToggle: some View {
         Toggle(isOn: $framebufferFetchEnabled) {
             Text("Fast blending")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: framebufferFetchEnabled) { newValue in
@@ -333,7 +333,7 @@ struct GraphicsSettingsSection: View {
     private var overrideGammaToggle: some View {
         Toggle(isOn: $overrideAppGammaEnabled) {
             Text("Override the game's gamma")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: overrideAppGammaEnabled) { newValue in
@@ -345,7 +345,7 @@ struct GraphicsSettingsSection: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Override gamma")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text(String(format: "%.1f", overrideGammaValue))
                     .font(.system(size: 13, design: .monospaced))

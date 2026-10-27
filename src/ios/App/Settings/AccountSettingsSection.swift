@@ -133,7 +133,7 @@ struct NetworkServiceSettingsSection: View {
     var body: some View {
         Section {
             Text(readinessLine)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
 
             DeviceConnectionStatusRow()
 
@@ -142,7 +142,7 @@ struct NetworkServiceSettingsSection: View {
                     .navigationTitle("Custom servers")
             } label: {
                 Label("Custom servers", systemImage: "server.rack")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
 
             ForEach(NetworkService.allCases) { service in

@@ -249,7 +249,7 @@ struct LaunchIntroView: View {
         VStack {
             Spacer()
             Text("Tap to skip")
-                .font(.system(.footnote, design: .rounded).weight(.semibold))
+                .font(.system(.footnote).weight(.semibold))
                 .foregroundColor(.white.opacity(0.6))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)

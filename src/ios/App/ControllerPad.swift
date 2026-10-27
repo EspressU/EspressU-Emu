@@ -414,7 +414,7 @@ private struct ControlButton: View {
             ZStack {
                 shape(isPressed: isPressed)
                 Text(control.glyph)
-                    .font(.system(size: fontSize, weight: .bold, design: .rounded))
+                    .font(.system(size: fontSize, weight: .bold))
                     .foregroundColor(labelColor)
             }
             .frame(width: size.width, height: size.height)

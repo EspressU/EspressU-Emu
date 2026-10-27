@@ -471,7 +471,7 @@ extension EspressUSettingsView {
     }
 
     private var systemGroups: [SettingsGroup] {
-        var look: [SettingsItem] = [
+        let look: [SettingsItem] = [
             SettingsItem(id: "sys.appearance", title: "Appearance", detail: "Follows the device, or always light or dark.",
                          control: .choice([SettingsOption(id: "system", title: "Device"),
                                            SettingsOption(id: "light", title: "Light"),
@@ -480,11 +480,6 @@ extension EspressUSettingsView {
                                               EspressUAppearance.applyToWindows()
                                           })),
         ]
-        if #available(iOS 26.0, *) {
-            look.append(SettingsItem(id: "sys.glass", title: "Glass effects", detail: "Liquid Glass on bars and panels.",
-                                     control: .toggle(values.custom(get: { !uiStyle.disableLiquidGlass },
-                                                                    set: { uiStyle.disableLiquidGlass = !$0 }))))
-        }
 
         let help: [SettingsItem] = [
             SettingsItem(id: "sys.guide", title: "Show the welcome guide again",

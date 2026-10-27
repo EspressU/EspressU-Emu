@@ -23,13 +23,13 @@ struct SettingsBackupSection: View {
                     exportSettings()
                 } label: {
                     Label("Export all settings", systemImage: "square.and.arrow.up")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 Button {
                     chooseFile()
                 } label: {
                     Label("Import settings", systemImage: "square.and.arrow.down")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 if let message {
                     Text(message)

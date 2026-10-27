@@ -265,7 +265,7 @@ struct CommunityServersSection: View {
         Section {
             VStack(alignment: .leading, spacing: 6) {
                 Text("MH3U Revival")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                 Text("A self-hosted server for Monster Hunter 3 Ultimate, made for Cemu. It doesn't need a Wii U or a console dump. Someone runs the host on a computer and gives you a network_services.xml, which you import above.")
                     .font(.footnote)
                     .foregroundColor(EspressUTheme.secondaryText)
@@ -302,7 +302,7 @@ struct CustomServerFormView: View {
     }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             Form {
                 Section("Name") {
                     TextField("Server name", text: $addresses.name)

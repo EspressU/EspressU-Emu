@@ -109,7 +109,7 @@ private enum OnboardingHero {
             EmptyView()
         case .mark:
             EspressULogo(side: 132)
-                .shadow(color: EspressUTheme.shadow.opacity(0.25), radius: 16, x: 0, y: 8)
+                .shadow(color: EspressUTheme.shadow.opacity(0.12), radius: 16, x: 0, y: 8)
                 .padding(.bottom, 4)
         case .symbol(let name):
             ZStack {
@@ -119,7 +119,7 @@ private enum OnboardingHero {
                     .foregroundColor(EspressUTheme.accentText)
             }
             .frame(width: 72, height: 72)
-            .shadow(color: EspressUTheme.shadow.opacity(0.18), radius: 10, x: 0, y: 4)
+            .shadow(color: EspressUTheme.shadow.opacity(0.09), radius: 10, x: 0, y: 4)
             .accessibilityHidden(true)
         }
     }
@@ -138,13 +138,13 @@ private struct OnboardingPageScaffold<Content: View>: View {
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Text(title)
-                    .font(.system(.title, design: .rounded).weight(.bold))
+                    .font(.system(.title).weight(.bold))
                     .foregroundColor(EspressUTheme.onBackground)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
 
                 Text(subtitle)
-                    .font(.system(.body, design: .rounded))
+                    .font(.system(.body))
                     .foregroundColor(EspressUTheme.onBackgroundMuted)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -172,7 +172,7 @@ private struct OnboardingFactRow: View {
                 .frame(width: 22)
                 .accessibilityHidden(true)
             Text(text)
-                .font(.system(.body, design: .rounded))
+                .font(.system(.body))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -214,20 +214,20 @@ private struct OnboardingKeysPage: View {
 
                     if hasKeys {
                         Text("\(keyCount) key\(keyCount == 1 ? "" : "s") loaded")
-                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                            .font(.system(.subheadline).weight(.semibold))
                             .foregroundColor(EspressUTheme.brownMid)
                     }
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(.footnote, design: .rounded))
+                            .font(.system(.footnote))
                             .foregroundColor(EspressUTheme.alertText)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Button(action: onSkip) {
                         Text("Skip - I only play homebrew")
-                            .font(.system(.footnote, design: .rounded))
+                            .font(.system(.footnote))
                             .underline()
                     }
                     .buttonStyle(.plain)
@@ -290,13 +290,13 @@ private struct OnboardingGamesPage: View {
                             ProgressView()
                             Text("Copying \(name)\u{2026}")
                         }
-                        .font(.system(.footnote, design: .rounded))
+                        .font(.system(.footnote))
                         .foregroundColor(EspressUTheme.brownMid)
                     }
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(.footnote, design: .rounded))
+                            .font(.system(.footnote))
                             .foregroundColor(EspressUTheme.alertText)
                             .fixedSize(horizontal: false, vertical: true)
                     }

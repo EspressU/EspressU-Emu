@@ -57,12 +57,12 @@ struct LaunchLogView: View {
                     .foregroundColor(EspressUTheme.accentOnDark)
 
                 Text("Launch log")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .font(.caption.weight(.semibold))
                     .foregroundColor(.white.opacity(0.9))
 
                 if store.droppedLines > 0 {
                     Text("\(store.droppedLines) earlier lines dropped")
-                        .font(.system(size: 10, weight: .regular, design: .rounded))
+                        .font(.caption2)
                         .foregroundColor(EspressUTheme.alertOnDark)
                 }
 

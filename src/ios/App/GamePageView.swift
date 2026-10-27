@@ -66,7 +66,7 @@ struct GamePageView: View {
     private var sideBySide: Bool { horizontalSizeClass == .regular || verticalSizeClass == .compact }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
                 Form {
@@ -105,7 +105,6 @@ struct GamePageView: View {
                 Text(live.removeConfirmMessage)
             }
         }
-        .navigationViewStyle(.stack)
         .foregroundColor(EspressUTheme.brownDarkest)
         .onAppear {
             loadSizes()
@@ -149,26 +148,26 @@ struct GamePageView: View {
         }
         .frame(width: width, height: width * 4 / 3)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: EspressUTheme.shadow.opacity(0.3), radius: 14, x: 0, y: 8)
+        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 14, x: 0, y: 8)
         .accessibilityHidden(true)
     }
 
     private func titleBlock(alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 5) {
             Text(live.cardName.name)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.title2.weight(.bold))
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
                 .fixedSize(horizontal: false, vertical: true)
             if let info = data.info(for: game.id), let by = info.publisher ?? info.developer {
                 Text(by)
-                    .font(.system(size: 14, design: .rounded))
+                    .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
             }
             Label(live.region ?? "Region unknown", systemImage: "globe")
-                .font(.system(size: 13, design: .rounded))
+                .font(.footnote)
                 .foregroundColor(EspressUTheme.brownMid)
             Text(installLine)
-                .font(.system(size: 12, design: .rounded))
+                .font(.caption)
                 .foregroundColor(EspressUTheme.secondaryText)
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
                 .lineLimit(2)
@@ -181,7 +180,7 @@ struct GamePageView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "play.fill").font(.system(size: 18, weight: .bold))
-                Text("Play").font(.system(size: 20, weight: .bold, design: .rounded))
+                Text("Play").font(.title3.weight(.semibold))
             }
             .frame(maxWidth: .infinity, minHeight: 36)
         }
@@ -306,7 +305,7 @@ struct GamePageView: View {
     private func rowLabel(_ title: String, systemImage: String, chevron: Bool = false) -> some View {
         HStack {
             Label(title, systemImage: systemImage)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
             if chevron {
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right")

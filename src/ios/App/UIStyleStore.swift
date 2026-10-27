@@ -47,12 +47,9 @@ final class UIStyleStore: ObservableObject {
     }
 }
 
+/// The flat, system-styled look is the only look. The stored flags are kept so old backups still decode.
 enum UIStyle {
-    static var isClassic: Bool { UIStyleStore.shared.useClassicUI }
-
-    static var glassDisabled: Bool {
-        UIStyleStore.shared.disableLiquidGlass || UIStyleStore.shared.useClassicUI
-    }
-
-    static var allowsLiquidGlass: Bool { !glassDisabled }
+    static var isClassic: Bool { true }
+    static var glassDisabled: Bool { true }
+    static var allowsLiquidGlass: Bool { false }
 }

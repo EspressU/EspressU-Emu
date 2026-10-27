@@ -19,7 +19,7 @@ struct BootBackButton: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))
                         Text("Back")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .padding(.horizontal, 14)

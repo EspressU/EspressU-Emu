@@ -95,7 +95,7 @@ struct GameShaderCacheSection: View {
                         confirmClear = true
                     } label: {
                         Label("Clear this game's shaders", systemImage: "arrow.counterclockwise")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                     .disabled(learnedBytes <= 0 && compiledBytes <= 0)
                     if isAdvanced {
@@ -103,7 +103,7 @@ struct GameShaderCacheSection: View {
                             exportShaders()
                         } label: {
                             Label("Export this game's shaders", systemImage: "square.and.arrow.up")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         .disabled(exportableFiles.isEmpty)
                     }

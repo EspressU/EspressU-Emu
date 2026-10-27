@@ -263,7 +263,7 @@ struct LibraryRenameSheet: View {
     private var installDescription: String { game.installLabel ?? "" }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             Form {
                 Section {
                     TextField("Name", text: $text)
@@ -296,7 +296,6 @@ struct LibraryRenameSheet: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 }
 
@@ -375,10 +374,10 @@ struct LibrarySectionHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
             Text("\(count)")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(.caption.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownMid)
             Spacer()
         }
@@ -461,7 +460,7 @@ private func libraryCardChrome<V: View>(_ view: V, radius: CGFloat = 16) -> some
             RoundedRectangle(cornerRadius: radius, style: .continuous)
                 .stroke(EspressUTheme.wrapper, lineWidth: 1)
         )
-        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+        .shadow(color: EspressUTheme.shadow.opacity(0.07), radius: 8, x: 0, y: 4)
 }
 
 struct LibraryCard<Options: View>: View {
@@ -528,12 +527,12 @@ struct LibraryLargeCoverCard<Options: View>: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(name.name)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                         .lineLimit(2)
                         .foregroundColor(EspressUTheme.brownDarkest)
                     if let region = game.region {
                         Label(region, systemImage: "globe")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.caption)
                             .foregroundColor(EspressUTheme.brownMid)
                     }
                     if let label = game.installLabel { LibraryInstallLine(text: label, size: 12) }
@@ -574,7 +573,7 @@ struct LibraryCompactCard<Options: View>: View {
                     .padding(.leading, -6)
             }
             Text(name.name)
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .font(.caption2.weight(.semibold))
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .foregroundColor(EspressUTheme.brownDarkest)
@@ -582,7 +581,7 @@ struct LibraryCompactCard<Options: View>: View {
             if let label = game.installLabel { LibraryInstallLine(text: label, size: 10, centered: true) }
             LibraryExternalLine(game: game, size: 10, centered: true)
         }
-        .shadow(color: EspressUTheme.shadow.opacity(0.12), radius: 4, x: 0, y: 2)
+        .shadow(color: EspressUTheme.shadow.opacity(0.06), radius: 4, x: 0, y: 2)
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
     }
@@ -624,14 +623,14 @@ struct LibraryListRow<Options: View>: View {
                             .frame(width: 56 * listScale, height: 74 * listScale)
                         VStack(alignment: .leading, spacing: 3) {
                             Text(name.name)
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if let label = game.installLabel { LibraryInstallLine(text: label, size: 12) }
                             LibraryExternalLine(game: game, size: 12)
                             Text(detailLine)
-                                .font(.system(size: 12, weight: .regular, design: .rounded))
+                                .font(.caption)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                                 .foregroundColor(EspressUTheme.brownMid)
@@ -726,7 +725,7 @@ struct LibraryInstallLine: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: size, weight: .medium, design: .rounded))
+            .font(.system(size: size, weight: .medium))
             .foregroundColor(EspressUTheme.brownMid)
             .lineLimit(2)
             .multilineTextAlignment(centered ? .center : .leading)
@@ -743,7 +742,7 @@ struct LibraryExternalLine: View {
         if game.isExternal {
             Label(game.isUnavailable ? ExternalLibrary.unavailableMessage : "External",
                   systemImage: game.isUnavailable ? "externaldrive.badge.exclamationmark" : "externaldrive")
-                .font(.system(size: size, weight: .medium, design: .rounded))
+                .font(.system(size: size, weight: .medium))
                 .foregroundColor(game.isUnavailable ? EspressUTheme.alertText : EspressUTheme.brownMid)
                 .lineLimit(2)
                 .multilineTextAlignment(centered ? .center : .leading)

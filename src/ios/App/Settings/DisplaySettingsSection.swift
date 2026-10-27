@@ -62,7 +62,7 @@ struct DisplaySettingsSection: View {
                 Toggle(isOn: $showLocalSwapButton) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show swap button")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text("A small button on screen to switch between the TV and GamePad screens.")
                             .font(.system(size: 12))
                             .foregroundColor(EspressUTheme.secondaryText)
@@ -74,7 +74,7 @@ struct DisplaySettingsSection: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Brightness boost")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Spacer()
                     Text(BrightnessBoost.label(for: brightnessBoost))
                         .font(.system(size: 13))
@@ -95,7 +95,7 @@ struct DisplaySettingsSection: View {
             Toggle(isOn: $maxBrightnessWhilePlaying) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Max screen brightness while playing")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text("Sets your screen to full brightness during a game and puts it back afterwards.")
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
@@ -106,7 +106,7 @@ struct DisplaySettingsSection: View {
             Toggle(isOn: $externalDisplaySystemEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Use an external display")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text("Experimental. Turn it on before connecting a second screen.")
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
@@ -121,7 +121,7 @@ struct DisplaySettingsSection: View {
                 Toggle(isOn: $swapScreens) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("GamePad screen on the external display")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text(swapScreens
                              ? "On: the external display shows the GamePad screen."
                              : "Off: the external display shows the TV screen.")
@@ -137,7 +137,7 @@ struct DisplaySettingsSection: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text("When a TV is connected, this device shows")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Spacer()
                         Picker("When a TV is connected, this device shows", selection: $deviceShows) {
                             ForEach(DeviceScreenMode.allCases) { mode in
@@ -159,7 +159,7 @@ struct DisplaySettingsSection: View {
                 Toggle(isOn: $showSwapButton) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show swap button during play")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text("A small button over the game while an external display is connected, to flip the setting above without leaving the game.")
                             .font(.system(size: 12))
                             .foregroundColor(EspressUTheme.secondaryText)

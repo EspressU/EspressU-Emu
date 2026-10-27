@@ -19,21 +19,21 @@ struct CreateAccountView: View {
     }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
 
                 Form {
                     Section {
                         Text("A new account plays offline. It can't be linked to a Pretendo ID here, so games will still ask you to link one. To play online, link a Pretendo ID on a real Wii U, then use Import from Wii U in Settings > Network Service.")
-                            .font(.system(size: 13, design: .rounded))
+                            .font(.footnote)
                             .foregroundColor(EspressUTheme.brownDarkest)
                     }
 
                     Section {
                         HStack {
                             Text("Persistent ID")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                             TextField("Persistent ID", text: $persistentIdText)
                                 .multilineTextAlignment(.trailing)
                                 .font(.body.monospaced())
@@ -43,13 +43,13 @@ struct CreateAccountView: View {
                         }
                         HStack {
                             Text("Mii name")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                             TextField("Mii name", text: $miiName)
                                 .multilineTextAlignment(.trailing)
                                 .focused($nameFocused)
                                 .submitLabel(.done)
                             Text("\(miiName.count)/10")
-                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .font(.caption2.weight(.semibold))
                                 .foregroundColor(miiName.count >= 10 ? EspressUTheme.alertText : EspressUTheme.brownMid)
                                 .monospacedDigit()
                                 .accessibilityLabel("\(miiName.count) of 10 characters used")
@@ -67,14 +67,14 @@ struct CreateAccountView: View {
                     Section("Mii details") {
                         DatePicker(selection: $birthDate, in: ...Date(), displayedComponents: .date) {
                             Text("Birthday")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         Picker(selection: $gender) {
                             Text("Male").tag(0)
                             Text("Female").tag(1)
                         } label: {
                             Text("Gender")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         .pickerStyle(.segmented)
                         Picker(selection: $country) {
@@ -83,7 +83,7 @@ struct CreateAccountView: View {
                             }
                         } label: {
                             Text("Country")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         .pickerStyle(.menu)
                         .tint(EspressUTheme.accentText)
@@ -116,7 +116,6 @@ struct CreateAccountView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .onAppear {
             if !ControllerPresence.isConnected() { nameFocused = true }
             countries = AccountCountry.loadAll()

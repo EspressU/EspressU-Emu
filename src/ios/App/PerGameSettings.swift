@@ -200,7 +200,7 @@ private struct OverridePickerRow<Selection: Hashable, Options: View>: View {
                 options
             } label: {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)
@@ -340,7 +340,7 @@ struct GameOptionsView: View {
                     store.clearOverrides(for: game.settingsKey)
                 } label: {
                     Label("Use Global Defaults for All", systemImage: "arrow.uturn.backward")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
             }
         } header: {
@@ -360,7 +360,7 @@ struct GameOptionsView: View {
                 GraphicPacksView(game: game)
             } label: {
                 Label("Graphic Packs", systemImage: "wand.and.stars")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
         } header: {
             SettingsSectionHeader("Graphic packs", icon: "paintpalette", accent: .core)
@@ -412,7 +412,7 @@ struct GameOptionsView: View {
             }
         } label: {
             Label("Export game saves", systemImage: "square.and.arrow.up")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .disabled(!GameSaveTransfer.hasSave(for: game))
     }
@@ -422,7 +422,7 @@ struct GameOptionsView: View {
             showingImportConfirmation = true
         } label: {
             Label("Import game save folder", systemImage: "square.and.arrow.down")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
     }
 
@@ -451,14 +451,14 @@ struct GameOptionsView: View {
                 pickCacheFile(.shaders)
             } label: {
                 Label("Import learned shaders", systemImage: "square.and.arrow.down")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(cacheImportBusy)
             Button {
                 pickCacheFile(.pipeline)
             } label: {
                 Label("Import shader pipeline caches", systemImage: "square.and.arrow.down.on.square")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(cacheImportBusy)
             if cacheImportBusy {
@@ -557,7 +557,7 @@ struct GameOptionsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient
                     .ignoresSafeArea()
@@ -591,7 +591,6 @@ struct GameOptionsView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .foregroundColor(EspressUTheme.brownDarkest)
     }
 }

@@ -75,7 +75,7 @@ private struct PreviewGroupView: View {
                 let ink = Color(colours.glyph(group.anchorControl))
                 let halo = LegibleInk.on(ink, light: .white, dark: .black).opacity(0.75)
                 Text(caption)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundColor(ink)
                     .shadow(color: halo, radius: 1)
                     .shadow(color: halo, radius: 1)
@@ -160,7 +160,7 @@ private struct PreviewControlView: View {
                             .overlay(Circle().strokeBorder(Color(colours.outline), lineWidth: max(1, diameter * 0.04)))
                         if ["X", "Y", "A", "B"].contains(id) {
                             Text(id)
-                                .font(.system(size: diameter * 0.42, weight: .bold, design: .rounded))
+                                .font(.system(size: diameter * 0.42, weight: .bold))
                                 .foregroundColor(glyphInk)
                         } else if id == "plus" {
                             Image(systemName: "plus").font(.system(size: diameter * 0.5, weight: .bold))
@@ -186,7 +186,7 @@ private struct PreviewControlView: View {
                         .fill(Color(colours.fill(id)).opacity(colours.alpha(id, pressed: isPressed)))
                         .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous)
                             .strokeBorder(Color(colours.outline), lineWidth: max(1, size.height * 0.06)))
-                    Text(id).font(.system(size: size.height * 0.38, weight: .bold, design: .rounded))
+                    Text(id).font(.system(size: size.height * 0.38, weight: .bold))
                         .foregroundColor(glyphInk)
                 }
             }

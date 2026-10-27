@@ -178,20 +178,20 @@ struct BootFailureView: View {
                 .accessibilityHidden(true)
 
             Text(title)
-                .font(.system(.headline, design: .rounded))
+                .font(.system(.headline))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
             Text(plainLine)
-                .font(.system(.footnote, design: .rounded))
+                .font(.system(.footnote))
                 .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
 
             if let keysError {
                 Text(keysError)
-                    .font(.system(.footnote, design: .rounded))
+                    .font(.system(.footnote))
                     .foregroundColor(EspressUTheme.alertOnDark)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 480)
@@ -203,7 +203,7 @@ struct BootFailureView: View {
                         Image(systemName: "key.fill")
                             .font(.system(size: 14, weight: .semibold))
                         Text("Import keys.txt")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
@@ -212,12 +212,12 @@ struct BootFailureView: View {
             DisclosureGroup("Details") {
                 VStack(spacing: 10) {
                     Text(message.isEmpty ? "The engine didn't report a reason." : message)
-                        .font(.system(.footnote, design: .rounded))
+                        .font(.system(.footnote))
                         .foregroundColor(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .textSelection(.enabled)
                     Text(Self.crashLogHint)
-                        .font(.system(.caption2, design: .rounded))
+                        .font(.system(.caption2))
                         .foregroundColor(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .textSelection(.enabled)
@@ -225,7 +225,7 @@ struct BootFailureView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
             }
-            .font(.system(.footnote, design: .rounded))
+            .font(.system(.footnote))
             .foregroundColor(.white.opacity(0.75))
             .accentColor(.white.opacity(0.75))
             .frame(maxWidth: 480)
@@ -233,7 +233,7 @@ struct BootFailureView: View {
             if needsCleanRestart {
                 Button(action: { fflush(nil); _exit(0) }) {
                     Text("Close EspressU")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
                 .padding(.top, 4)
@@ -244,7 +244,7 @@ struct BootFailureView: View {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
                     Text("Back to games")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
@@ -335,7 +335,7 @@ struct LibraryActivityBanner: View {
             ProgressView()
                 .tint(EspressUTheme.brownDarkest)
             Text(text)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .lineLimit(1)
         }
@@ -347,7 +347,7 @@ struct LibraryActivityBanner: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(EspressUTheme.wrapper, lineWidth: 1)
         )
-        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+        .shadow(color: EspressUTheme.shadow.opacity(0.07), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -356,7 +356,7 @@ struct LaunchNoticeBanner: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 13, weight: .semibold, design: .rounded))
+            .font(.footnote.weight(.semibold))
             .foregroundColor(EspressUTheme.brownDarkest)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 14)
@@ -367,7 +367,7 @@ struct LaunchNoticeBanner: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(EspressUTheme.wrapper, lineWidth: 1)
             )
-            .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+            .shadow(color: EspressUTheme.shadow.opacity(0.07), radius: 8, x: 0, y: 4)
             .frame(maxWidth: 520)
     }
 }
@@ -552,13 +552,13 @@ struct GameBrowserView: View {
             Group {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Espress")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.title.weight(.bold))
                         .foregroundColor(EspressUTheme.onBackground)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
 
                     Text("U")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .font(.headline)
                         .foregroundColor(EspressUTheme.onBackgroundAccent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -637,15 +637,15 @@ struct GameBrowserView: View {
 
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("\(filteredGames.count)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownDarkest)
                         Text("games")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .font(.caption2.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownMid)
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous))
+                    .espressUSurface(RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous))
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -1062,7 +1062,7 @@ struct DlcUpdateGamePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
                 List(games) { game in
@@ -1084,7 +1084,6 @@ struct DlcUpdateGamePickerSheet: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 }
 
@@ -1119,7 +1118,7 @@ struct GameCardOptimized<Options: View>: View {
         VStack(spacing: 0) {
             ZStack {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(EspressUTheme.cremaTopGradient)
+                    .fill(Color(UIColor.tertiarySystemFill))
 
                 if let coverPath = game.coverPath {
                     CoverImage(path: coverPath, padding: 10)
@@ -1128,7 +1127,7 @@ struct GameCardOptimized<Options: View>: View {
                     VStack {
                         Image(systemName: "gamecontroller.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(EspressUTheme.onCremaTop)
+                            .foregroundColor(EspressUTheme.brownMid)
                     }
                 }
 
@@ -1141,8 +1140,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(EspressUTheme.sparkleCream)
                                 .frame(width: 32, height: 32)
-                                .background(Color.black.opacity(0.4))
-                                .cornerRadius(10)
+                                .espressUSurface(Circle())
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
@@ -1154,8 +1152,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(game.isFavorite ? EspressUTheme.alertOnDark : EspressUTheme.sparkleCream)
                                 .frame(width: 32, height: 32)
-                                .background(Color.black.opacity(0.4))
-                                .cornerRadius(10)
+                                .espressUSurface(Circle())
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
@@ -1169,14 +1166,14 @@ struct GameCardOptimized<Options: View>: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(cardName.name)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                     .lineLimit(2)
                     .foregroundColor(EspressUTheme.brownDarkest)
 
                 HStack(spacing: 8) {
                     if let region = game.region {
                         Label(region, systemImage: "globe")
-                            .font(.system(size: 11, weight: .regular, design: .rounded))
+                            .font(.caption2)
                             .foregroundColor(EspressUTheme.brownMid)
                     }
                     Spacer()
@@ -1189,7 +1186,7 @@ struct GameCardOptimized<Options: View>: View {
                         Image(systemName: "play.fill")
                             .font(.system(size: 10, weight: .semibold))
                         Text("Play")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .font(.caption.weight(.semibold))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -1207,12 +1204,7 @@ struct GameCardOptimized<Options: View>: View {
             .background(EspressUTheme.cream)
         }
         .background(EspressUTheme.cream)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(EspressUTheme.wrapper, lineWidth: 1)
-        )
-        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onTapGesture(perform: onTap)
     }
@@ -1233,7 +1225,7 @@ struct SearchBarPolished: View {
             TextField("Search games...", text: $text)
                 .focused($focused)
                 .submitLabel(.search)
-                .font(.system(size: 15, weight: .regular, design: .rounded))
+                .font(.subheadline)
                 .textFieldStyle(.plain)
                 .foregroundColor(EspressUTheme.brownDarkest)
 
@@ -1251,12 +1243,7 @@ struct SearchBarPolished: View {
         .frame(height: 44)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
-        .background(EspressUTheme.wrapper.opacity(0.5))
-        .cornerRadius(14)
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(EspressUTheme.wrapper, lineWidth: 1)
-        )
+        .espressUSurface(Capsule())
         .onAppear {
             if autoFocus {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
@@ -1284,7 +1271,7 @@ struct LoadingView: View {
                 }
 
             Text("Loading games...")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.body.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
         }
     }
@@ -1337,14 +1324,14 @@ struct EmptyGamesView: View {
 
             VStack(spacing: 8) {
                 Text(heading)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.headline)
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .center, spacing: 4) {
                     ForEach(lines, id: \.self) { line in
                         Text(line)
-                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .font(.footnote)
                             .foregroundColor(EspressUTheme.brownMid)
                             .multilineTextAlignment(.center)
                     }
@@ -1358,7 +1345,7 @@ struct EmptyGamesView: View {
                         Image(systemName: "doc.badge.plus")
                             .font(.system(size: 12, weight: .semibold))
                         Text("Import a Game")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.footnote.weight(.semibold))
                     }
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
@@ -1713,7 +1700,7 @@ struct EmulatorViewOptimized: View {
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
                                 .frame(width: 8, height: 8)
                             Text(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(.footnote.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundColor(.white)
                                 .lineLimit(1)
@@ -1809,10 +1796,10 @@ struct EmulatorViewOptimized: View {
                         .font(.system(size: 40))
                         .accessibilityHidden(true)
                     Text("PAUSED")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.title3.weight(.semibold))
                         .tracking(2)
                     Text("Tap to resume")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                         .opacity(0.85)
                 }
                 .foregroundColor(.white)
@@ -1831,7 +1818,7 @@ struct EmulatorViewOptimized: View {
                     ProgressView()
                         .tint(.white)
                     Text("Starting \(game.title)…")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.footnote.weight(.semibold))
                         .foregroundColor(.white.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
@@ -2084,13 +2071,13 @@ struct EmulatorViewOptimized: View {
     private var videoStalledCard: some View {
         VStack(spacing: 10) {
             Text(stallTitle)
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                .font(.system(.subheadline).weight(.semibold))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
             if gameManager.videoStalled {
                 Text(stallAdvice)
-                    .font(.system(.caption, design: .rounded))
+                    .font(.system(.caption))
                     .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)

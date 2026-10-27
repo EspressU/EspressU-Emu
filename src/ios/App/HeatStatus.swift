@@ -121,7 +121,7 @@ struct HeatStatusBadge: View {
             Image(systemName: "thermometer.medium")
                 .font(.system(size: 12, weight: .bold))
             Text(HeatStatus.text(for: displayMode))
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(.system(size: 13, weight: .bold))
         }
         .foregroundColor(UIStyle.isClassic
                          ? LegibleInk.ensure(band.color, on: Color(.secondarySystemGroupedBackground))

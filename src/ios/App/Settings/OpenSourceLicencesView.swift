@@ -56,7 +56,7 @@ struct OpenSourceLicencesView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         if let url = URL(string: component.url) {
                             Link(component.name, destination: url)
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         if let url = URL(string: component.licenceURL) {
                             Link(component.licence, destination: url)

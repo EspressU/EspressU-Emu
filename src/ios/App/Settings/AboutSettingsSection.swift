@@ -18,17 +18,17 @@ struct AboutSettingsSection: View {
             SettingsRow(label: "Created by", value: "Amar", icon: "person.fill")
             Link(destination: URL(string: "https://github.com/EspressU/EspressU-Emu")!) {
                 Label("View on GitHub", systemImage: "arrow.up.right.square")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             Link(destination: URL(string: "https://discord.gg/espressu")!) {
                 Label("Join the Discord", systemImage: "bubble.left.and.bubble.right")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             NavigationLink {
                 OpenSourceLicencesView()
             } label: {
                 Label("Open-source licences", systemImage: "doc.text")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
 
             Text("EspressU is built on Cemu and based on [MuffinEMU](https://github.com/MuffinEMU/Muffin-EMU) by Void.")

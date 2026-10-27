@@ -43,7 +43,7 @@ struct EmulatedClockSection: View {
                     timebaseRaw = TimebaseScale.realTime.rawValue
                     resetCount += 1
                 }
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
             } else {
                 Text("Automatic: EspressU slows the clock itself if a game doesn't start drawing.")
                     .font(.system(size: 12))

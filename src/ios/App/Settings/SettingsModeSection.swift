@@ -31,7 +31,7 @@ struct SettingsModeSection: View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Settings mode")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Picker("Settings mode", selection: choice) {
                     ForEach(SettingsMode.allCases) { mode in
                         Text(mode.title).tag(mode.rawValue)

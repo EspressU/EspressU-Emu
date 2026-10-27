@@ -16,25 +16,23 @@ struct EspressURowList: View {
                 VStack(alignment: .leading, spacing: 6) {
                     if !group.title.isEmpty {
                         Text(group.title.uppercased())
-                            .font(.system(size: 13, weight: .heavy, design: .rounded))
-                            .tracking(0.6)
-                            .foregroundColor(EspressUTheme.brownMid)
-                            .padding(.horizontal, 8)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 16)
                     }
                     VStack(spacing: 0) {
                         ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
                             if index > 0 {
                                 Rectangle()
-                                    .fill(EspressUTheme.wrapper)
-                                    .frame(height: 1)
-                                    .padding(.horizontal, 18)
+                                    .fill(EspressUTheme.hairline)
+                                    .frame(height: EspressUTheme.hairlineWidth)
+                                    .padding(.leading, 16)
                             }
                             row(item)
                                 .id(item.id)
                         }
                     }
-                    .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+                    .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
             }
         }
@@ -47,10 +45,10 @@ struct EspressURowList: View {
             .opacity(item.enabled ? 1 : 0.45)
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(EspressUTheme.pixelBlue.opacity(focused ? 0.09 : 0)))
+                    .fill(EspressUTheme.pixelBlue.opacity(focused ? 0.12 : 0)))
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 3)
+                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 2)
                     .opacity(focused ? 1 : 0))
             .animation(.easeOut(duration: 0.15), value: focused)
     }
@@ -78,11 +76,11 @@ struct EspressURowList: View {
                     rowLabel(item) {
                         HStack(spacing: 6) {
                             Text(options.first { $0.id == binding.wrappedValue }?.title ?? "")
-                                .font(.system(size: 16, design: .rounded))
+                                .font(.body)
                                 .foregroundColor(EspressUTheme.brownMid)
                                 .multilineTextAlignment(.trailing)
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.footnote.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownMid)
                         }
                     }
@@ -94,7 +92,7 @@ struct EspressURowList: View {
             VStack(alignment: .leading, spacing: 6) {
                 rowLabel(item, padded: false) {
                     Text(label(binding.wrappedValue))
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.body)
                         .foregroundColor(EspressUTheme.brownMid)
                         .monospacedDigit()
                 }
@@ -102,8 +100,8 @@ struct EspressURowList: View {
                     .tint(EspressUTheme.pixelBlue)
                     .accessibilityLabel(item.title)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 13)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
 
         case .action(let title, let destructive, let confirm, let run):
             let isArmed = armed == item.id
@@ -113,13 +111,13 @@ struct EspressURowList: View {
             } label: {
                 rowLabel(item, titleColor: destructive ? EspressUTheme.alertText : nil) {
                     Text(isArmed ? "Press again" : title)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.body)
                         .foregroundColor(isArmed ? EspressUTheme.onAccent
                                          : (destructive ? EspressUTheme.alertText : EspressUTheme.accentText))
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .background(isArmed ? (destructive ? EspressUTheme.alertText : EspressUTheme.pixelBlue) : EspressUTheme.wrapper,
-                                    in: Capsule())
+                        .padding(.vertical, 8)
+                        .modifier(SettingsActionCapsule(armed: isArmed,
+                                                        fill: destructive ? EspressUTheme.alertText : EspressUTheme.pixelBlue))
                 }
             }
             .buttonStyle(.plain)
@@ -127,7 +125,7 @@ struct EspressURowList: View {
         case .info(let value, let tint):
             rowLabel(item) {
                 Text(value)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.body)
                     .foregroundColor(tint ?? EspressUTheme.brownMid)
                     .multilineTextAlignment(.trailing)
             }
@@ -143,13 +141,13 @@ struct EspressURowList: View {
         case .banner(let view):
             view
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(18)
+                .padding(16)
 
         case .custom(let view):
             if item.title.isEmpty {
                 view
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 rowLabel(item) { view }
@@ -163,14 +161,14 @@ struct EspressURowList: View {
     private func rowLabel<Trailing: View>(_ item: SettingsItem, stacked: Bool = false, padded: Bool = true,
                                           titleColor: Color? = nil,
                                           @ViewBuilder trailing: () -> Trailing) -> some View {
-        let text = VStack(alignment: .leading, spacing: 3) {
+        let text = VStack(alignment: .leading, spacing: 2) {
             Text(item.title)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .font(.body)
                 .foregroundColor(titleColor ?? EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
             if let detail = item.detail, !detail.isEmpty {
                 Text(detail)
-                    .font(.system(size: 14, design: .rounded))
+                    .font(.footnote)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -191,9 +189,9 @@ struct EspressURowList: View {
                 }
             }
         }
-        .padding(.horizontal, padded ? 18 : 0)
-        .padding(.vertical, padded ? 13 : 0)
-        .frame(minHeight: padded ? 64 : 0)
+        .padding(.horizontal, padded ? 16 : 0)
+        .padding(.vertical, padded ? 11 : 0)
+        .frame(minHeight: padded ? 44 : 0)
         .contentShape(Rectangle())
     }
 
@@ -206,21 +204,21 @@ struct EspressURowList: View {
                     binding.wrappedValue = option.id
                 } label: {
                     Text(option.title)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.subheadline.weight(selected ? .semibold : .regular))
                         .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
                         .lineLimit(1)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 7)
-                        .background(selected ? EspressUTheme.cream : Color.clear,
-                                    in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                        .shadow(color: EspressUTheme.shadow.opacity(selected ? 0.12 : 0), radius: 2, y: 1)
+                        .background {
+                            if selected { Color.clear.espressUSurface(Capsule()) }
+                        }
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
         .padding(3)
-        .background(EspressUTheme.wrapper, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Color.white.opacity(0.08), in: Capsule())
     }
 }
 
@@ -312,11 +310,11 @@ struct EspressUCloseButton: View {
             HStack(spacing: 6) {
                 if showsHint {
                     Image(systemName: hintSymbol)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                 }
                 Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.body.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownDark)
             }
             .padding(.horizontal, showsHint ? 14 : 0)
@@ -336,7 +334,7 @@ struct EspressUFocusRing: ViewModifier {
         content
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 3)
+                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 2)
                     .padding(-4)
                     .opacity(isOn ? 1 : 0))
             .animation(.easeOut(duration: 0.15), value: isOn)
@@ -396,7 +394,7 @@ struct SettingsDropdownOverlay: View {
                     .onTapGesture { state = nil }
                 VStack(alignment: .leading, spacing: 10) {
                     Text(item.title)
-                        .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .font(.headline)
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .padding(.horizontal, 8)
                     ScrollViewReader { proxy in
@@ -435,25 +433,39 @@ struct SettingsDropdownOverlay: View {
         Button(action: pick) {
             HStack(spacing: 12) {
                 Text(option.title)
-                    .font(.system(size: 17, weight: selected ? .heavy : .semibold, design: .rounded))
+                    .font(.body.weight(selected ? .semibold : .regular))
                     .foregroundColor(selected ? EspressUTheme.accentText : EspressUTheme.brownDarkest)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 8)
                 if selected {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.accentText)
                 }
             }
             .padding(.horizontal, 14)
-            .frame(minHeight: 50)
+            .frame(minHeight: 44)
             .background(RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(selected ? EspressUTheme.wrapper : (focused ? EspressUTheme.pixelBlue.opacity(0.1) : Color.clear)))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 3)
+                .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 2)
                 .opacity(focused ? 1 : 0))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// The pill behind a row's action: Liquid Glass at rest, filled while it waits for a second press.
+struct SettingsActionCapsule: ViewModifier {
+    let armed: Bool
+    let fill: Color
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if armed {
+            content.background(fill, in: Capsule())
+        } else {
+            content.espressUSurface(Capsule())
+        }
     }
 }

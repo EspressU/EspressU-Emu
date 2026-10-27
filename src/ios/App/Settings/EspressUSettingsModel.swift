@@ -19,6 +19,19 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
         }
     }
 
+    /// Each category keeps its own system colour, like the icons in the Settings app.
+    var tint: Color {
+        switch self {
+        case .jit:         return Color(UIColor.systemOrange)
+        case .performance: return Color(UIColor.systemGreen)
+        case .graphics:    return Color(UIColor.systemBlue)
+        case .controls:    return Color(UIColor.systemPurple)
+        case .screenSound: return Color(UIColor.systemPink)
+        case .gamesData:   return Color(UIColor.systemTeal)
+        case .system:      return Color(UIColor.systemGray)
+        }
+    }
+
     var summary: String {
         switch self {
         case .jit:         return "Built-in JIT: on or off, status and pairing."
@@ -234,16 +247,16 @@ struct SettingsSwitch: View {
 
     var body: some View {
         Capsule()
-            .fill(isOn ? Color(light: "#2FA36B", dark: "#34C77B") : EspressUTheme.wrapper)
-            .frame(width: 52, height: 32)
+            .fill(isOn ? Color(UIColor.systemGreen) : Color(UIColor.tertiarySystemFill))
+            .frame(width: 51, height: 31)
             .overlay(
                 Circle()
                     .fill(Color.white)
-                    .frame(width: 26, height: 26)
-                    .shadow(color: Color.black.opacity(0.25), radius: 1.5, y: 1)
-                    .padding(3),
+                    .frame(width: 27, height: 27)
+                    .shadow(color: Color.black.opacity(0.2), radius: 2, y: 1)
+                    .padding(2),
                 alignment: isOn ? .trailing : .leading)
-            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isOn)
+            .animation(.easeInOut(duration: 0.2), value: isOn)
             .accessibilityHidden(true)
     }
 }

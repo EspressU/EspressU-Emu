@@ -70,7 +70,7 @@ struct AmiiboSheet: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
 
@@ -126,7 +126,6 @@ struct AmiiboSheet: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 
     private func choose() {

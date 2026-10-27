@@ -100,7 +100,7 @@ struct OverlaySettingsSection: View {
     private var positionPicker: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Position")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
             Picker("Position", selection: $positionRaw) {
                 ForEach(ScreenPosition.allCases) { position in
                     Text(position.title).tag(position.rawValue)
@@ -117,7 +117,7 @@ struct OverlaySettingsSection: View {
 
     private var textColorField: some View {
         ColorPicker("Text colour", selection: packedColourBinding($textColor), supportsOpacity: false)
-            .font(.system(size: 15, weight: .semibold, design: .rounded))
+            .font(.subheadline.weight(.semibold))
             .disabled(isOff)
             .onValueChange(of: textColor) { newValue in
                 cemu_bridge_set_overlay_text_color(UInt32(truncatingIfNeeded: newValue))
@@ -128,7 +128,7 @@ struct OverlaySettingsSection: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Text size")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text("\(textScale)%")
                     .font(.system(size: 13, design: .monospaced))
@@ -147,7 +147,7 @@ struct OverlaySettingsSection: View {
     private var fpsToggle: some View {
         Toggle(isOn: $fpsEnabled) {
             Text("Show FPS")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -159,7 +159,7 @@ struct OverlaySettingsSection: View {
     private var drawcallsToggle: some View {
         Toggle(isOn: $drawcallsEnabled) {
             Text("Show draw calls")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -171,7 +171,7 @@ struct OverlaySettingsSection: View {
     private var cpuUsageToggle: some View {
         Toggle(isOn: $cpuUsageEnabled) {
             Text("Show CPU usage")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -183,7 +183,7 @@ struct OverlaySettingsSection: View {
     private var cpuPerCoreUsageToggle: some View {
         Toggle(isOn: $cpuPerCoreUsageEnabled) {
             Text("Show CPU usage per core")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -195,7 +195,7 @@ struct OverlaySettingsSection: View {
     private var ramUsageToggle: some View {
         Toggle(isOn: $ramUsageEnabled) {
             Text("Show RAM usage")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -207,7 +207,7 @@ struct OverlaySettingsSection: View {
     private var vramUsageToggle: some View {
         Toggle(isOn: $vramUsageEnabled) {
             Text("Show VRAM usage")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)
@@ -219,7 +219,7 @@ struct OverlaySettingsSection: View {
     private var debugToggle: some View {
         Toggle(isOn: $debugEnabled) {
             Text("Show debug info")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .disabled(isOff)

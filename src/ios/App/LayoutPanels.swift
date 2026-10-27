@@ -49,7 +49,7 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
                         Image(systemName: "slider.horizontal.3")
                             .font(.system(size: 14, weight: .bold))
                         Text("On-screen controls")
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.body.weight(.semibold))
                         Spacer(minLength: 0)
                     }
                     .foregroundColor(.white)
@@ -68,7 +68,6 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
                 }
                 .padding(16)
                 .frame(maxWidth: 440)
-                .background(shape.fill(Color.black.opacity(0.5)))
                 .espressUSurface(shape)
                 .environment(\.colorScheme, .dark)
                 .padding(.top, 12)
@@ -93,7 +92,7 @@ struct LayoutPanelFooter: View {
         HStack(spacing: 10) {
             Button { confirmingReset = true } label: {
                 Label("Reset", systemImage: "arrow.counterclockwise")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 44)
@@ -110,7 +109,7 @@ struct LayoutPanelFooter: View {
 
             Button(action: onDone) {
                 Label("Done", systemImage: "checkmark")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(EspressUTheme.pixelBlue, in: Capsule())
@@ -127,7 +126,7 @@ struct PanelCaption: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular, design: .rounded))
+            .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular))
             .foregroundColor(.white.opacity(prominent ? 0.85 : 0.6))
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
@@ -172,12 +171,12 @@ struct PanelSliderRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(label)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                 Spacer(minLength: 8)
                 if let shownValue {
                     Text(shownValue)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.footnote.weight(.semibold))
                         .monospacedDigit()
                         .foregroundColor(.white.opacity(0.7))
                         .accessibilityHidden(true)
@@ -223,7 +222,7 @@ struct PanelToggle: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.white)
         }
         .tint(EspressUTheme.pixelBlue)
