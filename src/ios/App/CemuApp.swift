@@ -13,6 +13,7 @@ struct CemuApp: App {
         SettingsMode.chooseInitialModeIfNeeded()
         JITSettings.migrate()
         RemovedSettingsCleanup.run()
+        LegacyLogCleanup.run()
         MotionSettings.startObservingControllers()
         PadMapping.pushToBridge()
 
