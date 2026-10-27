@@ -44,6 +44,10 @@
 #ifdef HAS_SDL
 #define SDL_MAIN_HANDLED
 #include <SDL3/SDL.h>
+#ifdef __APPLE__
+#include <dispatch/dispatch.h>
+#include <pthread.h>
+#endif
 #include <SDL3/SDL_main.h>
 #endif
 
@@ -350,7 +354,22 @@ void CemuInitialize(const char* execPath, const char* user_data_path, const char
     SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "0");
 
-    if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC | SDL_INIT_EVENTS))
+    // SDL's iOS joystick backend reads UIApplication.connectedScenes, which UIKit only allows on the main
+    // thread. The game launch calls us from a background task, so hop over to the main queue for this call.
+    // Safe: nothing on the main thread waits for this function, so dispatch_sync cannot deadlock.
+    bool sdlReady = false;
+    auto initSdl = [](void* ready) {
+        *static_cast<bool*>(ready) = SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC | SDL_INIT_EVENTS);
+    };
+#ifdef __APPLE__
+    if (pthread_main_np())
+        initSdl(&sdlReady);
+    else
+        dispatch_sync_f(dispatch_get_main_queue(), &sdlReady, initSdl);
+#else
+    initSdl(&sdlReady);
+#endif
+    if (!sdlReady)
         throw std::runtime_error(fmt::format("couldn't initialize SDL: {}", SDL_GetError()));
 
     AES128_init();
