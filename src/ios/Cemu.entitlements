@@ -8,8 +8,6 @@
 	<true/>
 	<key>com.apple.security.cs.disable-executable-page-protection</key>
 	<true/>
-	<key>dynamic-codesigning</key>
-	<true/>
 	<key>com.apple.developer.kernel.increased-memory-limit</key>
 	<true/>
 </dict>
