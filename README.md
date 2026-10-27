@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/JIT-built--in-e8590c" alt="Built-in JIT">
   <img src="https://img.shields.io/badge/Built%20on-Cemu-0b7285" alt="Built on Cemu">
   <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-MPL--2.0-blue" alt="License: MPL-2.0"></a>
+  <a href="src/ios/App/Crema/LICENSE.txt"><img src="https://img.shields.io/badge/Crema-Crema%20Licence-orange" alt="Crema: Crema Licence"></a>
   <img src="https://img.shields.io/badge/PRs-welcome-4c1" alt="PRs welcome">
 </p>
 
@@ -66,6 +67,6 @@ The result is an unsigned `EspressU.app`. Zip it into a `Payload` folder as an `
 
 ## License
 
-[MPL-2.0](LICENSE.txt). EspressU is built on Cemu; the copyright notices in the source files stay in place. Libraries and their licenses are listed in [docs/docs/licenses.html](docs/docs/licenses.html) and in the app under Settings › About.
+[MPL-2.0](LICENSE.txt), with one exception: the on-screen touch controls (Crema, in [src/ios/App/Crema](src/ios/App/Crema)) are EspressU's own work under the [Crema Licence](src/ios/App/Crema/LICENSE.txt), which allows non-commercial use only, requires full open source and a prominent credit. EspressU is built on Cemu; the copyright notices in the source files stay in place. Contributions are described in [CONTRIBUTING.md](CONTRIBUTING.md). Libraries and their licenses are listed in [docs/docs/licenses.html](docs/docs/licenses.html) and in the app under Settings › About.
 
 Wii U is a trademark of Nintendo. EspressU is not affiliated with Nintendo.

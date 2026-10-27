@@ -1,0 +1,89 @@
+Crema Licence
+
+Copyright (c) 2026 EspressU (https://espressu.dev). All rights reserved.
+
+This licence covers only the files in this folder (the "Software"): the Crema
+on-screen touch controls of EspressU. Files elsewhere in the repository keep
+their own licences (for example MPL-2.0); this licence does not change them.
+
+The required credit ("the Credit") is exactly this line:
+
+    Crema touch controls by EspressU (https://espressu.dev)
+
+"Your Product" means any app, emulator, program, library, or other work that
+contains the Software, a changed copy of it, or anything derived from it. A
+port, translation, or re-implementation that follows the Software's structure,
+geometry values, or algorithms counts as derived.
+
+1. Permission
+   You may use, copy, modify, and distribute the Software, in source and binary
+   form, but only for non-commercial purposes and only if you follow every
+   condition below. Nothing else is permitted.
+
+2. Non-commercial use only
+   You may not use the Software, or Your Product, for any commercial purpose.
+   In particular, none of the following is allowed:
+   a) selling Your Product or charging anything for it, its updates, its
+      features, or access to it (including subscriptions, in-app purchases,
+      paid early access, and paid or perk-giving memberships);
+   b) showing advertisements in it, or earning money from its use or from
+      data about its users;
+   c) using it as part of, or to promote, a commercial product, service, or
+      business, or using it inside a company or for paid work;
+   d) offering it on a store or platform in a way that earns you money.
+   Voluntary donations that give no perk, early access, or other advantage are
+   not a commercial purpose. For commercial use you need a separate written
+   licence from EspressU.
+
+3. Everything must stay open source
+   If you distribute Your Product in any form (release, beta, test build,
+   ad-hoc or TestFlight build, or download), you must at the same time:
+   a) publish the complete source code of Your Product, not only the parts
+      that use the Software, in a public repository, free of charge, with no
+      sign-up or access restrictions;
+   b) license Your Product's own code under terms that let anyone read, change,
+      and redistribute it;
+   c) keep every file of the Software under this Crema Licence. You may not
+      relicense, sublicense, or remove it from this licence, and you may not
+      add terms that restrict the rights this licence gives others;
+   d) link the public source repository in the About, Credits, or Licences
+      screen next to the Credit, and in the README.
+
+4. Credit
+   a) Source files. Every copy or changed copy of a file keeps its header with
+      this licence notice and the Credit, unchanged. If you change a file,
+      add a note that you changed it below the header.
+   b) In the app. Your Product must show the Credit in its About, Credits, or
+      Licences screen, readable without special effort.
+   c) Everywhere Your Product is described. The Credit must appear in the
+      README or project page, on the website, download or store page, in the
+      release notes of every release that contains the Software, and in any
+      video, post, or announcement that presents the touch controls or says
+      they exist.
+   d) Advertising. Any advertising, announcement, or documentation that
+      mentions features of Your Product must say: "This product includes Crema
+      by EspressU (https://espressu.dev)."
+   e) Binary form. Documentation delivered with a binary must repeat the
+      notice from 4a and the Credit.
+
+5. No false claims
+   You may not claim you wrote the Software. You may not use the names EspressU
+   or Crema to suggest that EspressU endorses or is connected with Your
+   Product, apart from the Credit.
+
+6. Ending
+   This licence ends automatically and immediately if you break any condition.
+   You must then stop distributing the Software and Your Product. Only
+   EspressU can reinstate it, in writing.
+
+7. Ownership
+   EspressU keeps all rights that this licence does not expressly give. This
+   licence binds only people who receive the Software; it does not limit
+   EspressU, which may use and license its own work in any way. Contributions
+   sent to the official repository may be used, changed, and relicensed by
+   EspressU, and you confirm you may give that right.
+
+8. No warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED. EspressU IS NOT LIABLE FOR ANY CLAIM, DAMAGE, OR OTHER LIABILITY
+   ARISING FROM THE SOFTWARE OR ITS USE.
