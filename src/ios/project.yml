@@ -6,6 +6,12 @@ options:
     iOS: '17.4'
   xcodeVersion: '15.0'
 
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
+
+# Note: run compile checks on a copy (rsync to /tmp, then xcodegen there) so the
+# real EspressU.xcodeproj is not regenerated while open in Xcode.
 settings:
   PRODUCT_NAME: EspressU
   PRODUCT_BUNDLE_IDENTIFIER: dev.espressu.EspressU

@@ -72,3 +72,6 @@ docs/ARCHITECTURE.md
 
 # Personal Xcode settings for local Swift packages
 **/.swiftpm/xcode/xcuserdata/
+
+# Per-developer signing team
+src/ios/Local.xcconfig
