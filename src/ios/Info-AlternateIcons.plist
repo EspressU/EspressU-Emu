@@ -28,7 +28,7 @@
 		</dict>
 	</dict>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<false/>
+	<true/>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_remotepairing-pairable-host._tcp</string>
