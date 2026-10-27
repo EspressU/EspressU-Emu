@@ -87,6 +87,15 @@ targets:
     postBuildScripts:
       - name: Copy Cemu data files (shared fonts, game profiles) into the bundle
         basedOnDependencyAnalysis: false
+        # Declared so the script also runs with User Script Sandboxing on.
+        inputFiles:
+          - '$(SRCROOT)/../../bin/resources/sharedFonts'
+          - '$(SRCROOT)/../../bin/gameProfiles'
+          - '$(SRCROOT)/../../ci/copy-bundle-data.sh'
+        outputFiles:
+          - '$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/CemuData'
+          - '$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/resources'
+          - '$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/gameProfiles'
         script: |
           "$SRCROOT/../../ci/copy-bundle-data.sh"
 
