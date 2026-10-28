@@ -4,6 +4,8 @@
 
 <h1 align="center">EspressU</h1>
 
+<p align="center"><b>App Store edition</b></p>
+
 <p align="center">
   A game emulator for iPad and iPhone, built on <a href="https://github.com/cemu-project/Cemu">Cemu</a>.
   Based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.
@@ -20,15 +22,31 @@
 
 ---
 
+> **This is the App Store edition of EspressU** (branch `appstore`). It is a separate, reduced build made to meet App Store rules. The sideload edition with JIT lives in its own project and is not part of this repository.
+
+## What is different in the App Store edition
+
+| | App Store edition |
+| --- | --- |
+| CPU | Interpreter only. No JIT, no special entitlements |
+| Games | Decrypted `.wua`, decrypted folders and homebrew `.rpx` only. Encrypted files are refused |
+| Keys | None. EspressU does not decrypt anything |
+| Network | None. No accounts, no online play, no downloads, no cover or mod downloads |
+| Covers | From the game's own icon, or a picture you pick from Photos or Files |
+| Updates, DLC, mods | You import your own decrypted folders. Nothing is bundled |
+| Entitlements | Increased Memory Limit and Extended Virtual Addressing only |
+
+## Features
+
 - Metal renderer with a persistent shader cache
 - Interpreter-only CPU emulation: no JIT, no special code-signing entitlements
 - Controller support (DualSense, Xbox, MFi) and an on-screen touch GamePad (Crema)
 - Runs decrypted games as `.wua` archives or decrypted game folders, and homebrew `.rpx` files
 - No network access: no accounts, no downloads, no online play
 
-EspressU contains no games, firmware or keys, and it does not decrypt anything. You import games you own, in a decrypted format. Performance depends on the game and on your device.
+EspressU contains no games, firmware or keys, and it does not decrypt anything. You import games you own, in a decrypted format. Because the App Store edition runs the CPU with an interpreter, performance depends on the game and on your device, and some games run slowly.
 
-## Build
+## Build (App Store edition)
 
 You need a Mac with Xcode. Once:
 
@@ -49,7 +67,7 @@ mkdir -p build-ios/out && rm -rf build-ios/out/Cemu.framework && cp -R build-ios
 cd src/ios && xcodegen generate
 ```
 
-Open the generated `EspressU.xcodeproj`, set your team under Signing & Capabilities and archive. Copy `src/ios/Local.xcconfig.example` to `src/ios/Local.xcconfig` to keep your team ID out of the project file. The app needs two capabilities on its App ID: Increased Memory Limit and Extended Virtual Addressing. Bump `CURRENT_PROJECT_VERSION` in `src/ios/project.yml` for every upload.
+This build is for the App Store only. Open the generated `EspressU.xcodeproj`, set your team under Signing & Capabilities and archive. Copy `src/ios/Local.xcconfig.example` to `src/ios/Local.xcconfig` to keep your team ID out of the project file. The app needs two capabilities on its App ID: Increased Memory Limit and Extended Virtual Addressing. Bump `CURRENT_PROJECT_VERSION` in `src/ios/project.yml` for every upload.
 
 ## License
 
