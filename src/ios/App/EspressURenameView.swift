@@ -23,21 +23,20 @@ struct EspressURenameView: View {
 
     var body: some View {
         ZStack {
-            EspressUBackground()
-                .ignoresSafeArea()
+            EspressUCoverGround(coverPath: game.coverPath)
             ScrollView {
                 VStack(spacing: 22) {
                     EspressUCover(game: game, radius: 24)
                         .frame(width: 132, height: 132)
-                        .shadow(color: EspressUTheme.shadow.opacity(0.3), radius: 14, y: 6)
+                        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 14, y: 6)
                         .padding(.top, 40)
 
                     VStack(spacing: 6) {
                         Text("Rename")
-                            .font(.system(size: 28, weight: .heavy, design: .rounded))
+                            .font(.title.weight(.bold))
                             .foregroundColor(EspressUTheme.brownDarkest)
                         Text("Only changes the name in your library. Original title: \(originalTitle)")
-                            .font(.system(size: 15, design: .rounded))
+                            .font(.subheadline)
                             .foregroundColor(EspressUTheme.brownMid)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -47,7 +46,7 @@ struct EspressURenameView: View {
                         Image(systemName: "pencil")
                             .foregroundColor(EspressUTheme.brownMid)
                         TextField("Name", text: $text)
-                            .font(.system(size: 19, weight: .semibold, design: .rounded))
+                            .font(.headline)
                             .foregroundColor(EspressUTheme.brownDarkest)
                             .autocapitalization(.words)
                             .submitLabel(.done)
@@ -64,8 +63,7 @@ struct EspressURenameView: View {
                     }
                     .padding(.horizontal, 18)
                     .frame(height: 58)
-                    .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(EspressUTheme.wrapper, lineWidth: 1))
+                    .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .espressUFocusRing(input.showsFocus && focus == "field", radius: 20)
                     .onTapGesture { typing = true }
 
@@ -77,7 +75,7 @@ struct EspressURenameView: View {
                             }
                             Text("Save")
                         }
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .font(.headline)
                         .foregroundColor(EspressUTheme.onCremaTop)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .background(EspressUTheme.cremaTopGradient, in: Capsule())
@@ -88,7 +86,7 @@ struct EspressURenameView: View {
                     if hasCustomName {
                         Button(action: reset) {
                             Label("Use the original title", systemImage: "arrow.uturn.backward")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .font(.body.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                                 .frame(maxWidth: .infinity, minHeight: 48)
                                 .espressUSurface(Capsule())

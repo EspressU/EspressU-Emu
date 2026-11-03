@@ -4,8 +4,7 @@
 
 typedef NS_ENUM(NSInteger, ObjCGraphicAPI) {
     ObjCGraphicAPIOpenGL = 0,
-    ObjCGraphicAPIVulkan,
-    ObjCGraphicAPIMetal,
+    ObjCGraphicAPIMetal = 2,
 };
 
 typedef NS_ENUM(NSInteger, ObjCAudioChannels) {

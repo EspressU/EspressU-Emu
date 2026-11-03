@@ -199,7 +199,7 @@ struct MenuMusicSettingsGroup: View {
         Toggle(isOn: $enabled) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Theme music")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                 Text("Plays EspressU's themes, or your own tracks, on loop in the menus, never in a game.")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
@@ -274,7 +274,7 @@ struct RespectSilentModeToggle: View {
         Toggle(isOn: $respect) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Respect silent mode")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                 Text("When silent mode is on, games make no sound. Takes effect from the next game you start. With the microphone on, game audio keeps playing.")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)

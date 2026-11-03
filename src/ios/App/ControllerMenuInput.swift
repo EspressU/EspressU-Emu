@@ -274,7 +274,7 @@ struct ControllerButtonHint: View {
             Image(systemName: symbol)
                 .font(.system(size: 17, weight: .semibold))
             Text(text)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 14, weight: .semibold))
         }
         .foregroundColor(EspressUTheme.brownMid)
         .accessibilityHidden(true)

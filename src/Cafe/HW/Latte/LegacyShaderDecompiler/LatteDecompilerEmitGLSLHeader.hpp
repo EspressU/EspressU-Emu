@@ -4,16 +4,7 @@ namespace LatteDecompiler
 {
 	void _emitUniformVariables(LatteDecompilerShaderContext* decompilerContext, RendererAPI rendererType, LatteDecompilerOutputUniformOffsets& uniformOffsets)
 	{
-		LatteDecompilerShaderResourceMapping& resourceMapping = (rendererType == RendererAPI::Vulkan) ? decompilerContext->output->resourceMappingVK : decompilerContext->output->resourceMappingGL;
-
-		if (rendererType == RendererAPI::Vulkan)
-		{
-			if (decompilerContext->hasUniformVarBlock)
-			{
-				cemu_assert_debug(resourceMapping.uniformVarsBufferBindingPoint >= 0);
-				decompilerContext->shaderSource->addFmt("layout(set = {}, binding = {}) uniform ufBlock" _CRLF "{{" _CRLF, (sint32)resourceMapping.setIndex, (sint32)resourceMapping.uniformVarsBufferBindingPoint);
-			}
-		}
+		LatteDecompilerShaderResourceMapping& resourceMapping = decompilerContext->output->resourceMappingGL;
 
 		uint32 uniformCurrentOffset = 0;
 		auto shader = decompilerContext->shader;
@@ -121,11 +112,6 @@ namespace LatteDecompiler
 		}
 
 		uniformOffsets.offset_endOfBlock = uniformCurrentOffset;
-		if (rendererType == RendererAPI::Vulkan)
-		{
-			if (decompilerContext->hasUniformVarBlock)
-				shaderSrc->add("};" _CRLF);
-		}
 	}
 
 	void _emitUniformBuffers(LatteDecompilerShaderContext* decompilerContext)
@@ -235,44 +221,6 @@ namespace LatteDecompiler
 	void _emitHeaderMacros(LatteDecompilerShaderContext* decompilerContext)
 	{
 		auto src = decompilerContext->shaderSource;
-		src->add("#ifdef VULKAN" _CRLF);
-		src->add("#define ATTR_LAYOUT(__location) layout(location = __location)" _CRLF);
-		src->add("#define UNIFORM_BUFFER_LAYOUT(__glLocation, __vkSet, __vkLocation) layout(set = __vkSet, binding = __vkLocation, std140)" _CRLF);
-		src->add("#define TEXTURE_LAYOUT(__glLocation, __vkSet, __vkLocation) layout(set = __vkSet, binding = __vkLocation)" _CRLF);
-		if (decompilerContext->shaderType == LatteConst::ShaderType::Vertex || decompilerContext->shaderType == LatteConst::ShaderType::Geometry)
-		{
-			src->add("#define gl_VertexID gl_VertexIndex" _CRLF);
-			src->add("#define gl_InstanceID gl_InstanceIndex" _CRLF);
-			if (decompilerContext->analyzer.hasStreamoutWrite)
-				src->add("#define XFB_BLOCK_LAYOUT(__bufferIndex, __stride, __location) layout(location = __location, xfb_buffer = __bufferIndex, xfb_stride = __stride, xfb_offset = 0)" _CRLF);
-
-			if (decompilerContext->contextRegistersNew->PA_CL_CLIP_CNTL.get_DX_CLIP_SPACE_DEF())
-			{
-				src->add("#define SET_POSITION(_v) gl_Position = _v" _CRLF);
-			}
-			else
-			{
-				src->add("#define SET_POSITION(_v) gl_Position = _v; gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0" _CRLF);
-			}
-
-			if (decompilerContext->shaderType == LatteConst::ShaderType::Vertex || decompilerContext->shaderType == LatteConst::ShaderType::Geometry)
-			{
-				if (decompilerContext->options->usesGeometryShader)
-					src->add("#define V2G_LAYOUT layout(location = 0)" _CRLF);
-			}
-		}
-		else if (decompilerContext->shaderType == LatteConst::ShaderType::Pixel)
-		{
-			src->add("#define GET_FRAGCOORD() vec4(gl_FragCoord.xy*uf_fragCoordScale.xy,gl_FragCoord.z, 1.0/gl_FragCoord.w)" _CRLF);
-		}
-		if (decompilerContext->options->spirvInstrinsics.hasRoundingModeRTEFloat32)
-		{
-			src->add("#extension GL_EXT_spirv_intrinsics: enable" _CRLF);
-			src->add("spirv_execution_mode(capabilities = [4467], extensions = [\"SPV_KHR_float_controls\"], 4462, 16);" _CRLF);
-			src->add("spirv_execution_mode(capabilities = [4467], extensions = [\"SPV_KHR_float_controls\"], 4462, 32);" _CRLF);
-			src->add("spirv_execution_mode(capabilities = [4467], extensions = [\"SPV_KHR_float_controls\"], 4462, 64);" _CRLF);
-		}
-		src->add("#else" _CRLF);
 		src->add("#define ATTR_LAYOUT(__location) layout(location = __location)" _CRLF);
 		src->add("#define UNIFORM_BUFFER_LAYOUT(__glLocation, __vkSet, __vkLocation) layout(binding = __glLocation, std140) " _CRLF);
 		src->add("#define TEXTURE_LAYOUT(__glLocation, __vkSet, __vkLocation) layout(binding = __glLocation)" _CRLF);
@@ -289,7 +237,6 @@ namespace LatteDecompiler
 		{
 			src->add("#define GET_FRAGCOORD() vec4(gl_FragCoord.xy*uf_fragCoordScale,gl_FragCoord.zw)" _CRLF);
 		}
-		src->add("#endif" _CRLF);
 
 		if (decompilerContext->shaderType == LatteConst::ShaderType::Geometry)
 		{
@@ -497,17 +444,7 @@ namespace LatteDecompiler
 			{
 				if ((decompilerContext->shader->pixelColorOutputMask&(1 << i)) != 0)
 				{
-					const auto outputType = GetGLSLPixelOutputType(i, *decompilerContext->contextRegistersNew);
-					if (outputType != GLSLPixelOutputType::Float)
-					{
-						src->add("#ifdef VULKAN" _CRLF);
-						src->addFmt("layout(location = {}) out {} passPixelColor{};" _CRLF, i,
-							outputType == GLSLPixelOutputType::SignedInt ? "ivec4" : "uvec4", i);
-						src->add("#else" _CRLF);
-					}
 					src->addFmt("layout(location = {}) out vec4 passPixelColor{};" _CRLF, i, i);
-					if (outputType != GLSLPixelOutputType::Float)
-						src->add("#endif" _CRLF);
 				}
 			}
 		}
@@ -547,11 +484,7 @@ namespace LatteDecompiler
 		if(dump_shaders_enabled)
 			decompilerContext->shaderSource->add("// start of shader inputs/outputs, predetermined by Cemu. Do not touch" _CRLF);
 		_emitHeaderMacros(decompilerContext);
-		decompilerContext->shaderSource->add("#ifdef VULKAN" _CRLF);
-		_emitUniformVariables(decompilerContext, RendererAPI::Vulkan, decompilerContext->output->uniformOffsetsVK);
-		decompilerContext->shaderSource->add("#else" _CRLF);
 		_emitUniformVariables(decompilerContext, RendererAPI::OpenGL, decompilerContext->output->uniformOffsetsGL);
-		decompilerContext->shaderSource->add("#endif" _CRLF);
 		_emitUniformBuffers(decompilerContext);
 		_emitTextureDefinitions(decompilerContext);
 		_emitAttributes(decompilerContext);

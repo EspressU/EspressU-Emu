@@ -7,7 +7,7 @@ struct ShaderCompilationSection: View {
         Section {
             Toggle(isOn: $asyncShaderCompile) {
                 Text("Compile shaders in the background")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
             .onValueChange(of: asyncShaderCompile) { newValue in
@@ -40,7 +40,7 @@ struct ShaderCacheSection: View {
         Section {
             Toggle(isOn: $asyncShaderCompile) {
                 Text("Compile shaders in the background")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
             .onValueChange(of: asyncShaderCompile) { newValue in

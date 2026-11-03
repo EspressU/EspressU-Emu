@@ -332,7 +332,7 @@ private struct AdvancedOverrideRow<Selection: Hashable, Options: View>: View {
                 options
             } label: {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)

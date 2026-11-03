@@ -15,13 +15,13 @@ struct OpenSourceLicencesView: View {
     static let components: [Component] = [
         .init(name: "Cemu", url: "https://github.com/cemu-project/Cemu", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
         .init(name: "MuffinEMU (EspressU is based on it)", url: "https://github.com/MuffinEMU/Muffin-EMU", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
+        .init(name: "Crema (EspressU's own touch controls)", url: "https://github.com/EspressU/EspressU-Emu/tree/main/src/ios/App/Crema", licence: "Crema Licence (non-commercial, open source, credit)", licenceURL: "https://github.com/EspressU/EspressU-Emu/blob/main/src/ios/App/Crema/LICENSE.txt"),
+        .init(name: "EspressU's own files (marked in their header)", url: "https://github.com/EspressU/EspressU-Emu", licence: "EspressU Licence (non-commercial, open source, credit)", licenceURL: "https://github.com/EspressU/EspressU-Emu/blob/main/LICENSES/EspressU-Licence.txt"),
         .init(name: "StikJIT (helper for the built-in JIT)", url: "https://github.com/StikDebug/StikJIT", licence: "MPL-2.0", licenceURL: "https://www.mozilla.org/MPL/2.0/"),
         .init(name: "idevice (bundled in StikJIT)", url: "https://github.com/jkcoxson/idevice", licence: "MIT", licenceURL: "https://opensource.org/license/mit"),
-        .init(name: "MoltenVK 1.4.3 and 1.2.8", url: "https://github.com/KhronosGroup/MoltenVK", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
         .init(name: "ih264d (H.264 decoder)", url: "https://android.googlesource.com/platform/external/libavc/", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
         .init(name: "metal-cpp", url: "https://github.com/bkaradzic/metal-cpp", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
         .init(name: "xbyak_aarch64", url: "https://github.com/fujitsu/xbyak_aarch64", licence: "Apache-2.0", licenceURL: "https://www.apache.org/licenses/LICENSE-2.0"),
-        .init(name: "Vulkan-Headers", url: "https://github.com/KhronosGroup/Vulkan-Headers", licence: "Apache-2.0 or MIT", licenceURL: "https://github.com/KhronosGroup/Vulkan-Headers/blob/main/LICENSE.md"),
         .init(name: "Dear ImGui", url: "https://github.com/ocornut/imgui", licence: "MIT", licenceURL: "https://github.com/ocornut/imgui/blob/master/LICENSE.txt"),
         .init(name: "cubeb", url: "https://github.com/mozilla/cubeb", licence: "ISC", licenceURL: "https://github.com/mozilla/cubeb/blob/master/LICENSE"),
         .init(name: "ZArchive", url: "https://github.com/Exzap/ZArchive", licence: "MIT-0", licenceURL: "https://github.com/Exzap/ZArchive/blob/master/LICENSE"),
@@ -30,7 +30,6 @@ struct OpenSourceLicencesView: View {
         .init(name: "pugixml", url: "https://github.com/zeux/pugixml", licence: "MIT", licenceURL: "https://github.com/zeux/pugixml/blob/master/LICENSE.md"),
         .init(name: "RapidJSON", url: "https://github.com/Tencent/rapidjson", licence: "MIT", licenceURL: "https://github.com/Tencent/rapidjson/blob/master/license.txt"),
         .init(name: "glm", url: "https://github.com/g-truc/glm", licence: "MIT", licenceURL: "https://github.com/g-truc/glm/blob/master/copying.txt"),
-        .init(name: "glslang", url: "https://github.com/KhronosGroup/glslang", licence: "BSD-3-Clause and others", licenceURL: "https://github.com/KhronosGroup/glslang/blob/main/LICENSE.txt"),
         .init(name: "zlib", url: "https://zlib.net", licence: "zlib", licenceURL: "https://zlib.net/zlib_license.html"),
         .init(name: "Zstandard", url: "https://github.com/facebook/zstd", licence: "BSD-3-Clause", licenceURL: "https://github.com/facebook/zstd/blob/dev/LICENSE"),
         .init(name: "libzip", url: "https://libzip.org", licence: "BSD-3-Clause", licenceURL: "https://github.com/nih-at/libzip/blob/main/LICENSE"),
@@ -56,7 +55,7 @@ struct OpenSourceLicencesView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         if let url = URL(string: component.url) {
                             Link(component.name, destination: url)
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         if let url = URL(string: component.licenceURL) {
                             Link(component.licence, destination: url)

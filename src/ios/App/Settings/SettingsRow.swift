@@ -37,12 +37,12 @@ struct SettingsRow: View {
             }
 
             Text(label)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
 
             Spacer(minLength: 12)
 
             Text(value)
-                .font(.system(size: 15, design: .rounded))
+                .font(.subheadline)
                 .foregroundColor(EspressUTheme.brownMid)
                 .multilineTextAlignment(.trailing)
         }
@@ -60,7 +60,7 @@ struct DestructiveSettingsLabel: View {
                 .foregroundColor(.red)
         } else {
             Label(title, systemImage: systemImage)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.red)
         }
     }

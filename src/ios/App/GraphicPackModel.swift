@@ -123,31 +123,20 @@ struct GraphicPack: Identifiable, Hashable {
         switch rendererFilter {
         case "metal" where api != .metal:
             return .inactive("Only works with the Metal renderer. Switch the renderer in Settings > Graphics.")
-        case "vulkan" where api != .vulkan:
-            return .inactive("Only works with the Vulkan renderer. Switch the renderer in Settings > Graphics.")
+        case "vulkan":
+            return .inactive("Made for Vulkan, which EspressU doesn't use.")
         case "opengl":
             return .inactive("Made for OpenGL, which EspressU doesn't use.")
         default:
             break
         }
-        switch api {
-        case .metal:
-            if hasGLSLShaders && !hasMetalShaders {
-                return .partial("Replaces shaders that are written for OpenGL and Vulkan. Metal can't use them, so those changes are skipped and the picture can look wrong. The pack's other changes still apply.")
-            }
-            if hasGLSLOutputShaders && !hasMetalShaders {
-                return .partial("Adds an output or scaling shader written for OpenGL and Vulkan. Metal can't use it, so that part is skipped.")
-            }
-            return .full
-        case .vulkan:
-            if hasMetalShaders && !hasGLSLShaders {
-                return .partial("Its shaders are written for Metal only, so the Vulkan renderer skips them.")
-            }
-            if hasGLSLShaders && version <= 3 {
-                return .partial("Its shaders predate Vulkan support, so the Vulkan renderer skips them.")
-            }
-            return .full
+        if hasGLSLShaders && !hasMetalShaders {
+            return .partial("Replaces shaders that are written for OpenGL and Vulkan. Metal can't use them, so those changes are skipped and the picture can look wrong. The pack's other changes still apply.")
         }
+        if hasGLSLOutputShaders && !hasMetalShaders {
+            return .partial("Adds an output or scaling shader written for OpenGL and Vulkan. Metal can't use it, so that part is skipped.")
+        }
+        return .full
     }
 
     var canCostSpeed: Bool { category == "Graphics" }

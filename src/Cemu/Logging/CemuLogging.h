@@ -18,7 +18,6 @@ enum class LogType : sint32
 	H264 = 9,
 	OpenGLLogging = 10,
 	TextureCache = 11,
-	VulkanValidation = 12,
 	Patches = 14,
 	CoreinitMem = 8,
 	CoreinitMP = 15,

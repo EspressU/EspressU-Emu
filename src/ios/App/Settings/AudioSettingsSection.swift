@@ -83,7 +83,7 @@ struct AudioSettingsSection: View {
     @ViewBuilder private var tvGroup: some View {
         Toggle(isOn: $tvEnabled) {
             Text("TV audio")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: tvEnabled) { newValue in
@@ -113,7 +113,7 @@ struct AudioSettingsSection: View {
     @ViewBuilder private var padGroup: some View {
         Toggle(isOn: $padEnabled) {
             Text("GamePad audio")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: padEnabled) { newValue in
@@ -143,7 +143,7 @@ struct AudioSettingsSection: View {
     @ViewBuilder private var microphoneGroup: some View {
         Toggle(isOn: $microphoneEnabled) {
             Text("Use \(deviceName) microphone")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: microphoneEnabled) { newValue in
@@ -185,7 +185,7 @@ struct AudioSettingsSection: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(label)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text("\(volume.wrappedValue)%")
                     .font(.system(size: 13, design: .monospaced))

@@ -122,7 +122,7 @@ struct EmulatedDevicesView: View {
     @State private var device = EmulatedDevice.skylanders
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
 
@@ -156,7 +156,6 @@ struct EmulatedDevicesView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 }
 
@@ -173,7 +172,7 @@ private struct EmulateDeviceToggle: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             Text("Emulate Device")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
         .onValueChange(of: isOn) { newValue in
@@ -199,7 +198,7 @@ private struct EmulatedDeviceSlotsSection: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(device.slotLabels[slot])
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                             Text(occupied ? name(at: slot) : "Empty")
                                 .font(.system(size: 12))
                                 .foregroundColor(EspressUTheme.secondaryText)
@@ -454,7 +453,7 @@ private struct EmulatedFigurePicker: View {
                             HStack(spacing: 10) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(figure.name)
-                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        .font(.subheadline.weight(.semibold))
                                         .foregroundColor(EspressUTheme.brownDarkest)
                                     Text("ID \(figure.figureID)")
                                         .font(.system(size: 12))

@@ -15,10 +15,19 @@ for d in "$SRC_FONTS" "$SRC_PROFILES"; do
 done
 
 DATA_ROOT="$DEST/CemuData"
-mkdir -p "$DATA_ROOT/resources"
-rsync -a --delete "$SRC_FONTS/" "$DATA_ROOT/resources/sharedFonts/"
-rsync -a --delete "$SRC_PROFILES/" "$DATA_ROOT/gameProfiles/"
+STAGING_ROOT="$(mktemp -d "${TEMP_DIR:?}/cemu-bundle-data.XXXXXX")"
+OLD_DATA_ROOT="$STAGING_ROOT/previous"
+trap 'rm -rf "$STAGING_ROOT"' EXIT
+
+mkdir -p "$STAGING_ROOT/new/resources"
+cp -R "$SRC_FONTS" "$STAGING_ROOT/new/resources/sharedFonts"
+cp -R "$SRC_PROFILES" "$STAGING_ROOT/new/gameProfiles"
+
+if [ -e "$DATA_ROOT" ]; then
+    mv "$DATA_ROOT" "$OLD_DATA_ROOT"
+fi
+mv "$STAGING_ROOT/new" "$DATA_ROOT"
 
 rm -rf "$DEST/resources" "$DEST/gameProfiles"
 
-echo "copy-bundle-data.sh: $(find "$DATA_ROOT/resources/sharedFonts" -type f | wc -l | tr -d ' ') shared font(s), $(find "$DATA_ROOT/gameProfiles" -type f | wc -l | tr -d ' ') game profile(s) -> $DATA_ROOT"
+echo "copy-bundle-data.sh: copied shared fonts and game profiles -> $DATA_ROOT"

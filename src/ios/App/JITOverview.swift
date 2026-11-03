@@ -113,11 +113,11 @@ struct JITStatusCard: View {
                     .background(overview.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(overview.title)
-                        .font(.system(size: 21, weight: .heavy, design: .rounded))
+                        .font(.title3.weight(.semibold))
                         .foregroundColor(overview.tint)
                     if !overview.subtitle.isEmpty {
                         Text(overview.subtitle)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.subheadline.weight(.medium))
                             .foregroundColor(EspressUTheme.brownMid)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -134,11 +134,11 @@ struct JITStatusCard: View {
                                 .foregroundColor(color(check.state))
                                 .frame(width: 22)
                             Text(check.title)
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if check.state == .unknown {
                                 Text("not checked yet")
-                                    .font(.system(size: 13, design: .rounded))
+                                    .font(.footnote)
                                     .foregroundColor(EspressUTheme.brownMid)
                             }
                         }
@@ -147,7 +147,7 @@ struct JITStatusCard: View {
                 }
                 .padding(.leading, 4)
                 Text("JIT switches on by itself while LocalDevVPN is connected, on Wi-Fi if you can.")
-                    .font(.system(size: 13, design: .rounded))
+                    .font(.footnote)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -179,7 +179,7 @@ struct JITPairingCard: View {
             switch pairing.state {
             case .pin(let pin):
                 Text("Enter this PIN in Settings")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownMid)
                 Text(pin)
                     .font(.system(size: 40, weight: .bold, design: .monospaced))
@@ -189,11 +189,11 @@ struct JITPairingCard: View {
                 HStack(spacing: 10) {
                     ProgressView()
                     Text("Waiting for Settings…")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                 }
                 Text("Open Settings › Privacy & Security › Developer Mode and tap \"Pair with \(DevicePairing.hostName)\".")
-                    .font(.system(size: 14, design: .rounded))
+                    .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -212,7 +212,7 @@ struct JITModeSwitch: View {
             segment(on: false, title: "No JIT", detail: "Interpreter", symbol: "tortoise.fill")
         }
         .padding(4)
-        .background(EspressUTheme.wrapper, in: Capsule())
+        .background(Color.white.opacity(0.08), in: Capsule())
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isOn)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("JIT")
@@ -223,22 +223,22 @@ struct JITModeSwitch: View {
         return Button { if !selected { set(on) } } label: {
             HStack(spacing: 10) {
                 Image(systemName: symbol)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(selected && on ? Color(UIColor.systemGreen) : nil)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .font(.body.weight(.semibold))
                     Text(detail)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(.caption.weight(.semibold))
                         .opacity(0.85)
                 }
             }
-            .foregroundColor(selected ? .white : EspressUTheme.brownMid)
-            .frame(maxWidth: .infinity, minHeight: 56)
+            .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
+            .frame(maxWidth: .infinity, minHeight: 48)
             .background {
                 if selected {
                     Capsule()
-                        .fill(on ? Color(hex: "#2E8B57") : EspressUTheme.brownMid)
-                        .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
+                        .fill(Color.primary.opacity(0.14))
                         .matchedGeometryEffect(id: "knob", in: knob)
                 }
             }

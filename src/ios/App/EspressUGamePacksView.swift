@@ -1,4 +1,7 @@
-// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 EspressU (https://espressu.dev). EspressU Licence: non-commercial use only.
+// Anything that contains or is derived from this file must be fully open source, keep this file
+// under the EspressU Licence, keep this notice in every copy, and credit EspressU (https://espressu.dev).
+// Full text: LICENSES/EspressU-Licence.txt. Not covered by MPL-2.0.
 
 import SwiftUI
 import UIKit
@@ -37,7 +40,7 @@ struct EspressUGamePacksView: View {
     var body: some View {
         let groups = currentGroups
         ZStack {
-            EspressUBackground().ignoresSafeArea()
+            EspressUCoverGround(coverPath: game.coverPath)
             VStack(alignment: .leading, spacing: 0) {
                 header
                 ScrollViewReader { proxy in
@@ -78,17 +81,17 @@ struct EspressUGamePacksView: View {
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(EspressUTheme.accentText)
                         .frame(width: 40, height: 40)
-                        .background(EspressUTheme.wrapper, in: Circle())
+                        .espressUSurface(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Back")
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(selectedPack?.displayName ?? "Graphic packs")
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .font(.title2.weight(.bold))
                     .lineLimit(2)
                 Text(selectedPack == nil ? game.cardName.name : "Changes apply the next time you start the game.")
-                    .font(.system(size: 14, design: .rounded))
+                    .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
             }
             Spacer(minLength: 8)

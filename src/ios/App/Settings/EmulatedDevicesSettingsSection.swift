@@ -16,7 +16,7 @@ struct EmulatedDevicesSettingsSection: View {
         Section {
             Toggle(isOn: $skylanderPortalEnabled) {
                 Text("Skylanders Portal")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
             .onValueChange(of: skylanderPortalEnabled) { newValue in
@@ -24,7 +24,7 @@ struct EmulatedDevicesSettingsSection: View {
             }
             Toggle(isOn: $infinityBaseEnabled) {
                 Text("Disney Infinity Base")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
             .onValueChange(of: infinityBaseEnabled) { newValue in
@@ -32,7 +32,7 @@ struct EmulatedDevicesSettingsSection: View {
             }
             Toggle(isOn: $dimensionsToypadEnabled) {
                 Text("LEGO Dimensions Toypad")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
             .onValueChange(of: dimensionsToypadEnabled) { newValue in

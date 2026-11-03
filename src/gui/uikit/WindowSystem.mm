@@ -3,9 +3,6 @@
 #ifdef ENABLE_METAL
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #endif
-#ifdef ENABLE_VULKAN
-#include "Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.h"
-#endif
 #include "input/InputManager.h"
 #import <UIKit/UIKit.h>
 #include "NativeKeyboard.h"
@@ -247,17 +244,7 @@ void CemuUIKit_InitializeLayer(bool main)
         cemu_assert_debug(false);
 #endif
     } else {
-#ifdef ENABLE_VULKAN
-        auto vk_renderer = VulkanRenderer::GetInstance();
-        if (!vk_renderer)
-            return;
-        vk_renderer->InitializeSurface({
-            static_cast<int>(view.bounds.size.width),
-            static_cast<int>(view.bounds.size.height)
-        }, main);
-#else
         cemu_assert_debug(false);
-#endif
     }
 
     if (!main) {
@@ -276,13 +263,7 @@ void CemuUIKit_ShutdownLayer(bool main) {
         cemu_assert_debug(false);
 #endif
     } else {
-#ifdef ENABLE_VULKAN
-        auto vk_renderer = VulkanRenderer::GetInstance();
-        if (!main && vk_renderer)
-            vk_renderer->StopUsingPadAndWait();
-#else
         cemu_assert_debug(false);
-#endif
     }
 
     if (!main)

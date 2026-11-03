@@ -68,14 +68,11 @@ struct GraphicPackEntry
 enum GraphicAPI
 {
 	kOpenGL = 0,
-	kVulkan,
-	kMetal,
+	kMetal = 2, // 2 keeps saved settings working
 	COUNT
 };
 
-#if defined(ENABLE_VULKAN) && !BOOST_OS_IOS
-constexpr GraphicAPI kDefaultGraphicsAPI = kVulkan;
-#elif defined(ENABLE_METAL)
+#if defined(ENABLE_METAL)
 constexpr GraphicAPI kDefaultGraphicsAPI = kMetal;
 #elif defined(ENABLE_OPENGL)
 constexpr GraphicAPI kDefaultGraphicsAPI = kOpenGL;
@@ -435,7 +432,6 @@ struct CemuConfig
 
 	ConfigValue<GraphicAPI> graphic_api{ kDefaultGraphicsAPI };
 	std::array<uint8, 16> legacy_graphic_device_uuid{};
-	std::array<uint8, 16> vk_graphic_device_uuid;
 	uint64 mtl_graphic_device_uuid{ 0 };
 	ConfigValue<int> vsync{ 0 };
 	ConfigValue<bool> gx2drawdone_sync { false };

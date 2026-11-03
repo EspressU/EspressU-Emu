@@ -1,3 +1,8 @@
+// Copyright (c) 2026 EspressU (https://espressu.dev). EspressU Licence: non-commercial use only.
+// Anything that contains or is derived from this file must be fully open source, keep this file
+// under the EspressU Licence, keep this notice in every copy, and credit EspressU (https://espressu.dev).
+// Full text: LICENSES/EspressU-Licence.txt. Not covered by MPL-2.0.
+
 #include "IOSReport.h"
 #include "Cafe/HW/Latte/Core/FrameTimeStats.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"

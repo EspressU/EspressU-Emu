@@ -252,10 +252,6 @@ struct LatteDecompilerOptions
 	bool usesGeometryShader{ false };
 	bool strictMul{};
 	bool useTFViaSSBO{ false };
-	struct
-	{
-		bool hasRoundingModeRTEFloat32{ false };
-	}spirvInstrinsics;
 };
 
 struct LatteDecompilerOutput_t

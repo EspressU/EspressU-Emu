@@ -61,7 +61,7 @@ struct SettingsSectionHeader: View {
                 )
 
             Text(title)
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(.footnote.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDark)
                 .textCase(nil)
 

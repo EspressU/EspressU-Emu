@@ -27,9 +27,8 @@ enum ShaderCacheInfo {
     static func overview(titleId: UInt64) -> Overview {
         guard let directory else { return Overview() }
         let prefix = String(format: "%016llx", titleId)
-        let vulkan = ShaderCacheImport.selectedRenderer == .vulkan
-        let shaderName = prefix + (vulkan ? "_shaders.bin" : "_mtlshaders.bin")
-        let pipelineName = prefix + (vulkan ? "_vkpipeline.bin" : "_mtlpipeline.bin")
+        let shaderName = prefix + "_mtlshaders.bin"
+        let pipelineName = prefix + "_mtlpipeline.bin"
         var result = Overview()
         result.updated = newestModification(in: directory, namePrefix: prefix)
         if cemu_bridge_is_title_running() { return result }
@@ -95,7 +94,7 @@ struct GameShaderCacheSection: View {
                         confirmClear = true
                     } label: {
                         Label("Clear this game's shaders", systemImage: "arrow.counterclockwise")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                     .disabled(learnedBytes <= 0 && compiledBytes <= 0)
                     if isAdvanced {
@@ -103,7 +102,7 @@ struct GameShaderCacheSection: View {
                             exportShaders()
                         } label: {
                             Label("Export this game's shaders", systemImage: "square.and.arrow.up")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                         }
                         .disabled(exportableFiles.isEmpty)
                     }

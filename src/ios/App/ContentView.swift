@@ -109,13 +109,8 @@ struct BootFailureView: View {
 
     private var name: String { game.displayTitle ?? game.title }
 
-    private static var crashLogHint: String {
-        let path = String(cString: cemu_bridge_crash_log_path())
-        guard !path.isEmpty else {
-            return "If you report this, include log.txt. No crash log could be opened this run, so there is no CemuCrashLog.txt to send."
-        }
-        return "If you report this, include log.txt and CemuCrashLog.txt. They are in:\n\(path)"
-    }
+    private static let crashLogHint =
+        "If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report."
 
     private var title: String {
         if needsCleanRestart { return "Restart needed before \(name)" }
@@ -178,20 +173,20 @@ struct BootFailureView: View {
                 .accessibilityHidden(true)
 
             Text(title)
-                .font(.system(.headline, design: .rounded))
+                .font(.system(.headline))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
             Text(plainLine)
-                .font(.system(.footnote, design: .rounded))
+                .font(.system(.footnote))
                 .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
 
             if let keysError {
                 Text(keysError)
-                    .font(.system(.footnote, design: .rounded))
+                    .font(.system(.footnote))
                     .foregroundColor(EspressUTheme.alertOnDark)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 480)
@@ -203,7 +198,7 @@ struct BootFailureView: View {
                         Image(systemName: "key.fill")
                             .font(.system(size: 14, weight: .semibold))
                         Text("Import keys.txt")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
@@ -212,12 +207,12 @@ struct BootFailureView: View {
             DisclosureGroup("Details") {
                 VStack(spacing: 10) {
                     Text(message.isEmpty ? "The engine didn't report a reason." : message)
-                        .font(.system(.footnote, design: .rounded))
+                        .font(.system(.footnote))
                         .foregroundColor(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .textSelection(.enabled)
                     Text(Self.crashLogHint)
-                        .font(.system(.caption2, design: .rounded))
+                        .font(.system(.caption2))
                         .foregroundColor(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .textSelection(.enabled)
@@ -225,7 +220,7 @@ struct BootFailureView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
             }
-            .font(.system(.footnote, design: .rounded))
+            .font(.system(.footnote))
             .foregroundColor(.white.opacity(0.75))
             .accentColor(.white.opacity(0.75))
             .frame(maxWidth: 480)
@@ -233,7 +228,7 @@ struct BootFailureView: View {
             if needsCleanRestart {
                 Button(action: { fflush(nil); _exit(0) }) {
                     Text("Close EspressU")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
                 .padding(.top, 4)
@@ -244,7 +239,7 @@ struct BootFailureView: View {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
                     Text("Back to games")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
@@ -335,7 +330,7 @@ struct LibraryActivityBanner: View {
             ProgressView()
                 .tint(EspressUTheme.brownDarkest)
             Text(text)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .lineLimit(1)
         }
@@ -347,7 +342,7 @@ struct LibraryActivityBanner: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(EspressUTheme.wrapper, lineWidth: 1)
         )
-        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+        .shadow(color: EspressUTheme.shadow.opacity(0.07), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -356,7 +351,7 @@ struct LaunchNoticeBanner: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 13, weight: .semibold, design: .rounded))
+            .font(.footnote.weight(.semibold))
             .foregroundColor(EspressUTheme.brownDarkest)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 14)
@@ -367,7 +362,7 @@ struct LaunchNoticeBanner: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(EspressUTheme.wrapper, lineWidth: 1)
             )
-            .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+            .shadow(color: EspressUTheme.shadow.opacity(0.07), radius: 8, x: 0, y: 4)
             .frame(maxWidth: 520)
     }
 }
@@ -552,13 +547,13 @@ struct GameBrowserView: View {
             Group {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Espress")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.title.weight(.bold))
                         .foregroundColor(EspressUTheme.onBackground)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
 
                     Text("U")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .font(.headline)
                         .foregroundColor(EspressUTheme.onBackgroundAccent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -637,15 +632,15 @@ struct GameBrowserView: View {
 
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("\(filteredGames.count)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownDarkest)
                         Text("games")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .font(.caption2.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownMid)
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(EspressUTheme.cream, in: RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous))
+                    .espressUSurface(RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous))
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -1062,7 +1057,7 @@ struct DlcUpdateGamePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
                 List(games) { game in
@@ -1084,7 +1079,6 @@ struct DlcUpdateGamePickerSheet: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 }
 
@@ -1119,7 +1113,7 @@ struct GameCardOptimized<Options: View>: View {
         VStack(spacing: 0) {
             ZStack {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(EspressUTheme.cremaTopGradient)
+                    .fill(Color(UIColor.tertiarySystemFill))
 
                 if let coverPath = game.coverPath {
                     CoverImage(path: coverPath, padding: 10)
@@ -1128,7 +1122,7 @@ struct GameCardOptimized<Options: View>: View {
                     VStack {
                         Image(systemName: "gamecontroller.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(EspressUTheme.onCremaTop)
+                            .foregroundColor(EspressUTheme.brownMid)
                     }
                 }
 
@@ -1141,8 +1135,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(EspressUTheme.sparkleCream)
                                 .frame(width: 32, height: 32)
-                                .background(Color.black.opacity(0.4))
-                                .cornerRadius(10)
+                                .espressUSurface(Circle())
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
@@ -1154,8 +1147,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(game.isFavorite ? EspressUTheme.alertOnDark : EspressUTheme.sparkleCream)
                                 .frame(width: 32, height: 32)
-                                .background(Color.black.opacity(0.4))
-                                .cornerRadius(10)
+                                .espressUSurface(Circle())
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
@@ -1169,14 +1161,14 @@ struct GameCardOptimized<Options: View>: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(cardName.name)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                     .lineLimit(2)
                     .foregroundColor(EspressUTheme.brownDarkest)
 
                 HStack(spacing: 8) {
                     if let region = game.region {
                         Label(region, systemImage: "globe")
-                            .font(.system(size: 11, weight: .regular, design: .rounded))
+                            .font(.caption2)
                             .foregroundColor(EspressUTheme.brownMid)
                     }
                     Spacer()
@@ -1189,7 +1181,7 @@ struct GameCardOptimized<Options: View>: View {
                         Image(systemName: "play.fill")
                             .font(.system(size: 10, weight: .semibold))
                         Text("Play")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .font(.caption.weight(.semibold))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -1207,12 +1199,7 @@ struct GameCardOptimized<Options: View>: View {
             .background(EspressUTheme.cream)
         }
         .background(EspressUTheme.cream)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(EspressUTheme.wrapper, lineWidth: 1)
-        )
-        .shadow(color: EspressUTheme.shadow.opacity(0.15), radius: 8, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onTapGesture(perform: onTap)
     }
@@ -1233,7 +1220,7 @@ struct SearchBarPolished: View {
             TextField("Search games...", text: $text)
                 .focused($focused)
                 .submitLabel(.search)
-                .font(.system(size: 15, weight: .regular, design: .rounded))
+                .font(.subheadline)
                 .textFieldStyle(.plain)
                 .foregroundColor(EspressUTheme.brownDarkest)
 
@@ -1251,12 +1238,7 @@ struct SearchBarPolished: View {
         .frame(height: 44)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
-        .background(EspressUTheme.wrapper.opacity(0.5))
-        .cornerRadius(14)
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(EspressUTheme.wrapper, lineWidth: 1)
-        )
+        .espressUSurface(Capsule())
         .onAppear {
             if autoFocus {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
@@ -1284,7 +1266,7 @@ struct LoadingView: View {
                 }
 
             Text("Loading games...")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.body.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
         }
     }
@@ -1337,14 +1319,14 @@ struct EmptyGamesView: View {
 
             VStack(spacing: 8) {
                 Text(heading)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.headline)
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .center, spacing: 4) {
                     ForEach(lines, id: \.self) { line in
                         Text(line)
-                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .font(.footnote)
                             .foregroundColor(EspressUTheme.brownMid)
                             .multilineTextAlignment(.center)
                     }
@@ -1358,7 +1340,7 @@ struct EmptyGamesView: View {
                         Image(systemName: "doc.badge.plus")
                             .font(.system(size: 12, weight: .semibold))
                         Text("Import a Game")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.footnote.weight(.semibold))
                     }
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
@@ -1379,11 +1361,12 @@ struct EmulatorViewOptimized: View {
     let game: GameMetadata
     @ObservedObject var gameManager: GameManager
     @Binding var isRunning: Bool
-    private let controllerSkin = WiiUControllerSkin.standard
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var isEditingControlLayout = false
+    @State private var isEditingSingleControls = false
+    @State private var selectedControl: CremaElement?
     @State private var padControlsHidden = false
     @State private var isPaused = false
     @State private var showHomeMenu = false
@@ -1393,15 +1376,12 @@ struct EmulatorViewOptimized: View {
     @State private var padShownDespiteController = false
     @State private var pausedByLifecycle = false
     private static let titlePauseQueue = DispatchQueue(label: "espressu.title.pause", qos: .userInitiated)
-    @AppStorage(PreviewPadStore.enabledKey) private var previewPadEnabled = PreviewPadStore.defaultEnabled
-    @AppStorage(ControllerLayoutSettings.joystickKey) private var joystickMode = ControllerLayoutSettings.defaultJoystick
-    @State private var touchLabScreens = TouchLabScreenState()
+    @State private var cremaScreens = CremaScreenState()
     @State private var topBarHeight: CGFloat = 0
     @AppStorage(TopBarAutoHide.enabledKey) private var topBarAutoHideEnabled = TopBarAutoHide.defaultEnabled
     @State private var topBarHidden = false
     @GestureState private var topBarTouched = false
     @State private var voiceOverRunning = UIAccessibility.isVoiceOverRunning
-    @ObservedObject private var previewPad = PreviewPadStore.shared
     @AppStorage(DisplayLayoutSettings.showSwapButtonKey)
     private var showSwapButton = DisplayLayoutSettings.defaultShowSwapButton
     @ObservedObject private var displayRouter = DisplayRouter.shared
@@ -1433,36 +1413,8 @@ struct EmulatorViewOptimized: View {
         skylanderPortalEnabled || infinityBaseEnabled || dimensionsToypadEnabled
     }
 
-    private enum PadSystem {
-        case touchLab
-        case preview
-        case espressu
-    }
-
-    private var padSystem: PadSystem {
-        return .touchLab
-    }
-
     private var isPhonePortrait: Bool {
         UIDevice.current.userInterfaceIdiom == .phone && verticalSizeClass == .regular
-    }
-
-    @ViewBuilder private func belowPicture<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        let built = content()
-        if isPhonePortrait {
-            GeometryReader { geometry in
-                let pictures = visibleScreens.reduce(CGFloat(0)) { $0 + portraitScreenHeight(main: $1, in: geometry.size) }
-                let needed = ControllerGeometry.Portrait.minimumHeight(joystick: joystickMode)
-                let height = min(geometry.size.height, max(geometry.size.height - pictures, needed))
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    built
-                        .frame(height: height)
-                }
-            }
-        } else {
-            built
-        }
     }
 
     private var nativeOverlayActive: Bool {
@@ -1491,22 +1443,33 @@ struct EmulatorViewOptimized: View {
         }
     }
 
-    @ViewBuilder private var layoutPanel: some View {
-        let gameID = gameManager.currentGame?.settingsKey
-        switch padSystem {
-        case .touchLab:
-            TouchLabLayoutPanel(gameID: gameID, onDone: finishEditingLayout)
-        case .preview:
-            PreviewLayoutPanel(onDone: finishEditingLayout)
-        case .espressu:
-            EspressUPadLayoutPanel(onDone: finishEditingLayout)
+    private var layoutPanel: some View {
+        Group {
+            if isEditingSingleControls {
+                CremaElementPanel(selection: $selectedControl, onDone: finishEditingSingleControls)
+            } else {
+                CremaLayoutPanel(onEditElements: startEditingSingleControls, onDone: finishEditingLayout)
+            }
         }
+    }
+
+    private func startEditingSingleControls() {
+        cemu_bridge_release_all_buttons()
+        selectedControl = nil
+        withAnimation(.easeInOut(duration: 0.2)) { isEditingSingleControls = true }
+    }
+
+    private func finishEditingSingleControls() {
+        withAnimation(.easeInOut(duration: 0.2)) { isEditingSingleControls = false }
+        selectedControl = nil
     }
 
     private func finishEditingLayout() {
         withAnimation(.easeInOut(duration: 0.2)) {
             isEditingControlLayout = false
+            isEditingSingleControls = false
         }
+        selectedControl = nil
     }
 
     /// The on-screen controls are hidden when the player hid them in the home menu or a controller hides them, but
@@ -1624,61 +1587,7 @@ struct EmulatorViewOptimized: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            if padSystem == .preview {
-                GeometryReader { proxy in
-                    let insets = proxy.safeAreaInsets
-                    let full = proxy.frame(in: .local)
-                    let safeArea = CGRect(x: full.minX + insets.leading, y: full.minY + insets.top,
-                                          width: full.width - insets.leading - insets.trailing,
-                                          height: full.height - insets.top - insets.bottom)
-                    let resolved = previewPad.resolve(container: proxy.size, safeArea: safeArea,
-                                                      pointsPerInch: DeviceMetrics.current().pointsPerInch)
-                    let native = previewPad.effectiveDisplayMode(container: proxy.size) == .native
-                    ZStack(alignment: .topLeading) {
-                        MetalViewIOS(gameManager: gameManager)
-                    }
-                    .frame(width: native ? resolved.video.width : proxy.size.width,
-                          height: native ? resolved.video.height : proxy.size.height)
-                    .position(x: native ? resolved.video.midX : proxy.size.width / 2,
-                             y: native ? resolved.video.midY : proxy.size.height / 2)
-                    .clipped()
-
-                    if !padHidden {
-                        PreviewControllerPad(
-                            store: previewPad,
-                            onInput: { label, pressed in
-                                sendPadButton(label, pressed)
-                            },
-                            onStick: { stick, position in
-                                PadDiagnostics.shared.recordStick(stick, position)
-                                cemu_bridge_set_stick_axis(
-                                    stick == 0 ? CEMU_BRIDGE_STICK_LEFT : CEMU_BRIDGE_STICK_RIGHT,
-                                    Float(position.x), Float(position.y)
-                                )
-                            },
-                            isEditingLayout: $isEditingControlLayout
-                        )
-                        .onAppear { PadDiagnostics.shared.report(activePad: .preview) }
-                        .onDisappear { cemu_bridge_release_all_buttons() }
-                    }
-
-                    #if DEBUG
-                    VStack {
-                        Text("PAD DEBUG: \(PadDiagnostics.shared.lastInput) / \(PadDiagnostics.shared.lastStick)")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.yellow)
-                            .padding(6)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(6)
-                            .padding(.top, 4)
-                        Spacer()
-                    }
-                    .allowsHitTesting(false)
-                    #endif
-                }
-            } else {
-                screenLayoutComposition
-            }
+            screenLayoutComposition
 
             NativeCoreOverlayView(active: nativeOverlayActive, topInset: overlayTopInset)
 
@@ -1713,7 +1622,7 @@ struct EmulatorViewOptimized: View {
                                 .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
                                 .frame(width: 8, height: 8)
                             Text(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(.footnote.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundColor(.white)
                                 .lineLimit(1)
@@ -1751,37 +1660,14 @@ struct EmulatorViewOptimized: View {
 
             if !padHidden {
                 Group {
-                if padSystem == .touchLab {
-                    TouchLabPadOverlay(
-                        gameID: gameManager.currentGame?.settingsKey,
-                        screens: touchLabScreens,
-                        enabled: !isPaused && !isEditingControlLayout,
-                        topInset: isPhonePortrait ? 0 : topBarHeight
-                    )
-                    .onAppear { PadDiagnostics.shared.report(activePad: .touchLab) }
-                } else if padSystem == .espressu {
-                    belowPicture {
-                    OptimizedControlPanel(
-                        skin: controllerSkin,
-                        onInput: { label, pressed in
-                            sendPadButton(label, pressed)
-                        },
-                        onStick: { stick, position in
-                            PadDiagnostics.shared.recordStick(stick, position)
-                            cemu_bridge_set_stick_axis(
-                                stick == 0 ? CEMU_BRIDGE_STICK_LEFT : CEMU_BRIDGE_STICK_RIGHT,
-                                Float(position.x),
-                                Float(position.y)
-                            )
-                        },
-                        isEditingLayout: $isEditingControlLayout,
-                        isPaused: isPaused,
-                        topInset: isPhonePortrait ? 0 : topBarHeight,
-                        portrait: isPhonePortrait
-                    )
-                    .onAppear { PadDiagnostics.shared.report(activePad: .espressu) }
-                    }
-                }
+                CremaPad(
+                    screens: cremaScreens,
+                    enabled: !isPaused && !isEditingControlLayout,
+                    topInset: isPhonePortrait ? 0 : topBarHeight,
+                    editing: isEditingSingleControls,
+                    selection: $selectedControl
+                )
+                .onAppear { PadDiagnostics.shared.report(activePad: .crema) }
                 }
                 .dynamicTypeSize(...DynamicTypeSize.xLarge)
             }
@@ -1791,8 +1677,6 @@ struct EmulatorViewOptimized: View {
                     HStack {
                         PadDiagnosticsOverlay(
                             padControlsHidden: padHidden,
-                            previewPadEnabled: previewPadEnabled,
-                            touchLabScheme: TouchLabSettings.schemeID,
                             isEditingLayout: isEditingControlLayout,
                             isPaused: isPaused
                         )
@@ -1809,10 +1693,10 @@ struct EmulatorViewOptimized: View {
                         .font(.system(size: 40))
                         .accessibilityHidden(true)
                     Text("PAUSED")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.title3.weight(.semibold))
                         .tracking(2)
                     Text("Tap to resume")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                         .opacity(0.85)
                 }
                 .foregroundColor(.white)
@@ -1831,7 +1715,7 @@ struct EmulatorViewOptimized: View {
                     ProgressView()
                         .tint(.white)
                     Text("Starting \(game.title)…")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.footnote.weight(.semibold))
                         .foregroundColor(.white.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
@@ -2084,13 +1968,13 @@ struct EmulatorViewOptimized: View {
     private var videoStalledCard: some View {
         VStack(spacing: 10) {
             Text(stallTitle)
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                .font(.system(.subheadline).weight(.semibold))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
             if gameManager.videoStalled {
                 Text(stallAdvice)
-                    .font(.system(.caption, design: .rounded))
+                    .font(.system(.caption))
                     .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -2126,7 +2010,6 @@ struct EmulatorViewOptimized: View {
                 HStack(alignment: .top, spacing: 0) {
                     MetalViewIOS(gameManager: gameManager)
                         .frame(width: geometry.size.width - padWidth, height: geometry.size.height)
-                        .touchLabTVScreen()
 
                     padScreen
                         .frame(width: padWidth, height: padHeight)
@@ -2140,7 +2023,7 @@ struct EmulatorViewOptimized: View {
             }
         }
         .ignoresSafeArea(.all, edges: verticalSizeClass == .regular ? .horizontal : .all)
-        .trackTouchLabScreens($touchLabScreens, imageIsAspectFit: { !FrameStretch.isEnabled })
+        .trackCremaScreens($cremaScreens)
         .onAppear { updateVisibleOutputs() }
         .onValueChange(of: screenLayout) { _ in updateVisibleOutputs() }
         .onValueChange(of: localSwapped) { _ in updateVisibleOutputs() }
@@ -2173,7 +2056,7 @@ struct EmulatorViewOptimized: View {
     private func portraitScreenHeight(main: Bool, in size: CGSize) -> CGFloat {
         let full = size.width * 9.0 / 16.0
         guard !main, visibleScreens.count > 1 else { return full }
-        let room = size.height - full - ControllerGeometry.Portrait.minimumHeight(joystick: joystickMode)
+        let room = size.height - full - CremaLayout.portraitMinimumHeight
         return min(full, max(full * 0.55, room))
     }
 
@@ -2197,7 +2080,6 @@ struct EmulatorViewOptimized: View {
                             if padIsOnDeviceInDualScreen { sendPadTouch(value.location, down: false) }
                         }
                 )
-                .touchLabTVScreen()
         } else {
             padScreen
         }
@@ -2214,7 +2096,7 @@ struct EmulatorViewOptimized: View {
                     .onChanged { value in sendPadTouch(value.location, down: true) }
                     .onEnded { value in sendPadTouch(value.location, down: false) }
             )
-            .touchLabGamePadScreen()
+            .cremaGamePadScreen()
     }
 
     private func sendPadTouch(_ location: CGPoint, down: Bool) {
@@ -2249,44 +2131,6 @@ private struct HideSystemOverlaysIfAvailable: ViewModifier {
 private extension View {
     func hidingSystemOverlaysDuringPlay() -> some View {
         modifier(HideSystemOverlaysIfAvailable())
-    }
-}
-
-@MainActor private func sendPadButton(_ label: String, _ pressed: Bool) {
-    PadDiagnostics.shared.recordInput(label, pressed)
-    if label == "HOME" {
-        HomeMenuRouter.shared.padHome(pressed: pressed)
-        return
-    }
-    cemu_bridge_set_button_state(cemuBridgeButton(forLabel: label), pressed)
-}
-
-private func cemuBridgeButton(forLabel label: String) -> CemuBridgeButton {
-    switch label {
-    case "up":    return CEMU_BRIDGE_BUTTON_UP
-    case "down":  return CEMU_BRIDGE_BUTTON_DOWN
-    case "left":  return CEMU_BRIDGE_BUTTON_LEFT
-    case "right": return CEMU_BRIDGE_BUTTON_RIGHT
-
-    case "A": return CEMU_BRIDGE_BUTTON_A
-    case "B": return CEMU_BRIDGE_BUTTON_B
-    case "X": return CEMU_BRIDGE_BUTTON_X
-    case "Y": return CEMU_BRIDGE_BUTTON_Y
-
-    case "L":  return CEMU_BRIDGE_BUTTON_L
-    case "R":  return CEMU_BRIDGE_BUTTON_R
-    case "ZL": return CEMU_BRIDGE_BUTTON_ZL
-    case "ZR": return CEMU_BRIDGE_BUTTON_ZR
-
-    case "plus":  return CEMU_BRIDGE_BUTTON_PLUS
-    case "minus": return CEMU_BRIDGE_BUTTON_MINUS
-
-    case "L3": return CEMU_BRIDGE_BUTTON_STICK_L
-    case "R3": return CEMU_BRIDGE_BUTTON_STICK_R
-
-    case "HOME": return CEMU_BRIDGE_BUTTON_HOME
-
-    default: return CEMU_BRIDGE_BUTTON_NONE
     }
 }
 

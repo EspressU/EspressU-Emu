@@ -535,10 +535,10 @@ private struct StikJITProgressCard: View {
                     .background(EspressUTheme.accentText.opacity(0.15), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Switching JIT on")
-                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .font(.headline)
                         .foregroundColor(EspressUTheme.brownDarkest)
                     Text(coordinator.stageText.isEmpty ? "Starting the JIT helper…" : coordinator.stageText)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.footnote.weight(.medium))
                         .foregroundColor(EspressUTheme.brownMid)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -553,16 +553,16 @@ private struct StikJITProgressCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             Text("The game starts as soon as JIT is on. LocalDevVPN has to be connected.")
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(.caption.weight(.medium))
                 .foregroundColor(EspressUTheme.brownMid)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
             Button { coordinator.cancelLaunch() } label: {
                 Text("Cancel")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.body.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(EspressUTheme.wrapper.opacity(0.7), in: Capsule())
+                    .espressUSurface(Capsule())
             }
             .buttonStyle(.plain)
         }

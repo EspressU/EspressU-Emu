@@ -46,7 +46,7 @@ struct DecryptROMView: View {
     @State private var externalHold: ExternalLibrary.Hold?
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             Group {
                 if let chosenFormat = format {
                     decryptingBody(chosenFormat)
@@ -55,7 +55,6 @@ struct DecryptROMView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .onDisappear {
             if format != nil && !progress.completed { cemu_bridge_cancel_decrypt() }
             stopPolling()
@@ -73,11 +72,11 @@ struct DecryptROMView: View {
                     .font(.system(size: 40))
                     .foregroundColor(EspressUTheme.onBackgroundAccent)
                 Text("Decrypt \(game.title)")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.headline)
                     .foregroundColor(EspressUTheme.onBackground)
                     .multilineTextAlignment(.center)
                 Text("Your original file isn't changed.")
-                    .font(.system(size: 13, design: .rounded))
+                    .font(.footnote)
                     .foregroundColor(EspressUTheme.onBackgroundMuted)
 
                 VStack(spacing: 12) {
@@ -125,10 +124,10 @@ struct DecryptROMView: View {
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(title)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownDarkest)
                         Text(detail)
-                            .font(.system(size: 12, design: .rounded))
+                            .font(.caption)
                             .foregroundColor(EspressUTheme.brownMid)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -160,22 +159,22 @@ struct DecryptROMView: View {
                                 .font(.system(size: 44))
                                 .foregroundColor(progress.isSuccess ? .green : EspressUTheme.alertText)
                             Text(progress.isSuccess ? "Decrypted" : "Couldn't Finish")
-                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                .font(.headline)
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if progress.isSuccess {
                                 Text("\(progress.filesWritten) files, \(byteCountFormatted(progress.bytesWritten))")
-                                    .font(.system(size: 13, design: .rounded))
+                                    .font(.footnote)
                                     .foregroundColor(EspressUTheme.brownMid)
                                 Text(chosenFormat.toWua
                                     ? "Saved to Files \u{2192} On My iPad/iPhone \u{2192} EspressU \u{2192} Decrypted \u{2192} \(game.id).wua"
                                     : "Saved to Files \u{2192} On My iPad/iPhone \u{2192} EspressU \u{2192} Decrypted \u{2192} \(game.title)")
-                                    .font(.system(size: 12, design: .rounded))
+                                    .font(.caption)
                                     .foregroundColor(EspressUTheme.brownMid)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 24)
                             } else {
                                 Text(failureReason(for: progress.resultStatus))
-                                    .font(.system(size: 13, design: .rounded))
+                                    .font(.footnote)
                                     .foregroundColor(EspressUTheme.brownMid)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 24)
@@ -184,15 +183,15 @@ struct DecryptROMView: View {
                             ProgressView()
                                 .scaleEffect(1.3)
                             Text("Decrypting \(game.title)\u{2026}")
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                .font(.body.weight(.medium))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                                 .multilineTextAlignment(.center)
                             Text("\(progress.filesWritten) files, \(byteCountFormatted(progress.bytesWritten)) written")
-                                .font(.system(size: 13, design: .rounded))
+                                .font(.footnote)
                                 .foregroundColor(EspressUTheme.brownMid)
                                 .monospacedDigit()
                             Text("Your original file isn't changed.")
-                                .font(.system(size: 12, design: .rounded))
+                                .font(.caption)
                                 .foregroundColor(EspressUTheme.brownMid)
                         }
                     }

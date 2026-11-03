@@ -21,7 +21,7 @@ struct CPUSettingsSection: View {
             Toggle(isOn: $recompilerEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Use the recompiler (JIT)")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text("The fast way to run games. Needs a JIT enabler; without one the slow interpreter runs instead.")
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
@@ -36,7 +36,7 @@ struct CPUSettingsSection: View {
                 Toggle(isOn: $favourAccuracy) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Favour accuracy")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text(favourAccuracy
                              ? "Slower but more accurate: one CPU core and stricter GPU syncing."
                              : "Faster, with some accuracy shortcuts.")
@@ -53,7 +53,7 @@ struct CPUSettingsSection: View {
                 Toggle(isOn: $favourPerformance) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Favour performance")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text(favourPerformance
                              ? "As fast as possible: a softer picture, rougher lighting in some games, and shaders that may pop in."
                              : "Off: the normal balance of speed and quality.")
@@ -70,7 +70,7 @@ struct CPUSettingsSection: View {
                 Toggle(isOn: $oneCoreMode) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("One-core mode")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Text(oneCoreMode
                              ? "One CPU core, whatever CPU cores is set to below."
                              : "Follows the CPU cores setting below.")
@@ -86,7 +86,7 @@ struct CPUSettingsSection: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text("CPU cores")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                         Spacer()
                         Picker("CPU cores", selection: $coreModeRaw) {
                             ForEach(CoreMode.allCases) { mode in
@@ -113,7 +113,7 @@ struct CPUSettingsSection: View {
             Toggle(isOn: $autoReduceWhenHot) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Cool down automatically")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text("When iOS reports the device is overheating, lowers resolution and CPU load until it cools.")
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
@@ -124,7 +124,7 @@ struct CPUSettingsSection: View {
             if advanced && autoReduceWhenHot {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Cool down starts at")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.footnote.weight(.semibold))
                     Picker("Cool down starts at", selection: $coolDownThresholdRaw) {
                         ForEach(ThermalSettings.Threshold.allCases) { threshold in
                             Text(threshold.title).tag(threshold.rawValue)
@@ -148,7 +148,7 @@ struct CPUSettingsSection: View {
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Memory")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text(String(cString: cemu_bridge_memory_headroom_summary()))
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
@@ -162,7 +162,7 @@ struct CPUSettingsSection: View {
                     .foregroundColor(EspressUTheme.brownMid)
                     .frame(width: 20)
                 Text("Device heat")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                 Spacer(minLength: 12)
                 HeatStatusBadge()
             }

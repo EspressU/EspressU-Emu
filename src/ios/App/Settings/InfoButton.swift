@@ -26,7 +26,7 @@ struct InfoButton: View {
         .buttonStyle(.borderless)
         .accessibilityLabel("About \(title)")
         .sheet(isPresented: $showing) {
-            NavigationView {
+            EspressUNavigation {
                 ZStack {
                     EspressUTheme.backgroundGradient
                         .ignoresSafeArea()
@@ -52,7 +52,6 @@ struct InfoButton: View {
                     }
                 }
             }
-            .navigationViewStyle(.stack)
         }
     }
 }

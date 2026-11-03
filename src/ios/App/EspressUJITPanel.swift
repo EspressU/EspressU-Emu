@@ -134,10 +134,10 @@ struct EspressUJITPanel: View {
                 .background(statusTint.opacity(0.15), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 Text(overview.title)
-                    .font(.system(size: 19, weight: .heavy, design: .rounded))
+                    .font(.headline)
                     .foregroundColor(EspressUTheme.brownDarkest)
                 Text(overview.subtitle)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.footnote.weight(.medium))
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -154,7 +154,7 @@ struct EspressUJITPanel: View {
                 .foregroundColor(EspressUTheme.brownMid)
                 .padding(.horizontal, showsFocus ? 12 : 0)
                 .frame(minWidth: 36, minHeight: 36)
-                .background(EspressUTheme.wrapper.opacity(0.6), in: Capsule())
+                .espressUSurface(Capsule())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close")
@@ -172,13 +172,13 @@ struct EspressUJITPanel: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(EspressUTheme.accentText)
                     .frame(width: 38, height: 38)
-                    .background(EspressUTheme.wrapper, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(row.title)
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                     Text(row.detail)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(.caption.weight(.medium))
                         .foregroundColor(EspressUTheme.brownMid)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -199,7 +199,7 @@ struct EspressUJITPanel: View {
                     .fill(EspressUTheme.pixelBlue.opacity(focused ? 0.1 : 0)))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 3)
+                    .strokeBorder(EspressUTheme.pixelBlue, lineWidth: 2)
                     .opacity(focused ? 1 : 0))
             .contentShape(Rectangle())
         }

@@ -233,14 +233,8 @@ void InfoLog_PrintActiveSettings()
 	cemuLog_log(LogType::Force, "Use precompiled shaders: {}{}", fmt::format("{}", ActiveSettings::GetPrecompiledShadersOption()), g_current_game_profile->GetPrecompiledShadersState().has_value() ? " (gameprofile)" : "");
 	cemuLog_log(LogType::Force, "Full sync at GX2DrawDone: {}", ActiveSettings::WaitForGX2DrawDoneEnabled() ? "true" : "false");
 	cemuLog_log(LogType::Force, "Strict shader mul: {}", g_current_game_profile->GetAccurateShaderMul() == AccurateShaderMulOption::True ? "true" : "false");
-	if (ActiveSettings::GetGraphicsAPI() == GraphicAPI::kVulkan)
-	{
-		cemuLog_log(LogType::Force, "Async compile: {}", GetConfig().async_compile.GetValue() ? "true" : "false");
-		if (!GetConfig().vk_accurate_barriers.GetValue())
-			cemuLog_log(LogType::Force, "Accurate barriers are disabled!");
-	}
 #ifdef ENABLE_METAL
-	else if (ActiveSettings::GetGraphicsAPI() == GraphicAPI::kMetal)
+	if (ActiveSettings::GetGraphicsAPI() == GraphicAPI::kMetal)
 	{
 	    cemuLog_log(LogType::Force, "Async compile: {}", GetConfig().async_compile.GetValue() ? "true" : "false");
 	    cemuLog_log(LogType::Force, "Force mesh shaders: {}", GetConfig().force_mesh_shaders.GetValue() ? "true" : "false");

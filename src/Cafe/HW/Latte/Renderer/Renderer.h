@@ -37,7 +37,6 @@ enum class GfxVendor
 enum class RendererAPI
 {
 	OpenGL,
-	Vulkan,
 	Metal,
 
 	MAX

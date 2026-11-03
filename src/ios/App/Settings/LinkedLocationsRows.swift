@@ -24,16 +24,16 @@ struct LinkedLocationsRows: View {
                 beginLink(contentTypes: [.folder])
             } label: {
                 Label("Link a folder\u{2026}", systemImage: "externaldrive.badge.plus")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             Button {
                 beginLink(contentTypes: [.item])
             } label: {
                 Label("Link a game file\u{2026}", systemImage: "link")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             Text("Linked games stay where they are. EspressU never copies, moves or deletes them. A game on a drive that isn't connected stays in the library until you plug the drive back in.")
-                .font(.system(size: 12, design: .rounded))
+                .font(.caption)
                 .foregroundColor(EspressUTheme.brownMid)
         }
         .confirmationDialog(
@@ -66,16 +66,16 @@ struct LinkedLocationsRows: View {
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(location.name)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                         .fixedSize(horizontal: false, vertical: true)
                     Text(statusLine(for: location, connected: connected))
-                        .font(.system(size: 12, design: .rounded))
+                        .font(.caption)
                         .foregroundColor(connected ? EspressUTheme.brownMid : EspressUTheme.alertText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 8)
                 Button("Unlink") { pendingUnlink = location }
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .buttonStyle(.borderless)
                     .frame(minHeight: 44)
                     .accessibilityLabel("Unlink \(location.name)")
@@ -84,7 +84,7 @@ struct LinkedLocationsRows: View {
                 Button("Show \(location.hidden.count) removed game\(location.hidden.count == 1 ? "" : "s") again") {
                     Task { await gameManager.restoreHiddenGames(in: location.id) }
                 }
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.footnote.weight(.semibold))
                 .buttonStyle(.borderless)
             }
         }

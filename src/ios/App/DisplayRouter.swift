@@ -307,7 +307,9 @@ final class DisplayRouter: ObservableObject {
         }
 
         let changed = desired != placement
-        placement = desired
+        if changed {
+            placement = desired
+        }
 
         let tvGoesExternal = !(desired == .dualScreen && swapScreens && deviceMode == .otherScreen)
 

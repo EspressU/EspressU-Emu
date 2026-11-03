@@ -103,7 +103,7 @@ struct GraphicPacksView: View {
                 GraphicPackGameListView()
             } label: {
                 Label("Browse all packs", systemImage: "square.grid.2x2")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
         }
         .foregroundColor(EspressUTheme.brownDarkest)
@@ -147,7 +147,7 @@ struct GraphicPacksView: View {
                 }
             } label: {
                 Label("Import pack folder or zip\u{2026}", systemImage: "square.and.arrow.down")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(store.gameRunning)
 
@@ -170,7 +170,7 @@ struct GraphicPacksView: View {
         Section {
             Link(destination: GraphicPackStore.repoPage) {
                 Label("Cemu graphic packs on GitHub", systemImage: "link")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .tint(EspressUTheme.accentText)
         } header: {
@@ -241,7 +241,7 @@ struct GraphicPackSourceSection: View {
             HStack(spacing: 10) {
                 ProgressView()
                 Text("Checking for updates\u{2026}")
-                    .font(.system(size: 13, design: .rounded)).foregroundColor(EspressUTheme.secondaryText)
+                    .font(.footnote).foregroundColor(EspressUTheme.secondaryText)
             }
         case .downloading(let fraction):
             progressRow(title: "Downloading", fraction: fraction)
@@ -258,14 +258,14 @@ struct GraphicPackSourceSection: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("\(title)\u{2026}")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text("\(Int((fraction * 100).rounded()))%")
                     .font(.system(size: 13, design: .monospaced)).foregroundColor(EspressUTheme.secondaryText)
             }
             ProgressView(value: fraction).tint(EspressUTheme.accentText)
             Button(role: .cancel) { store.cancel() } label: {
-                Text("Cancel").font(.system(size: 13, weight: .semibold, design: .rounded))
+                Text("Cancel").font(.footnote.weight(.semibold))
             }
             .buttonStyle(.borderless)
         }
@@ -279,7 +279,7 @@ struct GraphicPackSourceSection: View {
             } label: {
                 Label(store.installed == nil ? "Download community packs" : "Update community packs",
                       systemImage: "arrow.down.circle.fill")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(store.gameRunning)
         }
@@ -287,7 +287,7 @@ struct GraphicPackSourceSection: View {
             store.checkForUpdate(force: true)
         } label: {
             Label(store.latest == nil ? "Check for community packs" : "Check for updates", systemImage: "arrow.clockwise")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
     }
 }
@@ -326,7 +326,7 @@ struct GraphicPackGameListSection: View {
                 } label: {
                     HStack(spacing: 8) {
                         Text(group.game)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 6)
                         let on = group.packs.filter(\.enabled).count
@@ -507,7 +507,7 @@ struct GraphicPackRow: View {
         VStack(alignment: .leading, spacing: 6) {
             Toggle(isOn: Binding(get: { pack.enabled }, set: onToggle)) {
                 Text(pack.displayName)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
             }
             .tint(EspressUTheme.accentText)
@@ -527,7 +527,7 @@ struct GraphicPackRow: View {
             // settings sheet closed the whole settings menu along with it.
             NavigationLink(destination: detail) {
                 Text(pack.presetCount > 0 ? "Options and details" : "Details")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                     .foregroundColor(EspressUTheme.accentText)
             }
         }
@@ -556,7 +556,7 @@ struct PackChip: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .font(.caption2.weight(.semibold))
             .foregroundColor(foreground)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -617,7 +617,7 @@ struct GraphicPackDetailView: View {
                         store.setEnabled(pack, wantOn)
                     })) {
                         Text("Use this pack")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                     .tint(EspressUTheme.accentText)
                     .disabled(store.gameRunning)
@@ -669,7 +669,7 @@ struct GraphicPackDetailView: View {
                         store.reset(pack) { details = $0 }
                     } label: {
                         Label("Reset to the pack's defaults", systemImage: "arrow.uturn.backward")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     }
                     .disabled(store.gameRunning)
 
@@ -710,7 +710,7 @@ struct GraphicPackDetailView: View {
                 Picker(selection: Binding(
                     get: { selected },
                     set: { name in store.setPreset(pack, category: category, preset: name) { details = $0 } }
-                ), label: Text(category.isEmpty ? "Option" : category).font(.system(size: 15, weight: .semibold, design: .rounded))) {
+                ), label: Text(category.isEmpty ? "Option" : category).font(.subheadline.weight(.semibold))) {
                     ForEach(choices, id: \.name) { preset in
                         Text(label(for: preset, isResolution: isResolution, suggestion: suggestion)).tag(preset.name)
                     }
@@ -724,7 +724,7 @@ struct GraphicPackDetailView: View {
                         store.setPreset(pack, category: category, preset: suggestion.name) { details = $0 }
                     } label: {
                         Label("Use the suggested setting (\(suggestion.name))", systemImage: "checkmark.circle")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.footnote.weight(.semibold))
                     }
                     .disabled(store.gameRunning)
                 }

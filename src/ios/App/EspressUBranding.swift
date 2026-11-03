@@ -36,7 +36,7 @@ struct EspressUIntroView: View {
                     EspressULogo(side: side)
                         .shadow(color: .black.opacity(0.5), radius: side * 0.12, y: side * 0.05)
                     Text("EspressU")
-                        .font(.system(size: side * 0.2, weight: .heavy, design: .rounded))
+                        .font(.system(size: side * 0.2, weight: .heavy))
                         .foregroundColor(.white)
                 }
                 .scaleEffect(appeared ? 1 : 0.86)

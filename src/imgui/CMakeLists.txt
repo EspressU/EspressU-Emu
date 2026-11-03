@@ -10,13 +10,6 @@ if (ENABLE_OPENGL)
 	)
 endif()
 
-if (ENABLE_VULKAN)
-	target_sources(imguiImpl PRIVATE
-		imgui_impl_vulkan.cpp
-		imgui_impl_vulkan.h
-	)
-endif()
-
 if (ENABLE_METAL)
     target_sources(imguiImpl PRIVATE
         imgui_impl_metal.mm

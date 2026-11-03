@@ -200,7 +200,7 @@ private struct OverridePickerRow<Selection: Hashable, Options: View>: View {
                 options
             } label: {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)
@@ -228,13 +228,6 @@ struct GameOptionsView: View {
     @State private var cacheImportMessage: String?
     @State private var cacheImportFailed = false
     @State private var cacheImportBusy = false
-    @State private var pendingPipeline: PendingPipeline?
-
-    private struct PendingPipeline: Identifiable {
-        let id = UUID()
-        let staged: URL
-        let name: String
-    }
 
     private enum TriState: String, CaseIterable, Identifiable {
         case useGlobalDefault, on, off
@@ -340,7 +333,7 @@ struct GameOptionsView: View {
                     store.clearOverrides(for: game.settingsKey)
                 } label: {
                     Label("Use Global Defaults for All", systemImage: "arrow.uturn.backward")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 }
             }
         } header: {
@@ -360,7 +353,7 @@ struct GameOptionsView: View {
                 GraphicPacksView(game: game)
             } label: {
                 Label("Graphic Packs", systemImage: "wand.and.stars")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
         } header: {
             SettingsSectionHeader("Graphic packs", icon: "paintpalette", accent: .core)
@@ -412,7 +405,7 @@ struct GameOptionsView: View {
             }
         } label: {
             Label("Export game saves", systemImage: "square.and.arrow.up")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
         .disabled(!GameSaveTransfer.hasSave(for: game))
     }
@@ -422,7 +415,7 @@ struct GameOptionsView: View {
             showingImportConfirmation = true
         } label: {
             Label("Import game save folder", systemImage: "square.and.arrow.down")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
     }
 
@@ -451,14 +444,14 @@ struct GameOptionsView: View {
                 pickCacheFile(.shaders)
             } label: {
                 Label("Import learned shaders", systemImage: "square.and.arrow.down")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(cacheImportBusy)
             Button {
                 pickCacheFile(.pipeline)
             } label: {
                 Label("Import shader pipeline caches", systemImage: "square.and.arrow.down.on.square")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
             }
             .disabled(cacheImportBusy)
             if cacheImportBusy {
@@ -481,7 +474,7 @@ struct GameOptionsView: View {
             InfoButton.footer(
                 "Add a shader cache from desktop Cemu or another EspressU, so this game starts with its shaders already learned.",
                 title: "Shader caches",
-                text: "Learned shaders are what a game has revealed by drawing with them. Importing adds them to this game's own file: anything the game already has stays as it is, and the file is never replaced.\n\nThe file has to be this game's: EspressU checks the version stamp inside it, not the name. Desktop Cemu's files work: learned shaders are named like 000500001010ec00_shaders.bin and are converted the first time the game starts. EspressU's are named ..._mtlshaders.bin. Desktop caches from before Cemu 1.16 use another format and can't be converted.\n\nPipeline caches are named ..._vkpipeline.bin (desktop Cemu, Vulkan) or ..._mtlpipeline.bin (EspressU, Metal). A Vulkan one only helps the Vulkan renderer and a Metal one only the Metal renderer; it's stored either way and used when you switch. Each also needs the game's learned shaders. Import with the game closed. The sizes in Settings update the next time you open it."
+                text: "Learned shaders are what a game has revealed by drawing with them. Importing adds them to this game's own file: anything the game already has stays as it is, and the file is never replaced.\n\nThe file has to be this game's: EspressU checks the version stamp inside it, not the name. Desktop Cemu's files work: learned shaders are named like 000500001010ec00_shaders.bin and are converted the first time the game starts. EspressU's are named ..._mtlshaders.bin. Desktop caches from before Cemu 1.16 use another format and can't be converted.\n\nPipeline caches have to be EspressU's own, named ..._mtlpipeline.bin; the ..._vkpipeline.bin files from desktop Cemu can't be used. A pipeline cache also needs the game's learned shaders. Import with the game closed. The sizes in Settings update the next time you open it."
             )
         }
     }
@@ -504,14 +497,7 @@ struct GameOptionsView: View {
                         }
                         return
                     }
-                    if kind == .pipeline, ShaderCacheImport.pipelineIsVulkan(fileName: name) == nil {
-                        DispatchQueue.main.async {
-                            cacheImportBusy = false
-                            pendingPipeline = PendingPipeline(staged: staged, name: name)
-                        }
-                        return
-                    }
-                    runCacheImport(kind, staged: staged, name: name, pipelineIsVulkan: ShaderCacheImport.pipelineIsVulkan(fileName: name))
+                    runCacheImport(kind, staged: staged, name: name)
                 }
             case .failure(let error):
                 finishCacheImport(ShaderCacheImport.Outcome(message: error.localizedDescription, failed: true))
@@ -519,9 +505,9 @@ struct GameOptionsView: View {
         }
     }
 
-    private func runCacheImport(_ kind: ShaderCacheImport.Kind, staged: URL, name: String, pipelineIsVulkan: Bool?) {
+    private func runCacheImport(_ kind: ShaderCacheImport.Kind, staged: URL, name: String) {
         let outcome = ShaderCacheImport.run(kind: kind, game: game, library: libraryGames, staged: staged,
-                                            originalName: name, pipelineIsVulkan: pipelineIsVulkan)
+                                            originalName: name)
         DispatchQueue.main.async { finishCacheImport(outcome) }
     }
 
@@ -529,18 +515,6 @@ struct GameOptionsView: View {
         cacheImportBusy = false
         cacheImportMessage = outcome.message
         cacheImportFailed = outcome.failed
-    }
-
-    private func answerPipelineRenderer(_ pending: PendingPipeline, vulkan: Bool) {
-        pendingPipeline = nil
-        cacheImportBusy = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            runCacheImport(.pipeline, staged: pending.staged, name: pending.name, pipelineIsVulkan: vulkan)
-        }
-    }
-
-    private func discardPending(_ pending: PendingPipeline) {
-        try? FileManager.default.removeItem(at: pending.staged)
     }
 
     private var optionsForm: some View {
@@ -557,7 +531,7 @@ struct GameOptionsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient
                     .ignoresSafeArea()
@@ -570,16 +544,6 @@ struct GameOptionsView: View {
             } message: {
                 Text("This replaces \(game.title)\'s current save. The one you have now is backed up first, and the game should be closed before you do this.")
             }
-            .confirmationDialog("Which renderer made this pipeline cache?", isPresented: Binding(
-                get: { pendingPipeline != nil },
-                set: { if !$0 { pendingPipeline = nil } }
-            ), titleVisibility: .visible, presenting: pendingPipeline) { pending in
-                Button("Vulkan (desktop Cemu)") { answerPipelineRenderer(pending, vulkan: true) }
-                Button("Metal (EspressU)") { answerPipelineRenderer(pending, vulkan: false) }
-                Button("Cancel", role: .cancel) { discardPending(pending) }
-            } message: { pending in
-                Text("\"\(pending.name)\" doesn't say. Desktop Cemu's are named ..._vkpipeline.bin and EspressU's ..._mtlpipeline.bin. It's stored under the matching name either way.")
-            }
             .navigationTitle(showsOverrides ? game.title : "Packs, saves and caches")
             .espressuOpaqueNavigationBar(EspressUTheme.formGround)
             #if os(iOS)
@@ -591,7 +555,6 @@ struct GameOptionsView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .foregroundColor(EspressUTheme.brownDarkest)
     }
 }

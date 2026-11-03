@@ -49,7 +49,7 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
                         Image(systemName: "slider.horizontal.3")
                             .font(.system(size: 14, weight: .bold))
                         Text("On-screen controls")
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.body.weight(.semibold))
                         Spacer(minLength: 0)
                     }
                     .foregroundColor(.white)
@@ -68,7 +68,6 @@ struct LayoutPanelCard<Rows: View, Footer: View>: View {
                 }
                 .padding(16)
                 .frame(maxWidth: 440)
-                .background(shape.fill(Color.black.opacity(0.5)))
                 .espressUSurface(shape)
                 .environment(\.colorScheme, .dark)
                 .padding(.top, 12)
@@ -93,7 +92,7 @@ struct LayoutPanelFooter: View {
         HStack(spacing: 10) {
             Button { confirmingReset = true } label: {
                 Label("Reset", systemImage: "arrow.counterclockwise")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 44)
@@ -110,7 +109,7 @@ struct LayoutPanelFooter: View {
 
             Button(action: onDone) {
                 Label("Done", systemImage: "checkmark")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(EspressUTheme.pixelBlue, in: Capsule())
@@ -127,7 +126,7 @@ struct PanelCaption: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular, design: .rounded))
+            .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular))
             .foregroundColor(.white.opacity(prominent ? 0.85 : 0.6))
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
@@ -172,12 +171,12 @@ struct PanelSliderRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(label)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                 Spacer(minLength: 8)
                 if let shownValue {
                     Text(shownValue)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.footnote.weight(.semibold))
                         .monospacedDigit()
                         .foregroundColor(.white.opacity(0.7))
                         .accessibilityHidden(true)
@@ -223,114 +222,10 @@ struct PanelToggle: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.white)
         }
         .tint(EspressUTheme.pixelBlue)
         .panelRowStyle()
-    }
-}
-
-struct EspressUPadLayoutPanel: View {
-    let onDone: () -> Void
-
-    @AppStorage(ControllerLayoutSettings.individualEditModeKey)
-    private var individualEditMode = ControllerLayoutSettings.defaultIndividualEditMode
-    @AppStorage(ControllerLayoutSettings.scaleKey)
-    private var controlScale = ControllerLayoutSettings.defaultScale
-    @AppStorage(ControllerLayoutSettings.opacityKey)
-    private var controlOpacity = ControllerLayoutSettings.defaultOpacity
-    @AppStorage(ControllerLayoutSettings.stickSpacingKey)
-    private var stickSpacing = ControllerLayoutSettings.defaultStickSpacing
-    @AppStorage(ControllerLayoutSettings.shoulderOffsetKey)
-    private var shoulderOffset = ControllerLayoutSettings.defaultShoulderOffset
-    @AppStorage(ControllerLayoutSettings.joystickKey)
-    private var joystickMode = ControllerLayoutSettings.defaultJoystick
-    @AppStorage(ControllerLayoutSettings.comfortControlsKey)
-    private var comfortControls = ControllerLayoutSettings.defaultComfortControls
-    @AppStorage(ControllerLayoutSettings.deadzoneKey)
-    private var stickDeadzone = ControllerLayoutSettings.defaultDeadzone
-
-    var body: some View {
-        LayoutPanelCard(rows: { rows }, footer: {
-            LayoutPanelFooter(
-                resetMessage: "Button size, opacity, stick spacing, shoulder height and every button you've moved go back to how EspressU ships, in every game.",
-                onReset: { ControllerLayoutSettings.reset() },
-                onDone: onDone)
-        })
-    }
-
-    @ViewBuilder private var rows: some View {
-        Picker("Edit mode", selection: $individualEditMode) {
-            Text("Grouped").tag(false)
-            Text("Individual").tag(true)
-        }
-        .pickerStyle(.segmented)
-
-        PanelCaption(text: individualEditMode
-                     ? "Drag any button to move it on its own, or pinch it to resize. L and ZL move together, and so do R and ZR. Nothing here reaches the game."
-                     : "Drag the empty space inside a dashed box to move that whole half - L/ZL and the rest of the left side together, R/ZR and the right side together. Nothing here reaches the game.")
-
-        PanelSliderRow("Button size", leadingIcon: "minus.magnifyingglass", trailingIcon: "plus.magnifyingglass",
-                       value: $controlScale,
-                       range: ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale)
-
-        PanelSliderRow("Opacity", leadingIcon: "circle.lefthalf.filled", trailingIcon: "circle.fill",
-                       value: $controlOpacity, range: 0.2...1.0)
-
-        if ControllerLayoutSettings.supportsShoulderOffset {
-            PanelSliderRow("Shoulder button height", title: "L/R", leadingIcon: "arrow.up.and.down",
-                           value: $shoulderOffset,
-                           range: ControllerLayoutSettings.shoulderOffsetRange(touchLab: false),
-                           step: ControllerLayoutSettings.shoulderOffsetStep,
-                           spokenValue: ControllerLayoutSettings.shoulderOffsetLabel(shoulderOffset))
-        }
-
-        PanelToggle(title: "Add analog sticks", isOn: $joystickMode)
-
-        if joystickMode { stickRows }
-
-        PanelCaption(text: "These settings apply to every game.", prominent: false)
-    }
-
-    @ViewBuilder private var stickRows: some View {
-        PanelToggle(title: "Comfort controls", isOn: $comfortControls)
-
-        PanelCaption(text: comfortControls
-                     ? "L, ZL and minus sit on the left stick; R, ZR and plus sit on the right stick."
-                     : "L, ZL and minus stay on the d-pad; R, ZR and plus stay on A/B/X/Y.",
-                     prominent: false)
-
-        PanelSliderRow("Stick deadzone", title: "Deadzone",
-                       value: $stickDeadzone,
-                       range: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
-                       spokenValue: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded())) percent",
-                       readout: stickDeadzone <= 0.0005 ? "off" : "\(Int((stickDeadzone * 100).rounded()))%")
-
-        PanelSliderRow("Stick spacing", title: "Sticks",
-                       leadingIcon: "arrow.right.and.line.vertical.and.arrow.left",
-                       trailingIcon: "arrow.left.and.line.vertical.and.arrow.right",
-                       value: $stickSpacing,
-                       range: ControllerLayoutSettings.minStickSpacing...ControllerLayoutSettings.maxStickSpacing,
-                       step: ControllerLayoutSettings.stickSpacingStep,
-                       spokenValue: ControllerLayoutSettings.stickSpacingLabel(stickSpacing))
-    }
-}
-
-struct PreviewLayoutPanel: View {
-    let onDone: () -> Void
-
-    var body: some View {
-        LayoutPanelCard(rows: { rows }, footer: {
-            LayoutPanelFooter(
-                resetMessage: "Every group goes back to the preset's own position and size, in every game. The preset, colours and picture mode you picked stay as they are.",
-                onReset: { PreviewPadStore.shared.resetAdjustments() },
-                onDone: onDone)
-        })
-    }
-
-    @ViewBuilder private var rows: some View {
-        PanelCaption(text: "Drag a group of buttons to move it, or pinch it to resize it. Nothing here reaches the game.")
-        PanelCaption(text: "This is the experimental pad. Its size, colours and layout presets are in Settings.", prominent: false)
     }
 }

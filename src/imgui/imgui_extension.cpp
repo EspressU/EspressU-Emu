@@ -6,9 +6,6 @@
 #ifdef ENABLE_OPENGL
 #include "imgui_impl_opengl3.h"
 #endif
-#ifdef ENABLE_VULKAN
-#include "imgui_impl_vulkan.h"
-#endif
 #include "input/InputManager.h"
 
 template<typename T> static T ImMin(T lhs, T rhs) { return lhs < rhs ? lhs : rhs; }

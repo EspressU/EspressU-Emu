@@ -82,7 +82,7 @@ struct MotionSettingsSection: View {
             Toggle(isOn: $motionEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Motion aiming")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text(motionEnabled
                          ? "Tilt and turn the device to aim, like the GamePad."
                          : "Stick only. The GamePad never moves.")
@@ -129,7 +129,7 @@ struct MotionSettingsSection: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Sensitivity")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.footnote.weight(.semibold))
                 Spacer()
                 Text(String(format: "%.2fx", sensitivity))
                     .font(.system(size: 13, design: .monospaced))
@@ -151,7 +151,7 @@ struct MotionSettingsSection: View {
                 .foregroundColor(EspressUTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .font(.system(size: 13, weight: .semibold, design: .rounded))
+        .font(.footnote.weight(.semibold))
 
         recentreButton
     }
@@ -163,7 +163,7 @@ struct MotionSettingsSection: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { recentred = false }
         } label: {
             Label(recentred ? "Recentred" : "Recentre aim", systemImage: "scope")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.subheadline.weight(.semibold))
         }
     }
 

@@ -92,7 +92,7 @@ struct DiagnosticsSection: View {
             Toggle(isOn: $launchIntroEnabled) {
                 Label {
                     Text("Play the launch intro")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                 } icon: {
                     Image(systemName: "sparkles")
                 }
@@ -103,7 +103,7 @@ struct DiagnosticsSection: View {
                 Toggle(isOn: $showLaunchLog) {
                     Label {
                         Text("Show launch log")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.subheadline.weight(.semibold))
                     } icon: {
                         Image(systemName: "text.alignleft")
                     }
@@ -114,7 +114,7 @@ struct DiagnosticsSection: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Show controls diagnostic")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.subheadline.weight(.semibold))
                             Text("A small readout over the game showing whether your button presses are reaching the game, and why not if they aren't.")
                                 .font(.system(size: 12))
                                 .foregroundColor(EspressUTheme.secondaryText)

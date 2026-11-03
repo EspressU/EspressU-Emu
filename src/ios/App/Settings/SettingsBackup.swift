@@ -136,8 +136,6 @@ enum SettingsBackup {
         if !SettingsMode.isAdvanced { AdvancedSettings.clearAdvanced() }
 
         UIStyleStore.shared.reloadFromDefaults()
-        ControllerCustomLayout.shared.reloadFromDefaults()
-        PreviewPadStore.shared.reloadFromDefaults()
         DisplayRouter.shared.reapplyRenderScale(reason: "settings import")
         AdvancedSettings.applyToBridge()
         MotionSettings.applyToBridge()
@@ -191,7 +189,6 @@ enum SettingsBackup {
 
     private static let allowedStrings: [String: Set<String>] = [
         RenderScale.storageKey: Set(RenderScale.allCases.map(\.rawValue)),
-        MoltenVKBuild.storageKey: Set(MoltenVKBuild.allCases.map(\.rawValue)),
         CoreMode.storageKey: Set(CoreMode.allCases.map(\.rawValue)),
         SettingsMode.storageKey: Set(SettingsMode.allCases.map(\.rawValue)),
         TopBarAutoHide.handleSizeKey: Set(TopBarAutoHide.HandleSize.allCases.map(\.rawValue)),
@@ -200,7 +197,6 @@ enum SettingsBackup {
     ]
 
     private static let allowedInts: [String: ClosedRange<Int>] = [
-        RendererAPI.storageKey: 1...2,
         UpscaleFilterSetting.storageKey: 0...3,
         DownscaleFilterSetting.storageKey: 0...3,
         FullSpeedRenders.shaderModeKey: 0...1,
@@ -212,12 +208,15 @@ enum SettingsBackup {
         OverrideGammaSetting.storageKey: OverrideGammaSetting.minValue...OverrideGammaSetting.maxValue,
         MotionSettings.sensitivityKey: MotionSettings.minSensitivity...MotionSettings.maxSensitivity,
         ControllerLayoutSettings.deadzoneKey: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
-        ControllerLayoutSettings.stickCurveKey: ControllerLayoutSettings.minStickCurve...ControllerLayoutSettings.maxStickCurve,
         ControllerLayoutSettings.scaleKey: ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale,
         ControllerLayoutSettings.opacityKey: 0.2...1.0,
     ]
 
     private static func isAcceptable(_ value: Any, for key: String) -> Bool {
+        if key == ControllerLayoutSettings.elementsKey {
+            guard let text = value as? String else { return false }
+            return CremaElementOverrides(json: text) != nil
+        }
         if let allowed = allowedStrings[key] {
             guard let text = value as? String else { return false }
             return allowed.contains(text)

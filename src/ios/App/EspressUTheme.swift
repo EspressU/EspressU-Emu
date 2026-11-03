@@ -91,307 +91,126 @@ private func espressuReadable(_ hex: String, on grounds: [String], minimum: Doub
     return toward
 }
 
+/// System-driven palette. Surfaces, text and separators come from UIKit's semantic colours so the
+/// app follows light/dark, Increase Contrast and Reduce Transparency automatically. The only
+/// customisable colour is the accent, taken from the selected theme preset.
 enum EspressUTheme {
     private static var t: EspressUThemeDefinition { EspressUThemeStore.shared.current }
 
-    static var backgroundTop: Color { Color(light: t.backgroundTopLight, dark: t.backgroundTopDark) }
-    static var backgroundBottom: Color { Color(light: t.backgroundBottomLight, dark: t.backgroundBottomDark) }
-
-    static var cremaTopLight: Color { Color(light: t.cremaTopLightLight, dark: t.cremaTopLightDark) }
-    static var cremaTopDark: Color { Color(light: t.cremaTopDarkLight, dark: t.cremaTopDarkDark) }
-
-    static var cream: Color { Color(light: t.creamLight, dark: t.creamDark) }
-    static var wrapper: Color { Color(light: t.wrapperLight, dark: t.wrapperDark) }
-
-    static var blueberryNavy: Color { Color(light: t.blueberryNavyLight, dark: t.blueberryNavyDark) }
+    // MARK: Accent
 
     static var pixelBlue: Color { Color(light: t.pixelBlueLight, dark: t.pixelBlueDark) }
+    static var blueberryNavy: Color { pixelBlue }
+    static var cremaTopLight: Color { pixelBlue }
+    static var cremaTopDark: Color { pixelBlue }
 
-    static var blushPink: Color { Color(light: t.blushPinkLight, dark: t.blushPinkDark) }
-
-    static var brownDarkest: Color { readableInk(light: t.brownDarkestLight, dark: t.brownDarkestDark) }
-    static var brownDark: Color { readableInk(light: t.brownDarkLight, dark: t.brownDarkDark) }
-    static var brownMid: Color { readableInk(light: t.brownMidLight, dark: t.brownMidDark) }
-
-    static var sparkleCream: Color { Color(light: t.sparkleCreamLight, dark: t.sparkleCreamDark) }
-
-    static var shadow: Color { Color(light: t.shadowLight, dark: t.shadowDark) }
-
-    private static var lightTextGrounds: [String] {
-        ["#FFFFFF", "#F2F2F7", t.creamLight, t.wrapperLight,
-         espressuDeepen(espressuMixHex(t.creamLight, t.wrapperLight, 0.8), 0.04)]
-    }
-
-    private static var darkTextGrounds: [String] {
-        ["#000000", "#1C1C1E", "#2C2C2E", t.creamDark, t.wrapperDark]
-    }
+    private static var lightTextGrounds: [String] { ["#FFFFFF", "#F2F2F7"] }
+    private static var darkTextGrounds: [String] { ["#000000", "#1C1C1E", "#2C2C2E"] }
 
     private static func readableInk(light: String, dark: String) -> Color {
         Color(light: espressuReadable(light, on: lightTextGrounds, minimum: 4.5, toward: "#000000"),
               dark: espressuReadable(dark, on: darkTextGrounds, minimum: 4.5, toward: "#FFFFFF"))
     }
 
-    static var accentText: Color { readableInk(light: t.pixelBlueLight, dark: t.pixelBlueDark) }
-
-    static var alertText: Color { readableInk(light: t.blushPinkLight, dark: t.blushPinkDark) }
-
     static func readable(_ light: KeyPath<EspressUThemeDefinition, String>,
                          _ dark: KeyPath<EspressUThemeDefinition, String>) -> Color {
         readableInk(light: t[keyPath: light], dark: t[keyPath: dark])
     }
 
+    /// Accent used for text and glyphs, nudged until it reads at 4.5:1 on system backgrounds.
+    static var accentText: Color { readableInk(light: t.pixelBlueLight, dark: t.pixelBlueDark) }
+    static var accentOnDark: Color { accentText }
+    static var onBackgroundAccent: Color { accentText }
+
+    /// Foreground for content placed on a filled accent control.
     static var onAccent: Color {
-        Color(light: inkOn(t.pixelBlueLight, cream: t.sparkleCreamLight),
-              dark: inkOn(t.pixelBlueDark, cream: t.sparkleCreamDark))
+        func ink(_ fill: String) -> String { espressuContrast("#FFFFFF", fill) >= 3 ? "#FFFFFF" : "#000000" }
+        return Color(light: ink(t.pixelBlueLight), dark: ink(t.pixelBlueDark))
     }
+    static var onCremaTop: Color { onAccent }
+    static var sparkleCream: Color { Color.white }
 
-    private static func inkOn(_ fill: String, cream: String) -> String {
-        espressuContrast(cream, fill) >= espressuContrast(t.brownDarkestLight, fill) ? cream : t.brownDarkestLight
+    // MARK: Semantic colours
+
+    static var blushPink: Color { Color(UIColor.systemRed) }
+    static var alertText: Color { Color(UIColor.systemRed) }
+    static var alertOnDark: Color { Color(UIColor.systemRed) }
+    static var cautionText: Color { Color(UIColor.systemOrange) }
+
+    // MARK: Text
+
+    static var brownDarkest: Color { Color(UIColor.label) }
+    static var brownDark: Color { Color(UIColor.label) }
+    static var brownMid: Color { Color(UIColor.secondaryLabel) }
+    static var secondaryText: Color { Color(UIColor.secondaryLabel) }
+    static var onBackground: Color { Color(UIColor.label) }
+    static var onBackgroundMuted: Color { Color(UIColor.secondaryLabel) }
+
+    // MARK: Surfaces
+
+    /// Light mode uses a softer grey ground with off-white cards instead of the near-white system defaults; dark mode keeps the system values.
+    private static func adaptive(light: UIColor, dark: UIColor) -> Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? dark : light })
     }
-
-    static var cautionText: Color { readableInk(light: "#FF9500", dark: "#FF9F0A") }
-
-    static var secondaryText: Color { readableInk(light: "#8A8A8E", dark: "#9C9CA3") }
-
-    static var accentOnDark: Color {
-        Color(hex: espressuReadable(t.pixelBlueDark, on: darkPanelGrounds, minimum: 4.5, toward: "#FFFFFF"))
+    static var formGround: Color { adaptive(light: UIColor(red: 0.855, green: 0.855, blue: 0.875, alpha: 1), dark: .systemGroupedBackground) }
+    static var backgroundTop: Color { formGround }
+    static var backgroundBottom: Color { formGround }
+    static var cream: Color { adaptive(light: UIColor(red: 0.945, green: 0.945, blue: 0.957, alpha: 1), dark: .secondarySystemGroupedBackground) }
+    static var creamPressed: Color { adaptive(light: UIColor(red: 0.89, green: 0.89, blue: 0.91, alpha: 1), dark: .tertiarySystemGroupedBackground) }
+    /// Neutral fills are translucent overlays rather than opaque greys, so they sit on glass and backdrops.
+    static var wrapper: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor.white.withAlphaComponent(0.12) : UIColor.black.withAlphaComponent(0.08) })
     }
-
-    static var alertOnDark: Color {
-        Color(hex: espressuReadable(t.blushPinkDark, on: darkPanelGrounds, minimum: 4.5, toward: "#FFFFFF"))
-    }
-
-    private static var darkPanelGrounds: [String] { ["#000000", "#262626", "#404040"] }
-
-    static var onCremaTop: Color {
-        Color(light: onCremaTopHex(dark: false), dark: onCremaTopHex(dark: true))
-    }
-
-    private static func onCremaTopHex(dark: Bool) -> String {
-        let top = dark ? t.cremaTopLightDark : t.cremaTopLightLight
-        let bottom = dark ? t.cremaTopDarkDark : t.cremaTopDarkLight
-        let grounds = [0.25, 0.5, 0.75].map { espressuMixHex(top, bottom, $0) }
-        let cream = dark ? t.sparkleCreamDark : t.sparkleCreamLight
-        let creamWorst = espressuWorstContrast(cream, on: grounds)
-        if creamWorst >= 3.0 { return cream }
-        let ink = espressuDeepen(t.cremaTopDarkLight, 0.78)
-        return espressuWorstContrast(ink, on: grounds) > creamWorst ? ink : cream
-    }
-
-    static var formGround: Color { Color(UIColor.systemGroupedBackground) }
-
-    private static func backgroundSamples(dark: Bool) -> [String] {
-        let lightStops = t.backgroundStopsLight
-        let darkStops = t.backgroundStopsDark
-        if lightStops.count >= 2 && lightStops.count == darkStops.count {
-            return dark ? darkStops : lightStops
-        }
-        let top = dark ? t.backgroundTopDark : t.backgroundTopLight
-        let bottom = dark ? t.backgroundBottomDark : t.backgroundBottomLight
-        return [0.0, 0.25, 0.5, 0.75, 1.0].map { espressuMixHex(top, bottom, $0) }
-    }
-
-    static var onBackground: Color {
-        Color(light: onBackgroundHex(dark: false), dark: onBackgroundHex(dark: true))
-    }
-
-    static var onBackgroundMuted: Color {
-        Color(light: onBackgroundMutedHex(dark: false), dark: onBackgroundMutedHex(dark: true))
-    }
-
-    static var onBackgroundAccent: Color {
-        Color(light: onBackgroundAccentHex(dark: false), dark: onBackgroundAccentHex(dark: true))
-    }
-
-    private static func onBackgroundHex(dark: Bool) -> String {
-        let samples = backgroundSamples(dark: dark)
-        let ink = t.brownDarkestLight
-        let cream = dark ? t.sparkleCreamDark : t.sparkleCreamLight
-        let chosen = espressuWorstContrast(ink, on: samples) >= espressuWorstContrast(cream, on: samples) ? ink : cream
-        return espressuReadable(chosen, on: samples, minimum: 4.5, toward: onBackgroundPole(chosen))
-    }
-
-    private static func onBackgroundMutedHex(dark: Bool) -> String {
-        let samples = backgroundSamples(dark: dark)
-        let primary = onBackgroundHex(dark: dark)
-        let softened = espressuMixHex(primary, samples[samples.count / 2], 0.3)
-        return espressuReadable(softened, on: samples, minimum: 4.5, toward: onBackgroundPole(primary))
-    }
-
-    private static func onBackgroundAccentHex(dark: Bool) -> String {
-        let samples = backgroundSamples(dark: dark)
-        let accent = dark ? t.pixelBlueDark : t.pixelBlueLight
-        return espressuReadable(accent, on: samples, minimum: 3.0, toward: onBackgroundPole(onBackgroundHex(dark: dark)))
-    }
-
-    private static func onBackgroundPole(_ ink: String) -> String {
-        espressuLuminance(ink) < 0.18 ? "#000000" : "#FFFFFF"
-    }
-
-    static var backgroundGradient: LinearGradient {
-        let lightStops = t.backgroundStopsLight
-        let darkStops = t.backgroundStopsDark
-        if lightStops.count >= 2 && lightStops.count == darkStops.count {
-            let colors = zip(lightStops, darkStops).map { Color(light: $0, dark: $1) }
-            let locations = t.backgroundStopLocations
-            if locations.count == colors.count {
-                let stops = zip(colors, locations).map { Gradient.Stop(color: $0, location: $1) }
-                return LinearGradient(gradient: Gradient(stops: stops), startPoint: .top, endPoint: .bottom)
-            }
-            return LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(colors: [backgroundTop, backgroundBottom], startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-
-    static var cremaTopGradient: LinearGradient {
-        LinearGradient(colors: [cremaTopLight, cremaTopDark], startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-
-    static var surfaceHighlight: Color {
-        Color(light: espressuLift(t.wrapperLight, 0.70), dark: espressuLift(t.wrapperDark, 0.34))
-    }
-
-    static var surfaceShade: Color {
-        Color(light: espressuDeepen(t.wrapperLight, 0.14), dark: espressuDeepen(t.wrapperDark, 0.40))
-    }
-
-    static var edgeStroke: LinearGradient {
-        if UIStyle.isClassic {
-            return LinearGradient(colors: [wrapper, wrapper], startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(
-            gradient: Gradient(stops: [
-                Gradient.Stop(color: surfaceHighlight, location: 0.0),
-                Gradient.Stop(color: wrapper, location: 0.55),
-                Gradient.Stop(color: surfaceShade, location: 1.0)
-            ]),
-            startPoint: .top, endPoint: .bottom)
-    }
-
-    static var controlEdgeStroke: LinearGradient {
-        if UIStyle.isClassic {
-            return LinearGradient(colors: [wrapper, wrapper], startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(
-            colors: [
-                Color(light: espressuLift(t.cremaTopLightLight, 0.42), dark: espressuLift(t.cremaTopLightDark, 0.34)),
-                Color(light: espressuDeepen(t.cremaTopDarkLight, 0.20), dark: espressuDeepen(t.cremaTopDarkDark, 0.26))
-            ],
-            startPoint: .top, endPoint: .bottom)
-    }
-
-    static var cremaTopGradientPressed: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color(light: espressuDeepen(t.cremaTopLightLight, 0.10), dark: espressuDeepen(t.cremaTopLightDark, 0.10)),
-                Color(light: espressuDeepen(t.cremaTopDarkLight, 0.10), dark: espressuDeepen(t.cremaTopDarkDark, 0.10))
-            ],
-            startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-
-    static var creamPressed: Color {
-        Color(light: espressuDeepen(t.creamLight, 0.07), dark: espressuLift(t.creamDark, 0.10))
-    }
-
-    static var surfaceRaised: Color {
-        Color(light: espressuMixHex(t.creamLight, t.wrapperLight, 0.45),
-              dark: espressuMixHex(t.creamDark, t.wrapperDark, 0.55))
-    }
-
-    static var surfaceSunken: Color {
-        Color(light: espressuDeepen(espressuMixHex(t.creamLight, t.wrapperLight, 0.8), 0.04),
-              dark: espressuDeepen(t.creamDark, 0.35))
-    }
-
-    static var hairline: Color {
-        Color(light: espressuMixHex(t.wrapperLight, t.brownMidLight, 0.22),
-              dark: espressuMixHex(t.wrapperDark, t.brownMidDark, 0.18))
-    }
+    static var surfaceRaised: Color { adaptive(light: UIColor(red: 0.92, green: 0.92, blue: 0.935, alpha: 1), dark: .tertiarySystemGroupedBackground) }
+    static var surfaceSunken: Color { formGround }
+    static var surfaceHighlight: Color { .clear }
+    static var surfaceShade: Color { .clear }
+    static var hairline: Color { Color(UIColor.separator) }
+    static var shadow: Color { .black }
+    static var scrim: Color { Color.black.opacity(0.4) }
 
     static var hairlineWidth: CGFloat {
         let scale = UITraitCollection.current.displayScale
         return scale > 0 ? 1.0 / scale : 0.5
     }
 
-    static var scrim: Color {
-        Color(light: t.shadowLight, lightAlpha: 0.26, dark: "#000000", darkAlpha: 0.48)
-    }
+    // Gradients are kept as flat fills so existing call sites keep compiling.
+    static var backgroundGradient: LinearGradient { flat(formGround) }
+    static var cremaTopGradient: LinearGradient { flat(pixelBlue) }
+    static var cremaTopGradientPressed: LinearGradient { flat(pixelBlue.opacity(0.8)) }
+    static var edgeStroke: LinearGradient { flat(hairline) }
+    static var controlEdgeStroke: LinearGradient { flat(.clear) }
+    static var surfaceSheen: LinearGradient { flat(.clear) }
+    static var controlSheen: LinearGradient { flat(.clear) }
 
-    static var sheenHighlight: Color {
-        Color(light: "#FFFFFF", lightAlpha: 0.32, dark: "#FFFFFF", darkAlpha: 0.075)
-    }
-
-    static var sheenOcclusion: Color {
-        Color(light: "#000000", lightAlpha: 0.035, dark: "#000000", darkAlpha: 0.11)
-    }
-
-    static var surfaceSheen: LinearGradient {
-        if UIStyle.glassDisabled {
-            return LinearGradient(colors: [.clear, .clear], startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(
-            gradient: Gradient(stops: [
-                Gradient.Stop(color: sheenHighlight, location: 0.0),
-                Gradient.Stop(color: .clear, location: 0.40),
-                Gradient.Stop(color: .clear, location: 0.70),
-                Gradient.Stop(color: sheenOcclusion, location: 1.0)
-            ]),
-            startPoint: .top, endPoint: .bottom)
-    }
-
-    static var controlSheen: LinearGradient {
-        if UIStyle.glassDisabled {
-            return LinearGradient(colors: [.clear, .clear], startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(
-            gradient: Gradient(stops: [
-                Gradient.Stop(color: sheenHighlight, location: 0.0),
-                Gradient.Stop(color: .clear, location: 0.30),
-                Gradient.Stop(color: .clear, location: 0.78),
-                Gradient.Stop(color: sheenOcclusion, location: 1.0)
-            ]),
-            startPoint: .top, endPoint: .bottom)
+    private static func flat(_ color: Color) -> LinearGradient {
+        LinearGradient(colors: [color, color], startPoint: .top, endPoint: .bottom)
     }
 
     enum Elevation {
-        case flush
-        case resting
-        case raised
-        case floating
-        case overlay
+        case flush, resting, raised, floating, overlay
 
-        var contact: (radius: CGFloat, y: CGFloat, opacity: Double) {
+        /// Apple keeps grouped content flat; only floating chrome casts a soft shadow.
+        var shadow: (radius: CGFloat, y: CGFloat, opacity: Double) {
             switch self {
-            case .flush:    return (0, 0, 0)
-            case .resting:  return (1.5, 1, 0.13)
-            case .raised:   return (2, 1, 0.15)
-            case .floating: return (3, 2, 0.17)
-            case .overlay:  return (4, 2, 0.19)
-            }
-        }
-
-        var ambient: (radius: CGFloat, y: CGFloat, opacity: Double) {
-            switch self {
-            case .flush:    return (0, 0, 0)
-            case .resting:  return (9, 3, 0.10)
-            case .raised:   return (15, 6, 0.12)
-            case .floating: return (24, 11, 0.13)
-            case .overlay:  return (36, 18, 0.17)
+            case .flush, .resting, .raised: return (0, 0, 0)
+            case .floating: return (12, 4, 0.12)
+            case .overlay:  return (24, 8, 0.18)
             }
         }
     }
 
     enum Font {
-        static var display: SwiftUI.Font { .system(.title, design: .rounded).weight(.bold) }
-        static var title: SwiftUI.Font { .system(.title2, design: .rounded).weight(.bold) }
-        static var sectionTitle: SwiftUI.Font { .system(.headline, design: .rounded) }
-        static var rowLabel: SwiftUI.Font { .system(.subheadline, design: .rounded).weight(.semibold) }
-        static var rowValue: SwiftUI.Font { .system(.subheadline, design: .rounded) }
-        static var caption: SwiftUI.Font { .system(.footnote, design: .rounded) }
-        static var subCaption: SwiftUI.Font { .system(.caption) }
-        static var micro: SwiftUI.Font { .system(.caption2) }
-        static var primaryButton: SwiftUI.Font { .system(size: 14, weight: .bold, design: .rounded) }
-        static var secondaryButton: SwiftUI.Font { .system(.footnote, design: .rounded).weight(.semibold) }
+        static var display: SwiftUI.Font { .largeTitle.weight(.bold) }
+        static var title: SwiftUI.Font { .title2.weight(.bold) }
+        static var sectionTitle: SwiftUI.Font { .headline }
+        static var rowLabel: SwiftUI.Font { .body }
+        static var rowValue: SwiftUI.Font { .body }
+        static var caption: SwiftUI.Font { .footnote }
+        static var subCaption: SwiftUI.Font { .caption }
+        static var micro: SwiftUI.Font { .caption2 }
+        static var primaryButton: SwiftUI.Font { .body.weight(.semibold) }
+        static var secondaryButton: SwiftUI.Font { .subheadline.weight(.semibold) }
         static var monoTag: SwiftUI.Font { .system(.caption, design: .monospaced).weight(.semibold) }
     }
 
@@ -406,24 +225,23 @@ enum EspressUTheme {
     }
 
     enum Radius {
-        static let chip: CGFloat = 12
-        static let control: CGFloat = 14
-        static let card: CGFloat = 18
+        static let chip: CGFloat = 10
+        static let control: CGFloat = 12
+        static let card: CGFloat = 20
         static let sheet: CGFloat = 28
     }
 
     enum Motion {
-        static var pressDown: SwiftUI.Animation { .easeOut(duration: 0.07) }
-        static var pressRelease: SwiftUI.Animation { .spring(response: 0.34, dampingFraction: 0.60, blendDuration: 0) }
-        static var state: SwiftUI.Animation { .spring(response: 0.30, dampingFraction: 0.86, blendDuration: 0) }
-        static var layout: SwiftUI.Animation { .spring(response: 0.42, dampingFraction: 0.90, blendDuration: 0) }
+        static var pressDown: SwiftUI.Animation { .easeOut(duration: 0.1) }
+        static var pressRelease: SwiftUI.Animation { .easeOut(duration: 0.2) }
+        static var state: SwiftUI.Animation { .snappy(duration: 0.25) }
+        static var layout: SwiftUI.Animation { .smooth(duration: 0.35) }
 
-        static let pressScale: CGFloat = 0.97
-        static let compactPressScale: CGFloat = 0.955
+        static let pressScale: CGFloat = 1
+        static let compactPressScale: CGFloat = 1
 
         static func press(isPressed: Bool, reduceMotion: Bool) -> SwiftUI.Animation {
-            if reduceMotion { return .easeOut(duration: 0.12) }
-            return isPressed ? pressDown : pressRelease
+            isPressed ? pressDown : pressRelease
         }
     }
 }
@@ -433,34 +251,12 @@ enum EspressUHaptics {
 
     static func tap() {
         guard isEnabled else { return }
-        EspressUHapticEngine.shared.tap()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     static func select() {
         guard isEnabled else { return }
-        EspressUHapticEngine.shared.select()
-    }
-}
-
-private final class EspressUHapticEngine {
-    static let shared = EspressUHapticEngine()
-
-    private let impact = UIImpactFeedbackGenerator(style: .soft)
-    private let selection = UISelectionFeedbackGenerator()
-
-    private init() {
-        impact.prepare()
-        selection.prepare()
-    }
-
-    func tap() {
-        impact.impactOccurred()
-        impact.prepare()
-    }
-
-    func select() {
-        selection.selectionChanged()
-        selection.prepare()
+        UISelectionFeedbackGenerator().selectionChanged()
     }
 }
 
@@ -468,25 +264,15 @@ private struct EspressUElevationModifier: ViewModifier {
     let level: EspressUTheme.Elevation
 
     func body(content: Content) -> some View {
-        let contact = level.contact
-        let ambient = level.ambient
-        if UIStyle.isClassic {
-            return AnyView(content.shadow(color: EspressUTheme.shadow.opacity(0.18), radius: 10, x: 0, y: 4))
-        }
-        return AnyView(content
-            .shadow(color: EspressUTheme.shadow.opacity(contact.opacity), radius: contact.radius, x: 0, y: contact.y)
-            .shadow(color: EspressUTheme.shadow.opacity(ambient.opacity), radius: ambient.radius, x: 0, y: ambient.y))
+        let s = level.shadow
+        content.shadow(color: Color.black.opacity(s.opacity), radius: s.radius, x: 0, y: s.y)
     }
 }
 
 extension View {
     @ViewBuilder func espressuOpaqueNavigationBar(_ fill: Color = EspressUTheme.cream) -> some View {
-        if #available(iOS 16.0, *) {
-            self.toolbarBackground(fill, for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
-        } else {
-            self
-        }
+        // System navigation bars (scroll-edge appearance, Liquid Glass on iOS 26) are used as-is.
+        self
     }
 
     func espressuElevation(_ level: EspressUTheme.Elevation) -> some View {
@@ -494,141 +280,92 @@ extension View {
     }
 
     func espressuScreenBackground() -> some View {
-        background(EspressUTheme.backgroundGradient.ignoresSafeArea())
+        background(EspressUTheme.formGround.ignoresSafeArea())
     }
 
     func espressuRowLabel() -> some View {
-        font(EspressUTheme.Font.rowLabel).foregroundColor(EspressUTheme.brownDarkest)
+        font(EspressUTheme.Font.rowLabel).foregroundColor(.primary)
     }
 
     func espressuRowValue() -> some View {
-        font(EspressUTheme.Font.rowValue).foregroundColor(EspressUTheme.brownMid)
+        font(EspressUTheme.Font.rowValue).foregroundColor(.secondary)
     }
 
     func espressuSectionTitle() -> some View {
-        font(EspressUTheme.Font.sectionTitle).foregroundColor(EspressUTheme.brownDark)
+        font(EspressUTheme.Font.sectionTitle).foregroundColor(.primary)
     }
 
     func espressuCaption() -> some View {
-        font(EspressUTheme.Font.caption).foregroundColor(EspressUTheme.brownMid)
+        font(EspressUTheme.Font.caption).foregroundColor(.secondary)
     }
 
     func espressuSubCaption() -> some View {
-        font(EspressUTheme.Font.subCaption).foregroundColor(EspressUTheme.secondaryText)
+        font(EspressUTheme.Font.subCaption).foregroundColor(.secondary)
     }
 }
 
 struct EspressUCard<Content: View>: View {
-    var cornerRadius: CGFloat = 18
+    var cornerRadius: CGFloat = EspressUTheme.Radius.card
     var fill: Color = EspressUTheme.cream
     @ViewBuilder var content: Content
 
-    private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-    }
-
     var body: some View {
         content
-            .background(fill.overlay(EspressUTheme.surfaceSheen))
-            .clipShape(shape)
-            .overlay(shape.strokeBorder(EspressUTheme.edgeStroke, lineWidth: 1))
-            .espressuElevation(.resting)
+            .background(fill, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 }
 
+/// Prominent button: tinted Liquid Glass on iOS 26, a filled accent shape before that.
 struct EspressUPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
-        StyleBody(configuration: configuration)
-    }
-
-    private struct StyleBody: View {
-        let configuration: ButtonStyleConfiguration
-        @Environment(\.accessibilityReduceMotion) private var reduceMotion
-        @Environment(\.isEnabled) private var isEnabled
-
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: EspressUTheme.Radius.control, style: .continuous)
-        }
-
-        var body: some View {
-            let pressed = configuration.isPressed
-            if UIStyle.isClassic {
-                return AnyView(configuration.label
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundColor(EspressUTheme.onCremaTop)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(EspressUTheme.cremaTopGradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .shadow(color: EspressUTheme.shadow.opacity(0.25), radius: pressed ? 2 : 6, x: 0, y: pressed ? 1 : 3)
-                    .scaleEffect(pressed ? 0.97 : 1.0)
-                    .animation(.easeOut(duration: 0.12), value: pressed))
+        let shape = Capsule()
+        let label = configuration.label
+            .font(EspressUTheme.Font.primaryButton)
+            .foregroundColor(EspressUTheme.onAccent)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+        Group {
+            if #available(iOS 26.0, *) {
+                label.glassEffect(.regular.tint(EspressUTheme.pixelBlue).interactive(), in: shape)
+            } else {
+                label.background(EspressUTheme.pixelBlue, in: shape)
+                    .opacity(configuration.isPressed ? 0.7 : 1)
             }
-            let fill = (pressed ? EspressUTheme.cremaTopGradientPressed : EspressUTheme.cremaTopGradient)
-                .overlay(EspressUTheme.controlSheen)
-            return AnyView(configuration.label
-                .font(EspressUTheme.Font.primaryButton)
-                .foregroundColor(EspressUTheme.onCremaTop)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(fill)
-                .clipShape(shape)
-                .overlay(shape.strokeBorder(EspressUTheme.controlEdgeStroke, lineWidth: 1))
-                .espressuElevation(pressed ? .flush : .raised)
-                .opacity(isEnabled ? 1 : 0.45)
-                .scaleEffect(pressed ? EspressUTheme.Motion.pressScale : 1)
-                .animation(EspressUTheme.Motion.press(isPressed: pressed, reduceMotion: reduceMotion), value: pressed)
-                .onValueChange(of: pressed) { nowPressed in
-                    if nowPressed { EspressUHaptics.tap() }
-                })
         }
+        .opacity(isEnabled ? 1 : 0.4)
     }
 }
 
+/// Secondary button: clear Liquid Glass on iOS 26, a material capsule before that.
 struct EspressUSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
-        StyleBody(configuration: configuration)
-    }
-
-    private struct StyleBody: View {
-        let configuration: ButtonStyleConfiguration
-        @Environment(\.accessibilityReduceMotion) private var reduceMotion
-        @Environment(\.isEnabled) private var isEnabled
-
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: EspressUTheme.Radius.chip, style: .continuous)
-        }
-
-        var body: some View {
-            let pressed = configuration.isPressed
-            if UIStyle.isClassic {
-                return AnyView(configuration.label
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(EspressUTheme.brownDark)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(EspressUTheme.cream.opacity(pressed ? 0.7 : 1.0))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(EspressUTheme.wrapper, lineWidth: 1)))
+        let shape = Capsule()
+        let label = configuration.label
+            .font(EspressUTheme.Font.secondaryButton)
+            .foregroundColor(.primary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 9)
+        Group {
+            if #available(iOS 26.0, *) {
+                label.glassEffect(.regular.interactive(), in: shape)
+            } else {
+                label.background(.regularMaterial, in: shape)
+                    .opacity(configuration.isPressed ? 0.6 : 1)
             }
-            let fill = (pressed ? EspressUTheme.creamPressed : EspressUTheme.cream)
-                .overlay(EspressUTheme.controlSheen)
-            return AnyView(configuration.label
-                .font(EspressUTheme.Font.secondaryButton)
-                .foregroundColor(EspressUTheme.brownDark)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(fill)
-                .clipShape(shape)
-                .overlay(shape.strokeBorder(EspressUTheme.edgeStroke, lineWidth: 1))
-                .espressuElevation(pressed ? .flush : .resting)
-                .opacity(isEnabled ? 1 : 0.45)
-                .scaleEffect(pressed ? EspressUTheme.Motion.compactPressScale : 1)
-                .animation(EspressUTheme.Motion.press(isPressed: pressed, reduceMotion: reduceMotion), value: pressed)
-                .onValueChange(of: pressed) { nowPressed in
-                    if nowPressed { EspressUHaptics.tap() }
-                })
         }
+        .opacity(isEnabled ? 1 : 0.4)
+    }
+}
+
+/// Thin alias so every sheet and screen shares one navigation container.
+struct EspressUNavigation<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        NavigationStack { content }
     }
 }

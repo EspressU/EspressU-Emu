@@ -28,11 +28,6 @@ enum GameControlHints {
         let defaults = UserDefaults.standard
         var applied: [String: String] = [:]
 
-        if defaults.object(forKey: ControllerLayoutSettings.joystickKey) == nil {
-            defaults.set(true, forKey: ControllerLayoutSettings.joystickKey)
-            applied[ControllerLayoutSettings.joystickKey] = described(ControllerLayoutSettings.joystickKey)
-        }
-
         if defaults.object(forKey: LocalScreenLayoutSettings.layoutKey) == nil {
             let layout: ScreenLayout = UIDevice.current.userInterfaceIdiom == .pad ? .bothScreens : .smallGamePadTopRight
             defaults.set(layout.rawValue, forKey: LocalScreenLayoutSettings.layoutKey)

@@ -32,7 +32,7 @@ struct CoverArtPickerView: View {
     }
 
     var body: some View {
-        NavigationView {
+        EspressUNavigation {
             ZStack {
                 EspressUTheme.backgroundGradient.ignoresSafeArea()
 
@@ -54,7 +54,6 @@ struct CoverArtPickerView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .foregroundColor(EspressUTheme.brownDarkest)
         .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.image]) { result in
             handleFileImportResult(result)
@@ -94,9 +93,9 @@ struct CoverArtPickerView: View {
                 coverThumbnail
                 VStack(alignment: .leading, spacing: 4) {
                     Text(game.displayTitle ?? game.title)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.subheadline.weight(.semibold))
                     Text(hasOverride ? "Using your custom cover." : "Using the automatic cover.")
-                        .font(.system(size: 12, design: .rounded))
+                        .font(.caption)
                         .foregroundColor(EspressUTheme.brownMid)
                 }
                 Spacer()
@@ -209,7 +208,7 @@ struct CoverArtPickerView: View {
                 }
             } else if tdbFetchAttempted && !isFetchingTdb {
                 Text("No cover art found for that ID.")
-                    .font(.system(size: 13, design: .rounded))
+                    .font(.footnote)
                     .foregroundColor(EspressUTheme.brownMid)
             }
         } header: {

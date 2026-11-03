@@ -13,6 +13,7 @@ struct CemuApp: App {
         SettingsMode.chooseInitialModeIfNeeded()
         JITSettings.migrate()
         RemovedSettingsCleanup.run()
+        LegacyLogCleanup.run()
         MotionSettings.startObservingControllers()
         PadMapping.pushToBridge()
 
@@ -46,7 +47,6 @@ struct CemuApp: App {
                 .espressuScrollEdgeBlurHidden()
                 .onValueChange(of: scenePhase) { phase in
                     if phase != .active {
-                        ControllerCustomLayout.shared.flushPending()
                         UserDefaults.standard.synchronize()
                     }
                 }

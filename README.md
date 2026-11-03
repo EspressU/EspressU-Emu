@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/JIT-built--in-e8590c" alt="Built-in JIT">
   <img src="https://img.shields.io/badge/Built%20on-Cemu-0b7285" alt="Built on Cemu">
   <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-MPL--2.0-blue" alt="License: MPL-2.0"></a>
+  <a href="LICENSES/EspressU-Licence.txt"><img src="https://img.shields.io/badge/EspressU%20files-EspressU%20Licence-orange" alt="EspressU files: EspressU Licence"></a>
+  <a href="src/ios/App/Crema/LICENSE.txt"><img src="https://img.shields.io/badge/Crema-Crema%20Licence-orange" alt="Crema: Crema Licence"></a>
   <img src="https://img.shields.io/badge/PRs-welcome-4c1" alt="PRs welcome">
 </p>
 
@@ -54,7 +56,7 @@ cd EspressU-Emu
 ci/build-stikjit.sh
 cmake -S . -B build-ios -G Ninja \
   -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DVCPKG_TARGET_TRIPLET=arm64-ios \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=17.4 -DVCPKG_TARGET_TRIPLET=arm64-ios \
   -DBUILD_HEADLESS_DYLIB=ON -DCMAKE_MACOSX_BUNDLE=OFF -DCMAKE_BUILD_TYPE=Release
 cmake --build build-ios --target CemuBin
 mkdir -p build-ios/out && rm -rf build-ios/out/Cemu.framework && cp -R build-ios/src/Cemu.framework build-ios/out/
@@ -66,6 +68,6 @@ The result is an unsigned `EspressU.app`. Zip it into a `Payload` folder as an `
 
 ## License
 
-[MPL-2.0](LICENSE.txt). EspressU is built on Cemu; the copyright notices in the source files stay in place. Libraries and their licenses are listed in [docs/docs/licenses.html](docs/docs/licenses.html) and in the app under Settings › About.
+[MPL-2.0](LICENSE.txt), with two exceptions. First, files EspressU wrote itself (marked in their header, not Muffin or third-party files) are under the [EspressU Licence](LICENSES/EspressU-Licence.txt): non-commercial use only, fully open source, keep the notice, credit "EspressU (https://espressu.dev)". These are `src/ios/App/ControllerMapping.swift`, `EspressUGamePacksView.swift`, `GameFilesController.swift`, `Settings/PerformanceTuning.swift`, `Settings/SessionReport.swift`, `Settings/LegacyLogCleanup.swift`, `src/ios/Bridge/IOSReport.cpp` and `IOSReport.h`. Second: the on-screen touch controls (Crema, in [src/ios/App/Crema](src/ios/App/Crema)) are EspressU's own work under the [Crema Licence](src/ios/App/Crema/LICENSE.txt), which allows non-commercial use only, requires full open source and a prominent credit. EspressU is built on Cemu; the copyright notices in the source files stay in place. Contributions are described in [CONTRIBUTING.md](CONTRIBUTING.md). Libraries and their licenses are listed in [docs/docs/licenses.html](docs/docs/licenses.html) and in the app under Settings › About.
 
 Wii U is a trademark of Nintendo. EspressU is not affiliated with Nintendo.
