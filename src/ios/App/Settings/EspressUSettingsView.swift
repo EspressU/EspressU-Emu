@@ -235,6 +235,24 @@ struct EspressUSettingsView: View {
                 .controllerFocusRing(input.showsFocus && sidebarFocused && item == category,
                                      shape: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
+            Button { openDiscord() } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(EspressUTheme.accentText)
+                        .frame(width: 28, height: 28)
+                    Text("Join the Discord")
+                        .font(.body)
+                        .foregroundColor(EspressUTheme.brownDarkest)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 18)
+                .frame(minHeight: 54)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             Spacer(minLength: 0)
             if input.showsFocus {
                 sidebarHints
@@ -295,10 +313,40 @@ struct EspressUSettingsView: View {
                     }
                 }
                 .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                Button { openDiscord() } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(EspressUTheme.accentText)
+                            .frame(width: 28, height: 28)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Join the Discord")
+                                .font(.body.weight(.semibold))
+                                .foregroundColor(EspressUTheme.brownDarkest)
+                            Text("Opens the community server in your browser")
+                                .font(.footnote)
+                                .foregroundColor(EspressUTheme.brownMid)
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 16)
             .padding(.bottom, isWide ? 24 : phoneBottomRoom)
         }
+    }
+
+    private func openDiscord() {
+        if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
     }
 
     private func categoryPage(_ page: SettingsCategory, showsBack: Bool) -> some View {

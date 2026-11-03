@@ -494,6 +494,13 @@ extension EspressUSettingsView {
             SettingsGroup(id: "look", title: "Look", items: look),
             SettingsGroup(id: "help", title: "Help", items: help),
             SettingsGroup(id: "about", title: "About", items: about),
+            SettingsGroup(id: "community", title: "Community", items: [
+                SettingsItem(id: "sys.discord", title: "Join the Discord",
+                             detail: "Opens the EspressU community server in your browser.",
+                             control: .action("Open", destructive: false, confirm: false, run: {
+                                 if let url = URL(string: "https://discord.gg/espressu") { UIApplication.shared.open(url) }
+                             })),
+            ]),
         ]
     }
 }
