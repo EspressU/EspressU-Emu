@@ -389,6 +389,21 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 .animation(.snappy(duration: 0.25), value: screenTitle)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 8)
+            if !(isPhone && verticalSizeClass == .regular) {
+                TimelineView(.everyMinute) { context in
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        if !isPhone {
+                            Text(context.date, format: .dateTime.weekday(.abbreviated).day().month(.abbreviated))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundColor(EspressUTheme.brownMid)
+                        }
+                        Text(context.date, format: .dateTime.hour().minute())
+                            .font(.system(size: isPhone ? 22 : 30, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(EspressUTheme.brownDarkest)
+                    }
+                }
+            }
         }
         .padding(.horizontal, isPhone ? 20 : 40)
         .padding(.bottom, 12)
