@@ -4632,10 +4632,9 @@ void MetalRenderer::ReportTuningDiagnostics()
     const bool m4On = options.metal4Output.load();
     const bool padOn = options.padPresentPacing.load();
     const bool padLow = options.padLowResolution.load();
-    const bool linkOn = options.interpreterBlockLinking.load();
 
-    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} linking {} jit-no-duplicates {}",
-        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, linkOn, options.jitSkipOverlappingCompiles.load());
+    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} jit-no-duplicates {}",
+        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, options.jitSkipOverlappingCompiles.load());
 
     // One line per option that is on, ending in what it means.
     if (memoryOn || memWarnings)
@@ -4679,10 +4678,10 @@ void MetalRenderer::ReportTuningDiagnostics()
                 !skipOn && jitDiscarded > jitCompiled / 4 ? "much JIT work wasted, turn on No duplicate JIT work"
                     : (skipOn && jitWaited == 0 && jitDiscarded > jitCompiled / 4 ? "PROBLEM: still wasting work" : "OK"));
     }
-    if (linkOn || itpBlocks)
+    if (itpBlocks)
         cemuLog_log(LogType::Force, "[Tuning] interpreter: blocks +{}, linked +{} ({:.0f}%), decoded +{} -> {}",
             itpBlocks, itpHits, itpBlocks ? 100.0 * itpHits / itpBlocks : 0.0, itpDecodes,
-            itpBlocks == 0 ? "not running (JIT is in use)" : (linkOn && itpHits == 0 ? "PROBLEM: linking on but never used" : "OK"));
+            itpBlocks == 0 ? "not running (JIT is in use)" : (itpHits == 0 ? "PROBLEM: block linking never used" : "OK"));
 }
 
 void MetalRenderer::UpdatePadPacing()

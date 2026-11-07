@@ -475,10 +475,32 @@ namespace {
     }
 }
 
+namespace {
+    // Receives every batch of core log text (from the log writer thread only): writes it to the EspressU report and
+    // passes complete lines to the in-app live log. There is no log.txt on iOS any more.
+    void ios_log_tee(const char* text, size_t length)
+    {
+        IOSReport_Write(text, length);
+        static std::string partial;
+        partial.append(text, length);
+        size_t start = 0;
+        size_t nl;
+        while ((nl = partial.find('\n', start)) != std::string::npos)
+        {
+            std::string line = partial.substr(start, nl - start);
+            if (!line.empty() && line.back() == '\r')
+                line.pop_back();
+            ios_live_log_push(line.c_str());
+            start = nl + 1;
+        }
+        partial.erase(0, start);
+    }
+}
+
 extern "C" __attribute__((constructor(101)))
 void cemu_bridge_install_early_crash_handler() {
     IOSReport_OpenEarly();
-    cemuLog_setTee(IOSReport_Write);
+    cemuLog_setTee(ios_log_tee);
     void* warm[4];
     backtrace(warm, 4);
     cemu_crash_write("=== Cemu process started (early constructor) ===\n");
@@ -1021,7 +1043,9 @@ namespace {
         std::string reason;
     };
 
-    CoreDecision ios_decide_core_count(uint64_t titleId)
+    // interpreter: no JIT will run. Then the PowerPC cores are the bottleneck and Auto spreads them over host threads
+    // even on devices with only two performance cores.
+    CoreDecision ios_decide_core_count(uint64_t titleId, bool interpreter)
     {
         const IosDeviceFacts& device = ios_device_facts();
         const int setting = g_coreModeSetting.load();
@@ -1072,6 +1096,15 @@ namespace {
             d.reason = std::string("Auto picked one core: the device is already hot (") + deviceText + ")";
             return d;
         }
+        if (interpreter && device.perfCores >= 2)
+        {
+            // Without JIT one host thread running all three emulated cores is the limit (BotW: 100% busy). Each core on
+            // its own thread lets the game's main core use a whole performance core; the others share the rest.
+            d.singleCore = false;
+            d.autoPickedMulti = true;
+            d.reason = std::string("Auto picked three cores: without JIT the interpreter needs more than one host core (") + deviceText + ")";
+            return d;
+        }
         if (device.perfCores < 3)
         {
             d.reason = std::string("Auto picked one core: too few performance cores (") + deviceText + ")";
@@ -1115,7 +1148,8 @@ void ios_apply_cpu_mode(bool announce = false)
     uint64_t titleId = 0;
     if (announce)
         titleId = CafeSystem::GetForegroundTitleId();
-    const CoreDecision cores = ios_decide_core_count(titleId);
+    const bool interpreter = !g_recompilerRequested.load() || !debugged;
+    const CoreDecision cores = ios_decide_core_count(titleId, interpreter);
     const bool singleCore = cores.singleCore;
     auto& config = GetConfig();
     char detail[768];
@@ -1125,7 +1159,7 @@ void ios_apply_cpu_mode(bool announce = false)
     g_coresRunning.store(singleCore ? 1 : 3);
     g_autoPickedMulti.store(cores.autoPickedMulti);
 
-    if (!g_recompilerRequested.load() || !debugged)
+    if (interpreter)
     {
         if (announce)
         {
@@ -1179,54 +1213,6 @@ void ios_apply_render_profile()
         performance ? "off" : "per game profile");
 }
 
-}
-
-namespace {
-    std::atomic<bool> g_logTailRunning{false};
-
-    void ios_log_tail_start()
-    {
-        if (g_logTailRunning.exchange(true))
-            return;
-        const std::string path = _pathToUtf8(cemuLog_GetLogFilePath());
-        std::thread([path] {
-            ios_bridge_thread_begin("EspressU log tail");
-            long offset = 0;
-            std::string partial;
-            char chunk[4096];
-            while (g_logTailRunning.load())
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
-                FILE* f = fopen(path.c_str(), "rb");
-                if (!f)
-                    continue;
-                fseek(f, 0, SEEK_END);
-                const long size = ftell(f);
-                if (size < offset)
-                {
-                    offset = 0;
-                    partial.clear();
-                }
-                fseek(f, offset, SEEK_SET);
-                size_t n;
-                while ((n = fread(chunk, 1, sizeof(chunk), f)) > 0)
-                {
-                    offset += (long)n;
-                    partial.append(chunk, n);
-                    size_t nl;
-                    while ((nl = partial.find('\n')) != std::string::npos)
-                    {
-                        std::string line = partial.substr(0, nl);
-                        if (!line.empty() && line.back() == '\r')
-                            line.pop_back();
-                        ios_live_log_push(line.c_str());
-                        partial.erase(0, nl + 1);
-                    }
-                }
-                fclose(f);
-            }
-        }).detach();
-    }
 }
 
 namespace {
@@ -2929,9 +2915,6 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         tuning.padPresentPacing.store(value != 0);
         break;
-    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
-        tuning.interpreterBlockLinking.store(value != 0);
-        break;
     case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
         tuning.padLowResolution.store(value != 0);
         break;
@@ -2958,8 +2941,6 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.metal4Output.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         return tuning.padPresentPacing.load() ? 1 : 0;
-    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
-        return tuning.interpreterBlockLinking.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
         return tuning.padLowResolution.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:
@@ -3221,7 +3202,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
             cemu_bridge_log_checkpoint("out of address space creating a game thread");
             IOSSystemImplementation_ReportFatal("Out of memory address space creating a game thread. Restart the app and try again.");
         });
-    ios_log_tail_start();
     dispatch_async(dispatch_get_main_queue(), ^{
         if (UIWindow* window = ios_key_window())
             CemuUIKit_SetMainWindow(window);

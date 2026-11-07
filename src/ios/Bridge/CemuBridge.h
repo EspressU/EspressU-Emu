@@ -195,10 +195,11 @@ typedef enum {
     CEMU_BRIDGE_TUNING_METAL4_OUTPUT = 3,
     // 4 was frame generation, removed
     CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING = 5,
-    CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING = 6,
+    // 6 was interpreter block linking, now always on
     CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION = 7,
     CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG = 8,
     CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS = 9,
+    // 11 was the deferred instruction pointer of the interpreter, now always on
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);

@@ -100,46 +100,6 @@ extension EspressUSettingsView {
                              PerformanceTuning.applyToBridge()
                          }),
                          enabled: metal4),
-            SettingsItem(id: "tuning.metalFx", title: "MetalFX upscaling",
-                         detail: "Sharper enlarging of the finished picture with Apple's MetalFX on Metal. Costs a little GPU time. Not used with a graphic pack's own output filter.",
-                         control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.padPacing", title: "Keep the TV smooth with both screens",
-                         detail: "With TV and GamePad on screen, the GamePad is drawn every second frame and waits while it is slow to show.",
-                         control: .toggle(values.bool(PerformanceTuning.padPresentPacingKey, PerformanceTuning.padPresentPacingDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.padLowRes", title: "Lower-resolution GamePad screen",
-                         detail: "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.",
-                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.jitOverlaps", title: "No duplicate JIT work",
-                         detail: "JIT threads no longer compile the same game code at the same time and throw one result away. Leaves more CPU for the game.",
-                         control: .toggle(values.bool(PerformanceTuning.jitSkipOverlapsKey, PerformanceTuning.jitSkipOverlapsDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
-                         detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
-                         control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.diagnostics", title: "Log the experimental options",
-                         detail: "Every 5 seconds writes to log.txt what each option above did and whether it works, lines start with [Tuning]. log.txt is in EspressU's Logs folder in the Files app.",
-                         control: .toggle(values.bool(PerformanceTuning.diagnosticsLogKey, PerformanceTuning.diagnosticsLogDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.memoryWarning", title: "Free memory on warnings",
-                         detail: "When iOS runs low on memory, drops textures the game can reload. Can stop a crash; can cause a short hitch.",
-                         control: .toggle(values.bool(PerformanceTuning.freeMemoryOnWarningKey, PerformanceTuning.freeMemoryOnWarningDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
-            SettingsItem(id: "tuning.faultHistory", title: "Keep a GPU memory failure history",
-                         detail: "Notes failed graphics allocations and GPU faults in a small file. Shown in Device report and logs.",
-                         control: .toggle(values.bool(PerformanceTuning.gpuFaultHistoryKey, PerformanceTuning.gpuFaultHistoryDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
         ]
 
         return [
@@ -172,6 +132,11 @@ extension EspressUSettingsView {
             SettingsItem(id: "gfx.stretch", title: "Stretch to fill",
                          detail: "Fills the screen instead of keeping 16:9.",
                          control: .toggle(values.bool(FrameStretch.storageKey, FrameStretch.defaultValue) { cemu_bridge_set_stretch_to_fill($0) })),
+            SettingsItem(id: "gfx.metalFx", title: "MetalFX upscaling",
+                         detail: "Sharper enlarging of the finished picture with Apple's MetalFX. Costs a little GPU time. Not used with a graphic pack's own output filter.",
+                         control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
             SettingsItem(id: "gfx.steady", title: "Steady frame rate",
                          detail: "Even frames at the game's own speed, never faster.",
                          control: .toggle(values.bool(FullSpeedRenders.storageKey, FullSpeedRenders.defaultValue) { _ in
@@ -346,6 +311,11 @@ extension EspressUSettingsView {
             SettingsItem(id: "screen.maxBrightness", title: "Max brightness while playing",
                          detail: "Full brightness during a game, back afterwards.",
                          control: .toggle(values.bool(ScreenBrightness.maxWhilePlayingKey, ScreenBrightness.defaultMaxWhilePlaying))),
+            SettingsItem(id: "screen.padLowRes", title: "Lower-resolution GamePad screen",
+                         detail: "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.",
+                         control: .toggle(values.bool(PerformanceTuning.padLowResolutionKey, PerformanceTuning.padLowResolutionDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
         ]
         screen.append(SettingsItem(id: "screen.overlay", title: "Overlay and notifications",
                                    detail: "Frame rate counter and messages over the game.",
