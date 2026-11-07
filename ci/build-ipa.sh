@@ -36,7 +36,9 @@ fi
 rm -rf "$VT/buildtrees/versioning_"
 
 step "Build StikJIT"
-( cd "$TREE" && ci/build-stikjit.sh )
+# Newer Swift compilers cannot compile StikJIT's textual module interface (enum StikJIT shadows module StikJIT),
+# so build it without library evolution and use the binary module instead.
+( cd "$TREE" && STIKJIT_LIBRARY_EVOLUTION=NO ci/build-stikjit.sh )
 
 step "Configure (CMake + vcpkg dependencies)"
 CCACHE_ARGS=()
