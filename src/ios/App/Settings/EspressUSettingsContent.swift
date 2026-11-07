@@ -121,7 +121,7 @@ extension EspressUSettingsView {
                              PerformanceTuning.applyToBridge()
                          })),
             SettingsItem(id: "tuning.diagnostics", title: "Log the experimental options",
-                         detail: "Every 5 seconds writes to log.txt what each option above did and whether it works, lines start with [Tuning]. log.txt is in EspressU's Logs folder in the Files app.",
+                         detail: "Every 5 seconds writes to the EspressU report what each option above did and whether it works, lines start with [Tuning]. The report is EspressU-Report.txt in EspressU's Logs folder in the Files app.",
                          control: .toggle(values.bool(PerformanceTuning.diagnosticsLogKey, PerformanceTuning.diagnosticsLogDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),

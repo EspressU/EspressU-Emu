@@ -475,10 +475,32 @@ namespace {
     }
 }
 
+namespace {
+    // Receives every batch of core log text (from the log writer thread only): writes it to the EspressU report and
+    // passes complete lines to the in-app live log. There is no log.txt on iOS any more.
+    void ios_log_tee(const char* text, size_t length)
+    {
+        IOSReport_Write(text, length);
+        static std::string partial;
+        partial.append(text, length);
+        size_t start = 0;
+        size_t nl;
+        while ((nl = partial.find('\n', start)) != std::string::npos)
+        {
+            std::string line = partial.substr(start, nl - start);
+            if (!line.empty() && line.back() == '\r')
+                line.pop_back();
+            ios_live_log_push(line.c_str());
+            start = nl + 1;
+        }
+        partial.erase(0, start);
+    }
+}
+
 extern "C" __attribute__((constructor(101)))
 void cemu_bridge_install_early_crash_handler() {
     IOSReport_OpenEarly();
-    cemuLog_setTee(IOSReport_Write);
+    cemuLog_setTee(ios_log_tee);
     void* warm[4];
     backtrace(warm, 4);
     cemu_crash_write("=== Cemu process started (early constructor) ===\n");
@@ -1191,54 +1213,6 @@ void ios_apply_render_profile()
         performance ? "off" : "per game profile");
 }
 
-}
-
-namespace {
-    std::atomic<bool> g_logTailRunning{false};
-
-    void ios_log_tail_start()
-    {
-        if (g_logTailRunning.exchange(true))
-            return;
-        const std::string path = _pathToUtf8(cemuLog_GetLogFilePath());
-        std::thread([path] {
-            ios_bridge_thread_begin("EspressU log tail");
-            long offset = 0;
-            std::string partial;
-            char chunk[4096];
-            while (g_logTailRunning.load())
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
-                FILE* f = fopen(path.c_str(), "rb");
-                if (!f)
-                    continue;
-                fseek(f, 0, SEEK_END);
-                const long size = ftell(f);
-                if (size < offset)
-                {
-                    offset = 0;
-                    partial.clear();
-                }
-                fseek(f, offset, SEEK_SET);
-                size_t n;
-                while ((n = fread(chunk, 1, sizeof(chunk), f)) > 0)
-                {
-                    offset += (long)n;
-                    partial.append(chunk, n);
-                    size_t nl;
-                    while ((nl = partial.find('\n')) != std::string::npos)
-                    {
-                        std::string line = partial.substr(0, nl);
-                        if (!line.empty() && line.back() == '\r')
-                            line.pop_back();
-                        ios_live_log_push(line.c_str());
-                        partial.erase(0, nl + 1);
-                    }
-                }
-                fclose(f);
-            }
-        }).detach();
-    }
 }
 
 namespace {
@@ -3228,7 +3202,6 @@ void cemu_bridge_initialize(const char* mlcPath) {
             cemu_bridge_log_checkpoint("out of address space creating a game thread");
             IOSSystemImplementation_ReportFatal("Out of memory address space creating a game thread. Restart the app and try again.");
         });
-    ios_log_tail_start();
     dispatch_async(dispatch_get_main_queue(), ^{
         if (UIWindow* window = ios_key_window())
             CemuUIKit_SetMainWindow(window);
