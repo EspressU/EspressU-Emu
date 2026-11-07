@@ -4,28 +4,28 @@
 #include <cstdint>
 
 // Host-side performance options that the iOS front end switches at runtime.
-// Every option defaults to the behaviour EspressU had before it existed.
+// The defaults match what the front end sets when it starts.
 namespace HostTuning
 {
 	struct Options
 	{
 		// Free textures and idle GPU buffers on the render thread when iOS sends a memory warning.
-		std::atomic<bool> freeMemoryOnWarning{false};
+		std::atomic<bool> freeMemoryOnWarning{true};
 		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
-		std::atomic<bool> keepGpuFaultHistory{false};
+		std::atomic<bool> keepGpuFaultHistory{true};
 		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
 		std::atomic<bool> metalFxUpscale{false};
 		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
 		std::atomic<bool> metal4Output{false};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
-		std::atomic<bool> padPresentPacing{false};
+		std::atomic<bool> padPresentPacing{true};
 		// Let a JIT worker wait for another one that is compiling the same function instead of compiling it twice.
-		std::atomic<bool> jitSkipOverlappingCompiles{false};
+		std::atomic<bool> jitSkipOverlappingCompiles{true};
 		// Only reported: the front end sizes the GamePad surface itself.
 		std::atomic<bool> padLowResolution{false};
 		// Write a summary of what the options above actually did to the log every few seconds.
-		std::atomic<bool> diagnosticsLog{false};
+		std::atomic<bool> diagnosticsLog{true};
 	};
 
 	inline Options& Get()

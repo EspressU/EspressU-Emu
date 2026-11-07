@@ -73,7 +73,7 @@ struct GpuFaultHistorySection: View {
         } header: {
             SettingsSectionHeader("GPU Memory Failures", icon: "memorychip", accent: .system)
         } footer: {
-            InfoButton.footer("The last graphics allocations that failed and GPU faults, newest first. Turn it on in Performance > Experimental.")
+            InfoButton.footer("The last graphics allocations that failed and GPU faults, newest first. Recorded automatically.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }

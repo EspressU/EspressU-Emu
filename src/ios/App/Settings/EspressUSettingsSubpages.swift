@@ -463,6 +463,11 @@ extension EspressUSettingsView {
                         .fixedSize(horizontal: false, vertical: true)))),
             ]),
             SettingsGroup(id: "diag.tools", title: "Diagnostics", items: [
+                SettingsItem(id: "diag.logs", title: "Logs",
+                             detail: "Every 5 seconds notes in the EspressU report what the emulator did, lines start with [Tuning]. Helps with bug reports. The report is EspressU-Report.txt in EspressU's Logs folder in the Files app.",
+                             control: .toggle(values.bool(PerformanceTuning.logsKey, PerformanceTuning.logsDefault) { _ in
+                                 PerformanceTuning.applyToBridge()
+                             })),
                 SettingsItem(id: "diag.intro", title: "Play the launch intro", detail: nil,
                              control: .toggle(values.bool("espressu.showLaunchIntro", true))),
                 SettingsItem(id: "diag.log", title: "Show launch log",
