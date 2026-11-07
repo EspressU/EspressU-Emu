@@ -39,14 +39,11 @@ jobs:
         run: |
           short="${GITHUB_SHA::7}"
           tag="nightly-$(date -u +%Y%m%d-%H%M)-$short"
-          ipa="EspressU-${{ needs.build.outputs.version }}-nightly-$short.ipa"
+          ipa="EspressU-nightly-$short.ipa"
           mv EspressU.ipa "$ipa"
-          {
-            echo "Automatic nightly build of \`development\` at ${GITHUB_SHA}."
-            echo "Unsigned IPA for sideloading (SideStore / AltStore). Not a stable release."
-          } > notes.md
+          echo "Automatic nightly build of \`development\` at ${GITHUB_SHA}." > notes.md
           gh release create "$tag" "$ipa" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --prerelease --title "Nightly ${{ needs.build.outputs.version }} ($short)" --notes-file notes.md
+            --prerelease --title "Nightly ($short)" --notes-file notes.md
 
       - name: Delete old nightlies
         run: |
