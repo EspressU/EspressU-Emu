@@ -74,7 +74,7 @@ jobs:
           key: stikjit-${{ inputs.runner }}-${{ hashFiles('ci/build-stikjit.sh', 'ci/stikjit-framework-plist.sh') }}
 
       - name: Build IPA
-        run: ci/build-ipa.sh "$RUNNER_TEMP/EspressU.ipa"
+        run: bash ci/build-ipa.sh "$RUNNER_TEMP/EspressU.ipa"
 
       # Save caches even when the build fails or times out, so the next run continues where this one stopped.
       - name: Save vcpkg binary cache
