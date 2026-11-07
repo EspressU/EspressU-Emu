@@ -11,8 +11,6 @@ import Foundation
 enum PerformanceTuning {
     static let metalFxUpscaleKey = "espressu.tuning.metalFxUpscale"
     static let metalFxUpscaleDefault = false
-    static let metal4OutputKey = "espressu.tuning.metal4Output"
-    static let metal4OutputDefault = false
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
     /// "Logs" in Device report and logs: a summary line in the EspressU report every few seconds.
@@ -22,7 +20,6 @@ enum PerformanceTuning {
     static var advancedSettings: [AdvancedSetting] {
         [
             AdvancedSetting(metalFxUpscaleKey, metalFxUpscaleDefault),
-            AdvancedSetting(metal4OutputKey, metal4OutputDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(logsKey, logsDefault),
         ]
@@ -36,8 +33,6 @@ enum PerformanceTuning {
         applyAlwaysOn()
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE,
                                bool(metalFxUpscaleKey, metalFxUpscaleDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT,
-                               bool(metal4OutputKey, metal4OutputDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
@@ -47,7 +42,6 @@ enum PerformanceTuning {
     static func applyDefaultsToBridge() {
         applyAlwaysOn()
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT, metal4OutputDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, logsDefault ? 1 : 0)
     }

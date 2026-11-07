@@ -599,8 +599,6 @@ private:
 	class MetalMemoryManager* m_memoryManager;
 	class MetalOutputShaderCache* m_outputShaderCache;
 	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
-	std::unique_ptr<Metal4OutputStage> m_metal4Output;
-	bool m_metal4OutputUnavailable = false;
 
 	// GamePad pacing (HostTuning::padPresentPacing).
 	bool m_padFrameWanted = true;
@@ -703,7 +701,6 @@ private:
 	}
 
 	void SwapBuffer(bool mainWindow);
-	void UpdateMetal4Output();
 
 	MetalDrawBreadcrumb* BeginDrawBreadcrumb();
 	void DumpDrawBreadcrumbs(uint32 firstDraw, uint32 lastDraw, bool haveRange);

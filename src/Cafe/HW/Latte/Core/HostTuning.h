@@ -15,8 +15,6 @@ namespace HostTuning
 		std::atomic<bool> keepGpuFaultHistory{true};
 		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
 		std::atomic<bool> metalFxUpscale{false};
-		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
-		std::atomic<bool> metal4Output{false};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
 		std::atomic<bool> padPresentPacing{true};
@@ -51,12 +49,6 @@ namespace HostTuning
 		std::atomic<uint64_t> fxRebuilds{0};
 		std::atomic<uint64_t> fxFailures{0};
 		std::atomic<uint64_t> fxNotEnlarged{0};
-		// Metal 4 output
-		std::atomic<uint64_t> m4Frames{0};
-		std::atomic<uint64_t> m4Dropped{0};
-		std::atomic<uint64_t> m4RegularPath{0};
-		std::atomic<uint64_t> m4SlotTimeouts{0};
-		std::atomic<uint64_t> m4GpuMicros{0};
 		// GamePad pacing
 		std::atomic<uint64_t> padSkippedFrames{0};
 		std::atomic<uint64_t> padSlowDrawables{0};

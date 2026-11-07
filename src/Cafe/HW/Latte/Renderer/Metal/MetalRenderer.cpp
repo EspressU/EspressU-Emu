@@ -601,9 +601,6 @@ MetalRenderer::~MetalRenderer()
 
     delete m_outputShaderCache;
     m_outputUpscaler.reset();
-    m_mainLayer.SetOutputStage(nullptr);
-    m_padLayer.SetOutputStage(nullptr);
-    m_metal4Output.reset();
     if (!MetalPipelineCache_LoaderAbandoned())
         delete m_pipelineCache;
     delete m_depthStencilCache;
@@ -648,7 +645,6 @@ void MetalRenderer::InitializeLayer(const Vector2i& size, bool mainWindow)
     auto& layer = GetLayer(mainWindow);
     layer = MetalLayerHandle(m_device, size, mainWindow);
     layer.GetLayer()->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
-    layer.SetOutputStage(m_metal4Output.get());
 }
 
 void MetalRenderer::ShutdownLayer(bool mainWindow)
@@ -717,8 +713,6 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         CommitCommandBuffer();
         ProcessFinishedCommandBuffers();
         UpdateMemoryStatsAndRelievePressure();
-        m_mainLayer.EndSkippedFrame();
-        m_padLayer.EndSkippedFrame();
         return;
     }
 
@@ -737,13 +731,10 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         SwapBuffer(true);
     if (swapDRC && !holdPad)
         SwapBuffer(false);
-    m_mainLayer.EndSkippedFrame();
-    m_padLayer.EndSkippedFrame();
 
     CommitCommandBuffer();
 
     UpdateMemoryStatsAndRelievePressure();
-    UpdateMetal4Output();
     if (swapTV)
     {
         UpdatePadPacing();
@@ -4568,9 +4559,6 @@ void MetalRenderer::SwapBuffer(bool mainWindow)
     if (!drawableAlreadyAcquired)
         ClearColorTextureInternal(layer.GetDrawableTexture(), 0, 0, 0.0f, 0.0f, 0.0f, 1.0f);
 
-    // The Metal 4 hand-over signals an event on the command buffer, which needs every encoder closed.
-    if (m_metal4Output)
-        EndEncoding();
     auto commandBuffer = GetCommandBuffer();
     layer.PresentDrawable(commandBuffer);
     (mainWindow ? PerfTelemetry::Get().tvPresents : PerfTelemetry::Get().padPresents).fetch_add(1, std::memory_order_relaxed);
@@ -4591,7 +4579,6 @@ void MetalRenderer::ReportTuningDiagnostics()
         &s.memoryWarnings, &s.memoryCleanups, &s.memoryTexturesFreed, &s.memoryFreedMB,
         &s.substituteTextures, &s.viewFallbacks, &s.faultsRecorded,
         &s.fxUpscales, &s.fxRebuilds, &s.fxFailures, &s.fxNotEnlarged,
-        &s.m4Frames, &s.m4Dropped, &s.m4RegularPath, &s.m4SlotTimeouts,
         &s.padSkippedFrames, &s.padSlowDrawables,
         &s.itpBlocks, &s.itpLinkHits, &s.itpDecodes,
         &s.jitCompiled, &s.jitDiscarded, &s.jitWaited,
@@ -4620,7 +4607,6 @@ void MetalRenderer::ReportTuningDiagnostics()
     }
     const auto [memWarnings, memCleanups, memTextures, memMB, substitutes, viewFallbacks, faults,
         fxUpscales, fxRebuilds, fxFailures, fxNotEnlarged,
-        m4Frames, m4Dropped, m4Regular, m4Timeouts,
         padSkipped, padSlow, itpBlocks, itpHits, itpDecodes, jitCompiled, jitDiscarded, jitWaited] = d;
     const double tvFps = m_tuningReportFrames / seconds;
     m_tuningReportFrames = 0;
@@ -4629,12 +4615,11 @@ void MetalRenderer::ReportTuningDiagnostics()
     const bool memoryOn = options.freeMemoryOnWarning.load();
     const bool historyOn = options.keepGpuFaultHistory.load();
     const bool fxOn = options.metalFxUpscale.load();
-    const bool m4On = options.metal4Output.load();
     const bool padOn = options.padPresentPacing.load();
     const bool padLow = options.padLowResolution.load();
 
-    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} metal4 {} padpacing {} padlowres {} jit-no-duplicates {}",
-        seconds, tvFps, memoryOn, historyOn, fxOn, m4On, padOn, padLow, options.jitSkipOverlappingCompiles.load());
+    cemuLog_log(LogType::Force, "[Tuning] {:.1f} s, TV {:.1f} fps | memory {} history {} metalfx {} padpacing {} padlowres {} jit-no-duplicates {}",
+        seconds, tvFps, memoryOn, historyOn, fxOn, padOn, padLow, options.jitSkipOverlappingCompiles.load());
 
     // One line per option that is on, ending in what it means.
     if (memoryOn || memWarnings)
@@ -4648,13 +4633,6 @@ void MetalRenderer::ReportTuningDiagnostics()
         cemuLog_log(LogType::Force, "[Tuning] metalfx: upscaled +{}, not enlarged/unsupported +{}, scaler builds +{}, failures +{} -> {}",
             fxUpscales, fxNotEnlarged, fxRebuilds, fxFailures,
             fxFailures ? "PROBLEM: MetalFX could not be built" : (fxUpscales ? "OK" : "not used (picture not enlarged, unsupported format or a graphic pack's own shader)"));
-    if (m4On)
-    {
-        const char* verdict = m4Frames > 0 ? (m4Regular || m4Timeouts || m4Dropped ? "OK, with some frames on the regular path" : "OK")
-            : (m_metal4OutputUnavailable ? "NOT ACTIVE: Metal 4 is not available on this device" : "PROBLEM: no frame went through Metal 4");
-        cemuLog_log(LogType::Force, "[Tuning] metal4: frames +{}, dropped or replaced by a newer one +{}, regular path +{}, no free slot +{}, last present GPU {:.2f} ms -> {}",
-            m4Frames, m4Dropped, m4Regular, m4Timeouts, s.m4GpuMicros.load() / 1000.0, verdict);
-    }
     if (padOn || padLow)
     {
         const auto visible = WindowSystem::GetWindowInfo().visible_outputs.load();
@@ -4701,41 +4679,6 @@ void MetalRenderer::UpdatePadPacing()
     if (m_padPacingFrame % 1800 == 0)
         cemuLog_log(LogType::Force, "Metal: GamePad pacing, {} frames with TV and GamePad presented together, {} GamePad presents held back so far",
             telemetry.tvAndPadSameFramePresents.load(std::memory_order_relaxed), telemetry.padPresentsHeldBack.load(std::memory_order_relaxed));
-}
-
-void MetalRenderer::UpdateMetal4Output()
-{
-    const bool wanted = HostTuning::Get().metal4Output.load(std::memory_order_relaxed);
-    if (wanted == (m_metal4Output != nullptr))
-        return;
-    if (!wanted)
-        m_metal4OutputUnavailable = false;
-    else if (m_metal4OutputUnavailable)
-        return;
-    // Switch only between frames, while neither output holds a target of the old path.
-    if (m_mainLayer.HasFrameInProgress() || m_padLayer.HasFrameInProgress())
-        return;
-
-    if (wanted)
-    {
-        m_metal4Output = Metal4OutputStage::Create(m_device);
-        if (!m_metal4Output)
-        {
-            m_metal4OutputUnavailable = true;
-            cemuLog_log(LogType::Force, "Metal: the Metal 4 output path is not available on this device or iOS version, presenting as before");
-            return;
-        }
-        cemuLog_log(LogType::Force, "Metal: TV and GamePad frames are now presented through a Metal 4 command queue (experimental, not recommended yet, still needs work)");
-    }
-    else
-    {
-        if (!m_metal4Output->WaitIdle(1000))
-            cemuLog_log(LogType::Force, "Metal: the Metal 4 output queue did not finish within 1 s while switching back");
-        m_metal4Output.reset();
-        cemuLog_log(LogType::Force, "Metal: presenting through the regular command queue again");
-    }
-    m_mainLayer.SetOutputStage(m_metal4Output.get());
-    m_padLayer.SetOutputStage(m_metal4Output.get());
 }
 
 void MetalRenderer::EnsureImGuiBackend()

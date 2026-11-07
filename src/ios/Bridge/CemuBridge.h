@@ -192,7 +192,6 @@ typedef enum {
     CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
     CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY = 1,
     CEMU_BRIDGE_TUNING_METALFX_UPSCALE = 2,
-    CEMU_BRIDGE_TUNING_METAL4_OUTPUT = 3,
     // 4 was frame generation, removed
     CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING = 5,
     // 6 was interpreter block linking, now always on
@@ -204,8 +203,6 @@ typedef enum {
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);
 int cemu_bridge_tuning(CemuBridgeTuning option);
-
-bool cemu_bridge_metal4_output_supported(void);
 
 // The session report (EspressU-Report.txt): settings text from the front end, and the file paths.
 void cemu_bridge_report_settings(const char* text);
