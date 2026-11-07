@@ -1,0 +1,57 @@
+# Every push to development builds an IPA and publishes it as a GitHub pre-release (nightly).
+name: Nightly
+
+on:
+  push:
+    branches: [development]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSES/**'
+  workflow_dispatch:
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-ipa.yml
+    with:
+      ref: ${{ github.sha }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KEEP: 10 # number of nightlies to keep
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ipa
+
+      - name: Publish pre-release
+        run: |
+          short="${GITHUB_SHA::7}"
+          tag="nightly-$(date -u +%Y%m%d-%H%M)-$short"
+          ipa="EspressU-${{ needs.build.outputs.version }}-nightly-$short.ipa"
+          mv EspressU.ipa "$ipa"
+          {
+            echo "Automatic nightly build of \`development\` at ${GITHUB_SHA}."
+            echo "Unsigned IPA for sideloading (SideStore / AltStore). Not a stable release."
+          } > notes.md
+          gh release create "$tag" "$ipa" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --prerelease --title "Nightly ${{ needs.build.outputs.version }} ($short)" --notes-file notes.md
+
+      - name: Delete old nightlies
+        run: |
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("nightly-"))] | sort_by(.createdAt) | reverse | .[env.KEEP | tonumber:] | .[].tagName' \
+          | while read -r t; do
+              [ -n "$t" ] && gh release delete "$t" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+            done
