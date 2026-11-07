@@ -1073,6 +1073,30 @@ namespace {
             return d;
         }
         if (device.perfCores < 3)
+                d.reason += ". This device has fewer than three performance cores, so expect it to run slower than one core";
+            return d;
+        }
+
+        if (g_autoDemoted.load())
+        {
+            d.reason = "Auto picked one core: a three-core run of this title crashed or hung before";
+            return d;
+        }
+        if (thermal >= 2)
+        {
+            d.reason = std::string("Auto picked one core: the device is already hot (") + deviceText + ")";
+            return d;
+        }
+        if (interpreter && device.perfCores >= 2)
+        {
+            // Without JIT one host thread running all three emulated cores is the limit (BotW: 100% busy). Each core on
+            // its own thread lets the game's main core use a whole performance core; the others share the rest.
+            d.singleCore = false;
+            d.autoPickedMulti = true;
+            d.reason = std::string("Auto picked three cores: without JIT the interpreter needs more than one host core (") + deviceText + ")";
+            return d;
+        }
+        if (device.perfCores < 3)
         {
             d.reason = std::string("Auto picked one core: too few performance cores (") + deviceText + ")";
             return d;
@@ -2929,9 +2953,6 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         tuning.padPresentPacing.store(value != 0);
         break;
-    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
-        tuning.interpreterBlockLinking.store(value != 0);
-        break;
     case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
         tuning.padLowResolution.store(value != 0);
         break;
@@ -2958,8 +2979,6 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.metal4Output.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         return tuning.padPresentPacing.load() ? 1 : 0;
-    case CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING:
-        return tuning.interpreterBlockLinking.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
         return tuning.padLowResolution.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG:

@@ -7,6 +7,13 @@ enum RemovedSettingsCleanup {
 
     static func run() {
         let defaults = UserDefaults.standard
+        // The "Faster interpreter without JIT" switch is gone: block linking is always on now. Drop a stored
+        // value from older versions every launch, so nothing can bring an old "off" back.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterBlockLinking")
+        // Threaded dispatch was only an experiment on the fast-interpreter branch and is gone.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterThreaded")
+        // "Faster interpreter (beta)" is gone too: the deferred instruction pointer is always on now.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterFast")
         guard !defaults.bool(forKey: doneKey) else { return }
         for key in [
             "espressu.cpu.favourAccuracy", FavourPerformance.storageKey, OneCoreMode.storageKey,

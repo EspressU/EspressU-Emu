@@ -20,8 +20,6 @@ enum PerformanceTuning {
     static let padPresentPacingDefault = false
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
-    static let interpreterBlockLinkingKey = "espressu.tuning.interpreterBlockLinking"
-    static let interpreterBlockLinkingDefault = false
     static let diagnosticsLogKey = "espressu.tuning.diagnosticsLog"
     static let diagnosticsLogDefault = false
     static let jitSkipOverlapsKey = "espressu.tuning.jitSkipOverlaps"
@@ -35,7 +33,6 @@ enum PerformanceTuning {
             AdvancedSetting(metal4OutputKey, metal4OutputDefault),
             AdvancedSetting(padPresentPacingKey, padPresentPacingDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
-            AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
             AdvancedSetting(diagnosticsLogKey, diagnosticsLogDefault),
             AdvancedSetting(jitSkipOverlapsKey, jitSkipOverlapsDefault),
         ]
@@ -56,8 +53,6 @@ enum PerformanceTuning {
                                bool(metal4OutputKey, metal4OutputDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING,
                                bool(padPresentPacingKey, padPresentPacingDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING,
-                               bool(interpreterBlockLinkingKey, interpreterBlockLinkingDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
@@ -72,7 +67,6 @@ enum PerformanceTuning {
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT, metal4OutputDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, padPresentPacingDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, diagnosticsLogDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS, jitSkipOverlapsDefault ? 1 : 0)

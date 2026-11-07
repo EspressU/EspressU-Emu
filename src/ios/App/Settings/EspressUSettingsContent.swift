@@ -120,11 +120,6 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(PerformanceTuning.jitSkipOverlapsKey, PerformanceTuning.jitSkipOverlapsDefault) { _ in
                              PerformanceTuning.applyToBridge()
                          })),
-            SettingsItem(id: "tuning.blockLinking", title: "Faster interpreter without JIT",
-                         detail: "Without JIT, jumps straight from one cached code block to the next instead of looking each one up. Works on one and three cores.",
-                         control: .toggle(values.bool(PerformanceTuning.interpreterBlockLinkingKey, PerformanceTuning.interpreterBlockLinkingDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
             SettingsItem(id: "tuning.diagnostics", title: "Log the experimental options",
                          detail: "Every 5 seconds writes to log.txt what each option above did and whether it works, lines start with [Tuning]. log.txt is in EspressU's Logs folder in the Files app.",
                          control: .toggle(values.bool(PerformanceTuning.diagnosticsLogKey, PerformanceTuning.diagnosticsLogDefault) { _ in

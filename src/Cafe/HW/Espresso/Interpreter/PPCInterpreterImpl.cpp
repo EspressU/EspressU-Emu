@@ -5,6 +5,10 @@
 #include <atomic>
 #include <vector>
 #include <algorithm>
+#include <type_traits>
+#include <utility>
+#include <memory>
+#include <new>
 #include "PPCInterpreterHelper.h"
 #include "Cafe/HW/Espresso/Debugger/Debugger.h"
 #include "Cafe/HW/Espresso/Debugger/GDBStub.h"
@@ -25,64 +29,64 @@ public:
     {
         const uint64 v = CPU_swapEndianU64(std::bit_cast<uint64>(vf));
 
-        std::memcpy(memory_getPointerFromVirtualOffset(address), &v, sizeof(v));
+        std::memcpy(memory_base + address, &v, sizeof(v));
     }
 
     inline static void ppcMem_writeDataU64(PPCInterpreter_t* hCPU, uint32 address, uint64 v)
     {
-        *(uint64*)(memory_getPointerFromVirtualOffset(address)) = CPU_swapEndianU64(v);
+        *(uint64*)(memory_base + address) = CPU_swapEndianU64(v);
     }
 
     inline static void ppcMem_writeDataU32(PPCInterpreter_t* hCPU, uint32 address, uint32 v)
     {
-        *(uint32*)(memory_getPointerFromVirtualOffset(address)) = CPU_swapEndianU32(v);
+        *(uint32*)(memory_base + address) = CPU_swapEndianU32(v);
     }
 
     inline static void ppcMem_writeDataU16(PPCInterpreter_t* hCPU, uint32 address, uint16 v)
     {
-        *(uint16*)(memory_getPointerFromVirtualOffset(address)) = CPU_swapEndianU16(v);
+        *(uint16*)(memory_base + address) = CPU_swapEndianU16(v);
     }
 
     inline static void ppcMem_writeDataU8(PPCInterpreter_t* hCPU, uint32 address, uint8 v)
     {
-        *(uint8*)(memory_getPointerFromVirtualOffset(address)) = v;
+        *(uint8*)(memory_base + address) = v;
     }
 
     inline static double ppcMem_readDataDouble(PPCInterpreter_t* hCPU, uint32 address)
     {
         uint64 v;
-        std::memcpy(&v, memory_getPointerFromVirtualOffset(address), sizeof(v));
+        std::memcpy(&v, memory_base + address, sizeof(v));
         return std::bit_cast<double>(CPU_swapEndianU64(v));
     }
 
     inline static float ppcMem_readDataFloat(PPCInterpreter_t* hCPU, uint32 address)
     {
-        uint32 v = *(uint32*)(memory_getPointerFromVirtualOffset(address));
+        uint32 v = *(uint32*)(memory_base + address);
         v = CPU_swapEndianU32(v);
         return *(float*)&v;
     }
 
     inline static uint64 ppcMem_readDataU64(PPCInterpreter_t* hCPU, uint32 address)
     {
-        uint64 v = *(uint64*)(memory_getPointerFromVirtualOffset(address));
+        uint64 v = *(uint64*)(memory_base + address);
         return CPU_swapEndianU64(v);
     }
 
     inline static uint32 ppcMem_readDataU32(PPCInterpreter_t* hCPU, uint32 address)
     {
-        uint32 v = *(uint32*)(memory_getPointerFromVirtualOffset(address));
+        uint32 v = *(uint32*)(memory_base + address);
         return CPU_swapEndianU32(v);
     }
 
     inline static uint16 ppcMem_readDataU16(PPCInterpreter_t* hCPU, uint32 address)
     {
-        uint16 v = *(uint16*)(memory_getPointerFromVirtualOffset(address));
+        uint16 v = *(uint16*)(memory_base + address);
         return CPU_swapEndianU16(v);
     }
 
     inline static uint8 ppcMem_readDataU8(PPCInterpreter_t* hCPU, uint32 address)
     {
-        return *(uint8*)(memory_getPointerFromVirtualOffset(address));
+        return *(uint8*)(memory_base + address);
     }
 
     inline static uint64 ppcMem_readDataFloatEx(PPCInterpreter_t* hCPU, uint32 addr)
@@ -99,6 +103,14 @@ public:
     {
         return PPCInterpreter_getMainCoreCycleCounter();
     }
+};
+
+// Same as PPCItpCafeOSUsermode, but its straight-line handlers do not advance instructionPointer. Only the
+// block-cache interpreter uses it: it runs a whole block's straight-line part and sets the IP once afterwards.
+class PPCItpCafeOSUsermodeDeferredIP : public PPCItpCafeOSUsermode
+{
+public:
+    static const bool deferInstructionPointer = true;
 };
 
 uint32 debug_lastTranslatedHit;
@@ -396,25 +408,57 @@ enum class PPCBlockTerm : uint8
     Generic,
 };
 
+// One guest instruction of a cached block, 8 bytes. The handler is stored as its distance from
+// PPCBlockHandlerAnchor, so an entry needs no 64-bit pointer and twice as many fit in a cache line.
 struct PPCBlockEntry
 {
-    PPCBlockHandler fn;
+    sint32 fnOffset;
     uint32 opcode;
-    uint32 _pad;
 };
-static_assert(sizeof(PPCBlockEntry) == 16);
+static_assert(sizeof(PPCBlockEntry) == 8);
 
-struct PPCBlockRef
+// Every cached block sits in the pool as one header followed directly by its entries, so following a block link
+// touches one place in memory instead of a table slot plus a separate entry array.
+struct PPCBlockHeader
 {
     uint32 startAddr;
-    uint32 firstEntry;
     uint16 count;
     PPCBlockTerm term;
-    uint8 _pad;
-    // Block linking: table slot + 1 of the block that ran after this one when it fell through (0) and when it
-    // branched away (1). Only a hint; a link is followed only if that slot still holds the block for the new address.
+    // 1: the straight-line handlers do not advance instructionPointer; the block loop sets it once after them.
+    uint8 deferredIP;
+    // Guest address of the terminator, or for a block without one the address right after its last instruction.
+    // A block can continue across unconditional direct branches (superblock), so this is not always
+    // startAddr + 4 * (count - 1).
+    uint32 termAddr;
+    // Block linking: pool index of the header of the block that ran after this one when it fell through (0) and
+    // when it branched away (1), 0 if none yet. Only a hint; a link is followed only if that block starts at the
+    // new address.
     uint32 links[2];
+    uint32 _pad;
 };
+static_assert(sizeof(PPCBlockHeader) == 24);
+
+// The handlers' distances are measured from this function. It is never called.
+[[gnu::noinline]] static void PPCBlockHandlerAnchor(PPCInterpreter_t*, uint32) {}
+
+static inline uintptr_t PPCBlockHandlerBase()
+{
+    return reinterpret_cast<uintptr_t>(&PPCBlockHandlerAnchor);
+}
+
+static inline bool PPCBlockHandler_encode(PPCBlockHandler fn, sint32& offset)
+{
+    const intptr_t distance = (intptr_t)reinterpret_cast<uintptr_t>(fn) - (intptr_t)PPCBlockHandlerBase();
+    if (distance < (intptr_t)INT32_MIN || distance > (intptr_t)INT32_MAX)
+        return false;
+    offset = (sint32)distance;
+    return true;
+}
+
+static inline PPCBlockHandler PPCBlockHandler_decode(uintptr_t base, sint32 offset)
+{
+    return reinterpret_cast<PPCBlockHandler>(base + (uintptr_t)(intptr_t)offset);
+}
 
 class PPCBlockCache
 {
@@ -423,12 +467,26 @@ public:
     static constexpr uint32 TABLE_SIZE = 1u << TABLE_BITS;
     static constexpr uint32 TABLE_MAX_USED = TABLE_SIZE * 3 / 4;
     static constexpr uint32 MAX_BLOCK_LENGTH = 64;
-    static constexpr size_t MAX_POOL_ENTRIES = 1024 * 1024;
+    // The pool counts in 8-byte slots: a header takes 3, an instruction 1. 4M slots (32 MB address space, only the
+    // used part costs memory) hold about 3M instructions, half again what the old 2M x 16-byte pool held.
+    static constexpr uint32 POOL_SLOTS = 4 * 1024 * 1024;
+    static constexpr uint32 HEADER_SLOTS = sizeof(PPCBlockHeader) / sizeof(PPCBlockEntry);
+    static_assert(sizeof(PPCBlockHeader) % sizeof(PPCBlockEntry) == 0);
+    // How many unconditional direct branches (b, bl) one block may follow into their targets.
+    static constexpr uint32 MAX_FOLLOWED_BRANCHES = 8;
+    // Pool index 0 means "no block", so the first header starts after one header's worth of unused slots.
+    static constexpr uint32 POOL_FIRST = HEADER_SLOTS;
+
+    // Hash table from guest address to pool index of the block's header. header == 0: empty slot.
+    struct Slot
+    {
+        uint32 addr;
+        uint32 header;
+    };
 
     PPCBlockCache()
+        : m_table(new Slot[TABLE_SIZE]), m_pool(new uint64[POOL_SLOTS])
     {
-        m_table.resize(TABLE_SIZE);
-        m_entries.reserve(64 * 1024);
         clear("init");
     }
 
@@ -437,41 +495,59 @@ public:
         return ((addr >> 2) * 0x9E3779B1u) >> (32 - TABLE_BITS);
     }
 
-    PPCBlockRef* lookup(uint32 addr)
+    // Pool index of the block that starts at addr, 0 if it is not cached.
+    uint32 lookup(uint32 addr) const
     {
         uint32 i = hashSlot(addr);
         for (;;)
         {
-            PPCBlockRef& r = m_table[i];
-            if (r.count == 0)
-                return nullptr;
-            if (r.startAddr == addr)
-                return &r;
+            const Slot& s = m_table[i];
+            if (s.header == 0)
+                return 0;
+            if (s.addr == addr)
+                return s.header;
             i = (i + 1) & (TABLE_SIZE - 1);
         }
     }
 
-    PPCBlockRef* allocSlot(uint32 addr)
+    // Makes room for one more block of up to MAX_BLOCK_LENGTH instructions; clears the cache if it is full.
+    void reserveBlock()
     {
         if (m_used >= TABLE_MAX_USED) [[unlikely]]
             clear("table full");
-        else if (m_entries.size() + MAX_BLOCK_LENGTH > MAX_POOL_ENTRIES) [[unlikely]]
+        else if (m_poolUsed + HEADER_SLOTS + MAX_BLOCK_LENGTH > POOL_SLOTS) [[unlikely]]
             clear("pool full");
+    }
 
+    void insert(uint32 addr, uint32 header)
+    {
         uint32 i = hashSlot(addr);
-
-        while (m_table[i].count != 0)
+        while (m_table[i].header != 0)
             i = (i + 1) & (TABLE_SIZE - 1);
-
+        m_table[i] = Slot{addr, header};
         m_used++;
-        return &m_table[i];
+    }
+
+    uint64* pool() const
+    {
+        return m_pool.get();
+    }
+
+    static PPCBlockHeader* headerAt(uint64* pool, uint32 index)
+    {
+        return reinterpret_cast<PPCBlockHeader*>(pool + index);
+    }
+
+    static const PPCBlockEntry* entriesOf(const PPCBlockHeader* header)
+    {
+        return reinterpret_cast<const PPCBlockEntry*>(header + 1);
     }
 
     void clear(const char* reason)
     {
-        std::fill(m_table.begin(), m_table.end(), PPCBlockRef{});
+        std::fill(m_table.get(), m_table.get() + TABLE_SIZE, Slot{0, 0});
 
-        m_entries.clear();
+        m_poolUsed = POOL_FIRST;
         m_used = 0;
         m_clears++;
 
@@ -479,8 +555,9 @@ public:
             cemuLog_log(LogType::Force, "PPC block cache: clear #{} ({}), {} blocks decoded since start", m_clears, reason, m_decodes);
     }
 
-    std::vector<PPCBlockRef> m_table;
-    std::vector<PPCBlockEntry> m_entries;
+    std::unique_ptr<Slot[]> m_table;
+    std::unique_ptr<uint64[]> m_pool;
+    uint32 m_poolUsed = POOL_FIRST;
     uint32 m_used = 0;
     uint32 m_generation = 0;
     uint64 m_decodes = 0;
@@ -560,6 +637,23 @@ template <typename ppcItpCtrl>
 class PPCInterpreterContainer
 {
 public:
+    static constexpr bool defersInstructionPointer()
+    {
+        if constexpr (requires { ppcItpCtrl::deferInstructionPointer; })
+            return ppcItpCtrl::deferInstructionPointer;
+        else
+            return false;
+    }
+
+    // Hides the global PPCInterpreter_nextInstruction for the handlers included below, so the deferred-IP
+    // instantiation can skip the per-instruction IP update. Handlers in other files (FPU, paired singles) still
+    // call the global one; that is harmless, because the block loop sets the IP to an absolute value afterwards.
+    FORCE_INLINE static void PPCInterpreter_nextInstruction(PPCInterpreter_t* hCPU)
+    {
+        if constexpr (!defersInstructionPointer())
+            hCPU->instructionPointer += 4;
+    }
+
 #include "PPCInterpreterSPR.hpp"
 #include "PPCInterpreterOPC.hpp"
 #include "PPCInterpreterLoadStore.hpp"
@@ -1202,7 +1296,7 @@ public:
         PPCInterpreter_invalidateBlockCacheRange(ea & ~31u, 32);
     }
 
-    static PPCBlockEntry decodeEntry(uint32 opcode, PPCBlockTerm& term)
+    static PPCBlockHandler decodeEntry(uint32 opcode, PPCBlockTerm& term)
     {
         static constexpr auto s_table19 = makeHandlerTable19();
         static constexpr auto s_table31 = makeHandlerTable31();
@@ -1399,26 +1493,90 @@ public:
             term = PPCBlockTerm::Generic;
         if (term == PPCBlockTerm::Generic && fn == nullptr)
             fn = blockFallbackStep;
-        return PPCBlockEntry{fn, opcode, 0};
+        return fn;
     }
 
-    static PPCBlockRef* decodeBlock(PPCInterpreter_t* hCPU, PPCBlockCache& cache, uint32 startAddr)
+    // Entry left behind by a bl that a superblock followed: the opcode field holds the return address.
+    static void blockSetLR(PPCInterpreter_t* hCPU, uint32 returnAddr)
     {
-        PPCBlockRef* ref = cache.allocSlot(startAddr);
+        hCPU->spr.LR = returnAddr;
+    }
+
+    // Decodes the block at startAddr into the pool, adds it to the table and returns its pool index.
+    static uint32 decodeBlock(PPCInterpreter_t* hCPU, PPCBlockCache& cache, uint32 startAddr)
+    {
+        cache.reserveBlock();
         cache.m_decodes++;
 
         PPCBlockCache_markCodePage(startAddr);
 
-        const uint32 firstEntry = (uint32)cache.m_entries.size();
+        constexpr bool canDefer = std::is_same_v<ppcItpCtrl, PPCItpCafeOSUsermode>;
+        constexpr bool deferIP = canDefer;
+        const uint32 headerIndex = cache.m_poolUsed;
+        uint64* const pool = cache.pool();
+        uint64* const entrySlots = pool + headerIndex + PPCBlockCache::HEADER_SLOTS;
         uint32 addr = startAddr;
         uint32 count = 0;
+        uint32 followed = 0;
         PPCBlockTerm term = PPCBlockTerm::None;
         while (count < PPCBlockCache::MAX_BLOCK_LENGTH)
         {
             if ((addr & 0xFFF) == 0 && addr != startAddr)
                 PPCBlockCache_markCodePage(addr);
             const uint32 opcode = ppcItpCtrl::memory_readCodeU32(hCPU, addr);
-            cache.m_entries.push_back(decodeEntry(opcode, term));
+            PPCBlockHandler fn = decodeEntry(opcode, term);
+            if constexpr (canDefer)
+            {
+                // Superblock: an unconditional relative b or bl does not end the block. Its target is known now, so
+                // decoding goes on there; bl leaves one entry that sets LR. Only forward or outside this block's
+                // start, so a loop still ends the block and stays linkable.
+                if (term == PPCBlockTerm::BX && (opcode & PPC_OPC_AA) == 0 && followed < PPCBlockCache::MAX_FOLLOWED_BRANCHES
+                    && count + 1 < PPCBlockCache::MAX_BLOCK_LENGTH)
+                {
+                    uint32 li;
+                    PPC_OPC_TEMPL_I(opcode, li);
+                    const uint32 target = addr + li;
+                    if (target != startAddr && target != addr && target != 0)
+                    {
+                        if (opcode & PPC_OPC_LK)
+                        {
+                            sint32 setLROffset;
+                            if (!PPCBlockHandler_encode(blockSetLR, setLROffset)) [[unlikely]]
+                                goto keepBranch;
+                            // The entry's opcode field carries the return address instead of an instruction.
+                            new (entrySlots + count) PPCBlockEntry{setLROffset, addr + 4};
+                            count++;
+                        }
+                        followed++;
+                        term = PPCBlockTerm::None;
+                        addr = target;
+                        PPCBlockCache_markCodePage(addr);
+                        continue;
+                    }
+                }
+            keepBranch:;
+            }
+            if constexpr (canDefer)
+            {
+                // Straight-line instructions take their handler from the deferred-IP instantiation, which does not
+                // advance instructionPointer. Terminators keep the normal handler: they read and set the IP.
+                if (deferIP && term == PPCBlockTerm::None)
+                {
+                    PPCBlockTerm deferredTerm;
+                    fn = PPCInterpreterContainer<PPCItpCafeOSUsermodeDeferredIP>::decodeEntry(opcode, deferredTerm);
+                    cemu_assert_debug(deferredTerm == PPCBlockTerm::None);
+                }
+            }
+            // Branch terminators (BX, BCX, BCLRX, BCCTR) have no handler: the block loop runs them inline.
+            sint32 fnOffset = 0;
+            if (fn != nullptr && !PPCBlockHandler_encode(fn, fnOffset)) [[unlikely]]
+            {
+                // Cannot happen while all handlers live in this binary. If it ever does, end the block with the
+                // generic single-step path, which is defined in this file and always in range.
+                term = PPCBlockTerm::Generic;
+                PPCBlockHandler_encode(blockFallbackStep, fnOffset);
+            }
+            new (entrySlots + count) PPCBlockEntry{fnOffset, opcode};
             count++;
             addr += 4;
             if (term != PPCBlockTerm::None)
@@ -1427,26 +1585,29 @@ public:
                 break;
         }
 
-        ref->startAddr = startAddr;
-        ref->firstEntry = firstEntry;
-        ref->count = (uint16)count;
-        ref->term = term;
-        ref->links[0] = ref->links[1] = 0;
-        return ref;
+        // addr is now the address of the terminator (the loop stopped right after it) or the next instruction.
+        const uint32 termAddr = (term != PPCBlockTerm::None) ? addr - 4 : addr;
+        new (pool + headerIndex) PPCBlockHeader{startAddr, (uint16)count, term, (uint8)(deferIP ? 1 : 0), termAddr, {0, 0}, 0};
+        cache.m_poolUsed = headerIndex + PPCBlockCache::HEADER_SLOTS + count;
+        cache.insert(startAddr, headerIndex);
+        return headerIndex;
     }
 
-    static inline void blockTermBX(PPCInterpreter_t* hCPU, uint32 opcode)
+    // The terminators get the address of the branch instruction itself, set instructionPointer and return it, so the
+    // block loop keeps the next address in a register instead of reading it back.
+    static inline uint32 blockTermBX(PPCInterpreter_t* hCPU, uint32 opcode, uint32 pc)
     {
         uint32 li;
         PPC_OPC_TEMPL_I(opcode, li);
         if ((opcode & PPC_OPC_AA) == 0)
-            li += (uint32)hCPU->instructionPointer;
+            li += pc;
         if (opcode & PPC_OPC_LK)
-            hCPU->spr.LR = (uint32)hCPU->instructionPointer + 4;
+            hCPU->spr.LR = pc + 4;
         hCPU->instructionPointer = li;
+        return li;
     }
 
-    static inline void blockTermBCX(PPCInterpreter_t* hCPU, uint32 opcode)
+    static inline uint32 blockTermBCX(PPCInterpreter_t* hCPU, uint32 opcode, uint32 pc)
     {
         uint32 BO, BI, BD;
         PPC_OPC_TEMPL_B(opcode, BO, BI, BD);
@@ -1455,22 +1616,23 @@ public:
         const bool bo2 = (BO & 2) != 0;
         const bool bo8 = (BO & 8) != 0;
         const bool cr = ppc_getCRBit(hCPU, BI) != 0;
+        uint32 next = pc + 4;
         if (((BO & 4) || ((hCPU->spr.CTR != 0) ^ bo2))
             && ((BO & 16) || (!(cr ^ bo8))))
         {
             if (!(opcode & PPC_OPC_AA))
-                BD += (uint32)hCPU->instructionPointer;
+                BD += pc;
             else
                 cemu_assert_unimplemented();
             if (opcode & PPC_OPC_LK)
-                hCPU->spr.LR = (uint32)hCPU->instructionPointer + 4;
-            hCPU->instructionPointer = BD;
+                hCPU->spr.LR = pc + 4;
+            next = BD;
         }
-        else
-            hCPU->instructionPointer += 4;
+        hCPU->instructionPointer = next;
+        return next;
     }
 
-    static inline void blockTermBCLRX(PPCInterpreter_t* hCPU, uint32 opcode)
+    static inline uint32 blockTermBCLRX(PPCInterpreter_t* hCPU, uint32 opcode, uint32 pc)
     {
         uint32 BO, BI, BD;
         PPC_OPC_TEMPL_XL(opcode, BO, BI, BD);
@@ -1479,67 +1641,75 @@ public:
         const bool bo2 = (BO & 2) != 0;
         const bool bo8 = (BO & 8) != 0;
         const bool cr = ppc_getCRBit(hCPU, BI) != 0;
+        uint32 next = pc + 4;
         if (((BO & 4) || ((hCPU->spr.CTR != 0) ^ bo2))
             && ((BO & 16) || (!(cr ^ bo8))))
         {
-            const uint32 target = hCPU->spr.LR & 0xfffffffc;
+            next = hCPU->spr.LR & 0xfffffffc;
             if (opcode & PPC_OPC_LK)
-                hCPU->spr.LR = (uint32)hCPU->instructionPointer + 4;
-            hCPU->instructionPointer = target;
+                hCPU->spr.LR = pc + 4;
         }
-        else
-            hCPU->instructionPointer += 4;
+        hCPU->instructionPointer = next;
+        return next;
     }
 
-    static inline void blockTermBCCTR(PPCInterpreter_t* hCPU, uint32 opcode)
+    static inline uint32 blockTermBCCTR(PPCInterpreter_t* hCPU, uint32 opcode, uint32 pc)
     {
         uint32 BO, BI, BD;
         PPC_OPC_TEMPL_XL(opcode, BO, BI, BD);
         const bool bo8 = (BO & 8) != 0;
         const bool cr = ppc_getCRBit(hCPU, BI) != 0;
+        uint32 next = pc + 4;
         if ((BO & 16) || (!(cr ^ bo8)))
         {
+            next = hCPU->spr.CTR & 0xfffffffc;
             if (opcode & PPC_OPC_LK)
-                hCPU->spr.LR = (uint32)hCPU->instructionPointer + 4;
-            hCPU->instructionPointer = hCPU->spr.CTR & 0xfffffffc;
+                hCPU->spr.LR = pc + 4;
         }
-        else
-            hCPU->instructionPointer += 4;
+        hCPU->instructionPointer = next;
+        return next;
+    }
+
+    // Code invalidations (ICBI, code loading, patches) bump a global generation; a cache that sees a new one clears
+    // itself. Checked once per timeslice and after every Generic terminator: ICBI, HLE calls and syscalls all end a
+    // block that way. A change made by another host thread is seen at the next timeslice at the latest.
+    static inline void syncBlockCacheGeneration(PPCBlockCache& cache)
+    {
+        const uint32 gen = s_blockCacheGeneration.load(std::memory_order_relaxed);
+        if (gen != cache.m_generation) [[unlikely]]
+        {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            cache.clear("code invalidated");
+            cache.m_generation = gen;
+        }
     }
 
     static void executeTimesliceCached(PPCInterpreter_t* hCPU)
     {
         PPCBlockCache* cache = &PPCBlockCache_getForCurrentThread();
-        const bool linkBlocks = HostTuning::Get().interpreterBlockLinking.load(std::memory_order_relaxed);
-        PPCBlockRef* previous = nullptr;
-        uint32 previousEnd = 0;
+        const uintptr_t fnBase = PPCBlockHandlerBase();
         uint64 blocksRun = 0, linkHits = 0, decodes = 0;
-        uint32 previousClears = cache->m_clears;
+
+        syncBlockCacheGeneration(*cache);
+        uint64* pool = cache->pool();
+        uint32 clears = cache->m_clears;
+        PPCBlockHeader* previous = nullptr;
+        uint32 previousEnd = 0;
+        uint32 ip = (uint32)hCPU->instructionPointer;
         while (hCPU->remainingCycles > 0)
         {
-            const uint32 gen = s_blockCacheGeneration.load(std::memory_order_acquire);
-            if (gen != cache->m_generation) [[unlikely]]
-            {
-                cache->clear("code invalidated");
-                cache->m_generation = gen;
-            }
-            if (cache->m_clears != previousClears) [[unlikely]]
-            {
-                previous = nullptr;
-                previousClears = cache->m_clears;
-            }
-
-            const uint32 ip = (uint32)hCPU->instructionPointer;
-            PPCBlockRef* block = nullptr;
-            const uint32 linkSlot = ip == previousEnd ? 0 : 1;
+            const uint32 start = ip;
+            PPCBlockHeader* block = nullptr;
+            const uint32 linkSlot = start == previousEnd ? 0 : 1;
             if (previous)
             {
-                // Follow the link of the block that just ran instead of hashing the address again.
+                // Follow the link of the block that just ran instead of hashing the address again. The header and the
+                // block's first instructions share a cache line.
                 const uint32 link = previous->links[linkSlot];
                 if (link)
                 {
-                    PPCBlockRef* candidate = cache->m_table.data() + (link - 1);
-                    if (candidate->count != 0 && candidate->startAddr == ip)
+                    PPCBlockHeader* candidate = PPCBlockCache::headerAt(pool, link);
+                    if (candidate->startAddr == start)
                     {
                         block = candidate;
                         linkHits++;
@@ -1548,67 +1718,81 @@ public:
             }
             if (!block)
             {
-                block = cache->lookup(ip);
-                if (!block) [[unlikely]]
+                uint32 index = cache->lookup(start);
+                if (!index) [[unlikely]]
                 {
-                    block = decodeBlock(hCPU, *cache, ip);
+                    index = decodeBlock(hCPU, *cache, start);
                     decodes++;
-                    if (cache->m_clears != previousClears) [[unlikely]]
+                    if (cache->m_clears != clears) [[unlikely]]
                     {
+                        // The pool was full and got cleared: previous points at a block that no longer exists.
                         previous = nullptr;
-                        previousClears = cache->m_clears;
+                        clears = cache->m_clears;
                     }
                 }
+                block = PPCBlockCache::headerAt(pool, index);
                 if (previous)
-                    previous->links[linkSlot] = (uint32)(block - cache->m_table.data()) + 1;
+                    previous->links[linkSlot] = index;
             }
 
             blocksRun++;
+            const PPCBlockEntry* e = PPCBlockCache::entriesOf(block);
             const uint32 count = block->count;
             const PPCBlockTerm term = block->term;
             const uint32 straight = (term == PPCBlockTerm::None) ? count : count - 1;
 
             hCPU->remainingCycles -= (sint32)count;
 
-            const PPCBlockEntry* e = cache->m_entries.data() + block->firstEntry;
-            const PPCBlockEntry* const end = e + straight;
-            for (; e != end; ++e)
-                e->fn(hCPU, e->opcode);
+            {
+                const PPCBlockEntry* const end = e + straight;
+                for (; e != end; ++e)
+                    PPCBlockHandler_decode(fnBase, e->fnOffset)(hCPU, e->opcode);
+            }
+            const uint32 termAddr = block->termAddr;
+            if (block->deferredIP)
+            {
+                // The straight-line handlers left instructionPointer alone (no per-instruction read-modify-write).
+                // None of them reads it, so set it once to where the terminator, or the next block, starts.
+                hCPU->instructionPointer = termAddr;
+            }
 
 #ifdef CEMU_DEBUG_ASSERT
-            if (hCPU->instructionPointer != ip + straight * 4)
+            if (!block->deferredIP && hCPU->instructionPointer != termAddr)
                 assert_dbg();
 #endif
 
             switch (term)
             {
             case PPCBlockTerm::None:
+                ip = termAddr;
                 break;
             case PPCBlockTerm::BX:
-                blockTermBX(hCPU, e->opcode);
+                ip = blockTermBX(hCPU, e->opcode, termAddr);
                 break;
             case PPCBlockTerm::BCX:
-                blockTermBCX(hCPU, e->opcode);
+                ip = blockTermBCX(hCPU, e->opcode, termAddr);
                 break;
             case PPCBlockTerm::BCLRX:
-                blockTermBCLRX(hCPU, e->opcode);
+                ip = blockTermBCLRX(hCPU, e->opcode, termAddr);
                 break;
             case PPCBlockTerm::BCCTR:
-                blockTermBCCTR(hCPU, e->opcode);
+                ip = blockTermBCCTR(hCPU, e->opcode, termAddr);
                 break;
             case PPCBlockTerm::Generic:
-                e->fn(hCPU, e->opcode);
+                PPCBlockHandler_decode(fnBase, e->fnOffset)(hCPU, e->opcode);
+                // The instruction may have switched threads or host cores, or changed code. Start over from memory
+                // and do not link across it.
                 cache = &PPCBlockCache_getForCurrentThread();
-                // The instruction may have switched threads or host cores; do not link across that.
+                syncBlockCacheGeneration(*cache);
+                pool = cache->pool();
+                clears = cache->m_clears;
                 previous = nullptr;
-                previousClears = cache->m_clears;
+                ip = (uint32)hCPU->instructionPointer;
                 continue;
             }
-            if (linkBlocks)
-            {
-                previous = block;
-                previousEnd = ip + count * 4;
-            }
+            // Block linking is always on: remember this block so the next lookup can follow its stored link.
+            previous = block;
+            previousEnd = (term == PPCBlockTerm::None) ? termAddr : termAddr + 4;
         }
         if (HostTuning::Get().diagnosticsLog.load(std::memory_order_relaxed)) [[unlikely]]
         {
