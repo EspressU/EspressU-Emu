@@ -8,7 +8,8 @@ import Foundation
 /// Older versions left their logs loose between the games, saves and keys in EspressU's Documents folder,
 /// and later ones kept CemuCrashLog.txt in Documents/Logs. Crash details now only go into the EspressU report
 /// in Documents/Logs, so this removes those leftovers when the app opens. Only these exact file names are
-/// touched; the current logs in Documents/Logs stay.
+/// touched; the current logs in Documents/Logs stay. Cemu's own log.txt is gone too: older versions wrote it
+/// into mlc/Logs, and that whole folder is removed.
 enum LegacyLogCleanup {
     private static let looseInDocuments = [
         "CemuCrashLog.txt", "log.txt",
@@ -28,6 +29,13 @@ enum LegacyLogCleanup {
                     guard fileManager.fileExists(atPath: file.path, isDirectory: &isDirectory), !isDirectory.boolValue else { continue }
                     try? fileManager.removeItem(at: file)
                 }
+            }
+            let cemuLogs = documents.appendingPathComponent("mlc", isDirectory: true)
+                .appendingPathComponent("Logs", isDirectory: true)
+            var isDirectory: ObjCBool = false
+            if cemuLogs.standardizedFileURL != logs.standardizedFileURL,
+               fileManager.fileExists(atPath: cemuLogs.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                try? fileManager.removeItem(at: cemuLogs)
             }
         }
     }
