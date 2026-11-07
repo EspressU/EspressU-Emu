@@ -1021,7 +1021,9 @@ namespace {
         std::string reason;
     };
 
-    CoreDecision ios_decide_core_count(uint64_t titleId)
+    // interpreter: no JIT will run. Then the PowerPC cores are the bottleneck and Auto spreads them over host threads
+    // even on devices with only two performance cores.
+    CoreDecision ios_decide_core_count(uint64_t titleId, bool interpreter)
     {
         const IosDeviceFacts& device = ios_device_facts();
         const int setting = g_coreModeSetting.load();
@@ -1058,21 +1060,6 @@ namespace {
             d.singleCore = false;
             d.reason = std::string("three cores, chosen in Settings (experimental; ") + deviceText + ")";
             if (device.perfCores < 3)
-                d.reason += ". This device has fewer than three performance cores, so expect it to run slower than one core";
-            return d;
-        }
-
-        if (g_autoDemoted.load())
-        {
-            d.reason = "Auto picked one core: a three-core run of this title crashed or hung before";
-            return d;
-        }
-        if (thermal >= 2)
-        {
-            d.reason = std::string("Auto picked one core: the device is already hot (") + deviceText + ")";
-            return d;
-        }
-        if (device.perfCores < 3)
                 d.reason += ". This device has fewer than three performance cores, so expect it to run slower than one core";
             return d;
         }
@@ -1139,7 +1126,8 @@ void ios_apply_cpu_mode(bool announce = false)
     uint64_t titleId = 0;
     if (announce)
         titleId = CafeSystem::GetForegroundTitleId();
-    const CoreDecision cores = ios_decide_core_count(titleId);
+    const bool interpreter = !g_recompilerRequested.load() || !debugged;
+    const CoreDecision cores = ios_decide_core_count(titleId, interpreter);
     const bool singleCore = cores.singleCore;
     auto& config = GetConfig();
     char detail[768];
@@ -1149,7 +1137,7 @@ void ios_apply_cpu_mode(bool announce = false)
     g_coresRunning.store(singleCore ? 1 : 3);
     g_autoPickedMulti.store(cores.autoPickedMulti);
 
-    if (!g_recompilerRequested.load() || !debugged)
+    if (interpreter)
     {
         if (announce)
         {
