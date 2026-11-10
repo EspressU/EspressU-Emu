@@ -1619,9 +1619,10 @@ struct EmulatorViewOptimized: View {
                         InGameBlowButton(enabled: !isPaused)
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
+                                .fill((gameManager.frameGenDisplayRate?.output ?? Double(gameManager.frameRate)) >= 20
+                                      ? Color.green : EspressUTheme.alertOnDark)
                                 .frame(width: 8, height: 8)
-                            Text(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
+                            Text(gameManager.frameRateHUDText)
                                 .font(.footnote.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundColor(.white)
@@ -1632,7 +1633,7 @@ struct EmulatorViewOptimized: View {
                         .espressUSurface(Capsule())
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel("Frame rate")
-                        .accessibilityValue(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
+                        .accessibilityValue(gameManager.frameRateHUDText)
                     }
                 }
                 .environment(\.colorScheme, .dark)

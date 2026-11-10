@@ -2608,6 +2608,10 @@ bool cemu_bridge_overlay_fps(void) {
     return GetConfig().overlay.fps;
 }
 
+void cemu_bridge_set_overlay_show_framegen_breakdown(bool enabled) {
+    LatteOverlay_SetShowFrameGenBreakdown(enabled);
+}
+
 void cemu_bridge_set_overlay_cpu_usage(bool enabled) {
     GetConfig().overlay.cpu_usage = enabled;
 }
@@ -2905,9 +2909,6 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
         tuning.keepGpuFaultHistory.store(value != 0);
         break;
-    case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
-        tuning.metalFxUpscale.store(value != 0);
-        break;
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         tuning.padPresentPacing.store(value != 0);
         break;
@@ -2920,6 +2921,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
         tuning.jitSkipOverlappingCompiles.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
+        tuning.frameGeneration.store(value != 0);
+        break;
     }
 }
 
@@ -2931,8 +2935,6 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.freeMemoryOnWarning.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY:
         return tuning.keepGpuFaultHistory.load() ? 1 : 0;
-    case CEMU_BRIDGE_TUNING_METALFX_UPSCALE:
-        return tuning.metalFxUpscale.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING:
         return tuning.padPresentPacing.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION:
@@ -2941,6 +2943,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.diagnosticsLog.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS:
         return tuning.jitSkipOverlappingCompiles.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
+        return tuning.frameGeneration.load() ? 1 : 0;
     }
     return 0;
 }
@@ -3477,6 +3481,11 @@ void cemu_bridge_prepare_keys_before_init(const char* mlcPath) {
 
 double cemu_bridge_get_fps(void) {
     return g_framesPerSecond.load();
+}
+
+CemuBridgeDisplayRates cemu_bridge_get_framegen_display_rates(void) {
+    const auto rates = LatteOverlay_GetFrameGenDisplayRates();
+    return {rates.output, rates.generated, rates.showBreakdown};
 }
 
 void cemu_bridge_get_progress(CemuBridgeProgress* out) {

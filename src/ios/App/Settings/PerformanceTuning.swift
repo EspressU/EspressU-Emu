@@ -9,8 +9,9 @@ import Foundation
 /// Freeing memory on warnings, the GPU fault history and skipping duplicate JIT work and keeping the TV smooth
 /// with both screens used to be experimental switches and are always on now.
 enum PerformanceTuning {
-    static let metalFxUpscaleKey = "espressu.tuning.metalFxUpscale"
-    static let metalFxUpscaleDefault = false
+    /// Experimental > Frame generation: EspressU's own frame interpolation for the TV picture (MetalFrameGen in the core).
+    static let frameGenerationKey = "espressu.tuning.frameInterpolation"
+    static let frameGenerationDefault = false
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
     /// "Logs" in Device report and logs: a summary line in the EspressU report every few seconds.
@@ -19,7 +20,7 @@ enum PerformanceTuning {
 
     static var advancedSettings: [AdvancedSetting] {
         [
-            AdvancedSetting(metalFxUpscaleKey, metalFxUpscaleDefault),
+            AdvancedSetting(frameGenerationKey, frameGenerationDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(logsKey, logsDefault),
         ]
@@ -31,8 +32,8 @@ enum PerformanceTuning {
 
     static func applyToBridge() {
         applyAlwaysOn()
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE,
-                               bool(metalFxUpscaleKey, metalFxUpscaleDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION,
+                               bool(frameGenerationKey, frameGenerationDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
@@ -41,7 +42,7 @@ enum PerformanceTuning {
 
     static func applyDefaultsToBridge() {
         applyAlwaysOn()
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, frameGenerationDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, logsDefault ? 1 : 0)
     }

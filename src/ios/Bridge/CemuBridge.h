@@ -65,6 +65,14 @@ void cemu_bridge_log_line(const char* message);
 
 double cemu_bridge_get_fps(void);
 
+typedef struct {
+    double output;
+    double generated;
+    bool show_breakdown;
+} CemuBridgeDisplayRates;
+
+CemuBridgeDisplayRates cemu_bridge_get_framegen_display_rates(void);
+
 bool cemu_bridge_video_stalled(void);
 
 int cemu_bridge_video_stall_kind(void);
@@ -191,7 +199,6 @@ bool cemu_bridge_full_speed_renders(void);
 typedef enum {
     CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
     CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY = 1,
-    CEMU_BRIDGE_TUNING_METALFX_UPSCALE = 2,
     // 4 was frame generation, removed
     CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING = 5,
     // 6 was interpreter block linking, now always on
@@ -199,6 +206,7 @@ typedef enum {
     CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG = 8,
     CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS = 9,
     // 11 was the deferred instruction pointer of the interpreter, now always on
+    CEMU_BRIDGE_TUNING_FRAME_GENERATION = 12,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);
@@ -269,6 +277,7 @@ int cemu_bridge_overlay_position(void);
 
 void cemu_bridge_set_overlay_fps(bool enabled);
 bool cemu_bridge_overlay_fps(void);
+void cemu_bridge_set_overlay_show_framegen_breakdown(bool enabled);
 void cemu_bridge_set_overlay_cpu_usage(bool enabled);
 bool cemu_bridge_overlay_cpu_usage(void);
 void cemu_bridge_set_overlay_ram_usage(bool enabled);

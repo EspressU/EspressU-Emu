@@ -14,6 +14,9 @@ enum OverlaySettings {
     static let fpsKey = "espressu.overlay.fps"
     static let defaultFps = true
 
+    static let showFrameGenBreakdownKey = "espressu.overlay.showFrameGenBreakdown"
+    static let defaultShowFrameGenBreakdown = false
+
     static let drawcallsKey = "espressu.overlay.drawcalls"
     static let defaultDrawcalls = false
 
@@ -31,6 +34,12 @@ enum OverlaySettings {
 
     static let debugKey = "espressu.overlay.debug"
     static let defaultDebug = true
+
+    static func applyFrameGenBreakdownToBridge() {
+        let enabled = UserDefaults.standard.object(forKey: showFrameGenBreakdownKey) as? Bool
+            ?? defaultShowFrameGenBreakdown
+        cemu_bridge_set_overlay_show_framegen_breakdown(enabled)
+    }
 }
 
 func packedColourBinding(_ value: Binding<Int>) -> Binding<Color> {
@@ -230,9 +239,9 @@ struct OverlaySettingsSection: View {
 
     private var fullText: String {
         """
-        The overlay is the engine's own readout, like desktop Cemu's. Position picks a corner of the TV screen; Off hides it, and the other rows stay dimmed until a corner is chosen.
+        The overlay is the engine's own readout, like desktop Cemu's. Position picks a corner of the TV screen. Off hides the performance overlay.
 
-        FPS is the frame rate the game is producing. CPU, per-core CPU, RAM and VRAM usage measure EspressU itself, not the whole device. Draw calls counts draw commands in the current frame. Debug info adds a few lines of renderer state.
+        With frame generation active, the FPS total includes generated frames. CPU, per-core CPU, RAM and VRAM usage measure EspressU itself, not the whole device. Draw calls counts draw commands in the current frame. Debug info adds a few lines of renderer state.
 
         The panel only appears while at least one of FPS, draw calls, CPU, per-core CPU or RAM is on. VRAM usage and debug info are extra lines inside it, so on their own they show nothing.
 

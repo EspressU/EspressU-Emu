@@ -575,8 +575,9 @@ if(ENABLE_METAL)
         HW/Latte/Renderer/Metal/MetalMemoryManager.h
         HW/Latte/Renderer/Metal/MetalOutputShaderCache.cpp
         HW/Latte/Renderer/Metal/MetalOutputShaderCache.h
-        HW/Latte/Renderer/Metal/MetalOutputUpscaler.h
-        HW/Latte/Renderer/Metal/MetalOutputUpscaler.mm
+        HW/Latte/Renderer/Metal/MetalFrameGen.h
+        HW/Latte/Renderer/Metal/MetalFrameGen.mm
+        HW/Latte/Renderer/Metal/MetalFrameGenShaders.h
         HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h
         HW/Latte/Renderer/Metal/MetalPipelineCache.cpp
         HW/Latte/Renderer/Metal/MetalPipelineCache.h
@@ -605,14 +606,15 @@ if(ENABLE_METAL)
         HW/Latte/LegacyShaderDecompiler/LatteDecompilerEmitMSLHeader.hpp
     )
 
-    set_source_files_properties(HW/Latte/Renderer/Metal/MetalOutputUpscaler.mm PROPERTIES
+    set_source_files_properties(
+        HW/Latte/Renderer/Metal/MetalFrameGen.mm
+        PROPERTIES
         COMPILE_OPTIONS "-fobjc-arc"
         SKIP_PRECOMPILE_HEADERS ON)
 
     target_link_libraries(CemuCafe PRIVATE
         "-framework Metal"
         "-framework QuartzCore"
-        "-weak_framework MetalFX"
     )
 endif()
 

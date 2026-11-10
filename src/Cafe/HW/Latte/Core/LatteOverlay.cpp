@@ -2,6 +2,10 @@
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
+#if BOOST_OS_IOS && defined(ENABLE_METAL)
+#include "Cafe/HW/Latte/Core/HostTuning.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameGen.h"
+#endif
 #include "Cafe/Account/Account.h"
 #include "config/CemuConfig.h"
 #include "config/ActiveSettings.h"
@@ -46,6 +50,24 @@ struct OverlayStats
 #if BOOST_OS_IOS
 std::atomic_bool g_overlayNativeOnIOS{ false };
 static std::mutex g_overlayStateMutex;
+static std::atomic_bool g_overlayShowFrameGenBreakdown{false};
+
+void LatteOverlay_SetShowFrameGenBreakdown(bool enabled)
+{
+	g_overlayShowFrameGenBreakdown.store(enabled, std::memory_order_relaxed);
+}
+
+LatteOverlayFrameGenRates LatteOverlay_GetFrameGenDisplayRates()
+{
+#if defined(ENABLE_METAL)
+	if (HostTuning::Get().frameGeneration.load())
+	{
+		const auto rates = MetalFrameGen::DisplayRates();
+		return {rates.output, rates.generated, g_overlayShowFrameGenBreakdown.load(std::memory_order_relaxed)};
+	}
+#endif
+	return {};
+}
 #endif
 
 extern std::atomic_int g_compiled_shaders_total;
@@ -98,7 +120,18 @@ void LatteOverlay_renderOverlay(ImVec2& position, ImVec2& pivot, sint32 directio
 		{
 			if (config.overlay.fps)
 			{
-				ImGui::Text("FPS: %.2lf", g_state.fps);
+#if BOOST_OS_IOS
+				const auto display = LatteOverlay_GetFrameGenDisplayRates();
+				if (display.output > 0.0)
+				{
+					if (display.showBreakdown)
+						ImGui::Text("FPS: %.1f (FG +%.1f)", display.output, display.generated);
+					else
+						ImGui::Text("FPS: %.1f", display.output);
+				}
+				else
+#endif
+					ImGui::Text("FPS: %.2lf", g_state.fps);
 				const auto& perf = PerfTelemetry::GetSummary();
 				if (perf.valid.load(std::memory_order_relaxed))
 				{
@@ -684,7 +717,16 @@ static void OverlayNative_CollectStats(std::vector<std::string>& stats)
 
 	if (config.overlay.fps)
 	{
-		stats.emplace_back(OverlayNativeFormat("FPS: %.2lf", state.fps));
+		const auto display = LatteOverlay_GetFrameGenDisplayRates();
+		if (display.output > 0.0)
+		{
+			if (display.showBreakdown)
+				stats.emplace_back(OverlayNativeFormat("FPS: %.1f (FG +%.1f)", display.output, display.generated));
+			else
+				stats.emplace_back(OverlayNativeFormat("FPS: %.1f", display.output));
+		}
+		else
+			stats.emplace_back(OverlayNativeFormat("FPS: %.2lf", state.fps));
 		const auto& perf = PerfTelemetry::GetSummary();
 		if (perf.valid.load(std::memory_order_relaxed))
 		{

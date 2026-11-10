@@ -91,10 +91,26 @@ extension EspressUSettingsView {
                          control: .toggle(values.bool(OneCoreMode.storageKey, OneCoreMode.defaultValue) { cemu_bridge_set_low_power_mode($0) })),
         ]
 
+        let frameGeneration = values.bool(PerformanceTuning.frameGenerationKey, PerformanceTuning.frameGenerationDefault) { _ in
+            PerformanceTuning.applyToBridge()
+        }
+        let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.frameGeneration", title: "Frame generation",
+                         detail: "Adds intermediate pictures to the TV output when there is room between real frames. Interpolation can add latency.",
+                         control: .toggle(frameGeneration)),
+            SettingsItem(id: "tuning.showFrameGenBreakdown", title: "Show frame generation breakdown",
+                         detail: "Shows how many of the displayed frames per second were generated.",
+                         control: .toggle(values.bool(OverlaySettings.showFrameGenBreakdownKey, OverlaySettings.defaultShowFrameGenBreakdown) {
+                             cemu_bridge_set_overlay_show_framegen_breakdown($0)
+                         }),
+                         enabled: frameGeneration.wrappedValue),
+        ]
+
         return [
             SettingsGroup(id: "cpu", title: "CPU", items: cpu),
             SettingsGroup(id: "speed", title: "Speed and accuracy", items: speed),
             SettingsGroup(id: "heat", title: "Heat", items: heat),
+            SettingsGroup(id: "experimental", title: "Experimental", items: experimental),
         ]
     }
 
@@ -120,11 +136,6 @@ extension EspressUSettingsView {
             SettingsItem(id: "gfx.stretch", title: "Stretch to fill",
                          detail: "Fills the screen instead of keeping 16:9.",
                          control: .toggle(values.bool(FrameStretch.storageKey, FrameStretch.defaultValue) { cemu_bridge_set_stretch_to_fill($0) })),
-            SettingsItem(id: "gfx.metalFx", title: "MetalFX upscaling",
-                         detail: "Sharper enlarging of the finished picture with Apple's MetalFX. Costs a little GPU time. Not used with a graphic pack's own output filter.",
-                         control: .toggle(values.bool(PerformanceTuning.metalFxUpscaleKey, PerformanceTuning.metalFxUpscaleDefault) { _ in
-                             PerformanceTuning.applyToBridge()
-                         })),
             SettingsItem(id: "gfx.steady", title: "Steady frame rate",
                          detail: "Even frames at the game's own speed, never faster.",
                          control: .toggle(values.bool(FullSpeedRenders.storageKey, FullSpeedRenders.defaultValue) { _ in

@@ -6,7 +6,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalOutputShaderCache.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalAttachmentsInfo.h"
-#include "Cafe/HW/Latte/Renderer/Metal/MetalOutputUpscaler.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameGen.h"
 #include "Common/DeviceCapabilities.h"
 
 enum MetalGeneralShaderType
@@ -598,7 +598,15 @@ private:
 
 	class MetalMemoryManager* m_memoryManager;
 	class MetalOutputShaderCache* m_outputShaderCache;
-	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
+
+	void DrawOutputPass(MTL::Texture* target, MTL::Texture* presentTexture, RendererOutputShader* shader, uint8 shaderIndex,
+		bool useLinearTexFilter, sint32 imageX, sint32 imageY, sint32 imageWidth, sint32 imageHeight, bool clearBackground);
+	MTL::Texture* PrepareTVOutput(bool& firstCapture);
+	MTL::Texture* CurrentOutputTexture(bool mainWindow);
+	void ResetFrameGeneration();
+
+	std::unique_ptr<MetalFrameGen> m_frameGen;
+	MTL::Texture* m_frameGenTarget = nullptr; // leased by MetalFrameGen until SwapBuffer
 
 	// GamePad pacing (HostTuning::padPresentPacing).
 	bool m_padFrameWanted = true;

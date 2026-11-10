@@ -181,6 +181,7 @@ class GameManager: ObservableObject {
     @Published private(set) var needsCleanRestart = false
     @Published private(set) var titleEndedByEngine = false
     @Published private(set) var frameRate: Int = 0
+    @Published private(set) var frameGenDisplayRate: FrameGenDisplayRate?
     @Published private(set) var videoStalled = false
     @Published private(set) var videoStallKind = 0
     @Published private(set) var progress = EmulatorProgress()
@@ -1074,6 +1075,7 @@ class GameManager: ObservableObject {
             cemu_bridge_set_overlay_fps(
                 UserDefaults.standard.object(forKey: OverlaySettings.fpsKey) as? Bool
                     ?? OverlaySettings.defaultFps)
+            OverlaySettings.applyFrameGenBreakdownToBridge()
             cemu_bridge_set_overlay_drawcalls(
                 UserDefaults.standard.object(forKey: OverlaySettings.drawcallsKey) as? Bool
                     ?? OverlaySettings.defaultDrawcalls)
@@ -1288,6 +1290,16 @@ class GameManager: ObservableObject {
         return frameRate
     }
 
+    var frameRateHUDText: String {
+        if let frameGenDisplayRate {
+            if let generated = frameGenDisplayRate.generated {
+                return String(format: "%.1f FPS (FG +%.1f)", frameGenDisplayRate.output, generated)
+            }
+            return String(format: "%.1f FPS", frameGenDisplayRate.output)
+        }
+        return progress.hudText(wholeFramesPerSecond: frameRate)
+    }
+
     private func startFrameRateMonitor() {
         frameRateTimer?.invalidate()
         frameRateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -1316,6 +1328,10 @@ class GameManager: ObservableObject {
                 if fps != self.frameRate {
                     self.frameRate = fps
                 }
+                let displayRate = FrameGenDisplayRate.read()
+                if displayRate != self.frameGenDisplayRate {
+                    self.frameGenDisplayRate = displayRate
+                }
                 let stalled = cemu_bridge_video_stalled()
                 if stalled != self.videoStalled {
                     self.videoStalled = stalled
@@ -1336,6 +1352,7 @@ class GameManager: ObservableObject {
         frameRateTimer?.invalidate()
         frameRateTimer = nil
         frameRate = 0
+        frameGenDisplayRate = nil
         videoStalled = false
         videoStallKind = 0
         progress = EmulatorProgress()
@@ -1352,6 +1369,18 @@ class GameManager: ObservableObject {
         lastStatusMessage = reason
         titleEndedByEngine = true
         emulationState = .error
+    }
+}
+
+struct FrameGenDisplayRate: Equatable {
+    var output: Double
+    var generated: Double?
+
+    static func read() -> Self? {
+        let rates = cemu_bridge_get_framegen_display_rates()
+        guard rates.output > 0 else { return nil }
+        return Self(output: (rates.output * 10).rounded() / 10,
+                    generated: rates.show_breakdown ? (rates.generated * 10).rounded() / 10 : nil)
     }
 }
 

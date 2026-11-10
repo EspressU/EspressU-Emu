@@ -21,6 +21,10 @@ enum RemovedSettingsCleanup {
         defaults.removeObject(forKey: "espressu.tuning.padPresentPacing")
         // "Log the experimental options" became "Logs" (on by default) under its own key.
         defaults.removeObject(forKey: "espressu.tuning.diagnosticsLog")
+        defaults.removeObject(forKey: "espressu.tuning.metalFxUpscale")
+        // The first frame generation (on the Metal 4 output) is gone; its stored mode must not turn the new
+        // switch on. The new one lives under "espressu.tuning.frameInterpolation".
+        defaults.removeObject(forKey: "espressu.tuning.frameGeneration")
         guard !defaults.bool(forKey: doneKey) else { return }
         for key in [
             "espressu.cpu.favourAccuracy", FavourPerformance.storageKey, OneCoreMode.storageKey,

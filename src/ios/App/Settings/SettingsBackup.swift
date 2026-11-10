@@ -139,6 +139,7 @@ enum SettingsBackup {
         DisplayRouter.shared.reapplyRenderScale(reason: "settings import")
         AdvancedSettings.applyToBridge()
         MotionSettings.applyToBridge()
+        OverlaySettings.applyFrameGenBreakdownToBridge()
         NotificationCenter.default.post(name: .espressuSettingsWereReset, object: nil)
     }
 

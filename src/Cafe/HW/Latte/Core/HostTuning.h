@@ -13,8 +13,8 @@ namespace HostTuning
 		std::atomic<bool> freeMemoryOnWarning{true};
 		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
 		std::atomic<bool> keepGpuFaultHistory{true};
-		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
-		std::atomic<bool> metalFxUpscale{false};
+		// Present TV pictures on the display clock, generating intermediate pictures when useful.
+		std::atomic<bool> frameGeneration{false};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
 		std::atomic<bool> padPresentPacing{true};
@@ -44,11 +44,11 @@ namespace HostTuning
 		std::atomic<uint64_t> substituteTextures{0};
 		std::atomic<uint64_t> viewFallbacks{0};
 		std::atomic<uint64_t> faultsRecorded{0};
-		// MetalFX spatial
-		std::atomic<uint64_t> fxUpscales{0};
-		std::atomic<uint64_t> fxRebuilds{0};
-		std::atomic<uint64_t> fxFailures{0};
-		std::atomic<uint64_t> fxNotEnlarged{0};
+		// Frame generation
+		std::atomic<uint64_t> fgGenerated{0};
+		std::atomic<uint64_t> fgBacklog{0};
+		std::atomic<uint64_t> fgDrawableWaits{0};
+		std::atomic<uint64_t> fgFailures{0};
 		// GamePad pacing
 		std::atomic<uint64_t> padSkippedFrames{0};
 		std::atomic<uint64_t> padSlowDrawables{0};
