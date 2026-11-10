@@ -294,6 +294,17 @@ MTL::Library* RendererShaderMtl::LibraryFromSource()
         options->setPreserveInvariance(true);
     }
 
+    // Test build: the size level skips some of the slowest optimisation passes, which cuts the compile time of every shader
+    // (a cold start compiles thousands). New compile options also miss iOS's shader cache, so the first start is always cold.
+    static constexpr bool kOptimizeForSize = true;
+    if constexpr (kOptimizeForSize)
+    {
+        options->setOptimizationLevel(MTL::LibraryOptimizationLevelSize);
+        static std::atomic<bool> s_loggedOptLevel{false};
+        if (!s_loggedOptLevel.exchange(true))
+            cemuLog_log(LogType::Force, "Metal: shaders are compiled with the size optimisation level");
+    }
+
     NS::Error* error = nullptr;
 	MTL::Library* library = m_mtlr->GetDevice()->newLibrary(ToNSString(m_mslCode), options, &error);
 	if (!library)
