@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
 
 #include "Cafe/HW/Latte/Renderer/Metal/MetalLayerHandle.h"
@@ -459,15 +461,14 @@ public:
 	MTL::RenderCommandEncoder* GetTemporaryRenderCommandEncoder(MTL::RenderPassDescriptor* renderPassDescriptor);
 	MTL::RenderCommandEncoder* GetRenderCommandEncoder(bool forceRecreate = false);
     MTL::ComputeCommandEncoder* GetComputeCommandEncoder();
-    MTL::BlitCommandEncoder* GetBlitCommandEncoder(int passBreakReason = 3  );
+    MTL::BlitCommandEncoder* GetBlitCommandEncoder(int passBreakReason = 3, bool preservePendingClears = false);
     int m_nextBufferCopyBreak = 10;
-    void EndEncoding();
+    void EndEncoding(bool nextEncoderIsBlit = false);
     void CommitCommandBuffer();
     void ProcessFinishedCommandBuffers();
 
     bool AcquireDrawable(bool mainWindow);
 
-	bool CheckIfRenderPassNeedsFlush(LatteDecompilerShader* shader);
 	bool BindStageResources(MTL::RenderCommandEncoder* renderCommandEncoder, LatteDecompilerShader* shader, bool usesGeometryShader);
 
     void ClearColorTextureInternal(MTL::Texture* mtlTexture, sint32 sliceIndex, sint32 mipIndex, float r, float g, float b, float a);
@@ -668,6 +669,43 @@ private:
 	std::vector<uint32> m_executingQueueGenerations;
 	MetalEncoderType m_encoderType = MetalEncoderType::None;
 	MTL::CommandEncoder* m_commandEncoder = nullptr;
+
+    struct ImageCopy
+    {
+        MTL::Texture* source;
+        MTL::Texture* destination;
+        uint32 sourceMip, destinationMip, sourceSlice, destinationSlice;
+        MTL::Origin sourceOrigin, destinationOrigin;
+        MTL::Size extent;
+        uint32 fullSlices;
+
+        void Encode(MTL::BlitCommandEncoder* encoder) const;
+    };
+    bool m_gameRenderPass = false;
+    std::vector<ImageCopy> m_deferredImageCopies;
+    void FlushDeferredImageCopies(MTL::BlitCommandEncoder* encoder = nullptr);
+    void ReleaseDeferredImageCopies();
+
+    struct PendingTextureClear
+    {
+        MTL::Texture* texture;
+        uint32 slice;
+        sint32 mip;
+        std::optional<MTL::ClearColor> color;
+        std::optional<double> depth;
+        std::optional<uint32> stencil;
+
+        bool Matches(const MTL::RenderPassAttachmentDescriptor* attachment, uint32 width, uint32 height) const;
+    };
+    std::vector<PendingTextureClear> m_pendingTextureClears;
+    enum class DrawPassDependency { None, EndPass, FlushClears };
+    DrawPassDependency GetDrawPassDependency(LatteDecompilerShader* shader);
+    bool HasPendingTextureClear(MTL::Texture* texture) const;
+    void ClearGameTexture(PendingTextureClear clear);
+    void EncodeStandaloneTextureClear(const PendingTextureClear& clear);
+    void FlushPendingTextureClears();
+    void ReleasePendingTextureClears();
+    MTL::RenderPassDescriptor* PrepareRenderPassClears(CachedFBOMtl& fbo);
 
     uint32 m_recordedDrawcalls;
     struct

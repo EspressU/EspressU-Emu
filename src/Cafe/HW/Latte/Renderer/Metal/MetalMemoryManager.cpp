@@ -104,6 +104,7 @@ void MetalMemoryManager::ReleaseArgumentCache()
         for (auto& entry : cache.entries)
             ReleaseArgumentCacheEntry(entry);
         cache.entries.clear();
+        cache.lastIndex = ARGUMENT_CACHE_ENTRIES;
     }
 }
 
@@ -118,6 +119,10 @@ void MetalMemoryManager::AgeArgumentCache()
             if (generation - entries[i].lastGeneration > ARGUMENT_CACHE_MAX_AGE)
             {
                 ReleaseArgumentCacheEntry(entries[i]);
+                if (cache.lastIndex == i)
+                    cache.lastIndex = ARGUMENT_CACHE_ENTRIES;
+                else if (cache.lastIndex == entries.size() - 1)
+                    cache.lastIndex = i;
                 entries[i] = std::move(entries.back());
                 entries.pop_back();
             }
@@ -201,23 +206,48 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalMemoryManager::GetCac
     m_mtlr->GetCommandBuffer();
     const uint64 lookupStart = PerfTelemetry::SampleStart();
     auto& cache = m_argumentCaches[stage];
-    uint64 hash = reinterpret_cast<uintptr_t>(encoder) * 0x9E3779B97F4A7C15ull;
-    for (const auto& binding : bindings)
+    const auto reuse = [&](ArgumentCacheEntry& entry) {
+        entry.lastUse = ++cache.useCounter;
+        entry.lastGeneration = m_argumentGeneration;
+        cache.lastIndex = size_t(&entry - cache.entries.data());
+        m_mtlr->GetPerformanceMonitor().m_argumentBufferReuses++;
+        PerfTelemetry::SampleCount(telemetry.gpuArgReuses);
+        PerfTelemetry::SampleEnd(telemetry.gpuArgReuseNs, lookupStart);
+        return entry.allocation;
+    };
+    if (cache.lastIndex < cache.entries.size())
     {
-        hash ^= reinterpret_cast<uintptr_t>(binding.resource) + binding.value + static_cast<uint64>(binding.type) + 0x9E3779B97F4A7C15ull + (hash << 6) + (hash >> 2);
+        auto& last = cache.entries[cache.lastIndex];
+        if (last.encoder == encoder && last.bindings == bindings)
+        {
+            PerfTelemetry::SampleCount(telemetry.gpuArgFastReuses);
+            return reuse(last);
+        }
+    }
+
+    uint64 hash = reinterpret_cast<uintptr_t>(encoder) * 0x9E3779B97F4A7C15ull;
+    for (uint32 index = 0; index < bindings.size(); ++index)
+    {
+        const auto& binding = bindings[index];
+        if (binding.type == MetalArgumentBinding::Type::Unused)
+            continue;
+        hash ^= reinterpret_cast<uintptr_t>(binding.resource) + binding.value + static_cast<uint64>(binding.type) +
+            uint64(index + 1) * 0x9E3779B97F4A7C15ull + (hash << 6) + (hash >> 2);
         hash *= 0xFF51AFD7ED558CCDull;
     }
+    ArgumentCacheEntry* base = nullptr;
+    ArgumentCacheEntry* oldest = nullptr;
     for (auto& entry : cache.entries)
     {
-        if (entry.hash == hash && entry.encoder == encoder && entry.bindings == bindings)
+        if (entry.encoder == encoder)
         {
-            entry.lastUse = ++cache.useCounter;
-            entry.lastGeneration = m_argumentGeneration;
-            m_mtlr->GetPerformanceMonitor().m_argumentBufferReuses++;
-            PerfTelemetry::SampleCount(telemetry.gpuArgReuses);
-            PerfTelemetry::SampleEnd(telemetry.gpuArgReuseNs, lookupStart);
-            return entry.allocation;
+            if (entry.hash == hash && entry.bindings == bindings)
+                return reuse(entry);
+            if (!base || entry.lastUse > base->lastUse)
+                base = &entry;
         }
+        if (!oldest || entry.lastUse < oldest->lastUse)
+            oldest = &entry;
     }
 
     const uint64 encodeStart = PerfTelemetry::SampleStart();
@@ -229,11 +259,6 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalMemoryManager::GetCac
     {
         return nullptr;
     }
-
-    const ArgumentCacheEntry* base = nullptr;
-    for (const auto& entry : cache.entries)
-        if (entry.encoder == encoder && entry.allocation && (!base || entry.lastUse > base->lastUse))
-            base = &entry;
 
     uint16 deltaSlots[std::tuple_size_v<MetalArgumentBindings>];
     uint32 deltaCount = 0;
@@ -294,10 +319,7 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalMemoryManager::GetCac
     }
     else
     {
-        slot = &cache.entries[0];
-        for (auto& entry : cache.entries)
-            if (entry.lastUse < slot->lastUse)
-                slot = &entry;
+        slot = oldest;
         ReleaseArgumentCacheEntry(*slot);
     }
     slot->hash = hash;
@@ -306,6 +328,7 @@ MetalSynchronizedHeapAllocator::AllocatorReservation* MetalMemoryManager::GetCac
     slot->encoder = encoder;
     slot->bindings = bindings;
     slot->allocation = allocation;
+    cache.lastIndex = size_t(slot - cache.entries.data());
     PerfTelemetry::SampleEnd(telemetry.gpuArgEncCopyNs, copyStart);
     const uint64 setStart = PerfTelemetry::SampleStart();
     encoder->setArgumentBuffer(allocation->mtlBuffer, allocation->bufferOffset);
@@ -503,7 +526,7 @@ void MetalMemoryManager::UploadToBufferCache(const void* data, size_t offset, si
 
     if (m_metalBufferCacheMode == MetalBufferCacheMode::DevicePrivate || SharedCacheBusy(offset, size))
     {
-        auto blitCommandEncoder = m_mtlr->GetBlitCommandEncoder(PerfTelemetry::kBreakBufferUpload);
+        auto blitCommandEncoder = m_mtlr->GetBlitCommandEncoder(PerfTelemetry::kBreakBufferUpload, true);
 
         auto allocation = m_stagingAllocator.AllocateBufferMemory(size, 1);
         if (!allocation.mtlBuffer)

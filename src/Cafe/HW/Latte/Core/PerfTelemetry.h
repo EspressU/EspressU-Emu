@@ -38,6 +38,10 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> renderPassBreaks[16]{};
 		std::atomic<uint32_t> renderPassesStarted{0};
 		std::atomic<uint32_t> imageCopyNotTouchingPass{0};
+		std::atomic<uint32_t> deferredImageCopies{0};
+		std::atomic<uint32_t> deferredImageCopyBatches{0};
+		std::atomic<uint32_t> mergedTextureClears{0};
+		std::atomic<uint32_t> standaloneTextureClears{0};
 		std::atomic<uint32_t> passReturnsToPrevious{0};
 		std::atomic<uint64_t> guestWaitTimestampNs{0};
 		std::atomic<uint64_t> guestWaitVsyncNs{0};
@@ -71,6 +75,7 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> gpuArgEncodes{0};
 		std::atomic<uint64_t> gpuArgEncodeNs{0};
 		std::atomic<uint32_t> gpuArgReuses{0};
+		std::atomic<uint32_t> gpuArgFastReuses{0};
 		std::atomic<uint64_t> gpuArgReuseNs{0};
 		std::atomic<uint32_t> gpuArgMissNoBase{0};
 		std::atomic<uint32_t> gpuArgMissSupport{0};

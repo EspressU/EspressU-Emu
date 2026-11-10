@@ -1271,6 +1271,8 @@ namespace {
         uint32_t renderPassBreaks[16] = {};
         uint32_t renderPassesStarted = 0;
         uint32_t imageCopyNotTouchingPass = 0, passReturnsToPrevious = 0;
+        uint32_t deferredImageCopies = 0, deferredImageCopyBatches = 0;
+        uint32_t mergedTextureClears = 0, standaloneTextureClears = 0;
         uint64_t guestWaitTimestampNs = 0, guestWaitVsyncNs = 0, guestWaitFlipNs = 0;
         uint32_t coreWakeups = 0;
         uint64_t coreWakeLatencyNs = 0;
@@ -1283,6 +1285,9 @@ namespace {
         uint64_t gpuBeginNs = 0, gpuTexUpdateNs = 0, gpuTexHashNs = 0, gpuTexHashBytes = 0;
         uint64_t gpuExecNs = 0, gpuIndexNs = 0, gpuFlushNs = 0, gpuBufferNs = 0, gpuSnapshotCompareBytes = 0, gpuSnapshotCopyBytes = 0;
         uint64_t gpuPassNs = 0, gpuPipelineNs = 0, gpuBindNs = 0, gpuEndNs = 0;
+        uint32_t gpuArgEncodes = 0, gpuArgReuses = 0, gpuArgFastReuses = 0, gpuArgDeltaEncodes = 0;
+        uint32_t gpuArgMissNoBase = 0, gpuArgMissSupport = 0, gpuArgMissUniform = 0;
+        uint32_t gpuArgMissTexture = 0, gpuArgMissSampler = 0, gpuArgMissVertexIndex = 0, gpuArgMissConstant = 0;
     };
 
     PerfSnapshot ios_perf_take()
@@ -1311,6 +1316,10 @@ namespace {
             s.renderPassBreaks[i] = c.renderPassBreaks[i].load(std::memory_order_relaxed);
         s.renderPassesStarted = c.renderPassesStarted.load(std::memory_order_relaxed);
         s.imageCopyNotTouchingPass = c.imageCopyNotTouchingPass.load(std::memory_order_relaxed);
+        s.deferredImageCopies = c.deferredImageCopies.load(std::memory_order_relaxed);
+        s.deferredImageCopyBatches = c.deferredImageCopyBatches.load(std::memory_order_relaxed);
+        s.mergedTextureClears = c.mergedTextureClears.load(std::memory_order_relaxed);
+        s.standaloneTextureClears = c.standaloneTextureClears.load(std::memory_order_relaxed);
         s.passReturnsToPrevious = c.passReturnsToPrevious.load(std::memory_order_relaxed);
         s.guestWaitTimestampNs = c.guestWaitTimestampNs.load(std::memory_order_relaxed);
         s.guestWaitVsyncNs = c.guestWaitVsyncNs.load(std::memory_order_relaxed);
@@ -1349,6 +1358,17 @@ namespace {
         s.gpuPassNs = c.gpuPassNs.load(std::memory_order_relaxed);
         s.gpuPipelineNs = c.gpuPipelineNs.load(std::memory_order_relaxed);
         s.gpuBindNs = c.gpuBindNs.load(std::memory_order_relaxed);
+        s.gpuArgEncodes = c.gpuArgEncodes.load(std::memory_order_relaxed);
+        s.gpuArgReuses = c.gpuArgReuses.load(std::memory_order_relaxed);
+        s.gpuArgFastReuses = c.gpuArgFastReuses.load(std::memory_order_relaxed);
+        s.gpuArgDeltaEncodes = c.gpuArgDeltaEncodes.load(std::memory_order_relaxed);
+        s.gpuArgMissNoBase = c.gpuArgMissNoBase.load(std::memory_order_relaxed);
+        s.gpuArgMissSupport = c.gpuArgMissSupport.load(std::memory_order_relaxed);
+        s.gpuArgMissUniform = c.gpuArgMissUniform.load(std::memory_order_relaxed);
+        s.gpuArgMissTexture = c.gpuArgMissTexture.load(std::memory_order_relaxed);
+        s.gpuArgMissSampler = c.gpuArgMissSampler.load(std::memory_order_relaxed);
+        s.gpuArgMissVertexIndex = c.gpuArgMissVertexIndex.load(std::memory_order_relaxed);
+        s.gpuArgMissConstant = c.gpuArgMissConstant.load(std::memory_order_relaxed);
         s.gpuEndNs = c.gpuEndNs.load(std::memory_order_relaxed);
         return s;
     }
@@ -1522,6 +1542,29 @@ namespace {
             }
             cemuLog_log(LogType::Force, "perf passes detail: image copies not touching the open pass {:.0f}/frame | new passes returning to the attachments of the pass before last {:.0f}/frame",
                 (double)(b.imageCopyNotTouchingPass - a.imageCopyNotTouchingPass) / frames, (double)(b.passReturnsToPrevious - a.passReturnsToPrevious) / frames);
+            if (const uint32_t copies = b.deferredImageCopies - a.deferredImageCopies)
+            {
+                const uint32_t batches = b.deferredImageCopyBatches - a.deferredImageCopyBatches;
+                cemuLog_log(LogType::Force, "perf deferred image blits: {:.1f} copies in {:.1f} batches/frame",
+                    copies / frames, batches / frames);
+            }
+            const uint32_t mergedClears = b.mergedTextureClears - a.mergedTextureClears;
+            const uint32_t standaloneClears = b.standaloneTextureClears - a.standaloneTextureClears;
+            if (mergedClears || standaloneClears)
+                cemuLog_log(LogType::Force, "perf texture clears: {:.1f} merged into render passes, {:.1f} standalone passes/frame",
+                    mergedClears / frames, standaloneClears / frames);
+            const uint32_t encodes = b.gpuArgEncodes - a.gpuArgEncodes;
+            const uint32_t reuses = b.gpuArgReuses - a.gpuArgReuses;
+            if (encodes || reuses)
+            {
+                cemuLog_log(LogType::Force,
+                    "perf argument buffers (sampled/frame): {:.0f} reuses ({:.0f} without hashing), {:.0f} encodes ({:.0f} incremental) | miss causes: no base {:.0f}, support {:.0f}, uniform {:.0f}, texture {:.0f}, sampler {:.0f}, vertex/index {:.0f}, constant {:.0f}",
+                    reuses / frames, (b.gpuArgFastReuses - a.gpuArgFastReuses) / frames, encodes / frames,
+                    (b.gpuArgDeltaEncodes - a.gpuArgDeltaEncodes) / frames, (b.gpuArgMissNoBase - a.gpuArgMissNoBase) / frames,
+                    (b.gpuArgMissSupport - a.gpuArgMissSupport) / frames, (b.gpuArgMissUniform - a.gpuArgMissUniform) / frames,
+                    (b.gpuArgMissTexture - a.gpuArgMissTexture) / frames, (b.gpuArgMissSampler - a.gpuArgMissSampler) / frames,
+                    (b.gpuArgMissVertexIndex - a.gpuArgMissVertexIndex) / frames, (b.gpuArgMissConstant - a.gpuArgMissConstant) / frames);
+            }
         }
 
         {

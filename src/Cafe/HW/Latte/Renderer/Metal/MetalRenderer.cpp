@@ -566,6 +566,9 @@ MetalRenderer::MetalRenderer()
 
 MetalRenderer::~MetalRenderer()
 {
+    ReleaseDeferredImageCopies();
+    ReleasePendingTextureClears();
+
     if (m_isAppleGPU)
     {
         delete m_copyBufferToBufferPipeline;
@@ -920,7 +923,7 @@ bool MetalRenderer::BeginFrame(bool mainWindow)
 
 void MetalRenderer::Flush(bool waitIdle)
 {
-    if (m_recordedDrawcalls > 0 || waitIdle)
+    if (m_recordedDrawcalls > 0 || !m_pendingTextureClears.empty() || waitIdle)
         CommitCommandBuffer();
 
     if (waitIdle && m_executingCommandBuffers.size() != 0)
@@ -1296,7 +1299,9 @@ void MetalRenderer::texture_loadSlice(LatteTexture* hostTexture, sint32 width, s
             }
         }
     }
-    auto blitCommandEncoder = GetBlitCommandEncoder(PerfTelemetry::kBreakTextureUpload);
+    if (HasPendingTextureClear(textureMtl->GetTexture()))
+        FlushPendingTextureClears();
+    auto blitCommandEncoder = GetBlitCommandEncoder(PerfTelemetry::kBreakTextureUpload, true);
 
     if (textureMtl->isDepth && formatInfo.hasStencil)
     {
@@ -1420,7 +1425,7 @@ void MetalRenderer::texture_clearColorSlice(LatteTexture* hostTexture, sint32 sl
 
     auto mtlTexture = static_cast<LatteTextureMtl*>(hostTexture)->GetTexture();
 
-    ClearColorTextureInternal(mtlTexture, sliceIndex, mipIndex, r, g, b, a);
+    ClearGameTexture({mtlTexture, uint32(sliceIndex), mipIndex, MTL::ClearColor(r, g, b, a), {}, {}});
 }
 
 void MetalRenderer::texture_clearDepthSlice(LatteTexture* hostTexture, uint32 sliceIndex, sint32 mipIndex, bool clearDepth, bool clearStencil, float depthValue, uint32 stencilValue)
@@ -1434,32 +1439,190 @@ void MetalRenderer::texture_clearDepthSlice(LatteTexture* hostTexture, uint32 sl
 
     auto mtlTexture = static_cast<LatteTextureMtl*>(hostTexture)->GetTexture();
 
-    NS_STACK_SCOPED MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-    if (clearDepth)
+    ClearGameTexture({mtlTexture, sliceIndex, mipIndex, {},
+                      clearDepth ? std::optional<double>(depthValue) : std::nullopt,
+                      clearStencil ? std::optional<uint32>(stencilValue) : std::nullopt});
+}
+
+bool MetalRenderer::HasPendingTextureClear(MTL::Texture* texture) const
+{
+    return std::ranges::any_of(m_pendingTextureClears, [texture](const PendingTextureClear& clear) {
+        return clear.texture == texture;
+    });
+}
+
+void MetalRenderer::ClearGameTexture(PendingTextureClear clear)
+{
+    if (!clear.texture)
+        return;
+    ++m_performanceMonitor.m_clears;
+
+    const auto type = clear.texture->textureType();
+    const bool canDefer = m_isAppleGPU && clear.texture->storageMode() == MTL::StorageModePrivate &&
+        (clear.texture->usage() & MTL::TextureUsageRenderTarget) &&
+        (type == MTL::TextureType2D || type == MTL::TextureType2DArray) &&
+        clear.mip >= 0 && NS::UInteger(clear.mip) < clear.texture->mipmapLevelCount() &&
+        clear.slice < clear.texture->arrayLength();
+    if (!canDefer)
     {
-        auto depthAttachment = renderPassDescriptor->depthAttachment();
-        depthAttachment->setTexture(mtlTexture);
-        depthAttachment->setClearDepth(depthValue);
-        depthAttachment->setLoadAction(MTL::LoadActionClear);
-        depthAttachment->setStoreAction(MTL::StoreActionStore);
-        depthAttachment->setSlice(sliceIndex);
-        depthAttachment->setLevel(mipIndex);
-    }
-    if (clearStencil)
-    {
-        auto stencilAttachment = renderPassDescriptor->stencilAttachment();
-        stencilAttachment->setTexture(mtlTexture);
-        stencilAttachment->setClearStencil(stencilValue);
-        stencilAttachment->setLoadAction(MTL::LoadActionClear);
-        stencilAttachment->setStoreAction(MTL::StoreActionStore);
-        stencilAttachment->setSlice(sliceIndex);
-        stencilAttachment->setLevel(mipIndex);
+        FlushPendingTextureClears();
+        EndEncoding();
+        EncodeStandaloneTextureClear(clear);
+        return;
     }
 
-    GetTemporaryRenderCommandEncoder(renderPassDescriptor);
+    // Copies already queued for this texture precede the new clear, including
+    // a copy reading the previous contents of this subresource.
+    if (std::ranges::any_of(m_deferredImageCopies, [&clear](const ImageCopy& copy) {
+        return copy.source == clear.texture || copy.destination == clear.texture;
+    }))
+        EndEncoding();
+
+    for (auto& pending : m_pendingTextureClears)
+    {
+        if (pending.texture != clear.texture || pending.slice != clear.slice || pending.mip != clear.mip)
+            continue;
+        if (clear.color)
+            pending.color = clear.color;
+        if (clear.depth)
+            pending.depth = clear.depth;
+        if (clear.stencil)
+            pending.stencil = clear.stencil;
+        return;
+    }
+    if (m_pendingTextureClears.size() >= 32)
+        FlushPendingTextureClears();
+    GetCommandBuffer();
+    m_pendingTextureClears.push_back(clear);
+    clear.texture->retain();
+}
+
+void MetalRenderer::EncodeStandaloneTextureClear(const PendingTextureClear& clear)
+{
+    NS_STACK_SCOPED NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
+    auto* pass = MTL::RenderPassDescriptor::renderPassDescriptor();
+    const auto configure = [&](MTL::RenderPassAttachmentDescriptor* attachment) {
+        attachment->setTexture(clear.texture);
+        attachment->setLevel(clear.mip);
+        attachment->setSlice(clear.slice);
+        attachment->setLoadAction(MTL::LoadActionClear);
+        attachment->setStoreAction(MTL::StoreActionStore);
+    };
+    if (clear.color)
+    {
+        auto* attachment = pass->colorAttachments()->object(0);
+        configure(attachment);
+        attachment->setClearColor(*clear.color);
+    }
+    if (clear.depth)
+    {
+        configure(pass->depthAttachment());
+        pass->depthAttachment()->setClearDepth(*clear.depth);
+    }
+    if (clear.stencil)
+    {
+        configure(pass->stencilAttachment());
+        pass->stencilAttachment()->setClearStencil(*clear.stencil);
+    }
+    auto* encoder = GetCommandBuffer()->renderCommandEncoder(pass);
+    LabelEncoder(encoder, "texture clear");
+    encoder->endEncoding();
+    ++m_performanceMonitor.m_renderPasses;
+    PerfTelemetry::Get().standaloneTextureClears.fetch_add(1, std::memory_order_relaxed);
+}
+
+void MetalRenderer::ReleasePendingTextureClears()
+{
+    for (const auto& clear : m_pendingTextureClears)
+        clear.texture->release();
+    m_pendingTextureClears.clear();
+}
+
+void MetalRenderer::FlushPendingTextureClears()
+{
+    if (m_pendingTextureClears.empty())
+        return;
     EndEncoding();
+    // EndEncoding may commit at its draw limit, flushing the queue in that commit.
+    for (const auto& clear : m_pendingTextureClears)
+        EncodeStandaloneTextureClear(clear);
+    ReleasePendingTextureClears();
+}
 
-    m_performanceMonitor.m_clears++;
+bool MetalRenderer::PendingTextureClear::Matches(const MTL::RenderPassAttachmentDescriptor* attachment, uint32 width, uint32 height) const
+{
+    auto* view = attachment->texture();
+    if (!view || view->pixelFormat() != texture->pixelFormat() ||
+        (view != texture && view->parentTexture() != texture))
+        return false;
+
+    const auto level = attachment->level();
+    const auto relativeLevel = view == texture ? 0 : view->parentRelativeLevel();
+    const auto relativeSlice = view == texture ? 0 : view->parentRelativeSlice();
+    if (relativeLevel + level != NS::UInteger(mip) || relativeSlice + attachment->slice() != slice ||
+        std::max<NS::UInteger>(1, view->width() >> level) != width ||
+        std::max<NS::UInteger>(1, view->height() >> level) != height)
+        return false;
+
+    if (color && view != texture)
+    {
+        const auto swizzle = view->swizzle();
+        const auto base = texture->swizzle();
+        if (swizzle.red != base.red || swizzle.green != base.green || swizzle.blue != base.blue || swizzle.alpha != base.alpha)
+            return false;
+    }
+    return true;
+}
+
+MTL::RenderPassDescriptor* MetalRenderer::PrepareRenderPassClears(CachedFBOMtl& fbo)
+{
+    auto* original = fbo.GetRenderPassDescriptor();
+    if (m_pendingTextureClears.empty())
+        return original;
+
+    auto* pass = original;
+    uint32 merged = 0;
+    const uint32 width = fbo.GetRenderAreaWidth();
+    const uint32 height = fbo.GetRenderAreaHeight();
+    for (const auto& clear : m_pendingTextureClears)
+    {
+        uint32 colorIndex = 0;
+        if (clear.color)
+        {
+            while (colorIndex < LATTE_NUM_COLOR_TARGET &&
+                   !clear.Matches(original->colorAttachments()->object(colorIndex), width, height))
+                ++colorIndex;
+        }
+        if (colorIndex == LATTE_NUM_COLOR_TARGET ||
+            (clear.depth && !clear.Matches(original->depthAttachment(), width, height)) ||
+            (clear.stencil && !clear.Matches(original->stencilAttachment(), width, height)))
+        {
+            EncodeStandaloneTextureClear(clear);
+            continue;
+        }
+        if (pass == original)
+            pass = original->copy()->autorelease();
+        if (clear.color)
+        {
+            auto* attachment = pass->colorAttachments()->object(colorIndex);
+            attachment->setLoadAction(MTL::LoadActionClear);
+            attachment->setClearColor(*clear.color);
+        }
+        if (clear.depth)
+        {
+            pass->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+            pass->depthAttachment()->setClearDepth(*clear.depth);
+        }
+        if (clear.stencil)
+        {
+            pass->stencilAttachment()->setLoadAction(MTL::LoadActionClear);
+            pass->stencilAttachment()->setClearStencil(*clear.stencil);
+        }
+        ++merged;
+    }
+    ReleasePendingTextureClears();
+    PerfTelemetry::Get().mergedTextureClears.fetch_add(merged, std::memory_order_relaxed);
+    return pass;
 }
 
 LatteTexture* MetalRenderer::texture_createTextureEx(Latte::E_DIM dim, MPTR physAddress, MPTR physMipAddress, Latte::E_GX2SURFFMT format, uint32 width, uint32 height, uint32 depth, uint32 pitch, uint32 mipLevels, uint32 swizzle, Latte::E_HWTILEMODE tileMode, bool isDepth, bool isRenderTarget)
@@ -1732,7 +1895,14 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
         }
     }
 
-    if (m_encoderType == MetalEncoderType::Render && m_state.m_lastUsedFBO.m_fbo)
+    if (HasPendingTextureClear(mtlSrc) || HasPendingTextureClear(mtlDst))
+        FlushPendingTextureClears();
+
+    // An ordinary render pass can stay open across copies of private textures
+    // that are neither of its attachments. The copies retain their guest order
+    // and are encoded before a later draw reads a queued destination.
+    bool defer = false;
+    if (m_gameRenderPass && m_state.m_lastUsedFBO.m_fbo)
     {
         bool touches = false;
         auto* fbo = m_state.m_lastUsedFBO.m_fbo;
@@ -1742,9 +1912,28 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
         if (fbo->depthBuffer.texture && (fbo->depthBuffer.texture->baseTexture == src || fbo->depthBuffer.texture->baseTexture == dst))
             touches = true;
         if (!touches)
+        {
             PerfTelemetry::Get().imageCopyNotTouchingPass.fetch_add(1, std::memory_order_relaxed);
+            constexpr size_t maxPendingCopies = 32;
+            defer = m_deferredImageCopies.size() + srcDepth_ <= maxPendingCopies &&
+                mtlSrc->storageMode() == MTL::StorageModePrivate && mtlDst->storageMode() == MTL::StorageModePrivate;
+        }
     }
-    auto blitCommandEncoder = GetBlitCommandEncoder(PerfTelemetry::kBreakImageCopy);
+    auto* blitCommandEncoder = defer ? nullptr : GetBlitCommandEncoder(PerfTelemetry::kBreakImageCopy, true);
+    const auto submitCopy = [&](uint32 sourceSlice, uint32 destinationSlice, MTL::Origin sourceOrigin,
+                                MTL::Origin destinationOrigin, MTL::Size extent, uint32 fullSlices = 0)
+    {
+        const ImageCopy copy{mtlSrc, mtlDst, uint32(srcMip), uint32(dstMip), sourceSlice, destinationSlice,
+                             sourceOrigin, destinationOrigin, extent, fullSlices};
+        if (!defer)
+        {
+            copy.Encode(blitCommandEncoder);
+            return;
+        }
+        m_deferredImageCopies.push_back(copy);
+        mtlSrc->retain();
+        mtlDst->retain();
+    };
 
     uint32 srcBaseLayer = 0;
     uint32 dstBaseLayer = 0;
@@ -1783,7 +1972,7 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
         effectiveCopyWidth == dst->GetMipWidth(dstMip) && effectiveCopyHeight == dst->GetMipHeight(dstMip) && dstDepth == dst->GetMipDepth(dstMip) &&
         srcLayerCount == dstLayerCount)
     {
-        blitCommandEncoder->copyFromTexture(mtlSrc, srcBaseLayer, srcMip, mtlDst, dstBaseLayer, dstMip, srcLayerCount, 1);
+        submitCopy(srcBaseLayer, dstBaseLayer, {}, {}, {}, srcLayerCount);
     }
     else
     {
@@ -1791,7 +1980,8 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
         {
             for (uint32 i = 0; i < srcLayerCount; i++)
             {
-                blitCommandEncoder->copyFromTexture(mtlSrc, srcBaseLayer + i, srcMip, MTL::Origin(effectiveSrcX, effectiveSrcY, srcOffsetZ), MTL::Size(effectiveCopyWidth, effectiveCopyHeight, srcDepth), mtlDst, dstBaseLayer + i, dstMip, MTL::Origin(effectiveDstX, effectiveDstY, dstOffsetZ));
+                submitCopy(srcBaseLayer + i, dstBaseLayer + i, MTL::Origin(effectiveSrcX, effectiveSrcY, srcOffsetZ),
+                           MTL::Origin(effectiveDstX, effectiveDstY, dstOffsetZ), MTL::Size(effectiveCopyWidth, effectiveCopyHeight, srcDepth));
             }
         }
         else
@@ -1803,7 +1993,8 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
                 const uint32 currentSrcZ = srcOffsetZ + (srcLayerCount == 1 ? i : 0);
                 const uint32 currentDstZ = dstOffsetZ + (dstLayerCount == 1 ? i : 0);
 
-                blitCommandEncoder->copyFromTexture(mtlSrc, currentSrcLayer, srcMip, MTL::Origin(effectiveSrcX, effectiveSrcY, currentSrcZ), MTL::Size(effectiveCopyWidth, effectiveCopyHeight, 1), mtlDst, currentDstLayer, dstMip, MTL::Origin(effectiveDstX, effectiveDstY, currentDstZ));
+                submitCopy(currentSrcLayer, currentDstLayer, MTL::Origin(effectiveSrcX, effectiveSrcY, currentSrcZ),
+                           MTL::Origin(effectiveDstX, effectiveDstY, currentDstZ), MTL::Size(effectiveCopyWidth, effectiveCopyHeight, 1));
             }
         }
     }
@@ -2237,19 +2428,20 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
     LatteDecompilerShader* pixelShader = LatteSHRC_GetActivePixelShader();
     const auto fetchShader = LatteSHRC_GetActiveFetchShader();
 
-    if (!m_state.m_isFirstDrawInRenderPass)
+    if (!m_state.m_isFirstDrawInRenderPass || !m_deferredImageCopies.empty() || !m_pendingTextureClears.empty())
     {
-        bool endRenderPass = CheckIfRenderPassNeedsFlush(pixelShader);
-        if (!endRenderPass)
-            endRenderPass = CheckIfRenderPassNeedsFlush(vertexShader);
-        if (!endRenderPass && geometryShader)
-            endRenderPass = CheckIfRenderPassNeedsFlush(geometryShader);
-
-        if (endRenderPass)
+        auto dependency = DrawPassDependency::None;
+        for (auto* shader : {pixelShader, vertexShader, geometryShader})
         {
-            EndEncoding();
-            cemuLog_logOnce(LogType::Force, "Ending Metal render pass due to render target self-dependency");
+            dependency = std::max(dependency, GetDrawPassDependency(shader));
+            if (dependency == DrawPassDependency::FlushClears ||
+                (dependency == DrawPassDependency::EndPass && m_pendingTextureClears.empty()))
+                break;
         }
+        if (dependency == DrawPassDependency::FlushClears)
+            FlushPendingTextureClears();
+        else if (dependency == DrawPassDependency::EndPass)
+            EndEncoding();
     }
 
     const LattePrimitiveMode primitiveMode = LatteGPUState.contextNew.VGT_PRIMITIVE_TYPE.get_PRIMITIVE_MODE();
@@ -3194,6 +3386,7 @@ MTL::CommandBuffer* MetalRenderer::GetCommandBuffer()
 
 MTL::RenderCommandEncoder* MetalRenderer::GetTemporaryRenderCommandEncoder(MTL::RenderPassDescriptor* renderPassDescriptor)
 {
+    FlushPendingTextureClears();
     if (m_commandEncoder && m_encoderType == MetalEncoderType::Render)
         PerfTelemetry::Get().renderPassBreaks[PerfTelemetry::kBreakTemporaryPass].fetch_add(1, std::memory_order_relaxed);
     EndEncoding();
@@ -3218,6 +3411,17 @@ MTL::RenderCommandEncoder* MetalRenderer::GetRenderCommandEncoder(bool forceRecr
 {
     bool fboChanged = m_state.m_fboChanged;
     m_state.m_fboChanged = false;
+    auto& fbo = *m_state.m_activeFBO.m_fbo;
+    if (m_commandEncoder && m_encoderType == MetalEncoderType::Render && !m_pendingTextureClears.empty())
+    {
+        const auto hasClear = [&](CachedFBOMtl& target) {
+            return std::ranges::any_of(target.GetTextures(), [&](LatteTexture* texture) {
+                return HasPendingTextureClear(static_cast<LatteTextureMtl*>(texture)->GetTexture());
+            });
+        };
+        auto* previous = m_state.m_lastUsedFBO.m_fbo;
+        forceRecreate |= hasClear(fbo) || (previous && previous != &fbo && hasClear(*previous));
+    }
 
     if (m_commandEncoder)
     {
@@ -3265,7 +3469,7 @@ MTL::RenderCommandEncoder* MetalRenderer::GetRenderCommandEncoder(bool forceRecr
     auto commandBuffer = GetCommandBuffer();
 
     auto pool = NS::AutoreleasePool::alloc()->init();
-    auto renderCommandEncoder = commandBuffer->renderCommandEncoder(m_state.m_activeFBO.m_fbo->GetRenderPassDescriptor())->retain();
+    auto renderCommandEncoder = commandBuffer->renderCommandEncoder(PrepareRenderPassClears(fbo))->retain();
     pool->release();
     LabelEncoder(renderCommandEncoder, "render pass");
     PerfTelemetry::Get().renderPassesStarted.fetch_add(1, std::memory_order_relaxed);
@@ -3283,6 +3487,7 @@ MTL::RenderCommandEncoder* MetalRenderer::GetRenderCommandEncoder(bool forceRecr
 
     m_state.m_lastUsedFBO = m_state.m_activeFBO;
     m_state.m_isFirstDrawInRenderPass = true;
+    m_gameRenderPass = true;
 
     ResetEncoderState();
 
@@ -3293,6 +3498,7 @@ MTL::RenderCommandEncoder* MetalRenderer::GetRenderCommandEncoder(bool forceRecr
 
 MTL::ComputeCommandEncoder* MetalRenderer::GetComputeCommandEncoder()
 {
+    FlushPendingTextureClears();
     if (m_commandEncoder)
     {
         if (m_encoderType == MetalEncoderType::Compute)
@@ -3319,8 +3525,10 @@ MTL::ComputeCommandEncoder* MetalRenderer::GetComputeCommandEncoder()
     return computeCommandEncoder;
 }
 
-MTL::BlitCommandEncoder* MetalRenderer::GetBlitCommandEncoder(int passBreakReason)
+MTL::BlitCommandEncoder* MetalRenderer::GetBlitCommandEncoder(int passBreakReason, bool preservePendingClears)
 {
+    if (!preservePendingClears)
+        FlushPendingTextureClears();
     if (m_commandEncoder)
     {
         if (m_encoderType == MetalEncoderType::Blit)
@@ -3330,7 +3538,7 @@ MTL::BlitCommandEncoder* MetalRenderer::GetBlitCommandEncoder(int passBreakReaso
 
         if (m_encoderType == MetalEncoderType::Render)
             PerfTelemetry::Get().renderPassBreaks[passBreakReason & 15].fetch_add(1, std::memory_order_relaxed);
-        EndEncoding();
+        EndEncoding(true);
     }
 
     auto commandBuffer = GetCommandBuffer();
@@ -3343,11 +3551,53 @@ MTL::BlitCommandEncoder* MetalRenderer::GetBlitCommandEncoder(int passBreakReaso
     m_encoderType = MetalEncoderType::Blit;
 
     ResetEncoderState();
+    FlushDeferredImageCopies(blitCommandEncoder);
 
     return blitCommandEncoder;
 }
 
-void MetalRenderer::EndEncoding()
+void MetalRenderer::ImageCopy::Encode(MTL::BlitCommandEncoder* encoder) const
+{
+    if (fullSlices)
+        encoder->copyFromTexture(source, sourceSlice, sourceMip, destination, destinationSlice, destinationMip, fullSlices, 1);
+    else
+        encoder->copyFromTexture(source, sourceSlice, sourceMip, sourceOrigin, extent,
+                                 destination, destinationSlice, destinationMip, destinationOrigin);
+}
+
+void MetalRenderer::ReleaseDeferredImageCopies()
+{
+    for (const auto& copy : m_deferredImageCopies)
+    {
+        copy.source->release();
+        copy.destination->release();
+    }
+    m_deferredImageCopies.clear();
+}
+
+void MetalRenderer::FlushDeferredImageCopies(MTL::BlitCommandEncoder* encoder)
+{
+    if (m_deferredImageCopies.empty())
+        return;
+
+    NS_STACK_SCOPED NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
+    const bool standalone = encoder == nullptr;
+    if (standalone)
+    {
+        encoder = m_currentCommandBuffer.m_commandBuffer->blitCommandEncoder();
+        LabelEncoder(encoder, "deferred image copies");
+    }
+    for (const auto& copy : m_deferredImageCopies)
+        copy.Encode(encoder);
+    if (standalone)
+        encoder->endEncoding();
+    auto& telemetry = PerfTelemetry::Get();
+    telemetry.deferredImageCopies.fetch_add(uint32(m_deferredImageCopies.size()), std::memory_order_relaxed);
+    telemetry.deferredImageCopyBatches.fetch_add(1, std::memory_order_relaxed);
+    ReleaseDeferredImageCopies();
+}
+
+void MetalRenderer::EndEncoding(bool nextEncoderIsBlit)
 {
     if (m_commandEncoder)
     {
@@ -3355,8 +3605,12 @@ void MetalRenderer::EndEncoding()
         m_commandEncoder->release();
         m_commandEncoder = nullptr;
         m_encoderType = MetalEncoderType::None;
+        m_gameRenderPass = false;
+        const bool commit = m_recordedDrawcalls >= m_commitTreshold;
+        if (!nextEncoderIsBlit || commit)
+            FlushDeferredImageCopies();
 
-        if (m_recordedDrawcalls >= m_commitTreshold)
+        if (commit)
             CommitCommandBuffer();
     }
 }
@@ -3369,6 +3623,7 @@ void MetalRenderer::CommitCommandBuffer()
     if (m_commandEncoder && m_encoderType == MetalEncoderType::Render)
         PerfTelemetry::Get().renderPassBreaks[PerfTelemetry::kBreakCommit].fetch_add(1, std::memory_order_relaxed);
     EndEncoding();
+    FlushPendingTextureClears();
 
     ProcessFinishedCommandBuffers();
 
@@ -3981,17 +4236,17 @@ bool MetalRenderer::AcquireDrawable(bool mainWindow)
     return acquired;
 }
 
-bool MetalRenderer::CheckIfRenderPassNeedsFlush(LatteDecompilerShader* shader)
+MetalRenderer::DrawPassDependency MetalRenderer::GetDrawPassDependency(LatteDecompilerShader* shader)
 {
     if (!shader)
-        return false;
+        return DrawPassDependency::None;
 
+    auto dependency = DrawPassDependency::None;
     sint32 textureCount = shader->resourceMapping.getTextureCount();
     for (int i = 0; i < textureCount; ++i)
     {
         const auto relative_textureUnit = shader->resourceMapping.getTextureUnitFromBindingPoint(i);
         auto hostTextureUnit = relative_textureUnit;
-        auto textureDim = shader->textureUnitDim[relative_textureUnit];
 
         uint8 renderTargetIndex = shader->textureRenderTargetIndex[relative_textureUnit];
         if (m_supportsFramebufferFetch && renderTargetIndex != 255)
@@ -4001,20 +4256,16 @@ bool MetalRenderer::CheckIfRenderPassNeedsFlush(LatteDecompilerShader* shader)
                 continue;
         }
 
-        auto texUnitRegIndex = hostTextureUnit * 7;
         switch (shader->shaderType)
         {
         case LatteConst::ShaderType::Vertex:
             hostTextureUnit += LATTE_CEMU_VS_TEX_UNIT_BASE;
-            texUnitRegIndex += Latte::REGADDR::SQ_TEX_RESOURCE_WORD0_N_VS;
             break;
         case LatteConst::ShaderType::Pixel:
             hostTextureUnit += LATTE_CEMU_PS_TEX_UNIT_BASE;
-            texUnitRegIndex += Latte::REGADDR::SQ_TEX_RESOURCE_WORD0_N_PS;
             break;
         case LatteConst::ShaderType::Geometry:
             hostTextureUnit += LATTE_CEMU_GS_TEX_UNIT_BASE;
-            texUnitRegIndex += Latte::REGADDR::SQ_TEX_RESOURCE_WORD0_N_GS;
             break;
         default:
             UNREACHABLE;
@@ -4026,18 +4277,42 @@ bool MetalRenderer::CheckIfRenderPassNeedsFlush(LatteDecompilerShader* shader)
 
         LatteTexture* baseTexture = textureView->baseTexture;
 
+        if (!m_pendingTextureClears.empty() && HasPendingTextureClear(static_cast<LatteTextureMtl*>(baseTexture)->GetTexture()))
+            return DrawPassDependency::FlushClears;
+
+        if (!m_deferredImageCopies.empty())
+        {
+            auto* texture = static_cast<LatteTextureMtl*>(baseTexture)->GetTexture();
+            if (std::ranges::any_of(m_deferredImageCopies, [texture](const ImageCopy& copy) { return copy.destination == texture; }))
+                dependency = DrawPassDependency::EndPass;
+        }
+
+        if (dependency == DrawPassDependency::EndPass)
+        {
+            if (m_pendingTextureClears.empty())
+                return dependency;
+            continue;
+        }
+        if (m_state.m_isFirstDrawInRenderPass)
+            continue;
+
         for (uint8 i = 0; i < LATTE_NUM_COLOR_TARGET; i++)
         {
             auto colorTarget = m_state.m_activeFBO.m_fbo->colorBuffer[i].texture;
             if (colorTarget && colorTarget->baseTexture == baseTexture)
-                return true;
+            {
+                dependency = DrawPassDependency::EndPass;
+                break;
+            }
         }
         auto depthTarget = m_state.m_activeFBO.m_fbo->depthBuffer.texture;
         if (depthTarget && depthTarget->baseTexture == baseTexture)
-            return true;
+            dependency = DrawPassDependency::EndPass;
+        if (dependency == DrawPassDependency::EndPass && m_pendingTextureClears.empty())
+            return dependency;
     }
 
-    return false;
+    return dependency;
 }
 
 void MetalRenderer::PrepareUniformBufferSizes(LatteDecompilerShader* shader)
@@ -4061,7 +4336,7 @@ void MetalRenderer::PrepareUniformBufferSizes(LatteDecompilerShader* shader)
         const bool gpuCopy = buffer->storageMode() == MTL::StorageModePrivate ||
             (buffer == m_memoryManager->GetBufferCache() && m_memoryManager->SharedCacheBusy(offset, size, true));
         if (gpuCopy)
-            GetBlitCommandEncoder(PerfTelemetry::kBreakUniformResize);
+            GetBlitCommandEncoder(PerfTelemetry::kBreakUniformResize, true);
         else
             GetCommandBuffer();
         auto& allocator = m_memoryManager->GetStagingAllocator();
@@ -4527,7 +4802,7 @@ void MetalRenderer::CopyBufferToBuffer(MTL::Buffer* src, uint32 srcOffset, MTL::
         return;
     }
 #endif
-        auto blitCommandEncoder = GetBlitCommandEncoder(m_nextBufferCopyBreak);
+        auto blitCommandEncoder = GetBlitCommandEncoder(m_nextBufferCopyBreak, true);
         m_nextBufferCopyBreak = PerfTelemetry::kBreakBufferCopy;
 
         blitCommandEncoder->copyFromBuffer(src, srcOffset, dst, dstOffset, size);
