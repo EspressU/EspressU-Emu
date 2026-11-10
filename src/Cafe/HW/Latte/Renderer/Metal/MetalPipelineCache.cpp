@@ -380,7 +380,9 @@ uint32 MetalPipelineCache::BeginLoading(uint64 cacheTitleId)
 		return 0;
 
 	m_pipelineMaxFileIndex = s_cache->GetMaximumFileIndex();
-	const uint32 threads = std::min(count, std::clamp(GetPhysicalCoreCount(), 1u, 8u));
+	// Pipeline and shader compiles mostly wait on Metal's separate compiler process, so a few more threads than cores keep it busy;
+	// the memory gate in CompilerThread still limits how many run at once when memory is low
+	const uint32 threads = std::min(count, std::clamp(GetPhysicalCoreCount() + 3, 2u, 10u));
 	{
 		std::lock_guard lock(m_loaderMutex);
 		m_loading = true;
