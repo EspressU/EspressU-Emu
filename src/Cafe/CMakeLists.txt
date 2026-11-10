@@ -146,6 +146,7 @@ add_library(CemuCafe
   HW/Latte/Core/LatteThread.cpp
   HW/Latte/Core/LatteTiming.cpp
   HW/Latte/Core/LatteTiming.h
+  HW/Latte/Core/LatteWorkEvent.h
   HW/Latte/ISA/LatteInstructions.h
   HW/Latte/ISA/LatteReg.h
   HW/Latte/ISA/RegDefines.h

@@ -960,6 +960,14 @@ void MetalRenderer::NotifyLatteCommandProcessorIdle()
     }
 }
 
+std::chrono::steady_clock::time_point MetalRenderer::GetIdleSubmissionDeadline() const
+{
+    constexpr auto IDLE_COMMIT_DELAY = std::chrono::milliseconds(20);
+    if (!m_idleCommit.m_watching || !m_currentCommandBuffer.m_commandBuffer || m_currentCommandBuffer.m_commited)
+        return std::chrono::steady_clock::time_point::max();
+    return m_idleCommit.m_since + IDLE_COMMIT_DELAY;
+}
+
 bool MetalRenderer::ImguiBegin(bool mainWindow)
 {
     if (!Renderer::ImguiBegin(mainWindow))

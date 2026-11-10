@@ -297,6 +297,7 @@ public:
 	void UpdateMemoryStatsAndRelievePressure();
 	void FreeMemoryAfterSystemWarning();
 	void NotifyLatteCommandProcessorIdle() override;
+	std::chrono::steady_clock::time_point GetIdleSubmissionDeadline() const override;
 
 	bool ImguiBegin(bool mainWindow) override;
 	void ImguiEnd() override;
