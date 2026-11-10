@@ -351,9 +351,12 @@ namespace
 	id delegate = presenter->layer.delegate;
 	UIView* view = [delegate isKindOfClass:UIView.class] ? (UIView*)delegate : nil;
 	UIWindowScene* scene = view.window.windowScene;
+	// UIWindowScene's own display link only exists in the iOS 27 SDK; older SDKs (the CI's Xcode 26) use the screen's one
+#if defined(__IPHONE_27_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_27_0
 	if (@available(iOS 27.0, *))
 		_link = [scene displayLinkWithTarget:self selector:@selector(tick:)];
 	else
+#endif
 		_link = [scene.screen displayLinkWithTarget:self selector:@selector(tick:)];
 	if (!_link)
 		_link = [CADisplayLink displayLinkWithTarget:self selector:@selector(tick:)];
