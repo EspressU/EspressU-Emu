@@ -568,6 +568,8 @@ if(ENABLE_METAL)
         HW/Latte/Renderer/Metal/MetalDepthStencilCache.h
         HW/Latte/Renderer/Metal/MetalFaultHistory.cpp
         HW/Latte/Renderer/Metal/MetalFaultHistory.h
+        HW/Latte/Renderer/Metal/MetalInitialization.h
+        HW/Latte/Renderer/Metal/MetalInitialization.mm
         HW/Latte/Renderer/Metal/MetalLayer.h
         HW/Latte/Renderer/Metal/MetalLayer.mm
         HW/Latte/Renderer/Metal/MetalLayerHandle.cpp

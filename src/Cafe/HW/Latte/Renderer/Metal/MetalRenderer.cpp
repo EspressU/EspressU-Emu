@@ -1,4 +1,5 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalInitialization.h"
 #if BOOST_OS_IOS
 #include <os/proc.h>
 #include <sys/sysctl.h>
@@ -395,6 +396,7 @@ MetalRenderer::MetalRenderer()
         break;
     }
 
+    LogMetalInitializationStage("selecting the GPU");
     auto& config = GetConfig();
     const bool hasDeviceSet = config.mtl_graphic_device_uuid != 0;
 
@@ -447,7 +449,10 @@ MetalRenderer::MetalRenderer()
 
     CheckForPixelFormatSupport(m_pixelFormatSupport);
 
+    LogMetalInitializationStage("creating the command queue");
     m_commandQueue = m_device->newCommandQueue();
+    if (!m_commandQueue)
+        throw std::runtime_error("Metal: could not create the command queue");
 
     m_event = m_device->newSharedEvent();
 
@@ -492,6 +497,7 @@ MetalRenderer::MetalRenderer()
     m_nullTexture2D->setLabel(GetLabel("Null texture 2D", m_nullTexture2D));
 #endif
 
+    LogMetalInitializationStage("creating memory manager and caches");
     m_memoryManager = new MetalMemoryManager(this);
     m_outputShaderCache = new MetalOutputShaderCache(this);
     m_pipelineCache = new MetalPipelineCache(this);
@@ -530,6 +536,7 @@ MetalRenderer::MetalRenderer()
     }
 
     NS::Error* error = nullptr;
+    LogMetalInitializationStage("compiling utility shaders");
     NS_STACK_SCOPED MTL::Library* utilityLibrary = m_device->newLibrary(ToNSString(utilityShaderSource), nullptr, &error);
     if (error)
     {
@@ -666,8 +673,13 @@ void MetalRenderer::ResizeLayer(const Vector2i& size, bool mainWindow, double sc
 
 void MetalRenderer::Initialize()
 {
-    Renderer::Initialize();
-    RendererShaderMtl::Initialize();
+    RunMetalInitialization("renderer initialization", [&] {
+        LogMetalInitializationStage("initializing base renderer");
+        Renderer::Initialize();
+        LogMetalInitializationStage("initializing Metal shader compiler");
+        RendererShaderMtl::Initialize();
+        LogMetalInitializationStage("renderer initialization complete");
+    });
 }
 
 void MetalRenderer::Shutdown()
