@@ -44,21 +44,21 @@ struct JITOverview {
         }
         let vpn = LocalDevVPNMonitor.shared.isConnected
         let checks = [
-            Check(id: "ios", title: "iOS 17.4+", state: StikJITSetup.isAvailable ? .ok : .missing,
-                  missingTitle: "Built-in JIT isn't available",
+            Check(id: "ios", title: loc("iOS 17.4+"), state: StikJITSetup.isAvailable ? .ok : .missing,
+                  missingTitle: loc("Built-in JIT isn't available"),
                   hint: StikJITSetup.unavailableReason ?? ""),
             Check(id: "gta", title: "get-task-allow",
                   state: StikJITHelperLauncher.hostHasGetTaskAllow() ? .ok : .missing,
                   missingTitle: "get-task-allow missing",
-                  hint: "Reinstall EspressU with a signing method that keeps get-task-allow."),
-            Check(id: "pairing", title: "Pairing file", state: StikJITSetup.hasPairingFile ? .ok : .missing,
-                  missingTitle: "Pairing file missing",
+                  hint: loc("Reinstall EspressU with a signing method that keeps get-task-allow.")),
+            Check(id: "pairing", title: loc("Pairing file"), state: StikJITSetup.hasPairingFile ? .ok : .missing,
+                  missingTitle: loc("Pairing file missing"),
                   hint: "Pair this device or import a pairing file."),
-            Check(id: "vpn", title: "LocalDevVPN connected", state: vpn ? .ok : .missing,
-                  missingTitle: "LocalDevVPN is off",
-                  hint: "Turn on LocalDevVPN. JIT then switches on by itself."),
-            Check(id: "device", title: "Device reachable (LocalDevVPN/Wi-Fi)", state: device,
-                  missingTitle: "Device not reachable", hint: deviceHint),
+            Check(id: "vpn", title: loc("LocalDevVPN connected"), state: vpn ? .ok : .missing,
+                  missingTitle: loc("LocalDevVPN is off"),
+                  hint: loc("Turn on LocalDevVPN. JIT then switches on by itself.")),
+            Check(id: "device", title: loc("Device reachable (LocalDevVPN/Wi-Fi)"), state: device,
+                  missingTitle: loc("Device not reachable"), hint: deviceHint),
         ]
         return JITOverview(enabled: enabled, active: JITStatus.isActive && StikJITSetup.hasPairingFile, checks: checks,
                            preparing: (coordinator.job == .enable && !coordinator.quiet) || coordinator.job == .prepare || coordinator.job == .resetDDI,
@@ -66,23 +66,23 @@ struct JITOverview {
     }
 
     var title: String {
-        if !enabled { return "JIT is off" }
-        if !vpnConnected && active { return "LocalDevVPN is off" }
-        if active { return "JIT is on" }
-        if preparing { return "Switching on…" }
-        return missing?.missingTitle ?? "Ready"
+        if !enabled { return loc("JIT is off") }
+        if !vpnConnected && active { return loc("LocalDevVPN is off") }
+        if active { return loc("JIT is on") }
+        if preparing { return loc("Switching on…") }
+        return missing?.missingTitle ?? loc("Ready")
     }
 
     var subtitle: String {
-        if !enabled { return "Games run with the slow interpreter." }
-        if !vpnConnected && active { return "JIT stays on until you close EspressU. Turn LocalDevVPN back on to switch it on again later." }
-        if active { return "Games run with the fast recompiler." }
+        if !enabled { return loc("Games run with the slow interpreter.") }
+        if !vpnConnected && active { return loc("JIT stays on until you close EspressU. Turn LocalDevVPN back on to switch it on again later.") }
+        if active { return loc("Games run with the fast recompiler.") }
         if preparing { return stageText }
         if let missing { return missing.hint }
         if checks.contains(where: { $0.state == .unknown }) {
-            return "JIT switches on by itself once LocalDevVPN is connected."
+            return loc("JIT switches on by itself once LocalDevVPN is connected.")
         }
-        return "JIT switches on when a game starts."
+        return loc("JIT switches on when a game starts.")
     }
 
     var tint: Color {
@@ -112,11 +112,11 @@ struct JITStatusCard: View {
                     .frame(width: 52, height: 52)
                     .background(overview.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(overview.title)
+                    Text(loc(overview.title))
                         .font(.title3.weight(.semibold))
                         .foregroundColor(overview.tint)
                     if !overview.subtitle.isEmpty {
-                        Text(overview.subtitle)
+                        Text(loc(overview.subtitle))
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(EspressUTheme.brownMid)
                             .fixedSize(horizontal: false, vertical: true)
@@ -133,7 +133,7 @@ struct JITStatusCard: View {
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundColor(color(check.state))
                                 .frame(width: 22)
-                            Text(check.title)
+                            Text(loc(check.title))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if check.state == .unknown {
@@ -181,7 +181,7 @@ struct JITPairingCard: View {
                 Text("Enter this PIN in Settings")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownMid)
-                Text(pin)
+                Text(loc(pin))
                     .font(.system(size: 40, weight: .bold, design: .monospaced))
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .textSelection(.enabled)
@@ -192,7 +192,7 @@ struct JITPairingCard: View {
                         .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                 }
-                Text("Open Settings › Privacy & Security › Developer Mode and tap \"Pair with \(DevicePairing.hostName)\".")
+                Text(locf("Open Settings › Privacy & Security › Developer Mode and tap \"Pair with %@\".", DevicePairing.hostName))
                     .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
@@ -208,8 +208,8 @@ struct JITModeSwitch: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            segment(on: true, title: "JIT", detail: "Fast recompiler", symbol: "bolt.fill")
-            segment(on: false, title: "No JIT", detail: "Interpreter", symbol: "tortoise.fill")
+            segment(on: true, title: loc("JIT"), detail: loc("Fast recompiler"), symbol: "bolt.fill")
+            segment(on: false, title: loc("No JIT"), detail: loc("Interpreter"), symbol: "tortoise.fill")
         }
         .padding(4)
         .background(Color.white.opacity(0.08), in: Capsule())
@@ -226,9 +226,9 @@ struct JITModeSwitch: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(selected && on ? Color(UIColor.systemGreen) : nil)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
+                    Text(loc(title))
                         .font(.body.weight(.semibold))
-                    Text(detail)
+                    Text(loc(detail))
                         .font(.caption.weight(.semibold))
                         .opacity(0.85)
                 }

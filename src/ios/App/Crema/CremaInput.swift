@@ -26,17 +26,17 @@ enum CremaKey: CaseIterable, Hashable {
         case .y: return "Y"
         case .l: return "L"
         case .r: return "R"
-        case .zl: return "ZL"
-        case .zr: return "ZR"
+        case .zl: return loc("ZL")
+        case .zr: return loc("ZR")
         case .plus: return "plus"
         case .minus: return "minus"
         case .up: return "up"
         case .down: return "down"
         case .left: return "left"
         case .right: return "right"
-        case .stickL: return "L3"
-        case .stickR: return "R3"
-        case .home: return "HOME"
+        case .stickL: return loc("L3")
+        case .stickR: return loc("R3")
+        case .home: return loc("HOME")
         }
     }
 

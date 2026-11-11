@@ -22,9 +22,9 @@ enum AmiiboStore {
 
         var errorDescription: String? {
             switch self {
-            case .unreadable: return "EspressU couldn't read that file."
-            case .tooLarge: return "That file is too big to be an amiibo dump (they are about 540 bytes)."
-            case .writeFailed: return "EspressU couldn't save a copy in Documents/amiibo."
+            case .unreadable: return loc("EspressU couldn't read that file.")
+            case .tooLarge: return loc("That file is too big to be an amiibo dump (they are about 540 bytes).")
+            case .writeFailed: return loc("EspressU couldn't save a copy in Documents/amiibo.")
             }
         }
     }
@@ -84,7 +84,7 @@ struct AmiiboSheet: View {
                         .tint(EspressUTheme.accentText)
 
                         if let errorMessage {
-                            Text(errorMessage)
+                            Text(loc(errorMessage))
                                 .font(EspressUTheme.Font.caption)
                                 .foregroundColor(EspressUTheme.alertText)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -103,7 +103,7 @@ struct AmiiboSheet: View {
                                     HStack {
                                         Image(systemName: "wave.3.right")
                                             .accessibilityHidden(true)
-                                        Text(file.deletingPathExtension().lastPathComponent)
+                                        Text(loc(file.deletingPathExtension().lastPathComponent))
                                             .lineLimit(1)
                                         Spacer(minLength: 4)
                                     }
@@ -153,7 +153,7 @@ struct AmiiboSheet: View {
             return
         }
         errorMessage = nil
-        onTapped("Scanned \(file.deletingPathExtension().lastPathComponent).")
+        onTapped(locf("Scanned %@.", file.deletingPathExtension().lastPathComponent))
     }
 
     private func delete(at offsets: IndexSet) {

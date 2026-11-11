@@ -20,8 +20,8 @@ struct GameContentSection: View {
 
     var body: some View {
         Section {
-            row("Update", installed: hasUpdate, kind: .update)
-            row("DLC", installed: hasDLC, kind: .dlc)
+            row(loc("Update"), installed: hasUpdate, kind: .update)
+            row(loc("DLC"), installed: hasDLC, kind: .dlc)
 
             if importInProgress {
                 HStack {
@@ -42,7 +42,7 @@ struct GameContentSection: View {
 
             if packing {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Packing into one .wua... \(progress.filesWritten) files, "
+                    Text(locf("Packing into one .wua... %@ files, ", progress.filesWritten)
                         + ByteCountFormatter.string(fromByteCount: Int64(progress.bytesWritten), countStyle: .file))
                         .font(.footnote)
                     Button("Cancel", role: .destructive) { cemu_bridge_cancel_decrypt() }
@@ -59,16 +59,16 @@ struct GameContentSection: View {
                 Button {
                     DocumentImport.presentExport([packedFile]) { _ in }
                 } label: {
-                    Label("Save \(packedFile.lastPathComponent)...", systemImage: "square.and.arrow.up")
+                    Label(locf("Save %@...", packedFile.lastPathComponent), systemImage: "square.and.arrow.up")
                 }
             }
             if let message {
-                Text(message)
+                Text(loc(message))
                     .font(.caption)
                     .foregroundColor(EspressUTheme.secondaryText)
             }
             if let importMessage {
-                Text(importMessage)
+                Text(loc(importMessage))
                     .font(.caption)
                     .foregroundColor(EspressUTheme.secondaryText)
             }
@@ -89,13 +89,13 @@ struct GameContentSection: View {
             set: { confirmRemove = $0?.kind }
         )) { request in
             Alert(
-                title: Text("Remove \(request.kind.displayName)?"),
+                title: Text(locf("Remove %@?", request.kind.displayName)),
                 message: Text("The game itself and your saves are not touched."),
                 primaryButton: .destructive(Text("Remove")) { remove(request.kind) },
                 secondaryButton: .cancel())
         }
         .confirmationDialog(
-            "Reinstall this version?",
+            loc("Reinstall this version?"),
             isPresented: $showingReinstallConfirm,
             titleVisibility: .visible
         ) {
@@ -117,7 +117,7 @@ struct GameContentSection: View {
 
     private func row(_ name: String, installed: Bool, kind: DlcUpdateImport.ContentKind) -> some View {
         HStack {
-            Text(name)
+            Text(loc(name))
             Spacer()
             if installed {
                 Text("Installed").foregroundColor(EspressUTheme.secondaryText)
@@ -139,9 +139,9 @@ struct GameContentSection: View {
     private func remove(_ kind: DlcUpdateImport.ContentKind) {
         do {
             _ = try DlcUpdateImport.remove(kind: kind, for: game)
-            message = "Removed the \(kind.displayName)."
+            message = locf("Removed the %@.", kind.displayName)
         } catch {
-            message = "Couldn't remove it: \(error.localizedDescription)"
+            message = locf("Couldn't remove it: %@", error.localizedDescription)
         }
         refresh()
     }
@@ -171,7 +171,7 @@ struct GameContentSection: View {
         message = nil
         packedFile = nil
         guard cemu_bridge_start_wua_build(sources.joined(separator: "\n"), destination.path) else {
-            message = "Another export is already running."
+            message = loc("Another export is already running.")
             return
         }
         packing = true
@@ -187,7 +187,7 @@ struct GameContentSection: View {
                 packing = false
                 if snapshot.isSuccess {
                     packedFile = destination
-                    message = "Done. The .wua holds the game with its update and DLC."
+                    message = loc("Done. The .wua holds the game with its update and DLC.")
                 } else {
                     message = failureText(snapshot.resultStatus)
                 }
@@ -197,13 +197,13 @@ struct GameContentSection: View {
 
     private func failureText(_ status: Int32) -> String {
         switch status {
-        case 1: return "One of the files couldn't be read as a Wii U title."
-        case 3: return "Couldn't write the .wua. The device may be out of space."
-        case 4: return "Cancelled."
-        case 5: return "Some files couldn't be read, so no .wua was made."
-        case 9: return "The update or DLC belongs to a different game."
-        case 10: return "The same title was added twice."
-        default: return "Couldn't build the .wua."
+        case 1: return loc("One of the files couldn't be read as a Wii U title.")
+        case 3: return loc("Couldn't write the .wua. The device may be out of space.")
+        case 4: return loc("Cancelled.")
+        case 5: return loc("Some files couldn't be read, so no .wua was made.")
+        case 9: return loc("The update or DLC belongs to a different game.")
+        case 10: return loc("The same title was added twice.")
+        default: return loc("Couldn't build the .wua.")
         }
     }
 
@@ -215,7 +215,7 @@ struct GameContentSection: View {
     private func addContent(result: Result<URL, Error>) {
         importMessage = nil
         guard case .success(let url) = result, let kind = pendingContentKind else {
-            importMessage = "Couldn't access that file."
+            importMessage = loc("Couldn't access that file.")
             return
         }
         install(url, kind: kind, allowReinstall: false)
@@ -229,7 +229,7 @@ struct GameContentSection: View {
                 _ = try await DlcUpdateImport.import(
                     from: url, kind: kind, library: [], manualMatch: game,
                     strictMatch: true, allowReinstall: allowReinstall)
-                importMessage = "Added the \(kind.displayName)."
+                importMessage = locf("Added the %@.", kind.displayName)
             } catch DlcUpdateImport.ImportError.alreadyInstalledSameOrNewer(let installed, let imported)
                 where installed == imported && !allowReinstall {
                 pendingReinstall = (url, kind)

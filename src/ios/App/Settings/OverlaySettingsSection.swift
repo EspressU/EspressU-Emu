@@ -96,11 +96,11 @@ struct OverlaySettingsSection: View {
                 debugToggle
             }
         } header: {
-            SettingsSectionHeader("Performance Overlay", icon: "speedometer", accent: .io)
+            SettingsSectionHeader(loc("Performance Overlay"), icon: "speedometer", accent: .io)
         } footer: {
             InfoButton.footer(
-                "Shows FPS, CPU and RAM use on screen. Pick a corner to turn it on.",
-                title: "Performance Overlay",
+                loc("Shows FPS, CPU and RAM use on screen. Pick a corner to turn it on."),
+                title: loc("Performance Overlay"),
                 text: fullText)
         }
         .foregroundColor(EspressUTheme.brownDarkest)
@@ -112,7 +112,7 @@ struct OverlaySettingsSection: View {
                 .font(.footnote.weight(.semibold))
             Picker("Position", selection: $positionRaw) {
                 ForEach(ScreenPosition.allCases) { position in
-                    Text(position.title).tag(position.rawValue)
+                    Text(loc(position.title)).tag(position.rawValue)
                 }
             }
             .pickerStyle(.menu)
@@ -125,7 +125,7 @@ struct OverlaySettingsSection: View {
     }
 
     private var textColorField: some View {
-        ColorPicker("Text colour", selection: packedColourBinding($textColor), supportsOpacity: false)
+        ColorPicker(loc("Text colour"), selection: packedColourBinding($textColor), supportsOpacity: false)
             .font(.subheadline.weight(.semibold))
             .disabled(isOff)
             .onValueChange(of: textColor) { newValue in
@@ -167,7 +167,7 @@ struct OverlaySettingsSection: View {
 
     private var drawcallsToggle: some View {
         Toggle(isOn: $drawcallsEnabled) {
-            Text("Show draw calls")
+            Text(loc("Show draw calls"))
                 .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)
@@ -227,7 +227,7 @@ struct OverlaySettingsSection: View {
 
     private var debugToggle: some View {
         Toggle(isOn: $debugEnabled) {
-            Text("Show debug info")
+            Text(loc("Show debug info"))
                 .font(.subheadline.weight(.semibold))
         }
         .tint(EspressUTheme.accentText)

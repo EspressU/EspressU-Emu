@@ -326,7 +326,7 @@ final class StikJITCoordinator: ObservableObject {
                 return
             }
             if let reason = problem ?? ((reply?["ok"] as? Bool) == true ? nil : reply?["reason"] as? String ?? "Unknown error.") {
-                self.note = "Couldn't reset the Developer Disk Image: \(reason)"
+                self.note = locf("Couldn't reset the Developer Disk Image: %@", reason)
             } else {
                 self.readiness = .notChecked
                 self.note = "The cached Developer Disk Image is gone. It's downloaded again the next time JIT switches on."
@@ -397,7 +397,7 @@ final class StikJITCoordinator: ObservableObject {
 
     private func checkSilence() {
         guard job != nil, Date().timeIntervalSince(lastActivity) > Self.silenceLimit else { return }
-        StikJITHelperLauncher.cancel(withReason: "The JIT helper stopped responding (nothing for \(Int(Self.silenceLimit)) seconds). Check LocalDevVPN and try again.")
+        StikJITHelperLauncher.cancel(withReason: locf("The JIT helper stopped responding (nothing for %@ seconds). Check LocalDevVPN and try again.", Int(Self.silenceLimit)))
     }
 
     private func endJob(keepHelperOpen: Bool = false) {
@@ -509,7 +509,7 @@ private struct StikJITOverlayModifier: ViewModifier {
                     Button("OK", role: .cancel) { coordinator.failure = nil }
                 }
             } message: {
-                Text(coordinator.failure?.message ?? "")
+                Text(loc(coordinator.failure?.message ?? ""))
             }
     }
 
@@ -537,7 +537,7 @@ private struct StikJITProgressCard: View {
                     Text("Switching JIT on")
                         .font(.headline)
                         .foregroundColor(EspressUTheme.brownDarkest)
-                    Text(coordinator.stageText.isEmpty ? "Starting the JIT helper…" : coordinator.stageText)
+                    Text(loc(coordinator.stageText.isEmpty ? "Starting the JIT helper…" : coordinator.stageText))
                         .font(.footnote.weight(.medium))
                         .foregroundColor(EspressUTheme.brownMid)
                         .fixedSize(horizontal: false, vertical: true)

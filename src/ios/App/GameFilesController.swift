@@ -56,7 +56,7 @@ final class GameFilesController: ObservableObject {
                         staged = try ShaderCacheImport.stage(picked)
                     } catch {
                         DispatchQueue.main.async {
-                            self.finish(ShaderCacheImport.Outcome(message: "Couldn't read \"\(name)\": \(error.localizedDescription)", failed: true))
+                            self.finish(ShaderCacheImport.Outcome(message: locf("Couldn't read \"%@\": %@", name, error.localizedDescription), failed: true))
                         }
                         return
                     }

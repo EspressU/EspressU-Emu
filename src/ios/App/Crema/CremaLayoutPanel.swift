@@ -24,14 +24,14 @@ struct CremaLayoutPanel: View {
     var body: some View {
         LayoutPanelCard(rows: { rows }, footer: {
             LayoutPanelFooter(
-                resetMessage: "Size, opacity, spacing, shoulder height, single moved or resized controls, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.",
+                resetMessage: loc("Size, opacity, spacing, shoulder height, single moved or resized controls, haptics, controller hiding and deadzone go back to how EspressU ships, in every game."),
                 onReset: reset,
                 onDone: onDone)
         })
     }
 
     @ViewBuilder private var rows: some View {
-        PanelCaption(text: "Tap a stick to click it. Slide across buttons to press them one after another. These settings apply to every game.")
+        PanelCaption(text: loc("Tap a stick to click it. Slide across buttons to press them one after another. These settings apply to every game."))
 
         Button(action: onEditElements) {
             HStack {
@@ -48,14 +48,14 @@ struct CremaLayoutPanel: View {
         }
         .buttonStyle(.plain)
 
-        PanelSliderRow("Control size", leadingIcon: "minus.magnifyingglass", trailingIcon: "plus.magnifyingglass",
+        PanelSliderRow(loc("Control size"), leadingIcon: "minus.magnifyingglass", trailingIcon: "plus.magnifyingglass",
                        value: $scale,
                        range: ControllerLayoutSettings.minScale...ControllerLayoutSettings.maxScale)
 
         PanelSliderRow("Opacity", leadingIcon: "circle.lefthalf.filled", trailingIcon: "circle.fill",
                        value: $opacity, range: 0.2...1.0)
 
-        PanelSliderRow("Spacing between the two sides",
+        PanelSliderRow(loc("Spacing between the two sides"),
                        leadingIcon: "arrow.right.and.line.vertical.and.arrow.left",
                        trailingIcon: "arrow.left.and.line.vertical.and.arrow.right",
                        value: $stickSpacing,
@@ -64,24 +64,24 @@ struct CremaLayoutPanel: View {
                        spokenValue: ControllerLayoutSettings.stickSpacingLabel(stickSpacing))
 
         if ControllerLayoutSettings.supportsShoulderOffset {
-            PanelSliderRow("Shoulder button height", title: "L/R", leadingIcon: "arrow.up.and.down",
+            PanelSliderRow(loc("Shoulder button height"), title: loc("L/R"), leadingIcon: "arrow.up.and.down",
                            value: $shoulderOffset,
                            range: ControllerLayoutSettings.minShoulderOffset...ControllerLayoutSettings.maxShoulderOffset,
                            step: ControllerLayoutSettings.shoulderOffsetStep,
                            spokenValue: ControllerLayoutSettings.shoulderOffsetLabel(shoulderOffset))
         }
 
-        PanelSliderRow("Stick deadzone", title: "Deadzone",
+        PanelSliderRow(loc("Stick deadzone"), title: loc("Deadzone"),
                        value: $deadzone,
                        range: ControllerLayoutSettings.minDeadzone...ControllerLayoutSettings.maxDeadzone,
                        spokenValue: deadzone <= 0.0005 ? "off" : "\(Int((deadzone * 100).rounded())) percent",
                        readout: deadzone <= 0.0005 ? "off" : "\(Int((deadzone * 100).rounded()))%")
 
         if UIDevice.current.userInterfaceIdiom == .phone {
-            PanelToggle(title: "Haptic feedback", isOn: $haptics)
+            PanelToggle(title: loc("Haptic feedback"), isOn: $haptics)
         }
 
-        PanelToggle(title: "Hide on-screen controls when a controller is connected", isOn: $autoHide)
+        PanelToggle(title: loc("Hide on-screen controls when a controller is connected"), isOn: $autoHide)
     }
 
     private func reset() {

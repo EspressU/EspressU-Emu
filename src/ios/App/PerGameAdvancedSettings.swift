@@ -115,9 +115,9 @@ struct AdvancedGameOptionsSection: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .useGlobalDefault: return "Use Global Default"
-            case .on: return "On"
-            case .off: return "Off"
+            case .useGlobalDefault: return loc("Use Global Default")
+            case .on: return loc("On")
+            case .off: return loc("Off")
             }
         }
     }
@@ -165,8 +165,8 @@ struct AdvancedGameOptionsSection: View {
 
     private func caption(pinned: Bool, settingsValue: String) -> String {
         pinned
-            ? "Set for this game only. Settings has it \(settingsValue)."
-            : "Follows Settings, which has it \(settingsValue)."
+            ? locf("Set for this game only. Settings has it %@.", settingsValue)
+            : locf("Follows Settings, which has it %@.", settingsValue)
     }
 
     private func onOff(_ value: Bool) -> String { value ? "on" : "off" }
@@ -179,126 +179,126 @@ struct AdvancedGameOptionsSection: View {
                 screenRows
                 resetButton
             } header: {
-                SettingsSectionHeader("Advanced", icon: "slider.horizontal.3", accent: .core)
+                SettingsSectionHeader(loc("Advanced"), icon: "slider.horizontal.3", accent: .core)
             } footer: {
                 InfoButton.footer(
-                    "Extra options for this game only. \"Use Global Default\" follows Settings. They apply the next time you start the game.",
-                    title: "Advanced game options",
-                    text: "Each option here follows the matching setting in Settings until you give this game its own value, and then keeps it whatever Settings says.\n\nResolution and the two scaling filters change how the picture is drawn for this game. Favour performance, Steady frame rate and One-core mode work as they do in Settings, for this game only.\n\nScreen layout and Hide on-screen controls when a controller is connected are put in place when the game starts, and your own choices come back when it stops. A layout change you make during the game is not kept.\n\nPerformance overlay turns the readout on or off for this game. On uses the corner chosen in Settings, or the top left if Settings has it off.\n\nReset this game's options puts every option for this game, in this screen and the one above, back on Settings.")
+                    loc("Extra options for this game only. \"Use Global Default\" follows Settings. They apply the next time you start the game."),
+                    title: loc("Advanced game options"),
+                    text: loc("Each option here follows the matching setting in Settings until you give this game its own value, and then keeps it whatever Settings says.\n\nResolution and the two scaling filters change how the picture is drawn for this game. Favour performance, Steady frame rate and One-core mode work as they do in Settings, for this game only.\n\nScreen layout and Hide on-screen controls when a controller is connected are put in place when the game starts, and your own choices come back when it stops. A layout change you make during the game is not kept.\n\nPerformance overlay turns the readout on or off for this game. On uses the corner chosen in Settings, or the top left if Settings has it off.\n\nReset this game's options puts every option for this game, in this screen and the one above, back on Settings."))
             }
             .confirmationDialog("Reset this game's options?", isPresented: $confirmReset, titleVisibility: .visible) {
                 Button("Reset", role: .destructive) { store.clearOverrides(for: gameKey) }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("\(game.title) goes back to following Settings for everything.")
+                Text(locf("%@ goes back to following Settings for everything.", game.title))
             }
         }
     }
 
     @ViewBuilder private var graphicsRows: some View {
         AdvancedOverrideRow(
-            title: "Resolution",
-            caption: caption(pinned: own.renderScale != nil, settingsValue: "set to \(RenderScale.storedChoice.title)"),
+            title: loc("Resolution"),
+            caption: caption(pinned: own.renderScale != nil, settingsValue: locf("set to %@", RenderScale.storedChoice.title)),
             selection: textChoice(\.renderScale, known: RenderScale.allCases.map(\.rawValue))
         ) {
             Text("Use Global Default").tag("")
             ForEach(RenderScale.allCases) { scale in
-                Text(scale.title).tag(scale.rawValue)
+                Text(loc(scale.title)).tag(scale.rawValue)
             }
         }
         AdvancedOverrideRow(
-            title: "Filter when enlarging",
-            caption: caption(pinned: own.upscaleFilter != nil, settingsValue: "set to \(store.globalUpscaleFilter.title)"),
+            title: loc("Filter when enlarging"),
+            caption: caption(pinned: own.upscaleFilter != nil, settingsValue: locf("set to %@", store.globalUpscaleFilter.title)),
             selection: numberChoice(\.upscaleFilter, known: ScaleFilter.allCases.map(\.rawValue))
         ) {
             Text("Use Global Default").tag(-1)
             ForEach(ScaleFilter.allCases) { filter in
-                Text(filter.title).tag(filter.rawValue)
+                Text(loc(filter.title)).tag(filter.rawValue)
             }
         }
         AdvancedOverrideRow(
-            title: "Filter when shrinking",
-            caption: caption(pinned: own.downscaleFilter != nil, settingsValue: "set to \(store.globalDownscaleFilter.title)"),
+            title: loc("Filter when shrinking"),
+            caption: caption(pinned: own.downscaleFilter != nil, settingsValue: locf("set to %@", store.globalDownscaleFilter.title)),
             selection: numberChoice(\.downscaleFilter, known: ScaleFilter.allCases.map(\.rawValue))
         ) {
             Text("Use Global Default").tag(-1)
             ForEach(ScaleFilter.allCases) { filter in
-                Text(filter.title).tag(filter.rawValue)
+                Text(loc(filter.title)).tag(filter.rawValue)
             }
         }
     }
 
     @ViewBuilder private var performanceRows: some View {
         AdvancedOverrideRow(
-            title: "Favour performance",
+            title: loc("Favour performance"),
             caption: caption(pinned: own.favourPerformance != nil, settingsValue: onOff(store.globalFavourPerformance)),
             selection: toggleChoice(\.favourPerformance)
         ) {
             ForEach(Choice.allCases) { choice in
-                Text(choice.title).tag(choice)
+                Text(loc(choice.title)).tag(choice)
             }
         }
         AdvancedOverrideRow(
-            title: "Steady frame rate",
+            title: loc("Steady frame rate"),
             caption: caption(pinned: own.fullSpeedRenders != nil, settingsValue: onOff(store.globalFullSpeedRenders)),
             selection: toggleChoice(\.fullSpeedRenders)
         ) {
             ForEach(Choice.allCases) { choice in
-                Text(choice.title).tag(choice)
+                Text(loc(choice.title)).tag(choice)
             }
         }
         if store.overrides(for: gameKey).fullSpeedRenders ?? store.globalFullSpeedRenders {
             AdvancedOverrideRow(
-                title: "First time a new effect appears",
+                title: loc("First time a new effect appears"),
                 caption: caption(pinned: own.fullSpeedShaderMode != nil,
-                                 settingsValue: "set to \(store.globalFullSpeedShaderMode.title)"),
+                                 settingsValue: locf("set to %@", store.globalFullSpeedShaderMode.title)),
                 selection: numberChoice(\.fullSpeedShaderMode, known: FullSpeedRenders.ShaderMode.allCases.map(\.rawValue))
             ) {
                 Text("Use Global Default").tag(-1)
                 ForEach(FullSpeedRenders.ShaderMode.allCases) { mode in
-                    Text(mode.title).tag(mode.rawValue)
+                    Text(loc(mode.title)).tag(mode.rawValue)
                 }
             }
         }
         AdvancedOverrideRow(
-            title: "One-core mode",
+            title: loc("One-core mode"),
             caption: caption(pinned: own.oneCoreMode != nil, settingsValue: onOff(store.globalOneCoreMode)),
             selection: toggleChoice(\.oneCoreMode)
         ) {
             ForEach(Choice.allCases) { choice in
-                Text(choice.title).tag(choice)
+                Text(loc(choice.title)).tag(choice)
             }
         }
     }
 
     @ViewBuilder private var screenRows: some View {
         AdvancedOverrideRow(
-            title: "Screen layout",
-            caption: caption(pinned: own.screenLayout != nil, settingsValue: "set to \(store.globalScreenLayout.string)"),
+            title: loc("Screen layout"),
+            caption: caption(pinned: own.screenLayout != nil, settingsValue: locf("set to %@", store.globalScreenLayout.string)),
             selection: textChoice(\.screenLayout, known: ScreenLayout.allCases.map(\.rawValue))
         ) {
             Text("Use Global Default").tag("")
             ForEach(ScreenLayout.allCases) { layout in
-                Text(layout.string).tag(layout.rawValue)
+                Text(loc(layout.string)).tag(layout.rawValue)
             }
         }
         AdvancedOverrideRow(
-            title: "Hide on-screen controls when a controller is connected",
+            title: loc("Hide on-screen controls when a controller is connected"),
             caption: caption(pinned: own.autoHideControls != nil, settingsValue: onOff(store.globalAutoHideControls)),
             selection: toggleChoice(\.autoHideControls)
         ) {
             ForEach(Choice.allCases) { choice in
-                Text(choice.title).tag(choice)
+                Text(loc(choice.title)).tag(choice)
             }
         }
         AdvancedOverrideRow(
-            title: "Performance overlay",
+            title: loc("Performance overlay"),
             caption: caption(pinned: own.performanceOverlay != nil,
                              settingsValue: store.globalOverlayPosition == .disabled ? "off" : "on"),
             selection: toggleChoice(\.performanceOverlay)
         ) {
             ForEach(Choice.allCases) { choice in
-                Text(choice.title).tag(choice)
+                Text(loc(choice.title)).tag(choice)
             }
         }
     }
@@ -307,7 +307,7 @@ struct AdvancedGameOptionsSection: View {
         Button(role: .destructive) {
             confirmReset = true
         } label: {
-            DestructiveSettingsLabel(title: "Reset this game's options", systemImage: "arrow.uturn.backward")
+            DestructiveSettingsLabel(title: loc("Reset this game's options"), systemImage: "arrow.uturn.backward")
         }
         .disabled(own.isIdentity)
     }
@@ -331,12 +331,12 @@ private struct AdvancedOverrideRow<Selection: Hashable, Options: View>: View {
             Picker(selection: selection) {
                 options
             } label: {
-                Text(title)
+                Text(loc(title))
                     .font(.subheadline.weight(.semibold))
             }
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)
-            Text(caption)
+            Text(loc(caption))
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

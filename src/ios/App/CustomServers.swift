@@ -24,13 +24,13 @@ struct CustomServerAddresses {
     }
 
     var problem: String? {
-        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "Give the server a name." }
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return loc("Give the server a name.") }
         let filled = pairs.map { $0.1.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
-        if filled.isEmpty { return "Enter at least one server address." }
+        if filled.isEmpty { return loc("Enter at least one server address.") }
         for value in filled {
             guard let url = URL(string: value), let scheme = url.scheme?.lowercased(),
                   scheme == "http" || scheme == "https", url.host?.isEmpty == false else {
-                return "\(value) isn't a web address. Addresses start with http:// or https://."
+                return locf("%@ isn't a web address. Addresses start with http:// or https://.", value)
             }
         }
         return nil
@@ -87,7 +87,7 @@ enum CustomServerStore {
         return files.filter { $0.pathExtension == "xml" }.compactMap { file in
             guard let data = try? Data(contentsOf: file) else { return nil }
             let id = file.deletingPathExtension().lastPathComponent
-            return CustomServer(id: id, name: name(of: data, fallback: "Custom server"), url: file)
+            return CustomServer(id: id, name: name(of: data, fallback: loc("Custom server")), url: file)
         }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
@@ -104,9 +104,9 @@ enum CustomServerStore {
     static func validate(_ data: Data) -> String? {
         let temp = FileManager.default.temporaryDirectory.appendingPathComponent("check-\(UUID().uuidString).xml")
         defer { try? FileManager.default.removeItem(at: temp) }
-        guard (try? data.write(to: temp)) != nil else { return "Couldn't read that file." }
+        guard (try? data.write(to: temp)) != nil else { return loc("Couldn't read that file.") }
         let ok = temp.path.withCString { cemu_bridge_network_services_xml_is_valid($0) }
-        return ok ? nil : "That isn't a usable network_services.xml. It needs a <content> element with a <urls> list of web addresses."
+        return ok ? nil : loc("That isn't a usable network_services.xml. It needs a <content> element with a <urls> list of web addresses.")
     }
 
     @discardableResult
@@ -116,7 +116,7 @@ enum CustomServerStore {
         let id = UUID().uuidString
         let file = folder.appendingPathComponent("\(id).xml")
         try data.write(to: file, options: .atomic)
-        return CustomServer(id: id, name: name(of: data, fallback: "Custom server"), url: file)
+        return CustomServer(id: id, name: name(of: data, fallback: loc("Custom server")), url: file)
     }
 
     static func activate(_ server: CustomServer) throws {
@@ -158,7 +158,7 @@ struct CustomServersSettingsSection: View {
                     use(server)
                 } label: {
                     HStack {
-                        Text(server.name)
+                        Text(loc(server.name))
                         Spacer()
                         if activeData != nil && activeData == server.data {
                             Text("Active").font(.footnote).foregroundColor(EspressUTheme.secondaryText)
@@ -182,13 +182,13 @@ struct CustomServersSettingsSection: View {
             }
             .disabled(locked)
         } header: {
-            SettingsSectionHeader("Custom servers", icon: "server.rack", accent: .content)
+            SettingsSectionHeader(loc("Custom servers"), icon: "server.rack", accent: .content)
         } footer: {
             InfoButton.footer(
-                locked ? "Servers can't be changed while a game is running. Close the game first."
-                       : "Tap a server to make it the active Custom server, then pick Custom under Network Service. Swipe to delete.",
-                title: "Custom servers",
-                text: "A custom server is a community-run replacement for Nintendo's Wii U online services. Whoever runs it gives you a network_services.xml file, or the addresses to enter here.\n\nThe active server is copied to Documents/mlc/network_services.xml, the same file desktop Cemu reads.\n\nCustom doesn't need a linked account or otp.bin and seeprom.bin: the server decides what it needs. Pretendo does need them.")
+                locked ? loc("Servers can't be changed while a game is running. Close the game first.")
+                       : loc("Tap a server to make it the active Custom server, then pick Custom under Network Service. Swipe to delete."),
+                title: loc("Custom servers"),
+                text: loc("A custom server is a community-run replacement for Nintendo's Wii U online services. Whoever runs it gives you a network_services.xml file, or the addresses to enter here.\n\nThe active server is copied to Documents/mlc/network_services.xml, the same file desktop Cemu reads.\n\nCustom doesn't need a linked account or otp.bin and seeprom.bin: the server decides what it needs. Pretendo does need them."))
         }
         .foregroundColor(EspressUTheme.brownDarkest)
         .onAppear(perform: reload)
@@ -211,7 +211,7 @@ struct CustomServersSettingsSection: View {
         .alert("Custom servers", isPresented: Binding(get: { message != nil }, set: { if !$0 { message = nil } })) {
             Button("OK") { message = nil }
         } message: {
-            Text(message ?? "")
+            Text(loc(message ?? ""))
         }
 
         CommunityServersSection()
@@ -226,9 +226,9 @@ struct CustomServersSettingsSection: View {
     private func use(_ server: CustomServer) {
         do {
             try CustomServerStore.activate(server)
-            message = "\(server.name) is now the active Custom server. Pick Custom under Network Service to use it."
+            message = locf("%@ is now the active Custom server. Pick Custom under Network Service to use it.", server.name)
         } catch {
-            message = "Couldn't make that server active: \(error.localizedDescription)"
+            message = locf("Couldn't make that server active: %@", error.localizedDescription)
         }
         reload()
     }
@@ -236,12 +236,12 @@ struct CustomServersSettingsSection: View {
     private func importXML(_ result: Result<URL, Error>) {
         switch result {
         case .failure(let error):
-            message = "Couldn't import: \(error.localizedDescription)"
+            message = locf("Couldn't import: %@", error.localizedDescription)
         case .success(let url):
             let scoped = url.startAccessingSecurityScopedResource()
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }
             guard let data = try? Data(contentsOf: url) else {
-                message = "Couldn't read that file."
+                message = loc("Couldn't read that file.")
                 return
             }
             if let problem = CustomServerStore.validate(data) {
@@ -251,9 +251,9 @@ struct CustomServersSettingsSection: View {
             do {
                 let saved = try CustomServerStore.save(data)
                 try CustomServerStore.activate(saved)
-                message = "Added \(saved.name) and made it the active Custom server. Pick Custom under Network Service to use it."
+                message = locf("Added %@ and made it the active Custom server. Pick Custom under Network Service to use it.", saved.name)
             } catch {
-                message = "Couldn't save that server: \(error.localizedDescription)"
+                message = locf("Couldn't save that server: %@", error.localizedDescription)
             }
             reload()
         }
@@ -277,11 +277,11 @@ struct CommunityServersSection: View {
             }
             .padding(.vertical, 2)
         } header: {
-            SettingsSectionHeader("Community servers", icon: "person.2", accent: .content)
+            SettingsSectionHeader(loc("Community servers"), icon: "person.2", accent: .content)
         } footer: {
             InfoButton.footer(
-                "Projects run by other people. EspressU doesn't run or check them.",
-                title: "Community servers",
+                loc("Projects run by other people. EspressU doesn't run or check them."),
+                title: loc("Community servers"),
                 text: "These are independent projects, listed for information. EspressU doesn't host them, and there's no server address built in for them: import the network_services.xml their host gives you.\n\nPretendo Network is built in under Network Service, but it needs a Wii U's account and console files.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
@@ -327,7 +327,7 @@ struct CustomServerFormView: View {
                     Text("Start each with http:// or https://. Leave out any the server doesn't use; those fall back to Nintendo's, which are shut down. Skip certificate checks only for a server you trust that uses a self-signed certificate.")
                 }
                 if let errorMessage {
-                    Section { Text(errorMessage).foregroundColor(EspressUTheme.alertText) }
+                    Section { Text(loc(errorMessage)).foregroundColor(EspressUTheme.alertText) }
                 }
             }
             .navigationTitle("Add server")
@@ -348,7 +348,7 @@ struct CustomServerFormView: View {
             try CustomServerStore.activate(saved)
             dismiss()
         } catch {
-            errorMessage = "Couldn't save that server: \(error.localizedDescription)"
+            errorMessage = locf("Couldn't save that server: %@", error.localizedDescription)
         }
     }
 }

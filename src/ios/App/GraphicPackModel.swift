@@ -43,7 +43,7 @@ struct GraphicPack: Identifiable, Hashable {
 
     var category: String {
         let parts = virtualPath.split(separator: "/").map(String.init)
-        guard parts.count >= 2 else { return "Other" }
+        guard parts.count >= 2 else { return loc("Other") }
         return GraphicPack.normalizedCategory(parts[1])
     }
 
@@ -63,13 +63,13 @@ struct GraphicPack: Identifiable, Hashable {
 
     static func normalizedCategory(_ raw: String) -> String {
         switch raw.lowercased() {
-        case "graphics", "graphic", "resolution", "resolutions": return "Graphics"
-        case "enhancements", "enhancement": return "Enhancements"
-        case "mods", "mod", "cheats", "cheat": return "Mods"
-        case "workarounds", "workaround", "fixes", "!override", "override": return "Workarounds"
+        case "graphics", "graphic", "resolution", "resolutions": return loc("Graphics")
+        case "enhancements", "enhancement": return loc("Enhancements")
+        case "mods", "mod", "cheats", "cheat": return loc("Mods")
+        case "workarounds", "workaround", "fixes", "!override", "override": return loc("Workarounds")
         default:
             let trimmed = raw.trimmingCharacters(in: CharacterSet(charactersIn: "!"))
-            return trimmed.isEmpty ? "Other" : trimmed
+            return trimmed.isEmpty ? loc("Other") : trimmed
         }
     }
 
@@ -118,23 +118,23 @@ struct GraphicPack: Identifiable, Hashable {
 
     func support(on api: RendererAPI) -> Support {
         if !vendorFilter.isEmpty && vendorFilter != "apple" {
-            return .inactive("Made for a different kind of graphics chip, so it never turns on here.")
+            return .inactive(loc("Made for a different kind of graphics chip, so it never turns on here."))
         }
         switch rendererFilter {
         case "metal" where api != .metal:
-            return .inactive("Only works with the Metal renderer. Switch the renderer in Settings > Graphics.")
+            return .inactive(loc("Only works with the Metal renderer. Switch the renderer in Settings > Graphics."))
         case "vulkan":
-            return .inactive("Made for Vulkan, which EspressU doesn't use.")
+            return .inactive(loc("Made for Vulkan, which EspressU doesn't use."))
         case "opengl":
-            return .inactive("Made for OpenGL, which EspressU doesn't use.")
+            return .inactive(loc("Made for OpenGL, which EspressU doesn't use."))
         default:
             break
         }
         if hasGLSLShaders && !hasMetalShaders {
-            return .partial("Replaces shaders that are written for OpenGL and Vulkan. Metal can't use them, so those changes are skipped and the picture can look wrong. The pack's other changes still apply.")
+            return .partial(loc("Replaces shaders that are written for OpenGL and Vulkan. Metal can't use them, so those changes are skipped and the picture can look wrong. The pack's other changes still apply."))
         }
         if hasGLSLOutputShaders && !hasMetalShaders {
-            return .partial("Adds an output or scaling shader written for OpenGL and Vulkan. Metal can't use it, so that part is skipped.")
+            return .partial(loc("Adds an output or scaling shader written for OpenGL and Vulkan. Metal can't use it, so that part is skipped."))
         }
         return .full
     }
@@ -143,7 +143,7 @@ struct GraphicPack: Identifiable, Hashable {
 
     var raisesFrameRate: Bool {
         let n = (name + " " + virtualPath).lowercased()
-        return n.contains("fps") || n.contains("frame rate") || n.contains("framerate")
+        return n.contains("fps") || n.contains(loc("frame rate")) || n.contains("framerate")
     }
 
     var isWorkaround: Bool { category == "Workarounds" }
@@ -252,8 +252,8 @@ struct GraphicPackDeviceProfile: Equatable {
 
     var summary: String {
         let tall = suggestedMaxHeight
-        let label = tall == 720 ? "the Wii U's own 720p" : "\(tall)p"
-        var text = "For this \(isPad ? "iPad" : "iPhone") we suggest staying at \(label) or lower."
+        let label = tall == 720 ? loc("the Wii U's own 720p") : "\(tall)p"
+        var text = locf("For this %@ we suggest staying at %@ or lower.", isPad ? "iPad" : "iPhone", label)
         if lowPowerMode { text += " Low Power Mode is on, so the suggestion is one step lower." }
         text += " This comes from the graphics chip, memory and screen, not a speed test, so treat it as a starting point."
         return text
@@ -330,7 +330,7 @@ enum GraphicPackStorage {
         var errorDescription: String? {
             switch self {
             case .notEnough(let needed, let free, let what):
-                return "Not enough free storage to \(what). It needs about \(GraphicPackStorage.describe(needed)) and this device has \(GraphicPackStorage.describe(free)) free. Free some space and try again."
+                return locf("Not enough free storage to %@. It needs about %@ and this device has %@ free. Free some space and try again.", what, GraphicPackStorage.describe(needed), GraphicPackStorage.describe(free))
             }
         }
     }

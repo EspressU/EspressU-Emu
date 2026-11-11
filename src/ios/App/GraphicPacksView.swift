@@ -53,7 +53,7 @@ struct GraphicPacksView: View {
 
     @ViewBuilder var body: some View {
         if game == nil {
-            list.searchable(text: $search, prompt: "Search games and packs")
+            list.searchable(text: $search, prompt: loc("Search games and packs"))
         } else {
             list
         }
@@ -61,7 +61,7 @@ struct GraphicPacksView: View {
 
     private var runningCallout: some View {
         Section {
-            ScreenStatusCallout(tone: .info, message: "A game is running. You can browse packs, but they can only be changed after you close it.")
+            ScreenStatusCallout(tone: .info, message: loc("A game is running. You can browse packs, but they can only be changed after you close it."))
         }
         .listRowBackground(Color.clear)
     }
@@ -69,24 +69,24 @@ struct GraphicPacksView: View {
     @ViewBuilder private func gameSections(_ game: GameMetadata) -> some View {
         if game.titleId == nil {
             Section {
-                ScreenStatusCallout(tone: .info, message: "EspressU couldn't read this game's title ID, so it can't pick out its packs. Browse all packs instead.")
+                ScreenStatusCallout(tone: .info, message: loc("EspressU couldn't read this game's title ID, so it can't pick out its packs. Browse all packs instead."))
             }
             .listRowBackground(Color.clear)
         } else if gamePacks.isEmpty && universalPacks.isEmpty {
             Section {
                 ScreenEmptyState(
                     systemImage: "square.stack.3d.up",
-                    headline: store.packs.isEmpty ? "No packs yet" : "No packs for this game",
+                    headline: store.packs.isEmpty ? loc("No packs yet") : loc("No packs for this game"),
                     message: store.packs.isEmpty
-                        ? "Download the community packs above, then come back."
-                        : "The community packs don't include one for \(game.title). You can still import your own below."
+                        ? loc("Download the community packs above, then come back.")
+                        : locf("The community packs don't include one for %@. You can still import your own below.", game.title)
                 )
             }
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         } else {
             Section {
-                ScreenStatusCallout(tone: .info, message: "Nothing turns on by itself. Higher resolutions and shadow options cost speed and memory, so raise them one step at a time. \(profile.summary)")
+                ScreenStatusCallout(tone: .info, message: locf("Nothing turns on by itself. Higher resolutions and shadow options cost speed and memory, so raise them one step at a time. %@", profile.summary))
             }
             .listRowBackground(Color.clear)
 
@@ -94,7 +94,7 @@ struct GraphicPacksView: View {
 
             if !universalPacks.isEmpty {
                 GraphicPackCategorySections(packs: universalPacks, store: store, profile: profile,
-                                            suggestWorkarounds: false, headerPrefix: "All games \u{00B7} ")
+                                            suggestWorkarounds: false, headerPrefix: loc("All games \u{00B7} "))
             }
         }
 
@@ -114,7 +114,7 @@ struct GraphicPacksView: View {
             Section {
                 ScreenEmptyState(
                     systemImage: "square.stack.3d.up",
-                    headline: store.isScanning ? "Looking for packs" : "No graphic packs yet",
+                    headline: store.isScanning ? loc("Looking for packs") : loc("No graphic packs yet"),
                     message: "Download the community packs above, or import your own from Files."
                 )
             }
@@ -136,7 +136,7 @@ struct GraphicPacksView: View {
                         store.importPicked(url) { outcome in
                             switch outcome {
                             case .success(let done):
-                                importMessage = .init(text: "Imported \(done.packCount) pack\(done.packCount == 1 ? "" : "s") from \(done.folderName). Changes apply the next time you launch a game.", isError: false)
+                                importMessage = .init(text: locn(done.packCount, "Imported %@ pack from %@. Changes apply the next time you launch a game.", "Imported %@ packs from %@. Changes apply the next time you launch a game.", done.folderName), isError: false)
                             case .failure(let error):
                                 importMessage = .init(text: error.localizedDescription, isError: true)
                             }
@@ -155,11 +155,11 @@ struct GraphicPacksView: View {
                 ScreenStatusCallout(tone: importMessage.isError ? .warning : .info, message: importMessage.text)
             }
         } header: {
-            SettingsSectionHeader("Your own packs", icon: "folder.badge.plus", accent: .content)
+            SettingsSectionHeader(loc("Your own packs"), icon: "folder.badge.plus", accent: .content)
         } footer: {
             InfoButton.footer(
                 "A folder with a rules.txt, a folder of packs, or a zip of either.",
-                title: "Import packs",
+                title: loc("Import packs"),
                 text: "Pick a pack folder, a folder that holds several packs, or a zip of either. EspressU checks that it really contains a pack (a rules.txt) before adding it.\n\nImported packs are kept apart from the community download, so updating the community packs never removes them. Importing the same folder name again replaces the earlier copy. To remove an imported pack, open it and choose Remove.\n\nYou can also drop pack folders into graphicPacks inside EspressU's Documents folder in Files."
             )
         }
@@ -177,9 +177,9 @@ struct GraphicPacksView: View {
             SettingsSectionHeader("Credits", icon: "heart", accent: .identity)
         } footer: {
             InfoButton.footer(
-                "The community packs are made by the Cemu graphic packs project and its contributors.",
-                title: "Where packs come from",
-                text: "The downloadable packs are the Cemu graphic packs project's community collection (github.com/cemu-project/cemu_graphic_packs), made and maintained by its many contributors and released under the CC0 1.0 public domain dedication. EspressU downloads them straight from that project's releases and doesn't change them.\n\nPacks that replace shaders are written for OpenGL and Vulkan. The Metal renderer can't use those shaders, so such packs are marked. Packs made only of settings, presets and patches work with Metal."
+                loc("The community packs are made by the Cemu graphic packs project and its contributors."),
+                title: loc("Where packs come from"),
+                text: loc("The downloadable packs are the Cemu graphic packs project's community collection (github.com/cemu-project/cemu_graphic_packs), made and maintained by its many contributors and released under the CC0 1.0 public domain dedication. EspressU downloads them straight from that project's releases and doesn't change them.\n\nPacks that replace shaders are written for OpenGL and Vulkan. The Metal renderer can't use those shaders, so such packs are marked. Packs made only of settings, presets and patches work with Metal.")
             )
         }
         .foregroundColor(EspressUTheme.brownDarkest)
@@ -191,14 +191,14 @@ struct GraphicPackSourceSection: View {
 
     var body: some View {
         Section {
-            SettingsRow(label: "Installed", value: installedText, icon: "shippingbox")
+            SettingsRow(label: loc("Installed"), value: installedText, icon: "shippingbox")
 
             if store.updateAvailable, let latest = store.latest {
                 ScreenStatusCallout(
                     tone: .info,
                     message: store.installed == nil
-                        ? "Community packs are available (\(latest.name), \(GraphicPackStorage.describe(latest.size)) to download)."
-                        : "Update available: \(latest.name). Your choices are kept."
+                        ? locf("Community packs are available (%@, %@ to download).", latest.name, GraphicPackStorage.describe(latest.size))
+                        : locf("Update available: %@. Your choices are kept.", latest.name)
                 )
             }
 
@@ -208,30 +208,30 @@ struct GraphicPackSourceSection: View {
                 ScreenStatusCallout(tone: notice.isError ? .warning : .info, message: notice.text)
             }
         } header: {
-            SettingsSectionHeader("Community packs", icon: "arrow.down.circle", accent: .core)
+            SettingsSectionHeader(loc("Community packs"), icon: "arrow.down.circle", accent: .core)
         } footer: {
             InfoButton.footer(
                 footerText,
-                title: "Community packs",
-                text: "The community packs are downloaded from the Cemu graphic packs project's latest release on GitHub. The download is verified (size and a checksum on every file) before it replaces anything, and it needs free space for the zip and the extracted copy. If it fails or is cancelled, the packs you already have stay as they were.\n\nEspressU checks for a newer release when you open this screen, at most once a day, or when you tap Check for updates. Pack choices (which packs are on and their options) are kept across updates.\n\nThe download keeps going if you leave the app."
+                title: loc("Community packs"),
+                text: loc("The community packs are downloaded from the Cemu graphic packs project's latest release on GitHub. The download is verified (size and a checksum on every file) before it replaces anything, and it needs free space for the zip and the extracted copy. If it fails or is cancelled, the packs you already have stay as they were.\n\nEspressU checks for a newer release when you open this screen, at most once a day, or when you tap Check for updates. Pack choices (which packs are on and their options) are kept across updates.\n\nThe download keeps going if you leave the app.")
             )
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }
 
     private var installedText: String {
-        guard let installed = store.installed else { return "Not downloaded" }
-        let count = installed.packCount > 0 ? " \u{00B7} \(installed.packCount) packs" : ""
-        return installed.name.replacingOccurrences(of: "Cemu Graphic Packs: ", with: "") + count
+        guard let installed = store.installed else { return loc("Not downloaded") }
+        let count = installed.packCount > 0 ? locf(" \u{00B7} %@ packs", installed.packCount) : ""
+        return installed.name.replacingOccurrences(of: loc("Cemu Graphic Packs: "), with: "") + count
     }
 
     private var footerText: String {
         var parts: [String] = []
         if let checked = store.lastChecked {
-            parts.append("Last checked \(checked.formatted(date: .abbreviated, time: .shortened)).")
+            parts.append(locf("Last checked %@.", checked.formatted(date: .abbreviated, time: .shortened)))
         }
-        if let free = GraphicPackStorage.freeBytes() { parts.append("\(GraphicPackStorage.describe(free)) free on this device.") }
-        parts.append("Changes to packs apply the next time you launch a game.")
+        if let free = GraphicPackStorage.freeBytes() { parts.append(locf("%@ free on this device.", GraphicPackStorage.describe(free))) }
+        parts.append(loc("Changes to packs apply the next time you launch a game."))
         return parts.joined(separator: " ")
     }
 
@@ -244,11 +244,11 @@ struct GraphicPackSourceSection: View {
                     .font(.footnote).foregroundColor(EspressUTheme.secondaryText)
             }
         case .downloading(let fraction):
-            progressRow(title: "Downloading", fraction: fraction)
+            progressRow(title: loc("Downloading"), fraction: fraction)
         case .installing(let fraction):
-            progressRow(title: "Installing", fraction: fraction)
+            progressRow(title: loc("Installing"), fraction: fraction)
         case .waitingForGameToClose:
-            ScreenStatusCallout(tone: .info, message: "Downloaded. It installs when this screen is opened with no game running.")
+            ScreenStatusCallout(tone: .info, message: loc("Downloaded. It installs when this screen is opened with no game running."))
         case .idle:
             actionButtons
         }
@@ -277,7 +277,7 @@ struct GraphicPackSourceSection: View {
             Button {
                 store.startDownload()
             } label: {
-                Label(store.installed == nil ? "Download community packs" : "Update community packs",
+                Label(store.installed == nil ? loc("Download community packs") : loc("Update community packs"),
                       systemImage: "arrow.down.circle.fill")
                     .font(.subheadline.weight(.semibold))
             }
@@ -286,7 +286,7 @@ struct GraphicPackSourceSection: View {
         Button {
             store.checkForUpdate(force: true)
         } label: {
-            Label(store.latest == nil ? "Check for community packs" : "Check for updates", systemImage: "arrow.clockwise")
+            Label(store.latest == nil ? loc("Check for community packs") : loc("Check for updates"), systemImage: "arrow.clockwise")
                 .font(.subheadline.weight(.semibold))
         }
     }
@@ -325,7 +325,7 @@ struct GraphicPackGameListSection: View {
                     GraphicPackGameView(game: group.game, packs: group.packs)
                 } label: {
                     HStack(spacing: 8) {
-                        Text(group.game)
+                        Text(loc(group.game))
                             .font(.subheadline.weight(.semibold))
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 6)
@@ -336,7 +336,7 @@ struct GraphicPackGameListSection: View {
                 }
             }
         } header: {
-            SettingsSectionHeader("All games", icon: "square.grid.2x2", accent: .content)
+            SettingsSectionHeader(loc("All games"), icon: "square.grid.2x2", accent: .content)
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }
@@ -350,15 +350,15 @@ struct GraphicPackGameListView: View {
         List {
             if store.packs.isEmpty {
                 Section {
-                    ScreenEmptyState(systemImage: "square.stack.3d.up", headline: "No graphic packs yet",
-                                     message: "Download the community packs from the Graphic Packs screen.")
+                    ScreenEmptyState(systemImage: "square.stack.3d.up", headline: loc("No graphic packs yet"),
+                                     message: loc("Download the community packs from the Graphic Packs screen."))
                 }
                 .listRowBackground(Color.clear)
             } else {
                 GraphicPackGameListSection(packs: store.packs, search: $search)
             }
         }
-        .searchable(text: $search, prompt: "Search games and packs")
+        .searchable(text: $search, prompt: loc("Search games and packs"))
         .navigationTitle("All Packs")
         .espressuOpaqueNavigationBar(EspressUTheme.formGround)
         #if os(iOS)
@@ -381,13 +381,13 @@ struct GraphicPackGameView: View {
         List {
             if store.gameRunning {
                 Section {
-                    ScreenStatusCallout(tone: .info, message: "A game is running. Packs can only be changed after you close it.")
+                    ScreenStatusCallout(tone: .info, message: loc("A game is running. Packs can only be changed after you close it."))
                 }
                 .listRowBackground(Color.clear)
             }
             GraphicPackCategorySections(packs: livePacks, store: store, profile: .current, suggestWorkarounds: false)
         }
-        .navigationTitle(game)
+        .navigationTitle(loc(game))
         .espressuOpaqueNavigationBar(EspressUTheme.formGround)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -440,8 +440,8 @@ struct GraphicPackCategorySections: View {
         }
         .alert(item: $confirming) { pack in
             Alert(
-                title: Text(confirmTitle(for: pack)),
-                message: Text(confirmMessage(for: pack)),
+                title: Text(loc(confirmTitle(for: pack))),
+                message: Text(loc(confirmMessage(for: pack))),
                 primaryButton: .default(Text("Turn On Anyway")) { store.setEnabled(pack, true) },
                 secondaryButton: .cancel()
             )
@@ -449,7 +449,7 @@ struct GraphicPackCategorySections: View {
     }
 
     private var footerNote: some View {
-        InfoButton.footer("Changes apply the next time you launch a game.")
+        InfoButton.footer(loc("Changes apply the next time you launch a game."))
     }
 
     private func toggle(_ pack: GraphicPack, _ wantOn: Bool) {
@@ -462,8 +462,8 @@ struct GraphicPackCategorySections: View {
     }
 
     private func confirmTitle(for pack: GraphicPack) -> String {
-        if case .inactive = pack.support(on: api) { return "This pack won't activate" }
-        return api == .metal ? "Not fully supported on Metal" : "Not fully supported here"
+        if case .inactive = pack.support(on: api) { return loc("This pack won't activate") }
+        return api == .metal ? loc("Not fully supported on Metal") : loc("Not fully supported here")
     }
 
     private func confirmMessage(for pack: GraphicPack) -> String {
@@ -506,7 +506,7 @@ struct GraphicPackRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Toggle(isOn: Binding(get: { pack.enabled }, set: onToggle)) {
-                Text(pack.displayName)
+                Text(loc(pack.displayName))
                     .font(.subheadline.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -514,7 +514,7 @@ struct GraphicPackRow: View {
             .disabled(locked)
 
             if !pack.brief.isEmpty {
-                Text(pack.brief)
+                Text(loc(pack.brief))
                     .font(.system(size: 12))
                     .foregroundColor(EspressUTheme.secondaryText)
                     .lineLimit(2)
@@ -526,7 +526,7 @@ struct GraphicPackRow: View {
             // A push instead of a nested sheet: a sheet opened from inside the game's
             // settings sheet closed the whole settings menu along with it.
             NavigationLink(destination: detail) {
-                Text(pack.presetCount > 0 ? "Options and details" : "Details")
+                Text(loc(pack.presetCount > 0 ? "Options and details" : "Details"))
                     .font(.footnote.weight(.semibold))
                     .foregroundColor(EspressUTheme.accentText)
             }
@@ -536,15 +536,15 @@ struct GraphicPackRow: View {
 
     private var chips: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
-            if suggested { PackChip(text: "Suggested fix", style: .good) }
+            if suggested { PackChip(text: loc("Suggested fix"), style: .good) }
             switch support {
             case .full: EmptyView()
-            case .partial: PackChip(text: api == .metal ? "Shaders not supported on Metal" : "Some shaders skipped", style: .warning)
-            case .inactive: PackChip(text: "Won't activate here", style: .warning)
+            case .partial: PackChip(text: api == .metal ? loc("Shaders not supported on Metal") : loc("Some shaders skipped"), style: .warning)
+            case .inactive: PackChip(text: loc("Won't activate here"), style: .warning)
             }
-            if pack.canCostSpeed { PackChip(text: "Can cost speed", style: .neutral) }
-            if pack.raisesFrameRate { PackChip(text: "Needs speed to spare", style: .neutral) }
-            if pack.isImported { PackChip(text: "Imported", style: .neutral) }
+            if pack.canCostSpeed { PackChip(text: loc("Can cost speed"), style: .neutral) }
+            if pack.raisesFrameRate { PackChip(text: loc("Needs speed to spare"), style: .neutral) }
+            if pack.isImported { PackChip(text: loc("Imported"), style: .neutral) }
         }
     }
 }
@@ -555,7 +555,7 @@ struct PackChip: View {
     let style: Style
 
     var body: some View {
-        Text(text)
+        Text(loc(text))
             .font(.caption2.weight(.semibold))
             .foregroundColor(foreground)
             .padding(.horizontal, 8)
@@ -601,7 +601,7 @@ struct GraphicPackDetailView: View {
             EspressUTheme.backgroundGradient.ignoresSafeArea()
             content
         }
-        .navigationTitle(pack?.displayName ?? "Pack")
+        .navigationTitle(pack?.displayName ?? loc("Pack"))
         .espressuOpaqueNavigationBar(EspressUTheme.formGround)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -628,23 +628,23 @@ struct GraphicPackDetailView: View {
                     case .inactive(let why): ScreenStatusCallout(tone: .warning, message: why)
                     }
                     if store.gameRunning {
-                        ScreenStatusCallout(tone: .info, message: "A game is running. Close it to change this pack.")
+                        ScreenStatusCallout(tone: .info, message: loc("A game is running. Close it to change this pack."))
                     }
                 } header: {
-                    SettingsSectionHeader(pack.game == GraphicPack.allGames ? "Every game" : pack.game, icon: GraphicPackCategorySections.icon(for: pack.category), accent: GraphicPackCategorySections.accent(for: pack.category))
+                    SettingsSectionHeader(pack.game == GraphicPack.allGames ? loc("Every game") : pack.game, icon: GraphicPackCategorySections.icon(for: pack.category), accent: GraphicPackCategorySections.accent(for: pack.category))
                 } footer: {
-                    InfoButton.footer("Changes apply the next time you launch a game.")
+                    InfoButton.footer(loc("Changes apply the next time you launch a game."))
                 }
                 .foregroundColor(EspressUTheme.brownDarkest)
 
                 if let text = details?.description, !text.isEmpty {
                     Section {
-                        Text(text)
+                        Text(loc(text))
                             .font(.system(size: 14))
                             .foregroundColor(EspressUTheme.brownDarkest)
                             .fixedSize(horizontal: false, vertical: true)
                     } header: {
-                        SettingsSectionHeader("About this pack", icon: "text.alignleft", accent: .system)
+                        SettingsSectionHeader(loc("About this pack"), icon: "text.alignleft", accent: .system)
                     }
                 }
 
@@ -654,12 +654,12 @@ struct GraphicPackDetailView: View {
                     }
                     if details.categories.contains(where: { details.isResolutionCategory($0) }) {
                         Section {
-                            Text(profile.summary)
+                            Text(loc(profile.summary))
                                 .font(.system(size: 13))
                                 .foregroundColor(EspressUTheme.brownMid)
                                 .fixedSize(horizontal: false, vertical: true)
                         } header: {
-                            SettingsSectionHeader("Resolution on this device", icon: "ipad.and.iphone", accent: .core)
+                            SettingsSectionHeader(loc("Resolution on this device"), icon: "ipad.and.iphone", accent: .core)
                         }
                     }
                 }
@@ -677,7 +677,7 @@ struct GraphicPackDetailView: View {
                         Button(role: .destructive) {
                             confirmingRemove = true
                         } label: {
-                            DestructiveSettingsLabel(title: "Remove imported pack", systemImage: "trash")
+                            DestructiveSettingsLabel(title: loc("Remove imported pack"), systemImage: "trash")
                         }
                         .disabled(store.gameRunning)
                     }
@@ -695,8 +695,8 @@ struct GraphicPackDetailView: View {
                 Text("Its folder is deleted from EspressU's graphicPacks/imported folder.")
             }
         } else {
-            ScreenEmptyState(systemImage: "questionmark.folder", headline: "Pack not found",
-                             message: "It was removed or the packs were rescanned.")
+            ScreenEmptyState(systemImage: "questionmark.folder", headline: loc("Pack not found"),
+                             message: loc("It was removed or the packs were rescanned."))
         }
     }
 
@@ -710,9 +710,9 @@ struct GraphicPackDetailView: View {
                 Picker(selection: Binding(
                     get: { selected },
                     set: { name in store.setPreset(pack, category: category, preset: name) { details = $0 } }
-                ), label: Text(category.isEmpty ? "Option" : category).font(.subheadline.weight(.semibold))) {
+                ), label: Text(loc(category.isEmpty ? "Option" : category)).font(.subheadline.weight(.semibold))) {
                     ForEach(choices, id: \.name) { preset in
-                        Text(label(for: preset, isResolution: isResolution, suggestion: suggestion)).tag(preset.name)
+                        Text(loc(label(for: preset, isResolution: isResolution, suggestion: suggestion))).tag(preset.name)
                     }
                 }
                 .pickerStyle(.menu)
@@ -723,16 +723,16 @@ struct GraphicPackDetailView: View {
                     Button {
                         store.setPreset(pack, category: category, preset: suggestion.name) { details = $0 }
                     } label: {
-                        Label("Use the suggested setting (\(suggestion.name))", systemImage: "checkmark.circle")
+                        Label(locf("Use the suggested setting (%@)", suggestion.name), systemImage: "checkmark.circle")
                             .font(.footnote.weight(.semibold))
                     }
                     .disabled(store.gameRunning)
                 }
             } header: {
-                SettingsSectionHeader(category.isEmpty ? "Options" : category, icon: isResolution ? "arrow.up.left.and.arrow.down.right" : "slider.horizontal.3", accent: .core)
+                SettingsSectionHeader(category.isEmpty ? loc("Options") : category, icon: isResolution ? "arrow.up.left.and.arrow.down.right" : "slider.horizontal.3", accent: .core)
             } footer: {
                 if isResolution {
-                    InfoButton.footer("Higher resolutions cost speed and memory.")
+                    InfoButton.footer(loc("Higher resolutions cost speed and memory."))
                 }
             }
             .foregroundColor(EspressUTheme.brownDarkest)

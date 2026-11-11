@@ -15,7 +15,7 @@ struct EspressURowList: View {
             ForEach(groups) { group in
                 VStack(alignment: .leading, spacing: 6) {
                     if !group.title.isEmpty {
-                        Text(group.title.uppercased())
+                        Text(loc(group.title.uppercased()))
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 16)
@@ -63,7 +63,7 @@ struct EspressURowList: View {
                 rowLabel(item) { SettingsSwitch(isOn: binding.wrappedValue) }
             }
             .buttonStyle(.plain)
-            .accessibilityValue(binding.wrappedValue ? "On" : "Off")
+            .accessibilityValue(binding.wrappedValue ? loc("On") : loc("Off"))
 
         case .choice(let options, let binding):
             if EspressUSettingsView.usesSegments(options) {
@@ -75,7 +75,7 @@ struct EspressURowList: View {
                 } label: {
                     rowLabel(item) {
                         HStack(spacing: 6) {
-                            Text(options.first { $0.id == binding.wrappedValue }?.title ?? "")
+                            Text(loc(options.first { $0.id == binding.wrappedValue }?.title ?? ""))
                                 .font(.body)
                                 .foregroundColor(EspressUTheme.brownMid)
                                 .multilineTextAlignment(.trailing)
@@ -91,14 +91,14 @@ struct EspressURowList: View {
         case .slider(let binding, let range, let step, let label):
             VStack(alignment: .leading, spacing: 6) {
                 rowLabel(item, padded: false) {
-                    Text(label(binding.wrappedValue))
+                    Text(loc(label(binding.wrappedValue)))
                         .font(.body)
                         .foregroundColor(EspressUTheme.brownMid)
                         .monospacedDigit()
                 }
                 Slider(value: binding, in: range, step: step)
                     .tint(EspressUTheme.pixelBlue)
-                    .accessibilityLabel(item.title)
+                    .accessibilityLabel(loc(item.title))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
@@ -110,7 +110,7 @@ struct EspressURowList: View {
                 EspressURowLogic.press(item.id, confirm: confirm, armed: $armed, run: run)
             } label: {
                 rowLabel(item, titleColor: destructive ? EspressUTheme.alertText : nil) {
-                    Text(isArmed ? "Press again" : title)
+                    Text(loc(isArmed ? "Press again" : title))
                         .font(.body)
                         .foregroundColor(isArmed ? EspressUTheme.onAccent
                                          : (destructive ? EspressUTheme.alertText : EspressUTheme.accentText))
@@ -124,7 +124,7 @@ struct EspressURowList: View {
 
         case .info(let value, let tint):
             rowLabel(item) {
-                Text(value)
+                Text(loc(value))
                     .font(.body)
                     .foregroundColor(tint ?? EspressUTheme.brownMid)
                     .multilineTextAlignment(.trailing)
@@ -162,12 +162,12 @@ struct EspressURowList: View {
                                           titleColor: Color? = nil,
                                           @ViewBuilder trailing: () -> Trailing) -> some View {
         let text = VStack(alignment: .leading, spacing: 2) {
-            Text(item.title)
+            Text(loc(item.title))
                 .font(.body)
                 .foregroundColor(titleColor ?? EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
             if let detail = item.detail, !detail.isEmpty {
-                Text(detail)
+                Text(loc(detail))
                     .font(.footnote)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
@@ -203,7 +203,7 @@ struct EspressURowList: View {
                     focus = id
                     binding.wrappedValue = option.id
                 } label: {
-                    Text(option.title)
+                    Text(loc(option.title))
                         .font(.subheadline.weight(selected ? .semibold : .regular))
                         .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
                         .lineLimit(1)
@@ -393,7 +393,7 @@ struct SettingsDropdownOverlay: View {
                     .ignoresSafeArea()
                     .onTapGesture { state = nil }
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(item.title)
+                    Text(loc(item.title))
                         .font(.headline)
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .padding(.horizontal, 8)
@@ -432,7 +432,7 @@ struct SettingsDropdownOverlay: View {
                            pick: @escaping () -> Void) -> some View {
         Button(action: pick) {
             HStack(spacing: 12) {
-                Text(option.title)
+                Text(loc(option.title))
                     .font(.body.weight(selected ? .semibold : .regular))
                     .foregroundColor(selected ? EspressUTheme.accentText : EspressUTheme.brownDarkest)
                     .multilineTextAlignment(.leading)

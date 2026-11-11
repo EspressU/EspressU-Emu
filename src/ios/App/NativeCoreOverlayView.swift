@@ -89,7 +89,7 @@ private struct NativeOverlayCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             ForEach(lines.indices, id: \.self) { index in
-                Text(lines[index])
+                Text(loc(lines[index]))
                     .font(font)
                     .foregroundColor(Color(packedARGB: color))
                     .fixedSize(horizontal: false, vertical: true)

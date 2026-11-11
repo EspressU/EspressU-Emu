@@ -71,12 +71,12 @@ struct EspressUCoverPicker: View {
         .fileImporter(isPresented: $showingFiles, allowedContentTypes: [.image]) { result in
             switch result {
             case .failure(let error):
-                errorMessage = "Couldn't import that file: \(error.localizedDescription)"
+                errorMessage = locf("Couldn't import that file: %@", error.localizedDescription)
             case .success(let url):
                 let accessed = url.startAccessingSecurityScopedResource()
                 defer { if accessed { url.stopAccessingSecurityScopedResource() } }
                 guard let data = try? Data(contentsOf: url) else {
-                    errorMessage = "Couldn't read that file."
+                    errorMessage = loc("Couldn't read that file.")
                     return
                 }
                 usePicked(data)
@@ -90,7 +90,7 @@ struct EspressUCoverPicker: View {
         )) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
-            Text(errorMessage ?? "")
+            Text(loc(errorMessage ?? ""))
         }
     }
 
@@ -103,7 +103,7 @@ struct EspressUCoverPicker: View {
                 Text("Cover")
                     .font(.title.weight(.bold))
                     .foregroundColor(EspressUTheme.brownDarkest)
-                Text(hasOverride ? "\(live.cardName.name) uses your own cover." : "\(live.cardName.name) uses the automatic cover.")
+                Text(loc(hasOverride ? locf("%@ uses your own cover.", live.cardName.name) : locf("%@ uses the automatic cover.", live.cardName.name)))
                     .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
                     .multilineTextAlignment(.center)
@@ -114,15 +114,15 @@ struct EspressUCoverPicker: View {
     private func sources(wide: Bool) -> some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: wide ? (hasOverride ? 3 : 2) : 2)
         return LazyVGrid(columns: columns, spacing: 14) {
-            sourceTile(id: "photos", title: "Photos", detail: "Pick an image", symbol: "photo.on.rectangle") {
+            sourceTile(id: "photos", title: loc("Photos"), detail: loc("Pick an image"), symbol: "photo.on.rectangle") {
                 showingPhotos = true
             }
-            sourceTile(id: "files", title: "Files", detail: "iCloud or this iPad", symbol: "folder.fill") {
+            sourceTile(id: "files", title: loc("Files"), detail: loc("iCloud or this iPad"), symbol: "folder.fill") {
                 showingFiles = true
             }
             if hasOverride {
-                sourceTile(id: "automatic", title: armed == "automatic" ? "Press again" : "Automatic",
-                           detail: "Remove your cover", symbol: "arrow.uturn.backward", destructive: true) {
+                sourceTile(id: "automatic", title: armed == "automatic" ? loc("Press again") : loc("Automatic"),
+                           detail: loc("Remove your cover"), symbol: "arrow.uturn.backward", destructive: true) {
                     EspressURowLogic.press("automatic", confirm: true, armed: $armed) {
                         gameManager.removeManualCover(forGameID: game.id)
                     }
@@ -141,10 +141,10 @@ struct EspressUCoverPicker: View {
                 Image(systemName: symbol)
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(destructive ? EspressUTheme.alertText : EspressUTheme.accentText)
-                Text(title)
+                Text(loc(title))
                     .font(.body.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownDarkest)
-                Text(detail)
+                Text(loc(detail))
                     .font(.footnote)
                     .foregroundColor(EspressUTheme.brownMid)
                     .multilineTextAlignment(.center)
@@ -242,7 +242,7 @@ struct EspressUCoverPicker: View {
 
     private func usePicked(_ data: Data) {
         guard let prepared = CoverImageLoader.prepareCustomCover(from: data) else {
-            errorMessage = "That doesn't look like a valid image."
+            errorMessage = loc("That doesn't look like a valid image.")
             return
         }
         apply(prepared.data, ext: prepared.ext)
@@ -359,7 +359,7 @@ private struct ModernCoverPhotosPicker: ViewModifier {
                 item = nil
                 Task {
                     guard let data = try? await newItem.loadTransferable(type: Data.self) else {
-                        await MainActor.run { onError("Couldn't load that photo.") }
+                        await MainActor.run { onError(loc("Couldn't load that photo.")) }
                         return
                     }
                     await MainActor.run { onPicked(data) }

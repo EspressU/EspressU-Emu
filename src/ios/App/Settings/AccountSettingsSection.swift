@@ -22,18 +22,18 @@ struct AccountSettingsSection: View {
 
     @ViewBuilder private var accountFooter: some View {
         if locked {
-            InfoButton.footer("Accounts can't be changed while a game is running. Close the game first.")
+            InfoButton.footer(loc("Accounts can't be changed while a game is running. Close the game first."))
         } else if let note = OnlineReadiness.note(accountId: activePersistentId,
                                                   service: NetworkService(cemu_bridge_network_service(activePersistentId))) {
             InfoButton.footer(
                 note,
-                title: "Online play",
+                title: loc("Online play"),
                 text: OnlineReadiness.howToFix + "\n\nImport from Wii U accepts account.dat, its 800000XX folder, otp.bin and seeprom.bin. EspressU can't create a linked account itself.")
         } else if let activeAccount, !activeAccount.isValidOnline {
             InfoButton.footer(
-                "This account has no cached NNID/PNID login, so it can't play online yet.",
-                title: "Account",
-                text: "Online play needs an account with a saved NNID or PNID login. Sign in on a real console and copy its account.dat here; EspressU can't create one.")
+                loc("This account has no cached NNID/PNID login, so it can't play online yet."),
+                title: loc("Account"),
+                text: loc("Online play needs an account with a saved NNID or PNID login. Sign in on a real console and copy its account.dat here; EspressU can't create one."))
         }
     }
 
@@ -47,7 +47,7 @@ struct AccountSettingsSection: View {
                 }
             )) {
                 ForEach(accounts) { account in
-                    Text(account.displayNameWithId).tag(account.persistentId)
+                    Text(loc(account.displayNameWithId)).tag(account.persistentId)
                 }
             }
             .pickerStyle(.menu)
@@ -66,7 +66,7 @@ struct AccountSettingsSection: View {
             AccountImportButton(locked: locked, onChange: reload)
                 .buttonStyle(.borderless)
         } header: {
-            SettingsSectionHeader("Account", icon: "person.crop.circle", accent: .content)
+            SettingsSectionHeader(loc("Account"), icon: "person.crop.circle", accent: .content)
         } footer: {
             accountFooter
         }
@@ -75,7 +75,7 @@ struct AccountSettingsSection: View {
         .refreshable { reload() }
         .onReceive(accountSheets.$revision.dropFirst()) { _ in reload() }
         .confirmationDialog(
-            "Delete account?",
+            loc("Delete account?"),
             isPresented: Binding(
                 get: { accountToDelete != nil },
                 set: { if !$0 { accountToDelete = nil } }
@@ -84,7 +84,7 @@ struct AccountSettingsSection: View {
         ) {
             Button("Delete", role: .destructive) {
                 if let account = accountToDelete, !cemu_bridge_account_delete(account.persistentId) {
-                    errorMessage = "Couldn't delete that account."
+                    errorMessage = loc("Couldn't delete that account.")
                 }
                 accountToDelete = nil
                 reload()
@@ -92,7 +92,7 @@ struct AccountSettingsSection: View {
             Button("Cancel", role: .cancel) { accountToDelete = nil }
         } message: {
             if let account = accountToDelete {
-                Text("Are you sure you want to delete \(account.displayName) (\(account.persistentIdHex))?")
+                Text(locf("Are you sure you want to delete %@ (%@)?", account.displayName, account.persistentIdHex))
             }
         }
         .alert("Error", isPresented: Binding(
@@ -101,7 +101,7 @@ struct AccountSettingsSection: View {
         )) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
-            Text(errorMessage ?? "")
+            Text(loc(errorMessage ?? ""))
         }
     }
 
@@ -125,14 +125,14 @@ struct NetworkServiceSettingsSection: View {
 
     private var readinessLine: String {
         let missing = OnlineReadiness.missingItems(accountId: activePersistentId)
-        if selectedService == .offline { return "Online play is off. Pick a Network Service to use it." }
-        if selectedService == .custom { return customAvailable ? "Ready for online play (custom server)" : "Not ready for online play. Missing: a valid network_services.xml." }
-        return missing.isEmpty ? "Ready for online play" : "Not ready for online play. Missing: " + missing.joined(separator: ", ") + "."
+        if selectedService == .offline { return loc("Online play is off. Pick a Network Service to use it.") }
+        if selectedService == .custom { return customAvailable ? loc("Ready for online play (custom server)") : loc("Not ready for online play. Missing: a valid network_services.xml.") }
+        return missing.isEmpty ? loc("Ready for online play") : loc("Not ready for online play. Missing: ") + missing.joined(separator: ", ") + "."
     }
 
     var body: some View {
         Section {
-            Text(readinessLine)
+            Text(loc(readinessLine))
                 .font(.subheadline.weight(.semibold))
 
             DeviceConnectionStatusRow()
@@ -151,7 +151,7 @@ struct NetworkServiceSettingsSection: View {
                     selectedService = service
                 } label: {
                     HStack {
-                        Text(service.string)
+                        Text(loc(service.string))
                         Spacer()
                         if selectedService == service {
                             Image(systemName: "checkmark")
@@ -163,13 +163,13 @@ struct NetworkServiceSettingsSection: View {
                           || (service == .nintendo && selectedService != .nintendo))
             }
         } header: {
-            SettingsSectionHeader("Network Service\(activeAccountName.map { " (\($0))" } ?? "")",
+            SettingsSectionHeader(locf("Network Service%@", activeAccountName.map { " (\($0))" } ?? ""),
                                   icon: "network", accent: .content)
         } footer: {
             InfoButton.footer(
-                locked ? "The Network Service can't be changed while a game is running. Close the game first." : selectedService.accountHelp,
-                title: "Network Service",
-                text: "Pretendo is a community-run replacement for Nintendo's Wii U online services. Its server addresses are built in, so there's nothing to configure.\n\nNintendo's own servers have been shut down, so that option can't be selected.\n\nCustom works with a network_services.xml, the same file desktop Cemu reads. Add one under Custom servers below. It needs no linked account or otp.bin and seeprom.bin.\n\n" + OnlineReadiness.howToFix)
+                locked ? loc("The Network Service can't be changed while a game is running. Close the game first.") : selectedService.accountHelp,
+                title: loc("Network Service"),
+                text: loc("Pretendo is a community-run replacement for Nintendo's Wii U online services. Its server addresses are built in, so there's nothing to configure.\n\nNintendo's own servers have been shut down, so that option can't be selected.\n\nCustom works with a network_services.xml, the same file desktop Cemu reads. Add one under Custom servers below. It needs no linked account or otp.bin and seeprom.bin.\n\n") + OnlineReadiness.howToFix)
         }
         .foregroundColor(EspressUTheme.brownDarkest)
         .onAppear(perform: reload)

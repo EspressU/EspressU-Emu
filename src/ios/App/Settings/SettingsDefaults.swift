@@ -72,6 +72,7 @@ enum SettingsDefaults {
 
     @MainActor
     private static func pushDefaultsToBridge() {
+        GameLanguage.applyStoredToBridge()
         cemu_bridge_set_recompiler_enabled(true)
         cemu_bridge_set_favour_accuracy(false)
         cemu_bridge_set_favour_performance(FavourPerformance.defaultValue)

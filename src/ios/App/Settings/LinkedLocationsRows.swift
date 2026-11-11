@@ -37,7 +37,7 @@ struct LinkedLocationsRows: View {
                 .foregroundColor(EspressUTheme.brownMid)
         }
         .confirmationDialog(
-            "Unlink this location?",
+            loc("Unlink this location?"),
             isPresented: Binding(get: { pendingUnlink != nil }, set: { if !$0 { pendingUnlink = nil } }),
             titleVisibility: .visible,
             presenting: pendingUnlink
@@ -47,12 +47,12 @@ struct LinkedLocationsRows: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: { location in
-            Text("\"\(location.name)\" stops appearing in your library. Nothing on the drive or in the folder is deleted. Your saves and options are kept.")
+            Text(locf("\"%@\" stops appearing in your library. Nothing on the drive or in the folder is deleted. Your saves and options are kept.", location.name))
         }
         .alert("Couldn't link that", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(errorMessage ?? "")
+            Text(loc(errorMessage ?? ""))
         }
     }
 
@@ -65,10 +65,10 @@ struct LinkedLocationsRows: View {
                     .foregroundColor(EspressUTheme.brownMid)
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(location.name)
+                    Text(loc(location.name))
                         .font(.subheadline.weight(.semibold))
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(statusLine(for: location, connected: connected))
+                    Text(loc(statusLine(for: location, connected: connected)))
                         .font(.caption)
                         .foregroundColor(connected ? EspressUTheme.brownMid : EspressUTheme.alertText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -78,10 +78,10 @@ struct LinkedLocationsRows: View {
                     .font(.subheadline.weight(.semibold))
                     .buttonStyle(.borderless)
                     .frame(minHeight: 44)
-                    .accessibilityLabel("Unlink \(location.name)")
+                    .accessibilityLabel(locf("Unlink %@", location.name))
             }
             if !location.hidden.isEmpty {
-                Button("Show \(location.hidden.count) removed game\(location.hidden.count == 1 ? "" : "s") again") {
+                Button(locn(location.hidden.count, "Show %@ removed game again", "Show %@ removed games again")) {
                     Task { await gameManager.restoreHiddenGames(in: location.id) }
                 }
                 .font(.footnote.weight(.semibold))
@@ -93,7 +93,7 @@ struct LinkedLocationsRows: View {
     private func statusLine(for location: LinkedLocation, connected: Bool) -> String {
         if !connected { return ExternalLibrary.unavailableMessage }
         let count = location.games.count
-        return count == 1 ? "Connected, 1 game" : "Connected, \(count) games"
+        return count == 1 ? loc("Connected, 1 game") : locf("Connected, %@ games", count)
     }
 
     private func beginLink(contentTypes: [UTType]) {

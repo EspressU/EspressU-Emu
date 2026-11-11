@@ -22,10 +22,10 @@ struct ScreenEmptyState: View {
         if UIStyle.isClassic {
             return AnyView(
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(headline)
+                    Text(loc(headline))
                         .font(.footnote)
                         .foregroundColor(EspressUTheme.brownMid)
-                    Text(message)
+                    Text(loc(message))
                         .font(.footnote)
                         .foregroundColor(EspressUTheme.brownMid)
                 }
@@ -48,14 +48,14 @@ struct ScreenEmptyState: View {
             .frame(width: 64, height: 64)
             .accessibilityHidden(true)
 
-            Text(headline)
+            Text(loc(headline))
                 .font(.body.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
 
-            Text(message)
+            Text(loc(message))
                 .font(.footnote)
                 .foregroundColor(EspressUTheme.brownMid)
                 .multilineTextAlignment(.center)
@@ -63,7 +63,7 @@ struct ScreenEmptyState: View {
 
             if let actionTitle, let action {
                 Button(action: action) {
-                    Text(actionTitle)
+                    Text(loc(actionTitle))
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
                 .padding(.top, 2)
@@ -105,7 +105,7 @@ struct ScreenStatusCallout: View {
                 .foregroundColor(tone.accent)
                 .accessibilityHidden(true)
 
-            Text(message)
+            Text(loc(message))
                 .font(.footnote.weight(.medium))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
@@ -124,11 +124,11 @@ struct ScreenSlotBadge: View {
             Circle()
                 .fill(isFilled ? EspressUTheme.pixelBlue : EspressUTheme.wrapper)
             if isFilled {
-                Text(label)
+                Text(loc(label))
                     .font(.footnote.weight(.semibold))
                     .foregroundColor(LegibleInk.on(EspressUTheme.pixelBlue, light: EspressUTheme.sparkleCream))
             } else {
-                Text(label)
+                Text(loc(label))
                     .font(.footnote.weight(.semibold))
                     .foregroundColor(LegibleInk.ensure(EspressUTheme.brownMid, on: EspressUTheme.wrapper))
             }
@@ -145,7 +145,7 @@ struct ScreenChip: View {
     var body: some View {
         if UIStyle.isClassic {
             return AnyView(
-                Text(text)
+                Text(loc(text))
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
             )
@@ -154,7 +154,7 @@ struct ScreenChip: View {
     }
 
     private var modernBody: some View {
-        Text(text)
+        Text(loc(text))
             .font(.caption2.weight(.semibold))
             .foregroundColor(isMuted
                              ? LegibleInk.ensure(EspressUTheme.brownMid, on: EspressUTheme.wrapper)

@@ -57,7 +57,7 @@ struct HeatNoticeModifier: ViewModifier {
                 if hot && !wasHot {
                     show(Self.hotMessage)
                 } else if !hot && wasHot {
-                    show("The device has cooled down. The game should run at full speed again.")
+                    show(loc("The device has cooled down. The game should run at full speed again."))
                 }
             }
     }
@@ -68,6 +68,6 @@ struct HeatNoticeModifier: ViewModifier {
     }
 
     @MainActor private static var hotMessage: String {
-        "The device is hot, so iOS is slowing the game down. After you quit, try Cool down automatically (Settings, CPU) or a lower Resolution (Settings, Graphics)."
+        loc("The device is hot, so iOS is slowing the game down. After you quit, try Cool down automatically (Settings, CPU) or a lower Resolution (Settings, Graphics).")
     }
 }
