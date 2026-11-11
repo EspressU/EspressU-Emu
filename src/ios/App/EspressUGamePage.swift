@@ -124,13 +124,13 @@ struct EspressUGamePage: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 6) {
-                Text(live.cardName.name)
+                Text(loc(live.cardName.name))
                     .font(isWide ? .title.bold() : .title2.bold())
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 if let by = info?.publisher ?? info?.developer {
-                    Text(by)
+                    Text(loc(by))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                 }
@@ -150,13 +150,13 @@ struct EspressUGamePage: View {
                 }
                 .buttonStyle(.plain)
                 .espressUFocusRing(input.showsFocus && focus == "play")
-                .accessibilityLabel("Play \(live.cardName.name)")
+                .accessibilityLabel(locf("Play %@", live.cardName.name))
 
                 Button { gameManager.toggleFavorite(live) } label: {
                     HStack(spacing: 8) {
                         Image(systemName: live.isFavorite ? "heart.fill" : "heart")
                             .foregroundColor(live.isFavorite ? EspressUTheme.alertText : EspressUTheme.brownDark)
-                        Text(live.isFavorite ? "Favourite" : "Add to favourites")
+                        Text(loc(live.isFavorite ? "Favourite" : "Add to favourites"))
                             .foregroundColor(EspressUTheme.brownDarkest)
                     }
                     .font(.body.weight(.semibold))
@@ -172,8 +172,8 @@ struct EspressUGamePage: View {
 
     private var chips: some View {
         var items: [(String, String)] = []
-        items.append(("globe", live.region ?? "Region unknown"))
-        if let players = info?.localPlayers { items.append(("person.2.fill", players == 1 ? "1 player" : "1–\(players) players")) }
+        items.append(("globe", live.region ?? loc("Region unknown")))
+        if let players = info?.localPlayers { items.append(("person.2.fill", players == 1 ? loc("1 player") : locf("1–%@ players", players))) }
         if let genre = info?.genres.first { items.append(("tag.fill", genre.capitalized)) }
         return HStack(spacing: 8) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
@@ -223,12 +223,12 @@ struct EspressUGamePage: View {
 
     private var statsCard: some View {
         var tiles: [(String, String, String)] = [
-            ("clock", "Last played", lastPlayedText),
-            ("number", "Times played", "\(stats.entry(for: game.id)?.count ?? 0)"),
-            ("internaldrive", "Size on disk", sizeOnDisk.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) } ?? "…"),
+            ("clock", loc("Last played"), lastPlayedText),
+            ("number", loc("Times played"), "\(stats.entry(for: game.id)?.count ?? 0)"),
+            ("internaldrive", loc("Size on disk"), sizeOnDisk.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) } ?? "…"),
         ]
         if live.titleId != nil {
-            tiles.append(("square.stack.3d.up", "Shader cache", shaderBytes.map { ShaderCacheInfo.formatBytes($0) } ?? "…"))
+            tiles.append(("square.stack.3d.up", loc("Shader cache"), shaderBytes.map { ShaderCacheInfo.formatBytes($0) } ?? "…"))
         }
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 10, alignment: .top)], alignment: .leading, spacing: 10) {
             ForEach(Array(tiles.enumerated()), id: \.offset) { _, stat in
@@ -237,7 +237,7 @@ struct EspressUGamePage: View {
                         .font(.caption.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                         .lineLimit(1)
-                    Text(stat.2)
+                    Text(loc(stat.2))
                         .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .lineLimit(1)
@@ -258,12 +258,12 @@ struct EspressUGamePage: View {
                 .tracking(0.6)
                 .foregroundColor(EspressUTheme.brownMid)
             if let text = info?.bestSynopsis?.text {
-                Text(text)
+                Text(loc(text))
                     .font(.body)
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .lineLimit(showsWholeSummary ? nil : 4)
                     .fixedSize(horizontal: false, vertical: true)
-                Button(showsWholeSummary ? "Less" : "More") {
+                Button(showsWholeSummary ? loc("Less") : loc("More")) {
                     withAnimation(.easeOut(duration: 0.2)) { showsWholeSummary.toggle() }
                 }
                 .font(.subheadline.weight(.semibold))
@@ -293,13 +293,13 @@ struct EspressUGamePage: View {
     private func section(_ id: String, _ title: String, summary: String, items: [SettingsItem]) -> [SettingsItem] {
         let open = openSections.contains(id)
         let header = SettingsItem(id: "section.\(id)", title: title, detail: summary,
-                                  control: .action(open ? "Hide" : "Show", destructive: false, confirm: false,
+                                  control: .action(open ? loc("Hide") : loc("Show"), destructive: false, confirm: false,
                                                    run: { toggleSection(id) }))
         return [header] + (open ? items : [])
     }
 
     private func overrideSummary(_ count: Int) -> String {
-        count == 0 ? "Follows your settings" : (count == 1 ? "1 set for this game" : "\(count) set for this game")
+        count == 0 ? loc("Follows your settings") : (count == 1 ? loc("1 set for this game") : locf("%@ set for this game", count))
     }
 
     private var settingsGroup: SettingsGroup {
@@ -309,85 +309,85 @@ struct EspressUGamePage: View {
         let pictureCount = [o.renderScale != nil, o.upscaleFilter != nil, o.downscaleFilter != nil].filter { $0 }.count
         let screenCount = [o.screenLayout != nil, o.autoHideControls != nil, o.performanceOverlay != nil].filter { $0 }.count
         var items: [SettingsItem] = []
-        items += section("speed", "Speed", summary: overrideSummary(speedCount), items: speedGroup.items)
-        items += section("picture", "Picture", summary: overrideSummary(pictureCount), items: pictureGroup.items)
-        items += section("screen", "Screen and controls", summary: overrideSummary(screenCount), items: screenGroup.items)
+        items += section("speed", loc("Speed"), summary: overrideSummary(speedCount), items: speedGroup.items)
+        items += section("picture", loc("Picture"), summary: overrideSummary(pictureCount), items: pictureGroup.items)
+        items += section("screen", loc("Screen and controls"), summary: overrideSummary(screenCount), items: screenGroup.items)
         if !o.isIdentity {
-            items.append(SettingsItem(id: "set.reset", title: "Use the global settings",
-                                      detail: "Removes everything set for this game only.",
-                                      control: .action("Reset", destructive: true, confirm: true,
+            items.append(SettingsItem(id: "set.reset", title: loc("Use the global settings"),
+                                      detail: loc("Removes everything set for this game only."),
+                                      control: .action(loc("Reset"), destructive: true, confirm: true,
                                                        run: { store.clearOverrides(for: key) })))
         }
-        return SettingsGroup(id: "settings", title: "Game settings", items: items)
+        return SettingsGroup(id: "settings", title: loc("Game settings"), items: items)
     }
 
     private var speedGroup: SettingsGroup {
         let o = store.overrides(for: key)
         let steadyOn = o.fullSpeedRenders ?? store.globalFullSpeedRenders
         var items: [SettingsItem] = [
-            choice("set.cores", "CPU cores", nil,
+            choice("set.cores", loc("CPU cores"), nil,
                    current: o.coreMode,
                    options: CoreMode.allCases.map { SettingsOption(id: $0.rawValue, title: $0.title) },
                    global: CoreMode.current.title) { value in store.updateOverrides(for: key) { $0.coreMode = value } },
-            onOff("set.performance", "Favour performance", "Faster, a little less exact.",
+            onOff("set.performance", loc("Favour performance"), loc("Faster, a little less exact."),
                   current: o.favourPerformance, global: store.globalFavourPerformance) { value in
                 store.updateOverrides(for: key) { $0.favourPerformance = value } },
-            onOff("set.accuracy", "Favour accuracy", "For games that glitch otherwise; slower.",
+            onOff("set.accuracy", loc("Favour accuracy"), loc("For games that glitch otherwise; slower."),
                   current: o.favourAccuracy, global: store.globalFavourAccuracy) { value in
                 store.updateOverrides(for: key) { $0.favourAccuracy = value } },
-            onOff("set.steady", "Steady frame rate", "Shows every frame at the game's own speed.",
+            onOff("set.steady", loc("Steady frame rate"), loc("Shows every frame at the game's own speed."),
                   current: o.fullSpeedRenders, global: store.globalFullSpeedRenders) { value in
                 store.updateOverrides(for: key) { $0.fullSpeedRenders = value } },
         ]
         if steadyOn {
-            items.append(intChoice("set.steadyShader", "When a new effect appears", nil,
+            items.append(intChoice("set.steadyShader", loc("When a new effect appears"), nil,
                                    current: o.fullSpeedShaderMode,
                                    options: FullSpeedRenders.ShaderMode.allCases.map { SettingsOption(id: String($0.rawValue), title: $0.title) },
                                    global: store.globalFullSpeedShaderMode.title) { value in
                 store.updateOverrides(for: key) { $0.fullSpeedShaderMode = value } })
         }
         items.append(contentsOf: [
-            onOff("set.oneCore", "One-core mode", "One CPU core, whatever CPU cores says.",
+            onOff("set.oneCore", loc("One-core mode"), loc("One CPU core, whatever CPU cores says."),
                   current: o.oneCoreMode, global: store.globalOneCoreMode) { value in
                 store.updateOverrides(for: key) { $0.oneCoreMode = value } },
-            onOff("set.shaders", "Compile shaders in the background", "Off for games that break with it on.",
+            onOff("set.shaders", loc("Compile shaders in the background"), loc("Off for games that break with it on."),
                   current: o.preCompileShaders, global: store.globalPreCompileShaders) { value in
                 store.updateOverrides(for: key) { $0.preCompileShaders = value } },
         ])
-        return SettingsGroup(id: "speed", title: "Speed", items: items)
+        return SettingsGroup(id: "speed", title: loc("Speed"), items: items)
     }
 
     private var pictureGroup: SettingsGroup {
         let o = store.overrides(for: key)
         let filters = ScaleFilter.allCases.map { SettingsOption(id: String($0.rawValue), title: $0.title) }
         let items: [SettingsItem] = [
-            choice("set.res", "Resolution", "Sharper pictures cost more speed.",
+            choice("set.res", loc("Resolution"), loc("Sharper pictures cost more speed."),
                    current: o.renderScale,
                    options: RenderScale.allCases.map { SettingsOption(id: $0.rawValue, title: $0.title) },
                    global: RenderScale.storedChoice.title) { value in store.updateOverrides(for: key) { $0.renderScale = value } },
-            intChoice("set.upscale", "Filter when enlarging", nil, current: o.upscaleFilter, options: filters,
+            intChoice("set.upscale", loc("Filter when enlarging"), nil, current: o.upscaleFilter, options: filters,
                       global: store.globalUpscaleFilter.title) { value in store.updateOverrides(for: key) { $0.upscaleFilter = value } },
-            intChoice("set.downscale", "Filter when shrinking", nil, current: o.downscaleFilter, options: filters,
+            intChoice("set.downscale", loc("Filter when shrinking"), nil, current: o.downscaleFilter, options: filters,
                       global: store.globalDownscaleFilter.title) { value in store.updateOverrides(for: key) { $0.downscaleFilter = value } },
         ]
-        return SettingsGroup(id: "picture", title: "Picture", items: items)
+        return SettingsGroup(id: "picture", title: loc("Picture"), items: items)
     }
 
     private var screenGroup: SettingsGroup {
         let o = store.overrides(for: key)
         let items: [SettingsItem] = [
-            choice("set.layout", "Screen layout", nil,
+            choice("set.layout", loc("Screen layout"), nil,
                    current: o.screenLayout,
                    options: ScreenLayout.allCases.map { SettingsOption(id: $0.rawValue, title: $0.string) },
                    global: store.globalScreenLayout.string) { value in store.updateOverrides(for: key) { $0.screenLayout = value } },
-            onOff("set.autoHide", "Hide touch controls with a controller", nil,
+            onOff("set.autoHide", loc("Hide touch controls with a controller"), nil,
                   current: o.autoHideControls, global: store.globalAutoHideControls) { value in
                 store.updateOverrides(for: key) { $0.autoHideControls = value } },
-            onOff("set.overlay", "Performance overlay", nil,
+            onOff("set.overlay", loc("Performance overlay"), nil,
                   current: o.performanceOverlay, global: store.globalOverlayPosition != .disabled) { value in
                 store.updateOverrides(for: key) { $0.performanceOverlay = value } },
         ]
-        return SettingsGroup(id: "screen", title: "Screen and controls", items: items)
+        return SettingsGroup(id: "screen", title: loc("Screen and controls"), items: items)
     }
 
     private var filesGroup: SettingsGroup {
@@ -395,41 +395,41 @@ struct EspressUGamePage: View {
             : GraphicPackStore.shared.packs.filter { $0.enabled && ($0.universal || $0.appliesTo(titleId: live.titleId)) && !$0.universal }.count
         let busy = files.busy
         var items: [SettingsItem] = [
-            SettingsItem(id: "files.packs", title: "Graphic packs",
-                         detail: packsOn > 0 ? "\(packsOn) on for this game." : "Resolution, frame rate, fixes and mods.",
-                         control: .action("Open", destructive: false, confirm: false, run: { open(.packs) })),
-            SettingsItem(id: "files.exportSave", title: "Export game saves",
-                         detail: "Writes the save in the Wii U's own format.",
-                         control: .action("Export", destructive: false, confirm: false, run: { files.exportSave(for: live) }),
+            SettingsItem(id: "files.packs", title: loc("Graphic packs"),
+                         detail: packsOn > 0 ? locf("%@ on for this game.", packsOn) : loc("Resolution, frame rate, fixes and mods."),
+                         control: .action(loc("Open"), destructive: false, confirm: false, run: { open(.packs) })),
+            SettingsItem(id: "files.exportSave", title: loc("Export game saves"),
+                         detail: loc("Writes the save in the Wii U's own format."),
+                         control: .action(loc("Export"), destructive: false, confirm: false, run: { files.exportSave(for: live) }),
                          enabled: GameSaveTransfer.hasSave(for: live)),
-            SettingsItem(id: "files.importSave", title: "Import a game save folder",
-                         detail: "Replaces the current save. The old one is backed up first. Close the game before you do this.",
-                         control: .action("Import", destructive: true, confirm: true, run: { files.importSave(for: live) })),
-            SettingsItem(id: "files.shaders", title: "Import learned shaders",
-                         detail: "From desktop Cemu or another EspressU. Adds to this game's shaders, never replaces them.",
-                         control: .action("Import", destructive: false, confirm: false,
+            SettingsItem(id: "files.importSave", title: loc("Import a game save folder"),
+                         detail: loc("Replaces the current save. The old one is backed up first. Close the game before you do this."),
+                         control: .action(loc("Import"), destructive: true, confirm: true, run: { files.importSave(for: live) })),
+            SettingsItem(id: "files.shaders", title: loc("Import learned shaders"),
+                         detail: loc("From desktop Cemu or another EspressU. Adds to this game's shaders, never replaces them."),
+                         control: .action(loc("Import"), destructive: false, confirm: false,
                                           run: { files.importCache(.shaders, for: live, library: gameManager.games) }),
                          enabled: !busy),
-            SettingsItem(id: "files.pipeline", title: "Import shader pipeline caches",
-                         detail: "Only EspressU's own Metal pipeline caches (..._mtlpipeline.bin) work here.",
-                         control: .action("Import", destructive: false, confirm: false,
+            SettingsItem(id: "files.pipeline", title: loc("Import shader pipeline caches"),
+                         detail: loc("Only EspressU's own Metal pipeline caches (..._mtlpipeline.bin) work here."),
+                         control: .action(loc("Import"), destructive: false, confirm: false,
                                           run: { files.importCache(.pipeline, for: live, library: gameManager.games) }),
                          enabled: !busy),
         ]
         if busy {
-            items.append(SettingsItem(id: "files.busy", title: "Importing…", control: .info("", nil)))
+            items.append(SettingsItem(id: "files.busy", title: loc("Importing…"), control: .info("", nil)))
         }
         if let message = files.message {
-            items.append(SettingsItem(id: "files.result", title: files.failed ? "That didn't work" : "Done",
+            items.append(SettingsItem(id: "files.result", title: files.failed ? loc("That didn't work") : loc("Done"),
                                       detail: message, control: .info("", nil)))
         }
-        return SettingsGroup(id: "files", title: "Packs, saves and caches", items: items)
+        return SettingsGroup(id: "files", title: loc("Packs, saves and caches"), items: items)
     }
 
     private func choice(_ id: String, _ title: String, _ detail: String?, current: String?,
                         options: [SettingsOption], global: String,
                         set: @escaping (String?) -> Void) -> SettingsItem {
-        let all = [SettingsOption(id: "default", title: "Default (\(global))")] + options
+        let all = [SettingsOption(id: "default", title: locf("Default (%@)", global))] + options
         let binding = Binding<String>(
             get: { current.flatMap { value in options.contains { $0.id == value } ? value : nil } ?? "default" },
             set: { set($0 == "default" ? nil : $0) })
@@ -446,13 +446,13 @@ struct EspressUGamePage: View {
 
     private func onOff(_ id: String, _ title: String, _ detail: String?, current: Bool?, global: Bool,
                        set: @escaping (Bool?) -> Void) -> SettingsItem {
-        let options = [SettingsOption(id: "on", title: "On"), SettingsOption(id: "off", title: "Off")]
+        let options = [SettingsOption(id: "on", title: loc("On")), SettingsOption(id: "off", title: loc("Off"))]
         return choice(id, title, detail, current: current.map { $0 ? "on" : "off" }, options: options,
-                      global: global ? "On" : "Off") { value in set(value.map { $0 == "on" }) }
+                      global: global ? loc("On") : loc("Off")) { value in set(value.map { $0 == "on" }) }
     }
 
     private var lastPlayedText: String {
-        guard let entry = stats.entry(for: game.id) else { return "Not yet" }
+        guard let entry = stats.entry(for: game.id) else { return loc("Not yet") }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(for: entry.last, relativeTo: Date())
@@ -461,75 +461,75 @@ struct EspressUGamePage: View {
     private var contentGroup: SettingsGroup {
         let installed = DlcUpdateImport.installedContent(for: live)
         var items: [SettingsItem] = [
-            SettingsItem(id: "content.update", title: "Update",
-                         detail: installed.hasUpdate ? nil : "Add one from Add on the home screen.",
-                         control: .info(installed.hasUpdate ? "Installed" : "Not installed", nil)),
-            SettingsItem(id: "content.dlc", title: "DLC",
-                         detail: installed.hasDLC ? nil : "Add one from Add on the home screen.",
-                         control: .info(installed.hasDLC ? "Installed" : "Not installed", nil))
+            SettingsItem(id: "content.update", title: loc("Update"),
+                         detail: installed.hasUpdate ? nil : loc("Add one from Add on the home screen."),
+                         control: .info(installed.hasUpdate ? loc("Installed") : loc("Not installed"), nil)),
+            SettingsItem(id: "content.dlc", title: loc("DLC"),
+                         detail: installed.hasDLC ? nil : loc("Add one from Add on the home screen."),
+                         control: .info(installed.hasDLC ? loc("Installed") : loc("Not installed"), nil))
         ]
         if installed.hasUpdate {
-            items.append(SettingsItem(id: "content.removeUpdate", title: "Remove the update",
-                                      control: .action("Remove", destructive: true, confirm: false, run: { closeThen(onRemoveUpdate) })))
+            items.append(SettingsItem(id: "content.removeUpdate", title: loc("Remove the update"),
+                                      control: .action(loc("Remove"), destructive: true, confirm: false, run: { closeThen(onRemoveUpdate) })))
         }
         if installed.hasDLC {
-            items.append(SettingsItem(id: "content.removeDLC", title: "Remove the DLC",
-                                      control: .action("Remove", destructive: true, confirm: false, run: { closeThen(onRemoveDLC) })))
+            items.append(SettingsItem(id: "content.removeDLC", title: loc("Remove the DLC"),
+                                      control: .action(loc("Remove"), destructive: true, confirm: false, run: { closeThen(onRemoveDLC) })))
         }
         if gameSupportsDecryptToFiles(romPath: live.romPath) {
-            items.append(SettingsItem(id: "content.decrypt", title: "Decrypt", detail: "Writes a decrypted copy to Files.",
-                                      control: .action("Start", destructive: false, confirm: false, run: { closeThen(onDecrypt) })))
+            items.append(SettingsItem(id: "content.decrypt", title: loc("Decrypt"), detail: loc("Writes a decrypted copy to Files."),
+                                      control: .action(loc("Start"), destructive: false, confirm: false, run: { closeThen(onDecrypt) })))
         }
-        return SettingsGroup(id: "content", title: "Updates and DLC", items: items)
+        return SettingsGroup(id: "content", title: loc("Updates and DLC"), items: items)
     }
 
     private var infoGroup: SettingsGroup {
         var items: [SettingsItem] = []
         if let info {
-            if let p = info.publisher { items.append(SettingsItem(id: "info.publisher", title: "Publisher", control: .info(p, nil))) }
-            if let d = info.developer { items.append(SettingsItem(id: "info.developer", title: "Developer", control: .info(d, nil))) }
+            if let p = info.publisher { items.append(SettingsItem(id: "info.publisher", title: loc("Publisher"), control: .info(p, nil))) }
+            if let d = info.developer { items.append(SettingsItem(id: "info.developer", title: loc("Developer"), control: .info(d, nil))) }
             if !info.genres.isEmpty {
-                items.append(SettingsItem(id: "info.genre", title: "Genre",
+                items.append(SettingsItem(id: "info.genre", title: loc("Genre"),
                                           control: .info(info.genres.map { $0.capitalized }.joined(separator: ", "), nil)))
             }
             if !info.languages.isEmpty {
-                items.append(SettingsItem(id: "info.languages", title: "Languages",
+                items.append(SettingsItem(id: "info.languages", title: loc("Languages"),
                                           control: .info(info.languages.joined(separator: ", "), nil)))
             }
         }
-        items.append(SettingsItem(id: "info.install", title: "Install",
+        items.append(SettingsItem(id: "info.install", title: loc("Install"),
                                   control: .info(live.installLabel ?? live.installKey.replacingOccurrences(of: "install:", with: ""), nil)))
-        items.append(SettingsItem(id: "info.match", title: info == nil ? "Find this game on GameTDB" : "Wrong game?",
-                                  detail: "Choose the right GameTDB entry for the summary and details.",
-                                  control: .action("Choose", destructive: false, confirm: false, run: { open(.match) })))
+        items.append(SettingsItem(id: "info.match", title: info == nil ? loc("Find this game on GameTDB") : loc("Wrong game?"),
+                                  detail: loc("Choose the right GameTDB entry for the summary and details."),
+                                  control: .action(loc("Choose"), destructive: false, confirm: false, run: { open(.match) })))
         let summary = [info?.publisher ?? info?.developer, info?.genres.first?.capitalized].compactMap { $0 }.joined(separator: " · ")
-        return SettingsGroup(id: "info", title: "About this game",
-                             items: section("info", "Game info", summary: summary.isEmpty ? "Publisher, genre, languages and install" : summary, items: items))
+        return SettingsGroup(id: "info", title: loc("About this game"),
+                             items: section("info", loc("Game info"), summary: summary.isEmpty ? loc("Publisher, genre, languages and install") : summary, items: items))
     }
 
     private var manageGroup: SettingsGroup {
         var items: [SettingsItem] = [
-            SettingsItem(id: "manage.cover", title: "Cover", detail: "Photos, Files or GameTDB.",
-                         control: .action("Change", destructive: false, confirm: false, run: { open(.cover) }))
+            SettingsItem(id: "manage.cover", title: loc("Cover"), detail: loc("Photos, Files or GameTDB."),
+                         control: .action(loc("Change"), destructive: false, confirm: false, run: { open(.cover) }))
         ]
         if gameManager.hasManualCoverOverride(forGameID: game.id) {
-            items.append(SettingsItem(id: "manage.removeCover", title: "Use the automatic cover",
-                                      control: .action("Remove", destructive: true, confirm: true,
+            items.append(SettingsItem(id: "manage.removeCover", title: loc("Use the automatic cover"),
+                                      control: .action(loc("Remove"), destructive: true, confirm: true,
                                                        run: { gameManager.removeManualCover(forGameID: game.id) })))
         }
-        items.append(SettingsItem(id: "manage.rename", title: "Name", detail: live.cardName.name,
-                                  control: .action("Rename", destructive: false, confirm: false, run: { open(.rename) })))
+        items.append(SettingsItem(id: "manage.rename", title: loc("Name"), detail: live.cardName.name,
+                                  control: .action(loc("Rename"), destructive: false, confirm: false, run: { open(.rename) })))
         if names.name(for: live.installKey) != nil {
-            items.append(SettingsItem(id: "manage.resetName", title: "Use the original title",
-                                      control: .action("Reset", destructive: false, confirm: false,
+            items.append(SettingsItem(id: "manage.resetName", title: loc("Use the original title"),
+                                      control: .action(loc("Reset"), destructive: false, confirm: false,
                                                        run: { names.set(nil, for: live.installKey) })))
         }
         items.append(SettingsItem(id: "manage.remove", title: live.removeActionTitle,
                                   detail: live.isExternal
-                                      ? "Only takes it out of your library. The file stays where it is. Saves and settings are kept."
-                                      : "Frees up the space it uses. Saves and settings are kept.",
-                                  control: .action("Remove", destructive: true, confirm: true, run: { closeThen(onRemoveGame) })))
-        return SettingsGroup(id: "manage", title: "Manage", items: items)
+                                      ? loc("Only takes it out of your library. The file stays where it is. Saves and settings are kept.")
+                                      : loc("Frees up the space it uses. Saves and settings are kept."),
+                                  control: .action(loc("Remove"), destructive: true, confirm: true, run: { closeThen(onRemoveGame) })))
+        return SettingsGroup(id: "manage", title: loc("Manage"), items: items)
     }
 
     private func handle(_ command: ControllerMenuCommand) {

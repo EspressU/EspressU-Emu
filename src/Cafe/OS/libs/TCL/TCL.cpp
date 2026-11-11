@@ -1,5 +1,6 @@
 #include "Cafe/OS/common/OSCommon.h"
 #include "Cafe/OS/libs/TCL/TCL.h"
+#include "Cafe/HW/Latte/Core/LatteWorkEvent.h"
 
 #include "HW/Latte/Core/LattePM4.h"
 #include "OS/libs/coreinit/coreinit_Time.h"
@@ -112,6 +113,7 @@ namespace TCL
 		}
 
 		tclRingBufferA_writeIndex.store(writeIndex, std::memory_order::release);
+		Latte_GetWorkEvent().Notify();
 	}
 
 	#define EVENT_TYPE_TS		5

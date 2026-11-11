@@ -16,9 +16,9 @@ enum EmulatedDevice: Int, CaseIterable, Identifiable {
 
     var name: String {
         switch self {
-        case .skylanders: return "Skylanders Portal"
-        case .infinity: return "Disney Infinity Base"
-        case .dimensions: return "LEGO Dimensions Toypad"
+        case .skylanders: return loc("Skylanders Portal")
+        case .infinity: return loc("Disney Infinity Base")
+        case .dimensions: return loc("LEGO Dimensions Toypad")
         }
     }
 
@@ -45,15 +45,15 @@ enum EmulatedDevice: Int, CaseIterable, Identifiable {
     var slotLabels: [String] {
         switch self {
         case .skylanders:
-            return (1...16).map { "Skylander \($0)" }
+            return (1...16).map { locf("Skylander %@", $0) }
         case .infinity:
-            return ["Play Set / Power Disc", "Power Disc Two", "Power Disc Three",
-                    "Player One", "Player One Ability One", "Player One Ability Two",
-                    "Player Two", "Player Two Ability One", "Player Two Ability Two"]
+            return [loc("Play Set / Power Disc"), loc("Power Disc Two"), loc("Power Disc Three"),
+                    loc("Player One"), loc("Player One Ability One"), loc("Player One Ability Two"),
+                    loc("Player Two"), loc("Player Two Ability One"), loc("Player Two Ability Two")]
         case .dimensions:
-            return ["Left Pad: Top", "Center Pad", "Right Pad: Top",
-                    "Left Pad: Bottom Left", "Left Pad: Bottom Right",
-                    "Right Pad: Bottom Left", "Right Pad: Bottom Right"]
+            return [loc("Left Pad: Top"), loc("Center Pad"), loc("Right Pad: Top"),
+                    loc("Left Pad: Bottom Left"), loc("Left Pad: Bottom Right"),
+                    loc("Right Pad: Bottom Left"), loc("Right Pad: Bottom Right")]
         }
     }
 }
@@ -69,7 +69,7 @@ enum EmulatedFigureStore {
     static func directory(for device: EmulatedDevice) -> URL {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return documents
-            .appendingPathComponent("Emulated Devices", isDirectory: true)
+            .appendingPathComponent(loc("Emulated Devices"), isDirectory: true)
             .appendingPathComponent(device.folderName, isDirectory: true)
     }
 
@@ -91,7 +91,7 @@ enum EmulatedFigureStore {
             .joined(separator: "-")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return folder
-            .appendingPathComponent(safeName.isEmpty ? "Figure" : safeName)
+            .appendingPathComponent(safeName.isEmpty ? loc("Figure") : safeName)
             .appendingPathExtension(device.fileExtension)
     }
 
@@ -130,7 +130,7 @@ struct EmulatedDevicesView: View {
                     Section {
                         Picker("Device", selection: $device) {
                             ForEach(EmulatedDevice.allCases) { device in
-                                Text(device.name).tag(device)
+                                Text(loc(device.name)).tag(device)
                             }
                         }
                         .pickerStyle(.menu)
@@ -197,9 +197,9 @@ private struct EmulatedDeviceSlotsSection: View {
                         ScreenSlotBadge(label: "\(slot + 1)", isFilled: occupied)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(device.slotLabels[slot])
+                            Text(loc(device.slotLabels[slot]))
                                 .font(.subheadline.weight(.semibold))
-                            Text(occupied ? name(at: slot) : "Empty")
+                            Text(loc(occupied ? name(at: slot) : "Empty"))
                                 .font(.system(size: 12))
                                 .foregroundColor(EspressUTheme.secondaryText)
                         }
@@ -254,7 +254,7 @@ private struct EmulatedDeviceSlotsSection: View {
         } header: {
             Text("Figures")
         } footer: {
-            Text("Load a .\(device.fileExtension) figure file or create a new one. Figures and their progress are saved in Documents/Emulated Devices. Clear removes the figure from the slot but keeps the file.")
+            Text(locf("Load a .%@ figure file or create a new one. Figures and their progress are saved in Documents/Emulated Devices. Clear removes the figure from the slot but keeps the file.", device.fileExtension))
         }
         .onAppear(perform: refresh)
         .alert("Error", isPresented: Binding(
@@ -263,7 +263,7 @@ private struct EmulatedDeviceSlotsSection: View {
         )) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
-            Text(errorMessage ?? "")
+            Text(loc(errorMessage ?? ""))
         }
     }
 
@@ -282,7 +282,7 @@ private struct EmulatedDeviceSlotsSection: View {
             case .success(let urls):
                 guard let source = urls.first else { return }
                 guard let file = EmulatedFigureStore.importFile(source, device: device) else {
-                    errorMessage = "Couldn't copy that file into Documents/Emulated Devices."
+                    errorMessage = loc("Couldn't copy that file into Documents/Emulated Devices.")
                     return
                 }
                 let error = file.path.withCString { cemu_bridge_usb_device_load(device.bridgeDevice, Int32(slot), $0) }
@@ -301,7 +301,7 @@ private struct CreateEmulatedFigureView: View {
     let onCreated: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var figures: [EmulatedFigureOption] = []
-    @State private var selectedName = "Choose a Figure"
+    @State private var selectedName = loc("Choose a Figure")
     @State private var figureID = ""
     @State private var variant = "0"
     @State private var fileName = ""
@@ -313,7 +313,7 @@ private struct CreateEmulatedFigureView: View {
 
             Form {
                 Section("Figure") {
-                    NavigationLink(selectedName) {
+                    NavigationLink(loc(selectedName)) {
                         EmulatedFigurePicker(figures: figures) { figure in
                             selectedName = figure.name
                             figureID = String(figure.figureID)
@@ -337,7 +337,7 @@ private struct CreateEmulatedFigureView: View {
                     TextField("File Name", text: $fileName)
                         .autocorrectionDisabled()
                 } footer: {
-                    Text("A new .\(device.fileExtension) file will be saved in Documents/Emulated Devices and loaded into \(device.slotLabels[slot]).")
+                    Text(locf("A new .%@ file will be saved in Documents/Emulated Devices and loaded into %@.", device.fileExtension, device.slotLabels[slot]))
                 }
                 if device == .dimensions {
                     Section {
@@ -382,15 +382,15 @@ private struct CreateEmulatedFigureView: View {
 
     private func create() {
         guard let id = UInt32(figureID), device == .infinity || id <= UInt16.max else {
-            errorMessage = device == .infinity ? "Enter a valid 32-bit figure ID." : "Enter a figure ID between 0 and 65535."
+            errorMessage = device == .infinity ? loc("Enter a valid 32-bit figure ID.") : loc("Enter a figure ID between 0 and 65535.")
             return
         }
         guard let variantNumber = UInt16(variant) else {
-            errorMessage = "Enter a variant between 0 and 65535."
+            errorMessage = loc("Enter a variant between 0 and 65535.")
             return
         }
-        guard let file = EmulatedFigureStore.newFileURL(for: device, name: fileName.isEmpty ? "Figure \(id)" : fileName) else {
-            errorMessage = "Couldn't create a file in Documents/Emulated Devices."
+        guard let file = EmulatedFigureStore.newFileURL(for: device, name: fileName.isEmpty ? locf("Figure %@", id) : fileName) else {
+            errorMessage = loc("Couldn't create a file in Documents/Emulated Devices.")
             return
         }
 
@@ -402,7 +402,7 @@ private struct CreateEmulatedFigureView: View {
         }
 
         if let error = file.path.withCString({ cemu_bridge_usb_device_load(device.bridgeDevice, Int32(slot), $0) }) {
-            errorMessage = "Figure saved, but it couldn't be loaded: \(String(cString: error))"
+            errorMessage = locf("Figure saved, but it couldn't be loaded: %@", String(cString: error))
             return
         }
 
@@ -431,16 +431,16 @@ private struct EmulatedFigurePicker: View {
                 if figures.isEmpty {
                     ScreenEmptyState(
                         systemImage: "tray",
-                        headline: "No known figures",
-                        message: "No built-in list for this slot. Enter the figure ID on the previous screen."
+                        headline: loc("No known figures"),
+                        message: loc("No built-in list for this slot. Enter the figure ID on the previous screen.")
                     )
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 } else if filteredFigures.isEmpty {
                     ScreenEmptyState(
                         systemImage: "magnifyingglass",
-                        headline: "No matches",
-                        message: "No figures match \u{201C}\(search)\u{201D}."
+                        headline: loc("No matches"),
+                        message: locf("No figures match \u{201C}%@\u{201D}.", search)
                     )
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -452,10 +452,10 @@ private struct EmulatedFigurePicker: View {
                         } label: {
                             HStack(spacing: 10) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(figure.name)
+                                    Text(loc(figure.name))
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundColor(EspressUTheme.brownDarkest)
-                                    Text("ID \(figure.figureID)")
+                                    Text(locf("ID %@", figure.figureID))
                                         .font(.system(size: 12))
                                         .foregroundColor(EspressUTheme.secondaryText)
                                         .monospacedDigit()
@@ -477,6 +477,6 @@ private struct EmulatedFigurePicker: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .searchable(text: $search, prompt: "Search names or IDs")
+        .searchable(text: $search, prompt: loc("Search names or IDs"))
     }
 }

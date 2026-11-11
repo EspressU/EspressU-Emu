@@ -376,13 +376,13 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     /// A large title naming what the list shows, as system apps do, instead of the app name and logo.
     private var screenTitle: String {
-        if showingFavorites { return "Favourites" }
-        return "Library"
+        if showingFavorites { return loc("Favourites") }
+        return loc("Library")
     }
 
     private var topBar: some View {
         HStack(spacing: 12) {
-            Text(screenTitle)
+            Text(loc(screenTitle))
                 .font(.largeTitle.bold())
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .contentTransition(.opacity)
@@ -469,7 +469,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         .offset(x: x)
                         .zIndex(-Double(distance))
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(item.cardName.name)
+                        .accessibilityLabel(loc(item.cardName.name))
                         .accessibilityAddTraits(isCenter ? [] : .isButton)
                         .accessibilityHint(isCenter ? "" : "Brings the game to the middle.")
                     }
@@ -501,7 +501,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                                 .opacity(center > 0 ? 1 : 0.3)
                                 .accessibilityHidden(true)
                         }
-                        Text(game.cardName.name)
+                        Text(loc(game.cardName.name))
                             .font(isPhone ? .title2.bold() : .title.bold())
                             .foregroundColor(EspressUTheme.brownDarkest)
                             .lineLimit(1)
@@ -526,7 +526,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                                         hint: pad.selectSymbol)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(game.isFavorite ? "Remove from favourites" : "Add to favourites")
+                    .accessibilityLabel(game.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"))
                     Button { actions.play(game) } label: {
                         HStack(spacing: 6) {
                             if pad.showsFocus {
@@ -546,7 +546,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         sideButtonLabel(symbol: "ellipsis", tint: EspressUTheme.brownDark, hint: pad.menuSymbol, hintTrailing: true)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("More options for \(game.cardName.name)")
+                    .accessibilityLabel(locf("More options for %@", game.cardName.name))
                 }
             }
             .animation(nil, value: center)
@@ -623,7 +623,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                                         .background(.black.opacity(0.35), in: Circle())
                                         .padding(8)
                                 }
-                            Text(item.cardName.name)
+                            Text(loc(item.cardName.name))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                                 .lineLimit(2)
@@ -641,13 +641,13 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .contextMenu {
                         Button { actions.play(item) } label: { Label("Start", systemImage: "play.fill") }
                         Button { actions.toggleFavorite(item) } label: {
-                            Label(item.isFavorite ? "Remove from favourites" : "Add to favourites",
+                            Label(item.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"),
                                   systemImage: item.isFavorite ? "heart.slash" : "heart")
                         }
                         Button { openOptions(item) } label: { Label("More options", systemImage: "ellipsis.circle") }
                     }
-                    .accessibilityLabel(item.cardName.name)
-                    .accessibilityHint(isSelected ? "Starts the game." : "Selects the game. Tap again to start.")
+                    .accessibilityLabel(loc(item.cardName.name))
+                    .accessibilityHint(isSelected ? loc("Starts the game.") : loc("Selects the game. Tap again to start."))
                 }
             }
             .padding(.horizontal, 14)
@@ -718,7 +718,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     Text("Continue playing")
                         .font(.caption.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
-                    Text(item.cardName.name)
+                    Text(loc(item.cardName.name))
                         .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .lineLimit(2)
@@ -739,12 +739,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .contextMenu {
             Button { actions.play(item) } label: { Label("Start", systemImage: "play.fill") }
             Button { actions.toggleFavorite(item) } label: {
-                Label(item.isFavorite ? "Remove from favourites" : "Add to favourites",
+                Label(item.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"),
                       systemImage: item.isFavorite ? "heart.slash" : "heart")
             }
             Button { openOptions(item) } label: { Label("More options", systemImage: "ellipsis.circle") }
         }
-        .accessibilityLabel("Continue playing \(item.cardName.name)")
+        .accessibilityLabel(locf("Continue playing %@", item.cardName.name))
     }
 
     private func sideButtonLabel(symbol: String, tint: Color, hint: String, hintTrailing: Bool = false) -> some View {
@@ -784,12 +784,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         } else {
             let (symbol, heading, line): (String, String, String) = {
                 if !searchText.isEmpty {
-                    return ("magnifyingglass", "No matches", "Nothing matches \u{201C}\(searchText)\u{201D}.")
+                    return ("magnifyingglass", loc("No matches"), locf("Nothing matches \u{201C}%@\u{201D}.", searchText))
                 }
                 if showingFavorites {
-                    return ("heart", "No favourites yet", "Long-press a game and choose Favourite to see it here.")
+                    return ("heart", loc("No favourites yet"), loc("Long-press a game and choose Favourite to see it here."))
                 }
-                return ("square.grid.2x2", "No games yet",
+                return ("square.grid.2x2", loc("No games yet"),
                         "Tap Add to import a game, or put game files in Files \u{203A} On My \(UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone") \u{203A} EspressU \u{203A} Roms.")
             }()
             VStack(spacing: 14) {
@@ -797,11 +797,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .font(.system(size: 54, weight: .regular))
                     .foregroundColor(EspressUTheme.pixelBlue.opacity(0.7))
                     .accessibilityHidden(true)
-                Text(heading)
+                Text(loc(heading))
                     .font(.title3.weight(.semibold))
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .accessibilityAddTraits(.isHeader)
-                Text(line)
+                Text(loc(line))
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(EspressUTheme.brownMid)
                     .multilineTextAlignment(.center)
@@ -825,32 +825,32 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     /// Phones search by pulling the list down, so the bar has no Search button there.
     private var barItems: [EspressUMenuBar.Item] {
-        isPhone ? allBarItems.filter { $0.title != "Search" } : allBarItems
+        isPhone ? allBarItems.filter { $0.title != loc("Search") } : allBarItems
     }
 
     private var allBarItems: [EspressUMenuBar.Item] {
         let jitOn = JITStatus.isActive && vpn.isConnected
         return [
-            .init(title: "Add", systemImage: "plus", tint: EspressUTheme.accentText, isOn: showingAdd) {
+            .init(title: loc("Add"), systemImage: "plus", tint: EspressUTheme.accentText, isOn: showingAdd) {
                 showingAdd.toggle()
             },
-            .init(title: "Favourites", systemImage: showingFavorites ? "heart.fill" : "heart",
+            .init(title: loc("Favourites"), systemImage: showingFavorites ? "heart.fill" : "heart",
                   tint: showingFavorites ? EspressUTheme.alertText : EspressUTheme.brownDark, isOn: showingFavorites) {
                 showingAdd = false
                 showingFavorites.toggle()
             },
-            .init(title: "Search", systemImage: "magnifyingglass",
+            .init(title: loc("Search"), systemImage: "magnifyingglass",
                   tint: showingSearch ? EspressUTheme.accentText : EspressUTheme.brownDark, isOn: showingSearch) {
                 showingAdd = false
                 showingSearch.toggle()
                 if !showingSearch { searchText = "" }
             },
-            .init(title: !jitPanel.enabled ? "No JIT" : (jitOn ? "JIT on" : "JIT"), systemImage: "bolt.fill",
+            .init(title: !jitPanel.enabled ? loc("No JIT") : (jitOn ? loc("JIT on") : loc("JIT")), systemImage: "bolt.fill",
                   tint: jitOn && jitPanel.enabled ? Color(UIColor.systemGreen) : EspressUTheme.brownMid, isOn: showingJIT) {
                 showingAdd = false
                 openJITPanel()
             },
-            .init(title: "Settings", systemImage: "gearshape.fill", tint: EspressUTheme.brownDark, isOn: false) {
+            .init(title: loc("Settings"), systemImage: "gearshape.fill", tint: EspressUTheme.brownDark, isOn: false) {
                 showingAdd = false
                 actions.openSettings()
             }
@@ -1008,12 +1008,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private func optionRows(_ game: GameMetadata) -> [OptionRow] {
         [
-            OptionRow(id: "play", title: "Play", systemImage: "play.fill") { actions.play(game) },
-            OptionRow(id: "favourite", title: game.isFavorite ? "Remove from favourites" : "Add to favourites",
+            OptionRow(id: "play", title: loc("Play"), systemImage: "play.fill") { actions.play(game) },
+            OptionRow(id: "favourite", title: game.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"),
                       systemImage: game.isFavorite ? "heart.slash" : "heart") { actions.toggleFavorite(game) },
-            OptionRow(id: "page", title: "Game page", systemImage: "info.circle", opensScreen: true) { actions.openGamePage(game) },
-            OptionRow(id: "rename", title: "Rename", systemImage: "pencil", opensScreen: true) { actions.renameGame(game) },
-            OptionRow(id: "cover", title: "Change cover", systemImage: "photo", opensScreen: true) { actions.changeCover(game) },
+            OptionRow(id: "page", title: loc("Game page"), systemImage: "info.circle", opensScreen: true) { actions.openGamePage(game) },
+            OptionRow(id: "rename", title: loc("Rename"), systemImage: "pencil", opensScreen: true) { actions.renameGame(game) },
+            OptionRow(id: "cover", title: loc("Change cover"), systemImage: "photo", opensScreen: true) { actions.changeCover(game) },
             OptionRow(id: "remove", title: game.removeActionTitle, systemImage: "trash", destructive: true, confirm: true) {
                 actions.removeGame(game)
             }
@@ -1058,12 +1058,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 EspressUCover(game: game, radius: 16)
                     .frame(width: 64, height: 64)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(game.cardName.name)
+                    Text(loc(game.cardName.name))
                         .font(.headline)
                         .foregroundColor(EspressUTheme.brownDarkest)
                         .lineLimit(2)
                     if let install = game.installLabel {
-                        Text(install)
+                        Text(loc(install))
                             .font(.footnote.weight(.medium))
                             .foregroundColor(EspressUTheme.brownMid)
                             .lineLimit(1)
@@ -1104,7 +1104,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                                 .background(index == 0 ? AnyShapeStyle(EspressUTheme.cremaTopGradient)
                                                        : AnyShapeStyle(EspressUTheme.wrapper),
                                             in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                            Text(armed ? "Press again to remove" : row.title)
+                            Text(loc(armed ? "Press again to remove" : row.title))
                                 .font(.body.weight(.semibold))
                                 .foregroundColor(row.destructive ? EspressUTheme.alertText : EspressUTheme.brownDarkest)
                             Spacer(minLength: 0)
@@ -1168,24 +1168,24 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private var addGroups: [(String, [AddOption])] {
         [
-            ("Add games", [
-                AddOption(id: "file", title: "Game file", detail: "A .wua, .wux, .wud or .rpx",
+            (loc("Add games"), [
+                AddOption(id: "file", title: loc("Game file"), detail: loc("A .wua, .wux, .wud or .rpx"),
                           systemImage: "doc.fill", action: actions.importFile),
-                AddOption(id: "folder", title: "Game folder", detail: "A dumped game folder",
+                AddOption(id: "folder", title: loc("Game folder"), detail: loc("A dumped game folder"),
                           systemImage: "folder.fill", action: { importerPurpose = .gameFolder; importerMode = .gameFolder }),
-                AddOption(id: "romsInFiles", title: "Roms folder in Files", detail: "Drag games in, then come back",
+                AddOption(id: "romsInFiles", title: loc("Roms folder in Files"), detail: loc("Drag games in, then come back"),
                           systemImage: "folder.badge.plus", action: { Self.openInFiles(Self.documentsFolder("Roms")) })
             ]),
-            ("Keep games where they are", [
-                AddOption(id: "linkFolder", title: "Link a folder", detail: "Drive, SD card or iCloud. Nothing is copied",
+            (loc("Keep games where they are"), [
+                AddOption(id: "linkFolder", title: loc("Link a folder"), detail: loc("Drive, SD card or iCloud. Nothing is copied"),
                           systemImage: "externaldrive.fill.badge.plus", action: actions.linkFolder),
-                AddOption(id: "linkFile", title: "Link a game file", detail: "Play it right where it is",
+                AddOption(id: "linkFile", title: loc("Link a game file"), detail: loc("Play it right where it is"),
                           systemImage: "link", action: actions.linkFile)
             ]),
-            ("Updates, DLC and keys", [
-                AddOption(id: "update", title: "Update", detail: "A folder or .wua for a game you have",
+            (loc("Updates, DLC and keys"), [
+                AddOption(id: "update", title: loc("Update"), detail: loc("A folder or .wua for a game you have"),
                           systemImage: "arrow.triangle.2.circlepath", action: { importerPurpose = .content(.update); importerMode = .content(.update) }),
-                AddOption(id: "dlc", title: "DLC", detail: "A folder or .wua for a game you have",
+                AddOption(id: "dlc", title: loc("DLC"), detail: loc("A folder or .wua for a game you have"),
                           systemImage: "shippingbox.fill", action: { importerPurpose = .content(.dlc); importerMode = .content(.dlc) }),
                 AddOption(id: "keys", title: "Keys", detail: "keys.txt for encrypted games",
                           systemImage: "key.fill", action: actions.importKeys)
@@ -1233,7 +1233,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(addGroups, id: \.0) { group in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(group.0.uppercased())
+                            Text(loc(group.0.uppercased()))
                                 .font(.caption.weight(.semibold))
                                 .tracking(0.6)
                                 .foregroundColor(EspressUTheme.brownMid)
@@ -1250,7 +1250,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                                 }
                             }
                             .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            if group.0 == "Updates, DLC and keys" {
+                            if group.0 == loc("Updates, DLC and keys") {
                                 Text("You can also drop updates and DLC into Files \u{203A} EspressU \u{203A} Updates & DLC.")
                                     .font(.caption.weight(.medium))
                                     .foregroundColor(EspressUTheme.brownMid)
@@ -1287,10 +1287,10 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .frame(width: 38, height: 38)
                     .background(EspressUTheme.cremaTopGradient, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(option.title)
+                    Text(loc(option.title))
                         .font(.body.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
-                    Text(option.detail)
+                    Text(loc(option.detail))
                         .font(.footnote.weight(.medium))
                         .foregroundColor(EspressUTheme.brownMid)
                         .lineLimit(2)
@@ -1413,7 +1413,7 @@ struct EspressUMenuBar: View {
                 .font(.system(size: compact ? 19 : 21, weight: .semibold))
                 .foregroundColor(item.tint)
             if !compact {
-                Text(item.title)
+                Text(loc(item.title))
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(highlighted || item.isOn ? item.tint : EspressUTheme.brownMid)
             }

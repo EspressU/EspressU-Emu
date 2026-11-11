@@ -72,6 +72,7 @@ enum SettingsDefaults {
 
     @MainActor
     private static func pushDefaultsToBridge() {
+        GameLanguage.applyStoredToBridge()
         cemu_bridge_set_recompiler_enabled(true)
         cemu_bridge_set_favour_accuracy(false)
         cemu_bridge_set_favour_performance(FavourPerformance.defaultValue)
@@ -102,6 +103,7 @@ enum SettingsDefaults {
         cemu_bridge_set_overlay_text_color(UInt32(truncatingIfNeeded: OverlaySettings.defaultTextColor))
         cemu_bridge_set_overlay_text_scale(Int32(OverlaySettings.defaultTextScale))
         cemu_bridge_set_overlay_fps(OverlaySettings.defaultFps)
+        cemu_bridge_set_overlay_show_framegen_breakdown(OverlaySettings.defaultShowFrameGenBreakdown)
         cemu_bridge_set_overlay_drawcalls(OverlaySettings.defaultDrawcalls)
         cemu_bridge_set_overlay_cpu_usage(OverlaySettings.defaultCpuUsage)
         cemu_bridge_set_overlay_cpu_per_core_usage(OverlaySettings.defaultCpuPerCoreUsage)

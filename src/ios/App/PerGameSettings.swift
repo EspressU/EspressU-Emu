@@ -166,7 +166,7 @@ struct GameContextMenu: View {
         Button {
             gameManager.toggleFavorite(game)
         } label: {
-            Label(game.isFavorite ? "Unfavourite" : "Favourite",
+            Label(game.isFavorite ? loc("Unfavourite") : loc("Favourite"),
                   systemImage: game.isFavorite ? "heart.slash" : "heart")
         }
         Button(action: onRename) {
@@ -199,13 +199,13 @@ private struct OverridePickerRow<Selection: Hashable, Options: View>: View {
             Picker(selection: selection) {
                 options
             } label: {
-                Text(title)
+                Text(loc(title))
                     .font(.subheadline.weight(.semibold))
             }
             .pickerStyle(.menu)
             .tint(EspressUTheme.accentText)
             .disabled(isDisabled)
-            Text(caption)
+            Text(loc(caption))
                 .font(.system(size: 12))
                 .foregroundColor(EspressUTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -234,9 +234,9 @@ struct GameOptionsView: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .useGlobalDefault: return "Use Global Default"
-            case .on: return "On"
-            case .off: return "Off"
+            case .useGlobalDefault: return loc("Use Global Default")
+            case .on: return loc("On")
+            case .off: return loc("Off")
             }
         }
     }
@@ -279,8 +279,8 @@ struct GameOptionsView: View {
 
     private func caption(pinned: Bool, settingsValue: String) -> String {
         pinned
-            ? "Set for this game only. Settings has it \(settingsValue)."
-            : "Follows Settings, which has it \(settingsValue)."
+            ? locf("Set for this game only. Settings has it %@.", settingsValue)
+            : locf("Follows Settings, which has it %@.", settingsValue)
     }
 
     private var shaderCaption: String {
@@ -296,7 +296,7 @@ struct GameOptionsView: View {
     private var coreModeCaption: String {
         guard DeviceCapabilities.current.multicoreViable else { return DeviceCapabilities.oneCoreOnlyText }
         let base = caption(pinned: store.overrides(for: game.settingsKey).coreMode != nil,
-                           settingsValue: "set to \(CoreMode.current.title)")
+                           settingsValue: locf("set to %@", CoreMode.current.title))
         guard store.effectiveCoreMode(for: game.settingsKey) != .single else { return base }
         if store.effectiveFavourAccuracy(for: game.settingsKey) {
             return base + " Favour accuracy is on for this game, so it runs on one core whatever this says."
@@ -309,22 +309,22 @@ struct GameOptionsView: View {
 
     private var overridesSection: some View {
         Section {
-            OverridePickerRow(title: "Compile shaders in the background", caption: shaderCaption, selection: shaderChoice) {
+            OverridePickerRow(title: loc("Compile shaders in the background"), caption: shaderCaption, selection: shaderChoice) {
                 ForEach(TriState.allCases) { choice in
-                    Text(choice.title).tag(choice)
+                    Text(loc(choice.title)).tag(choice)
                 }
             }
             if SettingsMode.isAdvanced(raw: settingsModeRaw) {
-                OverridePickerRow(title: "Favour accuracy", caption: favourAccuracyCaption, selection: favourAccuracyChoice) {
+                OverridePickerRow(title: loc("Favour accuracy"), caption: favourAccuracyCaption, selection: favourAccuracyChoice) {
                     ForEach(TriState.allCases) { choice in
-                        Text(choice.title).tag(choice)
+                        Text(loc(choice.title)).tag(choice)
                     }
                 }
-                OverridePickerRow(title: "CPU cores", caption: coreModeCaption, selection: coreModeChoice,
+                OverridePickerRow(title: loc("CPU cores"), caption: coreModeCaption, selection: coreModeChoice,
                                   isDisabled: !DeviceCapabilities.current.multicoreViable) {
                     Text("Use Global Default").tag("")
                     ForEach(CoreMode.allCases) { mode in
-                        Text(mode.title).tag(mode.rawValue)
+                        Text(loc(mode.title)).tag(mode.rawValue)
                     }
                 }
             }
@@ -337,12 +337,12 @@ struct GameOptionsView: View {
                 }
             }
         } header: {
-            SettingsSectionHeader("Overrides", icon: "slider.horizontal.3", accent: .core)
+            SettingsSectionHeader(loc("Overrides"), icon: "slider.horizontal.3", accent: .core)
         } footer: {
             InfoButton.footer(
                 "\"Use Global Default\" follows Settings; On or Off sets this game only. Changes apply the next time you start the game.",
-                title: "Overrides",
-                text: "Compile shaders in the background builds shaders while the game keeps running. Most games want this on; Nano Assault Neo breaks with it, so it can be set per game.\n\nFavour accuracy is slower but more accurate, and can fix a game that glitches or crashes. It also keeps the game on one CPU core. See Settings > CPU.\n\nCPU cores picks how many cores run the game. Auto decides for each game and device.\n\n\"Use Global Default\" follows the matching setting in Settings, even if you change it later. On or Off sets this game only.\n\nChanges apply the next time you start the game."
+                title: loc("Overrides"),
+                text: loc("Compile shaders in the background builds shaders while the game keeps running. Most games want this on; Nano Assault Neo breaks with it, so it can be set per game.\n\nFavour accuracy is slower but more accurate, and can fix a game that glitches or crashes. It also keeps the game on one CPU core. See Settings > CPU.\n\nCPU cores picks how many cores run the game. Auto decides for each game and device.\n\n\"Use Global Default\" follows the matching setting in Settings, even if you change it later. On or Off sets this game only.\n\nChanges apply the next time you start the game.")
             )
         }
     }
@@ -356,12 +356,12 @@ struct GameOptionsView: View {
                     .font(.subheadline.weight(.semibold))
             }
         } header: {
-            SettingsSectionHeader("Graphic packs", icon: "paintpalette", accent: .core)
+            SettingsSectionHeader(loc("Graphic packs"), icon: "paintpalette", accent: .core)
         } footer: {
             InfoButton.footer(
-                "Resolution, frame rate, fixes and mods for this game. They apply the next time you start it.",
-                title: "Graphic packs",
-                text: "Graphic packs change how a game looks or plays: higher resolutions, frame-rate patches, fixes for known glitches and mods. Download the community packs, turn on the ones you want for this game, and pick their options. Nothing is turned on automatically.\n\nHigher resolutions cost speed and memory, and what is reasonable depends on the device, so the options show a suggestion for this one.\n\nPacks listed under All games apply to every game, not just this one. Packs apply the next time you start the game."
+                loc("Resolution, frame rate, fixes and mods for this game. They apply the next time you start it."),
+                title: loc("Graphic packs"),
+                text: loc("Graphic packs change how a game looks or plays: higher resolutions, frame-rate patches, fixes for known glitches and mods. Download the community packs, turn on the ones you want for this game, and pick their options. Nothing is turned on automatically.\n\nHigher resolutions cost speed and memory, and what is reasonable depends on the device, so the options show a suggestion for this one.\n\nPacks listed under All games apply to every game, not just this one. Packs apply the next time you start the game.")
             )
         }
     }
@@ -371,18 +371,18 @@ struct GameOptionsView: View {
             exportSaveButton
             importSaveButton
             if let saveTransferMessage {
-                Text(saveTransferMessage)
+                Text(loc(saveTransferMessage))
                     .font(.system(size: 12))
                     .foregroundColor(saveTransferFailed ? .red : EspressUTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         } header: {
-            SettingsSectionHeader("Game saves", icon: "externaldrive", accent: .io)
+            SettingsSectionHeader(loc("Game saves"), icon: "externaldrive", accent: .io)
         } footer: {
             InfoButton.footer(
-                "The save the game itself writes. Export is available once the game has saved.",
-                title: "Game saves",
-                text: "This is the save the game itself writes. It uses the Wii U\'s own format, so it can move between EspressU, desktop Cemu and a real console.\n\nExport writes a folder named after the game and title ID. Import accepts that folder, a folder named after the title ID from another Cemu install, or its \'user\' folder. Importing replaces the current save; the old one is first copied to save-backups in EspressU\'s Documents folder."
+                loc("The save the game itself writes. Export is available once the game has saved."),
+                title: loc("Game saves"),
+                text: loc("This is the save the game itself writes. It uses the Wii U\'s own format, so it can move between EspressU, desktop Cemu and a real console.\n\nExport writes a folder named after the game and title ID. Import accepts that folder, a folder named after the title ID from another Cemu install, or its \'user\' folder. Importing replaces the current save; the old one is first copied to save-backups in EspressU\'s Documents folder.")
             )
         }
     }
@@ -463,18 +463,18 @@ struct GameOptionsView: View {
                 }
             }
             if let cacheImportMessage {
-                Text(cacheImportMessage)
+                Text(loc(cacheImportMessage))
                     .font(.system(size: 12))
                     .foregroundColor(cacheImportFailed ? .red : EspressUTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         } header: {
-            SettingsSectionHeader("Shader caches", icon: "hammer", accent: .core)
+            SettingsSectionHeader(loc("Shader caches"), icon: "hammer", accent: .core)
         } footer: {
             InfoButton.footer(
-                "Add a shader cache from desktop Cemu or another EspressU, so this game starts with its shaders already learned.",
-                title: "Shader caches",
-                text: "Learned shaders are what a game has revealed by drawing with them. Importing adds them to this game's own file: anything the game already has stays as it is, and the file is never replaced.\n\nThe file has to be this game's: EspressU checks the version stamp inside it, not the name. Desktop Cemu's files work: learned shaders are named like 000500001010ec00_shaders.bin and are converted the first time the game starts. EspressU's are named ..._mtlshaders.bin. Desktop caches from before Cemu 1.16 use another format and can't be converted.\n\nPipeline caches have to be EspressU's own, named ..._mtlpipeline.bin; the ..._vkpipeline.bin files from desktop Cemu can't be used. A pipeline cache also needs the game's learned shaders. Import with the game closed. The sizes in Settings update the next time you open it."
+                loc("Add a shader cache from desktop Cemu or another EspressU, so this game starts with its shaders already learned."),
+                title: loc("Shader caches"),
+                text: loc("Learned shaders are what a game has revealed by drawing with them. Importing adds them to this game's own file: anything the game already has stays as it is, and the file is never replaced.\n\nThe file has to be this game's: EspressU checks the version stamp inside it, not the name. Desktop Cemu's files work: learned shaders are named like 000500001010ec00_shaders.bin and are converted the first time the game starts. EspressU's are named ..._mtlshaders.bin. Desktop caches from before Cemu 1.16 use another format and can't be converted.\n\nPipeline caches have to be EspressU's own, named ..._mtlpipeline.bin; the ..._vkpipeline.bin files from desktop Cemu can't be used. A pipeline cache also needs the game's learned shaders. Import with the game closed. The sizes in Settings update the next time you open it.")
             )
         }
     }
@@ -493,7 +493,7 @@ struct GameOptionsView: View {
                         staged = try ShaderCacheImport.stage(picked)
                     } catch {
                         DispatchQueue.main.async {
-                            finishCacheImport(ShaderCacheImport.Outcome(message: "Couldn't read \"\(name)\": \(error.localizedDescription)", failed: true))
+                            finishCacheImport(ShaderCacheImport.Outcome(message: locf("Couldn't read \"%@\": %@", name, error.localizedDescription), failed: true))
                         }
                         return
                     }
@@ -542,9 +542,9 @@ struct GameOptionsView: View {
                 Button("Choose folder", role: .destructive, action: pickSaveFolder)
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This replaces \(game.title)\'s current save. The one you have now is backed up first, and the game should be closed before you do this.")
+                Text(locf("This replaces %@\'s current save. The one you have now is backed up first, and the game should be closed before you do this.", game.title))
             }
-            .navigationTitle(showsOverrides ? game.title : "Packs, saves and caches")
+            .navigationTitle(showsOverrides ? game.title : loc("Packs, saves and caches"))
             .espressuOpaqueNavigationBar(EspressUTheme.formGround)
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)

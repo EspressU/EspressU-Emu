@@ -48,18 +48,18 @@ struct DeviceConnectionStatusRow: View {
 
     private var deviceText: String {
         switch connection.kind {
-        case .offline: return "Offline"
-        case .wifi: return "Wi-Fi"
-        case .cellular: return "Cellular"
-        case .other: return "Connected"
+        case .offline: return loc("Offline")
+        case .wifi: return loc("Wi-Fi")
+        case .cellular: return loc("Cellular")
+        case .other: return loc("Connected")
         }
     }
 
     private var consoleText: String {
         _ = connection.kind
         return cemu_bridge_console_appears_connected()
-            ? "The console will appear connected."
-            : "The console will appear offline."
+            ? loc("The console will appear connected.")
+            : loc("The console will appear offline.")
     }
 
     var body: some View {

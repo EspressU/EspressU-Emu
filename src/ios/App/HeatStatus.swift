@@ -17,7 +17,7 @@ enum HeatDisplayMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .word:       return "Word"
+        case .word:       return loc("Word")
         case .celsius:    return "°C"
         case .fahrenheit: return "°F"
         }
@@ -42,11 +42,11 @@ enum HeatBand: Int, Comparable {
 
     var word: String {
         switch self {
-        case .cool:         return "Cool"
-        case .fair:         return "Fair"
-        case .warm:         return "Warm"
-        case .hot:          return "Hot"
-        case .extremelyHot: return "Extremely Hot"
+        case .cool:         return loc("Cool")
+        case .fair:         return loc("Fair")
+        case .warm:         return loc("Warm")
+        case .hot:          return loc("Hot")
+        case .extremelyHot: return loc("Extremely Hot")
         }
     }
 
@@ -120,7 +120,7 @@ struct HeatStatusBadge: View {
         return HStack(spacing: 6) {
             Image(systemName: "thermometer.medium")
                 .font(.system(size: 12, weight: .bold))
-            Text(HeatStatus.text(for: displayMode))
+            Text(loc(HeatStatus.text(for: displayMode)))
                 .font(.system(size: 13, weight: .bold))
         }
         .foregroundColor(UIStyle.isClassic
@@ -138,6 +138,6 @@ struct HeatStatusBadge: View {
             }
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Device heat: \(band.word)")
+        .accessibilityLabel(locf("Device heat: %@", band.word))
     }
 }

@@ -104,7 +104,7 @@ struct LayoutPanelFooter: View {
                 Button("Reset to default", role: .destructive, action: onReset)
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text(resetMessage)
+                Text(loc(resetMessage))
             }
 
             Button(action: onDone) {
@@ -125,7 +125,7 @@ struct PanelCaption: View {
     var prominent = true
 
     var body: some View {
-        Text(text)
+        Text(loc(text))
             .font(.system(size: prominent ? 13 : 12, weight: prominent ? .semibold : .regular))
             .foregroundColor(.white.opacity(prominent ? 0.85 : 0.6))
             .multilineTextAlignment(.leading)
@@ -170,12 +170,12 @@ struct PanelSliderRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(label)
+                Text(loc(label))
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                 Spacer(minLength: 8)
                 if let shownValue {
-                    Text(shownValue)
+                    Text(loc(shownValue))
                         .font(.footnote.weight(.semibold))
                         .monospacedDigit()
                         .foregroundColor(.white.opacity(0.7))
@@ -221,7 +221,7 @@ struct PanelToggle: View {
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            Text(title)
+            Text(loc(title))
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.white)
         }

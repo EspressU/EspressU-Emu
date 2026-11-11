@@ -41,13 +41,13 @@ final class DevicePairing: NSObject, ObservableObject {
     func start() {
         guard !isActive else { return }
         guard Self.isSupported else {
-            state = .failed("Built-in pairing needs iOS \(Self.minimumIOSVersion) or newer. Import a pairing file instead.")
+            state = .failed(locf("Built-in pairing needs iOS %@ or newer. Import a pairing file instead.", Self.minimumIOSVersion))
             return
         }
         StikJITSetup.ensureDirectory()
         var problem: NSString?
         guard let host = DevicePairingHost(name: Self.hostName, failure: &problem) else {
-            state = .failed((problem as String?) ?? "Pairing couldn't start.")
+            state = .failed((problem as String?) ?? loc("Pairing couldn't start."))
             return
         }
         self.host = host
@@ -70,7 +70,7 @@ final class DevicePairing: NSObject, ObservableObject {
                 guard let self, self.host.map(ObjectIdentifier.init) == hostID else { return }
                 self.state = .pin(pin)
                 self.log("device asked for the PIN")
-                Self.notify(title: "EspressU pairing", body: "Enter this PIN in Settings: \(pin)")
+                Self.notify(title: loc("EspressU pairing"), body: locf("Enter this PIN in Settings: %@", pin))
             }
         }, completion: { [weak self] file, deviceName, failure, cancelled in
             Task { @MainActor [weak self] in
@@ -95,22 +95,22 @@ final class DevicePairing: NSObject, ObservableObject {
         host = nil
         if let file {
             do {
-                try StikJITSetup.savePairingFile(file, name: "Paired in EspressU")
+                try StikJITSetup.savePairingFile(file, name: loc("Paired in EspressU"))
                 StikJITCoordinator.shared.pairingFileChanged()
                 state = .paired(deviceName)
                 log("paired")
-                Self.notify(title: "EspressU is paired", body: "Go back to EspressU. JIT can start now.")
+                Self.notify(title: loc("EspressU is paired"), body: loc("Go back to EspressU. JIT can start now."))
             } catch {
-                state = .failed("Paired, but the pairing file couldn't be saved: \(error.localizedDescription)")
+                state = .failed(locf("Paired, but the pairing file couldn't be saved: %@", error.localizedDescription))
             }
         } else if cancelled {
             state = .idle
             log("stopped")
         } else {
-            let text = failure ?? "Pairing failed."
+            let text = failure ?? loc("Pairing failed.")
             state = .failed(text)
             log("failed: \(text)")
-            Self.notify(title: "EspressU pairing failed", body: "Go back to EspressU to try again.")
+            Self.notify(title: loc("EspressU pairing failed"), body: loc("Go back to EspressU to try again."))
         }
     }
 
@@ -140,7 +140,7 @@ extension DevicePairing: NetServiceDelegate {
             guard self.service === sender, self.isActive else { return }
             self.host?.cancel()
             self.stopAdvertising()
-            self.state = .failed("EspressU couldn't show itself to Settings (error \(code)). Check that Local Network is on for EspressU in Settings › Privacy & Security › Local Network, then try again.")
+            self.state = .failed(locf("EspressU couldn't show itself to Settings (error %@). Check that Local Network is on for EspressU in Settings › Privacy & Security › Local Network, then try again.", code))
         }
     }
 }

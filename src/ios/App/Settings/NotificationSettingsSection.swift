@@ -56,7 +56,7 @@ struct NotificationSettingsSection: View {
             SettingsSectionHeader("Notifications", icon: "bell", accent: .io)
         } footer: {
             InfoButton.footer(
-                "Pop-ups for controllers, shader compiling and friends. They show in the corner you pick; choose Off to hide them all.",
+                loc("Pop-ups for controllers, shader compiling and friends. They show in the corner you pick; choose Off to hide them all."),
                 title: "Notifications",
                 text: fullText)
         }
@@ -69,7 +69,7 @@ struct NotificationSettingsSection: View {
                 .font(.footnote.weight(.semibold))
             Picker("Position", selection: $positionRaw) {
                 ForEach(ScreenPosition.allCases) { position in
-                    Text(position.title).tag(position.rawValue)
+                    Text(loc(position.title)).tag(position.rawValue)
                 }
             }
             .pickerStyle(.menu)
@@ -82,7 +82,7 @@ struct NotificationSettingsSection: View {
     }
 
     private var textColorField: some View {
-        ColorPicker("Text colour", selection: packedColourBinding($textColor), supportsOpacity: false)
+        ColorPicker(loc("Text colour"), selection: packedColourBinding($textColor), supportsOpacity: false)
             .font(.subheadline.weight(.semibold))
             .disabled(isOff)
             .onValueChange(of: textColor) { newValue in

@@ -1,0 +1,5600 @@
+{
+ "\n\nThis device doesn't support mesh shaders, so graphic packs that rely on geometry shaders or post-processing (RECTS) draws may not render correctly. Everything else works normally.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "\n\nWhat happened: %@.": [
+  "GameManager.swift"
+ ],
+ " %@ entries can't be used and are skipped.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ " %@ entries in the file can't be used and are skipped.": [
+  "Settings/SettingsBackupSection.swift"
+ ],
+ " (%@ already there)": [
+  "ShaderCacheImport.swift"
+ ],
+ " (reduced - less room than the JIT asked for)": [
+  "extra_strings.txt"
+ ],
+ " and ": [
+  "CoverArtNaming.swift"
+ ],
+ " · %@ packs": [
+  "GraphicPacksView.swift"
+ ],
+ "\"%@\" already exists in your library. Replacing it can't be undone.": [
+  "ContentView.swift"
+ ],
+ "\"%@\" is a cache for %@, but none of its %@ entries can be used.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a cache for %@, not %@. Nothing was imported.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a cache for a different game, not %@. Nothing was imported.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a cache for another game (title ID %@), not %@. Nothing was imported.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a learned-shader cache from a desktop Cemu older than 1.16, which keyed shaders differently. It can't be converted. Use a cache from Cemu 1.16 or newer, or from EspressU.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a learned-shader cache, not a pipeline cache. Use \"Import learned shaders\" for it.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a pipeline cache from desktop Cemu. EspressU can't use those, only ones named ..._mtlpipeline.bin. Learned shaders from desktop Cemu can still be imported.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is a pipeline cache, not learned shaders. Use \"Import shader pipeline caches\" for it.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" is only linked, so its file stays where it is and isn't deleted. Your saves and options are kept. You can bring it back from Settings > Library.": [
+  "GameManager.swift"
+ ],
+ "\"%@\" is stored on a drive or folder EspressU can't reach right now. Connect the drive, then try again.": [
+  "GameManager.swift"
+ ],
+ "\"%@\" isn't a Wii U game dump. A dump folder needs code, content and meta folders inside it, or an encrypted game folder: title.tmd and title.tik next to its .app files.": [
+  "GameManager.swift"
+ ],
+ "\"%@\" isn't a shader cache file, or it's damaged. Pick a .bin file from a Cemu or EspressU shaderCache folder.": [
+  "ShaderCacheImport.swift"
+ ],
+ "\"%@\" stops appearing in your library. Nothing on the drive or in the folder is deleted. Your saves and options are kept.": [
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "%@ MB headroom - JIT arena %@ MB reserved, %@ MB in use%@": [
+  "extra_strings.txt"
+ ],
+ "%@ MB headroom - no JIT arena, so this launch is running the interpreter": [
+  "extra_strings.txt"
+ ],
+ "%@ Your installed packs weren't changed.": [
+  "GraphicPackStore.swift"
+ ],
+ "%@ couldn't be read as a Wii U account, so it wasn't installed. Your existing accounts are unchanged.": [
+  "AccountImport.swift"
+ ],
+ "%@ entries were left out: damaged, not in a usable format, or there wasn't room on this device. If storage is low, free some up and import the file again; entries already added are kept.": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ entry was left out: damaged, not in a usable format, or there wasn't room on this device. If storage is low, free some up and import the file again; entries already added are kept.": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ files, %@ written": [
+  "DecryptROMView.swift"
+ ],
+ "%@ for \"%@\"": [
+  "EspressUInbox.swift"
+ ],
+ "%@ free on this device.": [
+  "GraphicPacksView.swift"
+ ],
+ "%@ game": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "%@ games": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "%@ games' own options": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "%@ goes back to following Settings for everything.": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "%@ has no account.dat in it.": [
+  "AccountImport.swift"
+ ],
+ "%@ is cut short": [
+  "MiniZip.swift"
+ ],
+ "%@ is now the active Custom server. Pick Custom under Network Service to use it.": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "%@ is slow to start once while it rebuilds. Clearing the learned shaders as well makes it stutter while it relearns them.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "%@ isn't a web address. Addresses start with http:// or https://.": [
+  "CustomServers.swift"
+ ],
+ "%@ key loaded": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "%@ key loaded for encrypted dumps (.wud, .wux).": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "%@ keys loaded": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "%@ keys loaded for encrypted dumps (.wud, .wux).": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "%@ of 10 characters used": [
+  "CreateAccountView.swift"
+ ],
+ "%@ on for this game.": [
+  "EspressUGamePage.swift"
+ ],
+ "%@ pack": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "%@ packs": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "%@ performance core(s), tier %@, thermal %@": [
+  "extra_strings.txt"
+ ],
+ "%@ pipeline": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ pipelines": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ set for this game": [
+  "EspressUGamePage.swift"
+ ],
+ "%@ shader": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ shaders": [
+  "ShaderCacheImport.swift"
+ ],
+ "%@ should be exactly %@ bytes.": [
+  "WiiUMenu.swift"
+ ],
+ "%@ stopped: drive disconnected": [
+  "ContentView.swift"
+ ],
+ "%@ uses the automatic cover.": [
+  "EspressUCoverPicker.swift"
+ ],
+ "%@ uses your own cover.": [
+  "EspressUCoverPicker.swift"
+ ],
+ "%@ won't decompress": [
+  "MiniZip.swift"
+ ],
+ "%@ · %@ packs": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "%@. Your choices are kept.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "%@/account.dat isn't a readable Wii U account file, or its folder name isn't an 8-digit account ID like 80000001.": [
+  "AccountImport.swift"
+ ],
+ "%@/account.dat isn't a readable Wii U account file.": [
+  "AccountImport.swift"
+ ],
+ ".wua, .wud, .wux or .rpx": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "1 game's own options": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "1 player": [
+  "EspressUGamePage.swift"
+ ],
+ "1 set for this game": [
+  "EspressUGamePage.swift"
+ ],
+ "1/16 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1/2 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1/32 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1/4 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1/64 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1/8 speed": [
+  "TimebaseScale.swift"
+ ],
+ "1–%@ players": [
+  "EspressUGamePage.swift"
+ ],
+ "2.2 is standard. Lower is brighter in the mid-tones.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "50% is normal.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "A .wua, .wux, .wud or .rpx": [
+  "EspressUHome.swift"
+ ],
+ "A B X Y buttons": [
+  "Crema/CremaElements.swift"
+ ],
+ "A JIT enabler is attached, so the AArch64 recompiler runs this launch. Cores: %@.": [
+  "extra_strings.txt"
+ ],
+ "A custom server is a community-run replacement for Nintendo's Wii U online services. Whoever runs it gives you a network_services.xml file, or the addresses to enter here.\n\nThe active server is copied to Documents/mlc/network_services.xml, the same file desktop Cemu reads.\n\nCustom doesn't need a linked account or otp.bin and seeprom.bin: the server decides what it needs. Pretendo does need them.": [
+  "CustomServers.swift"
+ ],
+ "A drive, SD card or iCloud folder.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "A dumped game folder": [
+  "EspressUHome.swift"
+ ],
+ "A dumped game with code, content and meta": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "A folder or .wua for a game you have": [
+  "EspressUHome.swift"
+ ],
+ "A folder with a rules.txt, a folder of packs, or a zip of either.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "A folder you can import and play directly.": [
+  "DecryptROMView.swift"
+ ],
+ "A game is running": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "A game is running. Close it before downloading graphic packs.": [
+  "GraphicPackStore.swift"
+ ],
+ "A game is running. Close it before importing packs.": [
+  "GraphicPackStore.swift"
+ ],
+ "A game is running. Close it to change this pack.": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "A game is running. Packs can only be changed after you close it.": [
+  "GraphicPacksView.swift"
+ ],
+ "A game is running. You can browse packs, but they can only be changed after you close it.": [
+  "GraphicPacksView.swift"
+ ],
+ "A network_services.xml, like desktop Cemu reads.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "A new .%@ file will be saved in Documents/Emulated Devices and loaded into %@.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "A new account plays offline. It can't be linked to a Pretendo ID here, so games will still ask you to link one. To play online, link a Pretendo ID on a real Wii U, then use Import from Wii U in Settings > Network Service.": [
+  "CreateAccountView.swift"
+ ],
+ "A quicker way to blend on Metal. Applies to the next game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "A self-hosted server for Monster Hunter 3 Ultimate, made for Cemu. It doesn't need a Wii U or a console dump. Someone runs the host on a computer and gives you a network_services.xml, which you import above.": [
+  "CustomServers.swift"
+ ],
+ "A self-hosted server for Monster Hunter 3 Ultimate. Someone runs the host and gives you a network_services.xml to import. EspressU doesn't run or check it.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "A shader cache is what a game has saved so the next start skips building its shaders again. Size on disk is everything saved for this game, and Last updated is the last time any of it changed.\n\nClear this game's shaders lets you remove just the compiled ones (one slow start, nothing else lost) or everything including the learned ones (the game stutters while it relearns them).\n\nAdvanced mode also shows how many shaders and pipelines are saved for the renderer you've selected, splits the size into learned and compiled, and can export this game's Metal shader files to Files, for backing up or moving to another device. The counts are hidden while a game is running. The settings under Settings > Shader Cache cover every game at once.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "A single .wua file that's easy to move around.": [
+  "DecryptROMView.swift"
+ ],
+ "A small button on screen to switch between the TV and GamePad screens.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "A small button over the game while an external display is connected, to flip the setting above without leaving the game.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "A small button to switch between TV and GamePad.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "A to Z": [
+  "LibraryOrganization.swift"
+ ],
+ "ABOUT": [
+  "EspressUGamePage.swift"
+ ],
+ "About": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "About %@": [
+  "Settings/InfoButton.swift"
+ ],
+ "About EspressU": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "About Screen Layout": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "About and licences": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "About this game": [
+  "EspressUGamePage.swift"
+ ],
+ "About this pack": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Accent Colour": [
+  "ThemePickerView.swift"
+ ],
+ "Accent colour": [
+  "Settings/AppearanceSettingsSection.swift"
+ ],
+ "Accept": [
+  "GraphicPackStore.swift"
+ ],
+ "Account": [
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Account %@ was imported and can play online.": [
+  "AccountImport.swift"
+ ],
+ "Account %@ was imported, but it can't play online: %@. Link a PNID on the console first, then dump account.dat again.": [
+  "AccountImport.swift"
+ ],
+ "Account and online": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Accounts can't be changed while a game is running.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Accounts can't be changed while a game is running. Close the game first.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Active": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Active account": [
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Adaptive (Both Screens)": [
+  "extra_strings.txt"
+ ],
+ "Add": [
+  "EspressUHome.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Add %@ to which game?": [
+  "ContentView.swift"
+ ],
+ "Add a shader cache from desktop Cemu or another EspressU, so this game starts with its shaders already learned.": [
+  "PerGameSettings.swift"
+ ],
+ "Add games": [
+  "EspressUHome.swift"
+ ],
+ "Add keys": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Add one from Add on the home screen.": [
+  "EspressUGamePage.swift"
+ ],
+ "Add server": [
+  "CustomServers.swift"
+ ],
+ "Add to \"%@\"": [
+  "ContentView.swift"
+ ],
+ "Add to EspressU": [
+  "EspressUHome.swift"
+ ],
+ "Add to favourites": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Add update or DLC...": [
+  "GameContentSection.swift"
+ ],
+ "Add your games": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Add your own tracks": [
+  "MenuMusic.swift"
+ ],
+ "Added": [
+  "ContentView.swift"
+ ],
+ "Added %@": [
+  "ShaderCacheImport.swift"
+ ],
+ "Added %@ and made it the active Custom server. Pick Custom under Network Service to use it.": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Added %@ for \"%@\".": [
+  "ContentView.swift"
+ ],
+ "Added %@ key. Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first.": [
+  "ContentView.swift"
+ ],
+ "Added %@ key. Go back and start the game again. If it still won't start, close and reopen EspressU.": [
+  "ContentView.swift"
+ ],
+ "Added %@ keys. Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first.": [
+  "ContentView.swift"
+ ],
+ "Added %@ keys. Go back and start the game again. If it still won't start, close and reopen EspressU.": [
+  "ContentView.swift"
+ ],
+ "Added the %@.": [
+  "GameContentSection.swift"
+ ],
+ "Added to the Metal shader file. Shaders from desktop Cemu are converted the first time you start the game, which is a normal shader load; after that they load as fast as the game's own.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Adding content...": [
+  "GameContentSection.swift"
+ ],
+ "Addresses": [
+  "CustomServers.swift"
+ ],
+ "Adds an output or scaling shader written for OpenGL and Vulkan. Metal can't use it, so that part is skipped.": [
+  "GraphicPackModel.swift"
+ ],
+ "Adds intermediate pictures to the TV output when there is room between real frames. Interpolation can add latency.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Advanced": [
+  "PerGameAdvancedSettings.swift",
+  "Settings/AdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Advanced game options": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "All GamePad buttons go back to the built-in layout.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "All Packs": [
+  "GraphicPacksView.swift"
+ ],
+ "All games": [
+  "GraphicPacksView.swift",
+  "LibraryOrganization.swift"
+ ],
+ "All games · ": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift"
+ ],
+ "All my tracks": [
+  "MenuMusic.swift"
+ ],
+ "All songs": [
+  "MenuMusic.swift"
+ ],
+ "Allow the microphone for EspressU in iOS Settings first.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Also the learned shaders. Games stutter while they relearn them.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Amar": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "An account with the same ID is already installed. If you replace it, its account.dat is saved next to the new one first.": [
+  "AccountImport.swift"
+ ],
+ "Another export is already running.": [
+  "GameContentSection.swift"
+ ],
+ "App language": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Appearance": [
+  "Settings/AppearanceSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Applies the next time you start a game.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Applies to the next game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Are you sure you want to delete %@ (%@)?": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "As fast as possible: a softer picture, rougher lighting in some games, and shaders that may pop in.": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Asks before leaving the game.": [
+  "HomeMenu.swift"
+ ],
+ "Async texture loading": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Audio": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Audio channels": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Audio channels.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Auto": [
+  "RenderScale.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Auto picked one core: a three-core run of this title crashed or hung before": [
+  "extra_strings.txt"
+ ],
+ "Auto picked one core: the device is already hot (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked one core: this device does not meet the cores, memory tier and thermal state needed for three (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked one core: this title's game profile asks for single-core (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked one core: too few performance cores (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked three cores: this device has the performance cores, memory and thermal room (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked three cores: this title's game profile asks for multi-core (%@)": [
+  "extra_strings.txt"
+ ],
+ "Auto picked three cores: without JIT the interpreter needs more than one host core (%@)": [
+  "extra_strings.txt"
+ ],
+ "Automatic": [
+  "EspressUCoverPicker.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Automatic: EspressU slows the clock itself if a game doesn't start drawing.": [
+  "Settings/EmulatedClockSection.swift"
+ ],
+ "Back": [
+  "EspressUGamePacksView.swift",
+  "HomeMenu.swift",
+  "InGameNotices.swift",
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Back to games": [
+  "ContentView.swift"
+ ],
+ "Back to how EspressU came, Built-in JIT and its pairing file included. Games, saves and keys stay. The welcome guide opens again.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Back up and restore": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Back up settings": [
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Balanced": [
+  "RenderScale.swift"
+ ],
+ "Basic": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Basic hides the advanced settings and puts them back to their defaults.": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Basic keeps Settings short. The advanced settings are turned off, which means every one of them goes back to its default, and their rows are hidden.\n\nAdvanced shows all of them: the renderer, scaling filters, gamma, Steady frame rate, CPU cores and the other performance switches, the emulated clock, overlay details, motion tuning, stick feel, audio channels, diagnostics, and the extra options for each game.\n\nWhen you switch to Basic, EspressU first saves what your advanced settings were. When you switch back to Advanced it asks whether to restore them or keep the defaults.\n\nReset settings to defaults (under About) also puts this back to Basic and forgets the saved values.": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Battery saver": [
+  "RenderScale.swift"
+ ],
+ "Bicubic": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Bicubic Hermite": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Bigger covers, tap a cover to play": [
+  "LibraryOrganization.swift"
+ ],
+ "Birthday": [
+  "CreateAccountView.swift"
+ ],
+ "Blow into the microphone": [
+  "EspressUInGame.swift"
+ ],
+ "Both Screens (GamePad Top Right)": [
+  "extra_strings.txt"
+ ],
+ "Both screens": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Both show the %@.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Bottom Centre": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Bottom Left": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Bottom Right": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Brightness boost": [
+  "Settings/DisplaySettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Brightness boost lightens the game picture beyond your screen's maximum. Higher settings wash out dark areas.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Brings the game to the middle.": [
+  "EspressUHome.swift"
+ ],
+ "Browse all packs": [
+  "GraphicPacksView.swift"
+ ],
+ "Built-in JIT": [
+  "StikJITCoordinator.swift"
+ ],
+ "Built-in JIT doesn't work inside LiveContainer, because LiveContainer can't start EspressU's helper. Turn Use JIT off, or let LiveContainer switch JIT on.": [
+  "StikJITCoordinator.swift"
+ ],
+ "Built-in JIT isn't available": [
+  "JITOverview.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Built-in JIT needs iOS 17.4 or later.": [
+  "StikJITCoordinator.swift"
+ ],
+ "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once. This iOS version can't make one itself, so you import one.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Built-in JIT: on or off, status and pairing.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Built-in pairing needs iOS %@ or newer. Import a pairing file instead.": [
+  "DevicePairing.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Built-in pairing needs iOS %@ or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Built-in: %@": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "CPU": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "CPU and performance": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "CPU cores": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift",
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "CPU cores, speed, heat": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Camera": [
+  "GameDataStore.swift"
+ ],
+ "Can cost speed": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Cancel": [
+  "AccountImport.swift",
+  "ContentView.swift",
+  "CoverArtPickerView.swift",
+  "CreateAccountView.swift",
+  "Crema/CremaElementPanel.swift",
+  "CustomServers.swift",
+  "DecryptROMView.swift",
+  "EspressUGamePacksView.swift",
+  "EspressUHome.swift",
+  "GameContentSection.swift",
+  "GameInfoView.swift",
+  "GamePageView.swift",
+  "GameShaderCacheSection.swift",
+  "GraphicPacksView.swift",
+  "LayoutPanels.swift",
+  "LibraryOrganization.swift",
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift",
+  "Settings/AboutSettingsSection.swift",
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift",
+  "Settings/LinkedLocationsRows.swift",
+  "Settings/SettingsBackupSection.swift",
+  "Settings/ShaderSettingsSections.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Cancelled.": [
+  "DecryptROMView.swift",
+  "GameContentSection.swift",
+  "GameDataStore.swift",
+  "GraphicPackStore.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Cancelled. Your installed packs weren't changed.": [
+  "GraphicPackStore.swift"
+ ],
+ "Cards": [
+  "LibraryOrganization.swift"
+ ],
+ "Category": [
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Cellular": [
+  "DeviceConnection.swift"
+ ],
+ "Cemu Graphic Packs: ": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Cemu graphic packs on GitHub": [
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Center Pad": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Change": [
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Change Cover Art": [
+  "CoverArtPickerView.swift"
+ ],
+ "Change cover": [
+  "EspressUHome.swift",
+  "GamePageView.swift"
+ ],
+ "Change cover…": [
+  "PerGameSettings.swift"
+ ],
+ "Changes apply the next time you launch a game.": [
+  "GraphicPacksView.swift"
+ ],
+ "Changes apply the next time you start a game.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Changes apply the next time you start the game.": [
+  "EspressUGamePacksView.swift"
+ ],
+ "Changes to packs apply the next time you launch a game.": [
+  "GraphicPacksView.swift"
+ ],
+ "Changes to the CPU switches apply the next time you start a game. Cool down automatically only acts when the device overheats; One-core mode is the always-on version.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Check": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Check again": [
+  "ContentView.swift"
+ ],
+ "Check for community packs": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Check for updates": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Checking for updates…": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Checks for new community packs every time EspressU opens and installs them in the background.": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "China": [
+  "CoverArtNaming.swift"
+ ],
+ "Choose": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Choose a Figure": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Choose amiibo file": [
+  "AmiiboSheet.swift"
+ ],
+ "Choose folder": [
+  "PerGameSettings.swift"
+ ],
+ "Choose from Photos": [
+  "CoverArtPickerView.swift"
+ ],
+ "Choose the game": [
+  "GameInfoView.swift"
+ ],
+ "Choose the game…": [
+  "GameInfoView.swift"
+ ],
+ "Choose the right GameTDB entry for the summary and details.": [
+  "EspressUGamePage.swift"
+ ],
+ "Choose which button on your controller does what.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Choose which controller button does what.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Chosen by you": [
+  "GameDataStore.swift"
+ ],
+ "Classic Controller": [
+  "GameDataStore.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Clear": [
+  "EmulatedDevicesView.swift",
+  "EspressURenameView.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Clear compiled shaders": [
+  "GameShaderCacheSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Clear compiled shaders for every game?": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Clear everything": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Clear everything, including learned": [
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Clear learned shaders too?": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Clear search": [
+  "ContentView.swift"
+ ],
+ "Clear this game's shaders": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Clear this game's shaders?": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Close": [
+  "EspressUHome.swift",
+  "EspressUJITPanel.swift",
+  "EspressURows.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Close EspressU": [
+  "ContentView.swift"
+ ],
+ "Close EspressU and open it again from your Home Screen, then start a game.": [
+  "ContentView.swift"
+ ],
+ "Close Settings": [
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Close the game first, then clear its shaders.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Close the game first, then clear the cache.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Close the game first, then clear.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Close the game first, then import.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Close the running game before creating an account.": [
+  "CreateAccountView.swift"
+ ],
+ "Closes the guide and opens your library.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Closes the menu and carries on with the game.": [
+  "HomeMenu.swift"
+ ],
+ "Closes the menu and lets you drag the on-screen controls.": [
+  "HomeMenu.swift"
+ ],
+ "Community": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Community packs": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Community packs are available (%@, %@ to download).": [
+  "GraphicPacksView.swift"
+ ],
+ "Community servers": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Compact grid": [
+  "LibraryOrganization.swift"
+ ],
+ "Compile shaders in the background": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "PerGameSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Compile shaders in the background builds shaders while the game keeps running. Most games want this on; Nano Assault Neo breaks with it, so it can be set per game.\n\nFavour accuracy is slower but more accurate, and can fix a game that glitches or crashes. It also keeps the game on one CPU core. See Settings > CPU.\n\nCPU cores picks how many cores run the game. Auto decides for each game and device.\n\n\"Use Global Default\" follows the matching setting in Settings, even if you change it later. On or Off sets this game only.\n\nChanges apply the next time you start the game.": [
+  "PerGameSettings.swift"
+ ],
+ "Compiled shaders": [
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Confidence": [
+  "GameInfoView.swift"
+ ],
+ "Connect LocalDevVPN": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Connect the drive to play": [
+  "ContentView.swift"
+ ],
+ "Connect to Nintendo's original Wii U servers, which are no longer running.": [
+  "NetworkService.swift"
+ ],
+ "Connect to a custom Network Service, set up in network_services.xml.": [
+  "NetworkService.swift"
+ ],
+ "Connect to the Pretendo Network Service, a community-run replacement for Nintendo's original Wii U online services.": [
+  "NetworkService.swift"
+ ],
+ "Connected": [
+  "DeviceConnection.swift",
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Connected controllers": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Connected, %@ games": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Connected, 1 game": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Continue playing": [
+  "EspressUHome.swift"
+ ],
+ "Continue playing %@": [
+  "EspressUHome.swift"
+ ],
+ "Continues without importing keys. Homebrew doesn't need them, and you can add keys later from Settings.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Control size": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Controller": [
+  "ControllerMapping.swift",
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Controller buttons": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Controller connected. On-screen controls hidden. Menu: HOME, the touchpad or Select + Start.": [
+  "ContentView.swift"
+ ],
+ "Controller disconnected. On-screen controls shown.": [
+  "ContentView.swift"
+ ],
+ "Controller profiles": [
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "Controllers": [
+  "GameInfoView.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Controllers and motion.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Controls": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Cool": [
+  "HeatStatus.swift"
+ ],
+ "Cool down automatically": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Cool down starts at": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Cools down as soon as iOS starts slowing the device.": [
+  "ThermalMonitor.swift"
+ ],
+ "Copy": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Copy device report": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Copying %@…": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Could not resolve a Documents folder for this install.": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/FilesSettingsSection.swift"
+ ],
+ "Couldn't access that file.": [
+  "DlcUpdateImport.swift",
+  "GameContentSection.swift",
+  "GameManager.swift",
+  "WiiUKeys.swift"
+ ],
+ "Couldn't access that item.": [
+  "WiiUMenu.swift"
+ ],
+ "Couldn't access that location.": [
+  "ExternalLibrary.swift"
+ ],
+ "Couldn't add that game": [
+  "ContentView.swift"
+ ],
+ "Couldn't automatically match this %@ to a game already in your library. Add it to \"%@\" - the game you long-pressed?": [
+  "ContentView.swift"
+ ],
+ "Couldn't build the .wua.": [
+  "GameContentSection.swift"
+ ],
+ "Couldn't change the cover": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Couldn't copy that file into Documents/Emulated Devices.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Couldn't copy the ROM: %@": [
+  "GameManager.swift"
+ ],
+ "Couldn't copy the file: %@": [
+  "DlcUpdateImport.swift"
+ ],
+ "Couldn't create a file in Documents/Emulated Devices.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Couldn't create that account.": [
+  "CreateAccountView.swift"
+ ],
+ "Couldn't delete": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Couldn't delete that account.": [
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Couldn't find that game's files.": [
+  "GameManager.swift"
+ ],
+ "Couldn't find the game library folder.": [
+  "GameManager.swift"
+ ],
+ "Couldn't import": [
+  "AccountImport.swift",
+  "ContentView.swift"
+ ],
+ "Couldn't import \"%@\" (code %@). Nothing was changed.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Couldn't import it: %@": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Couldn't import keys": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Couldn't import that file: %@": [
+  "CoverArtPickerView.swift",
+  "EspressUCoverPicker.swift"
+ ],
+ "Couldn't import: %@": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Couldn't keep access to that location: %@": [
+  "ExternalLibrary.swift"
+ ],
+ "Couldn't link that": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Couldn't load that photo.": [
+  "CoverArtPickerView.swift",
+  "EspressUCoverPicker.swift"
+ ],
+ "Couldn't make that server active: %@": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Couldn't open the GameTDB database.": [
+  "GameDataStore.swift"
+ ],
+ "Couldn't open the file picker - the app had no visible window to open it from.": [
+  "DocumentImport.swift"
+ ],
+ "Couldn't open this file - it may not be a valid disc image.": [
+  "DecryptROMView.swift"
+ ],
+ "Couldn't reach GameTDB: %@": [
+  "CoverArtFetcher.swift"
+ ],
+ "Couldn't reach GitHub. Check your connection and try again.": [
+  "GraphicPackStore.swift"
+ ],
+ "Couldn't read \"%@\": %@": [
+  "GameFilesController.swift",
+  "PerGameSettings.swift"
+ ],
+ "Couldn't read that file.": [
+  "CoverArtPickerView.swift",
+  "CustomServers.swift",
+  "EspressUCoverPicker.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Couldn't read this game's title ID, so there's no cache to put the file in.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Couldn't remove it: %@": [
+  "GameContentSection.swift"
+ ],
+ "Couldn't remove keys.txt": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Couldn't remove keys.txt: %@": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Couldn't remove the game: %@": [
+  "GameManager.swift"
+ ],
+ "Couldn't reset the Developer Disk Image: %@": [
+  "StikJITCoordinator.swift"
+ ],
+ "Couldn't save %@: %@": [
+  "WiiUMenu.swift"
+ ],
+ "Couldn't save keys.txt: %@": [
+  "WiiUKeys.swift"
+ ],
+ "Couldn't save that server: %@": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Couldn't save the account: %@": [
+  "AccountImport.swift"
+ ],
+ "Couldn't start %@": [
+  "ContentView.swift"
+ ],
+ "Couldn't write the .wua. The device may be out of space.": [
+  "GameContentSection.swift"
+ ],
+ "Couldn't write the decrypted output.": [
+  "DecryptROMView.swift"
+ ],
+ "Couldn't write the settings file. %@": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Country": [
+  "CreateAccountView.swift"
+ ],
+ "Cover": [
+  "EspressUCoverPicker.swift",
+  "EspressUGamePage.swift"
+ ],
+ "Cover, name and a Play button": [
+  "LibraryOrganization.swift"
+ ],
+ "Create": [
+  "CreateAccountView.swift",
+  "EmulatedDevicesView.swift",
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Create Figure": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Create account": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Created by": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Credits and open-source licences.": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Critical": [
+  "ThermalMonitor.swift"
+ ],
+ "Custom": [
+  "NetworkService.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Custom server": [
+  "CustomServers.swift"
+ ],
+ "Custom servers": [
+  "CustomServers.swift",
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "D-pad": [
+  "ControllerMapping.swift",
+  "Crema/CremaElements.swift"
+ ],
+ "D-pad down": [
+  "ControllerMapping.swift"
+ ],
+ "D-pad left": [
+  "ControllerMapping.swift"
+ ],
+ "D-pad right": [
+  "ControllerMapping.swift"
+ ],
+ "D-pad up": [
+  "ControllerMapping.swift"
+ ],
+ "DLC": [
+  "DlcUpdateImport.swift",
+  "EspressUGamePage.swift",
+  "EspressUHome.swift",
+  "GameContentSection.swift"
+ ],
+ "Dark": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Deadzone": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Decrypt": [
+  "DecryptROMView.swift",
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Decrypt %@": [
+  "DecryptROMView.swift"
+ ],
+ "Decrypt to Folder": [
+  "DecryptROMView.swift"
+ ],
+ "Decrypt to WUA": [
+  "DecryptROMView.swift"
+ ],
+ "Decrypted": [
+  "DecryptROMView.swift"
+ ],
+ "Decrypting %@…": [
+  "DecryptROMView.swift"
+ ],
+ "Decryption couldn't start.": [
+  "DecryptROMView.swift"
+ ],
+ "Default (%@)": [
+  "EspressUGamePage.swift"
+ ],
+ "Delete": [
+  "CustomServers.swift",
+  "Settings/AccountSettingsSection.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Delete %@": [
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Delete account?": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Delete this server?": [
+  "CustomServers.swift"
+ ],
+ "Deletes its folder from graphicPacks/imported.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Details": [
+  "ContentView.swift",
+  "GameInfoView.swift"
+ ],
+ "Developer": [
+  "EspressUGamePage.swift",
+  "GameInfoView.swift"
+ ],
+ "Device": [
+  "EmulatedDevicesView.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Device connection": [
+  "DeviceConnection.swift"
+ ],
+ "Device heat": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Device heat: %@": [
+  "HeatStatus.swift"
+ ],
+ "Device not reachable": [
+  "JITOverview.swift"
+ ],
+ "Device reachable (LocalDevVPN/Wi-Fi)": [
+  "JITOverview.swift"
+ ],
+ "Device ready. Attaching to EspressU…": [
+  "StikJITCoordinator.swift"
+ ],
+ "Device report and logs": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Diagnostics": [
+  "Settings/AdvancedSettings.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Dismiss": [
+  "ContentView.swift"
+ ],
+ "Disney Infinity Base": [
+  "EmulatedDevicesView.swift",
+  "Settings/EmulatedDevicesSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Display": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Display gamma": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Done": [
+  "AmiiboSheet.swift",
+  "ContentView.swift",
+  "Crema/CremaElementPanel.swift",
+  "DecryptROMView.swift",
+  "EmulatedDevicesView.swift",
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "LayoutPanels.swift",
+  "PerGameSettings.swift",
+  "Settings/InfoButton.swift",
+  "ThemePickerView.swift"
+ ],
+ "Done. The .wua holds the game with its update and DLC.": [
+  "GameContentSection.swift"
+ ],
+ "Download": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Download community packs": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Download the community packs above, or import your own from Files.": [
+  "GraphicPacksView.swift"
+ ],
+ "Download the community packs above, or import your own.": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Download the community packs above, then come back.": [
+  "GraphicPacksView.swift"
+ ],
+ "Download the community packs below, then come back.": [
+  "EspressUGamePacksView.swift"
+ ],
+ "Download the community packs from the Graphic Packs screen.": [
+  "GraphicPacksView.swift"
+ ],
+ "Downloaded": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Downloaded. It installs when this screen is opened with no game running.": [
+  "GraphicPacksView.swift"
+ ],
+ "Downloading": [
+  "GraphicPacksView.swift"
+ ],
+ "Downloading GameTDB database": [
+  "GameDataStore.swift"
+ ],
+ "Downloading…": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Drag games in, then come back": [
+  "EspressUHome.swift"
+ ],
+ "Draws the GamePad at its own 854 pixels instead of the display's sharpness. Saves GPU time; applies the next time the GamePad screen is laid out.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Drive, SD card or iCloud. Nothing is copied": [
+  "EspressUHome.swift"
+ ],
+ "Each game is slow to start once while it rebuilds. Nothing else is lost.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Each option here follows the matching setting in Settings until you give this game its own value, and then keeps it whatever Settings says.\n\nResolution and the two scaling filters change how the picture is drawn for this game. Favour performance, Steady frame rate and One-core mode work as they do in Settings, for this game only.\n\nScreen layout and Hide on-screen controls when a controller is connected are put in place when the game starts, and your own choices come back when it stops. A layout change you make during the game is not kept.\n\nPerformance overlay turns the readout on or off for this game. On uses the corner chosen in Settings, or the top left if Settings has it off.\n\nReset this game's options puts every option for this game, in this screen and the one above, back on Settings.": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "Edit individual controls": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Email (optional)": [
+  "CreateAccountView.swift"
+ ],
+ "Empty": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Emulate Device": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Emulated Clock": [
+  "Settings/EmulatedClockSection.swift"
+ ],
+ "Emulated Devices": [
+  "EmulatedDevicesView.swift",
+  "Settings/EmulatedDevicesSettingsSection.swift"
+ ],
+ "Emulated clock": [
+  "Settings/AdvancedSettings.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Emulated devices": [
+  "HomeMenu.swift"
+ ],
+ "Emulates a Skylanders Portal, Disney Infinity Base or LEGO Dimensions Toypad. Changes apply the next time you start a game.": [
+  "Settings/EmulatedDevicesSettingsSection.swift"
+ ],
+ "Encrypted Wii U games need a keys.txt dumped from your own Wii U. EspressU doesn't include one. Homebrew doesn't need it.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Encrypted games (.wux, .wud, .iso, .wua) need AES keys dumped from your own Wii U, in a text file called keys.txt with one key per line. EspressU doesn't include keys.\n\nYou can also open EspressU in the Files app and drop keys.txt into the \"keys\" folder.\n\nNew keys are used the next time you start a game. If you've already started a game since opening EspressU, quit and reopen EspressU first.": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Encrypted games won't run until you import a keys.txt again. Homebrew is unaffected.": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Encrypted games won't run until you import keys again.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Enhancements": [
+  "GraphicPackModel.swift"
+ ],
+ "Enter a Mii name.": [
+  "CreateAccountView.swift"
+ ],
+ "Enter a figure ID between 0 and 65535.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Enter a persistent ID.": [
+  "CreateAccountView.swift"
+ ],
+ "Enter a valid 32-bit figure ID.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Enter a variant between 0 and 65535.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Enter at least one server address.": [
+  "CustomServers.swift"
+ ],
+ "Enter server addresses": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Enter this PIN in Settings": [
+  "JITOverview.swift"
+ ],
+ "Enter this PIN in Settings: %@": [
+  "DevicePairing.swift"
+ ],
+ "Error": [
+  "CoverArtPickerView.swift",
+  "CreateAccountView.swift",
+  "EmulatedDevicesView.swift",
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Espress": [
+  "ContentView.swift"
+ ],
+ "EspressU": [
+  "ContentView.swift",
+  "CoverArtFetcher.swift",
+  "CoverArtNaming.swift",
+  "EspressUAppearance.swift",
+  "EspressUBranding.swift",
+  "ExternalLibrary.swift",
+  "GameDataStore.swift",
+  "GraphicPackStore.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "EspressU builds on Cemu.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "EspressU can't get JIT": [
+  "StikJITCoordinator.swift"
+ ],
+ "EspressU can't read \"%@\". If it's on a drive, make sure the drive is connected.": [
+  "ExternalLibrary.swift"
+ ],
+ "EspressU can't use your %@'s microphone until you allow it in iOS Settings. Until then, games use the Blow button in the top bar instead.": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "EspressU couldn't decrypt this folder. Its title.tik doesn't unlock the .app files.": [
+  "DlcUpdateImport.swift"
+ ],
+ "EspressU couldn't decrypt this game folder. Its title.tik doesn't unlock the .app files - check that title.tmd, title.tik and the .app files are from the same download.": [
+  "DecryptROMView.swift"
+ ],
+ "EspressU couldn't read that file.": [
+  "AmiiboSheet.swift"
+ ],
+ "EspressU couldn't read this game's title ID, so it can't pick out its packs.": [
+  "EspressUGamePacksView.swift"
+ ],
+ "EspressU couldn't read this game's title ID, so it can't pick out its packs. Browse all packs instead.": [
+  "GraphicPacksView.swift"
+ ],
+ "EspressU couldn't read this game's title ID, so it doesn't know where its save lives.": [
+  "GameSaveTransfer.swift"
+ ],
+ "EspressU couldn't save a copy in Documents/amiibo.": [
+  "AmiiboSheet.swift"
+ ],
+ "EspressU couldn't show itself to Settings (error %@). Check that Local Network is on for EspressU in Settings › Privacy & Security › Local Network, then try again.": [
+  "DevicePairing.swift"
+ ],
+ "EspressU has to be closed and reopened before it can start another game.": [
+  "GameManager.swift"
+ ],
+ "EspressU is built on Cemu and based on [MuffinEMU](https://github.com/MuffinEMU/Muffin-EMU) by Void.": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "EspressU is built on Cemu.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "EspressU is paired": [
+  "DevicePairing.swift"
+ ],
+ "EspressU pairing": [
+  "DevicePairing.swift"
+ ],
+ "EspressU pairing failed": [
+  "DevicePairing.swift"
+ ],
+ "EspressU reaches the device through it. Wi-Fi works best.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "EspressU slows the clock itself if a game doesn't start drawing. Picking a speed turns that off.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "EspressU's own source is licensed under the Mozilla Public License 2.0. Each component below keeps its own copyright and licence. Tap one to read its licence.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "EspressU's own source is licensed under the Mozilla Public License 2.0. It includes the following open-source software; each keeps its own copyright and licence.": [
+  "Settings/OpenSourceLicencesView.swift"
+ ],
+ "Europe": [
+  "CoverArtNaming.swift"
+ ],
+ "Even frames at the game's own speed, never faster.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Every control you moved or resized goes back to its default place and size.": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Every game": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Every setting and every game's own options, in one file. Never your library, keys, accounts or theme.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Everything else": [
+  "LibraryOrganization.swift"
+ ],
+ "Everything is shown, including the settings most people never need.": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Exact title ID": [
+  "GameDataStore.swift"
+ ],
+ "Existing %@ saved as %@.": [
+  "WiiUMenu.swift"
+ ],
+ "Experimental": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Experimental. Turn it on before connecting a second screen.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Export": [
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Export all settings": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Export all settings writes one .json file to Files: every setting, and the options you've set for individual games. It never includes your library, favourites, Wii U keys, accounts or theme.\n\nImport settings reads such a file, checks it, and asks before it replaces anything. Importing replaces all your settings and every game's own options with what the file holds, and anything the file doesn't mention goes back to its default. Some changes apply the next time you start a game.": [
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Export cancelled.": [
+  "GameSaveTransfer.swift"
+ ],
+ "Export game saves": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift"
+ ],
+ "Export this game's shaders": [
+  "GameShaderCacheSection.swift"
+ ],
+ "External": [
+  "LibraryOrganization.swift"
+ ],
+ "Extra options for this game only. \"Use Global Default\" follows Settings. They apply the next time you start the game.": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "Extremely Hot": [
+  "HeatStatus.swift"
+ ],
+ "Face buttons": [
+  "ControllerMapping.swift"
+ ],
+ "Fade out in-game buttons": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Fair": [
+  "HeatStatus.swift"
+ ],
+ "Fast blending": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Fast recompiler": [
+  "JITOverview.swift"
+ ],
+ "Faster, a little less exact.": [
+  "EspressUGamePage.swift"
+ ],
+ "Faster, with some accuracy shortcuts.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Favour accuracy": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift",
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Favour performance": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Favour performance is on (Settings > CPU), so the picture is drawn at Balanced at most, with linear scaling.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Favour performance is on, so at most Balanced.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Favourite": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "PerGameSettings.swift"
+ ],
+ "Favourites": [
+  "EspressUHome.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Favourites and the rest": [
+  "LibraryOrganization.swift"
+ ],
+ "Favourites first": [
+  "ContentView.swift"
+ ],
+ "Favourites only": [
+  "LibraryOrganization.swift"
+ ],
+ "Female": [
+  "CreateAccountView.swift"
+ ],
+ "Fetch": [
+  "CoverArtPickerView.swift",
+  "EspressUCoverPicker.swift"
+ ],
+ "Fetching…": [
+  "CoverArtPickerView.swift"
+ ],
+ "Figure": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Figure %@": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Figure ID": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Figure portals": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Figure saved, but it couldn't be loaded: %@": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Figures": [
+  "EmulatedDevicesView.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "File Name": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Files": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Files and storage": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Files › On My iPad › EspressU": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Fills the screen instead of keeping 16:9.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Filter when enlarging": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Filter when shrinking": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Find the game on gametdb.com/WiiU/CoverArt and enter its 6-character ID, for example AGBE01.": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Find this game on GameTDB": [
+  "EspressUGamePage.swift"
+ ],
+ "Finishes the guide and opens your library.": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "First time a new effect appears": [
+  "PerGameAdvancedSettings.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Fixes and extras for each game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Flip screen upside down": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Folder": [
+  "LibraryOrganization.swift"
+ ],
+ "Follows Settings, which has it %@.": [
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift"
+ ],
+ "Follows the CPU cores setting below.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Follows the device, or always light or dark.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Follows your settings": [
+  "EspressUGamePage.swift"
+ ],
+ "For bug reports.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "For bug reports: device, settings and the last log lines.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "For games that aim with the GamePad's gyro, such as Splatoon.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "For games that glitch otherwise; slower.": [
+  "EspressUGamePage.swift"
+ ],
+ "For games that still won't advance at 1/8. Gameplay runs in slow motion.": [
+  "TimebaseScale.swift"
+ ],
+ "For this %@ we suggest staying at %@ or lower.": [
+  "GraphicPackModel.swift"
+ ],
+ "Frame generation": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Frame rate": [
+  "ContentView.swift"
+ ],
+ "Frame rate counter and messages over the game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Freed %@.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Freed %@. ": [
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Frees space. Each game is slow to start once.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Frees up the space it uses. Saves and settings are kept.": [
+  "EspressUGamePage.swift"
+ ],
+ "Frees up the space the game uses. Your saves and options are kept.": [
+  "GamePageView.swift"
+ ],
+ "Friends": [
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "From Files": [
+  "CoverArtPickerView.swift"
+ ],
+ "From Photos": [
+  "CoverArtPickerView.swift"
+ ],
+ "From desktop Cemu or another EspressU. Adds to this game's shaders, never replaces them.": [
+  "EspressUGamePage.swift"
+ ],
+ "From iLoader, idevice_pair or another tool.": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Full brightness during a game, back afterwards.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Full path": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Full speed needs a JIT enabler (StikJIT, SideStore or LiveContainer) attached at launch. Without one, EspressU still runs but much slower. Settings shows which you have.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Full speed with JIT": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "GAMETDB": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Game": [
+  "GameManager.swift"
+ ],
+ "Game ID": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Game ID, e.g. AGBE01": [
+  "CoverArtPickerView.swift"
+ ],
+ "Game data and covers from GameTDB (gametdb.com). Box art © respective publishers.": [
+  "GameInfoView.swift"
+ ],
+ "Game file": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Game folder": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Game folders that stay where they are.": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Game info": [
+  "EspressUGamePage.swift"
+ ],
+ "Game language": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Game page": [
+  "EspressUHome.swift",
+  "PerGameSettings.swift"
+ ],
+ "Game saves": [
+  "PerGameSettings.swift"
+ ],
+ "Game settings": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "GamePad audio": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "GamePad channels": [
+  "Settings/AudioSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "GamePad screen": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "GamePad screen on the external display": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "GamePad sound": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "GamePad volume": [
+  "Settings/AudioSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "GameTDB Game ID": [
+  "CoverArtPickerView.swift"
+ ],
+ "GameTDB ID": [
+  "GameInfoView.swift"
+ ],
+ "GameTDB has no search feature we can use. Find your game at https://www.gametdb.com/WiiU/CoverArt, copy its 6-character Game ID (for example AGBE01) and enter it above. Fetch shows a preview before anything is saved.": [
+  "CoverArtPickerView.swift"
+ ],
+ "GameTDB has no summary for this game.": [
+  "GameInfoView.swift"
+ ],
+ "GameTDB has nothing on this game yet. Choose the right entry under Game info to get its summary and details.": [
+  "EspressUGamePage.swift"
+ ],
+ "Games": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Games & Data": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Games run with the fast recompiler.": [
+  "JITOverview.swift"
+ ],
+ "Games run with the slow interpreter.": [
+  "JITOverview.swift"
+ ],
+ "Games use the fast recompiler.": [
+  "EspressUJITPanel.swift"
+ ],
+ "Games use the slow interpreter.": [
+  "EspressUJITPanel.swift"
+ ],
+ "Games will stutter while they relearn their shaders.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Games you add show up here, with their own icon and name.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Games you add there show up when you come back to EspressU.": [
+  "ContentView.swift"
+ ],
+ "Games, saves, shader caches and keys.txt live here. Installed through LiveContainer, the folder is under LiveContainer instead.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Games, updates, DLC and keys": [
+  "EspressUHome.swift"
+ ],
+ "Gender": [
+  "CreateAccountView.swift"
+ ],
+ "Genre": [
+  "EspressUGamePage.swift",
+  "GameInfoView.swift"
+ ],
+ "Get started": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "GitHub answered the download with an error (%@).": [
+  "GraphicPackStore.swift"
+ ],
+ "GitHub answered with an error (%@).": [
+  "GraphicPackStore.swift"
+ ],
+ "GitHub didn't answer.": [
+  "GraphicPackStore.swift"
+ ],
+ "GitHub is limiting requests right now. Try again in a little while.": [
+  "GraphicPackStore.swift"
+ ],
+ "GitHub's answer wasn't what was expected.": [
+  "GraphicPackStore.swift"
+ ],
+ "Give the server a name.": [
+  "CustomServers.swift"
+ ],
+ "Go back to EspressU to try again.": [
+  "DevicePairing.swift"
+ ],
+ "Go back to EspressU. JIT can start now.": [
+  "DevicePairing.swift"
+ ],
+ "Go back to automatic matching": [
+  "GameInfoView.swift"
+ ],
+ "Goes back to the HOME menu without quitting.": [
+  "HomeMenu.swift"
+ ],
+ "Goes to the next page of the guide.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Goes to the next page.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Good": [
+  "GameDataStore.swift"
+ ],
+ "Graphic Packs": [
+  "GraphicPacksView.swift",
+  "PerGameSettings.swift"
+ ],
+ "Graphic packs": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Graphic packs change how a game looks or plays: higher resolutions, frame-rate patches, fixes for known glitches and mods. Download the community packs, turn on the ones you want for this game, and pick their options. Nothing is turned on automatically.\n\nHigher resolutions cost speed and memory, and what is reasonable depends on the device, so the options show a suggestion for this one.\n\nPacks listed under All games apply to every game, not just this one. Packs apply the next time you start the game.": [
+  "PerGameSettings.swift"
+ ],
+ "Graphics": [
+  "GraphicPackModel.swift",
+  "Settings/EspressUSettingsModel.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Graphics stopped working": [
+  "ContentView.swift"
+ ],
+ "Group by": [
+  "LibraryOrganization.swift"
+ ],
+ "HOME": [
+  "Crema/CremaInput.swift"
+ ],
+ "HOME button": [
+  "Crema/CremaElements.swift"
+ ],
+ "HOME menu": [
+  "ContentView.swift"
+ ],
+ "Haptic feedback": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Heads up": [
+  "EspressUGamePacksView.swift"
+ ],
+ "Heat": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Help": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Hide": [
+  "EspressUGamePage.swift"
+ ],
+ "Hide control options": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Hide on-screen controls when a controller is connected": [
+  "Crema/CremaLayoutPanel.swift",
+  "PerGameAdvancedSettings.swift"
+ ],
+ "Hide touch controls": [
+  "HomeMenu.swift"
+ ],
+ "Hide touch controls with a controller": [
+  "EspressUGamePage.swift"
+ ],
+ "Hides the top bar buttons, HOME included, after a few seconds while a game runs. Tap or swipe down at the top edge to bring them back. Off keeps them always visible.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "High": [
+  "GameDataStore.swift",
+  "RenderScale.swift"
+ ],
+ "Higher resolutions cost speed and memory.": [
+  "GraphicPacksView.swift"
+ ],
+ "Higher resolutions cost speed and memory. %@": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Hold to blow.": [
+  "EspressUInGame.swift"
+ ],
+ "Horizon Drive": [
+  "MenuMusic.swift"
+ ],
+ "Hot": [
+  "HeatStatus.swift"
+ ],
+ "How far the aim moves when you tilt.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "How fast the Wii U's clock runs.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "How games run: the CPU and heat.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "How to set it up": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "ID %@": [
+  "EmulatedDevicesView.swift"
+ ],
+ "If a game glitches, desyncs or crashes, turn on Favour accuracy in Settings > CPU. It's slower but more accurate.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "If aim feels backwards": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report.": [
+  "ContentView.swift"
+ ],
+ "Import": [
+  "AccountImport.swift",
+  "ContentView.swift",
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Import DLC": [
+  "GamePageView.swift"
+ ],
+ "Import DLC…": [
+  "ContentView.swift"
+ ],
+ "Import Update…": [
+  "ContentView.swift"
+ ],
+ "Import a File": [
+  "CoverArtPickerView.swift"
+ ],
+ "Import a Game": [
+  "ContentView.swift"
+ ],
+ "Import a game": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Import a game save folder": [
+  "EspressUGamePage.swift"
+ ],
+ "Import a pack folder or zip": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Import a pairing file": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Import a save folder?": [
+  "PerGameSettings.swift"
+ ],
+ "Import and replace": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Import another pairing file": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Import from Wii U": [
+  "AccountImport.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Import game save folder": [
+  "PerGameSettings.swift"
+ ],
+ "Import games from Files: .wud, .wux, .wua, .iso, a dumped game folder or a homebrew .rpx. You can also drop them into Documents/Roms in the Files app.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Import keys.txt": [
+  "ContentView.swift"
+ ],
+ "Import learned shaders": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift"
+ ],
+ "Import network_services.xml": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Import pack folder or zip…": [
+  "GraphicPacksView.swift"
+ ],
+ "Import packs": [
+  "GraphicPacksView.swift"
+ ],
+ "Import pairing file": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Import settings": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Import shader pipeline caches": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift"
+ ],
+ "Import update": [
+  "GamePageView.swift"
+ ],
+ "Imported": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Imported %@ keys.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Imported %@ pack from %@.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Imported %@ pack from %@. Changes apply the next time you launch a game.": [
+  "GraphicPacksView.swift"
+ ],
+ "Imported %@ packs from %@.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Imported %@ packs from %@. Changes apply the next time you launch a game.": [
+  "GraphicPacksView.swift"
+ ],
+ "Imported pack": [
+  "GraphicPackStore.swift"
+ ],
+ "Imported. JIT switches on by itself when LocalDevVPN is connected.": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Importing %@…": [
+  "ContentView.swift"
+ ],
+ "Importing…": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift"
+ ],
+ "In-game buttons": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Included software": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Install": [
+  "EspressUGamePage.swift"
+ ],
+ "Installed": [
+  "EspressUGamePage.swift",
+  "GameContentSection.swift",
+  "GraphicPacksView.swift"
+ ],
+ "Installed %@ community packs (%@). Changes apply the next time you launch a game.": [
+  "GraphicPackStore.swift"
+ ],
+ "Installed: ": [
+  "EspressUInbox.swift"
+ ],
+ "Installing": [
+  "GraphicPacksView.swift"
+ ],
+ "Installing…": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Interpreter": [
+  "JITOverview.swift",
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "It installs when this page is opened with no game running.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "It was removed or the packs were rescanned.": [
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "It will become GamePad %@. %@ s left.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "It's used the next time you start the game.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Its folder is deleted from EspressU's graphicPacks/imported folder.": [
+  "GraphicPacksView.swift"
+ ],
+ "JIT": [
+  "EspressUHome.swift",
+  "JITOverview.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "JIT couldn't be enabled": [
+  "StikJITCoordinator.swift"
+ ],
+ "JIT is off": [
+  "JITOverview.swift"
+ ],
+ "JIT is on": [
+  "JITOverview.swift"
+ ],
+ "JIT on": [
+  "EspressUHome.swift"
+ ],
+ "JIT settings": [
+  "EspressUJITPanel.swift"
+ ],
+ "JIT stays on until you close EspressU. Turn LocalDevVPN back on to switch it on again later.": [
+  "JITOverview.swift"
+ ],
+ "JIT switches on by itself once LocalDevVPN is connected.": [
+  "JITOverview.swift"
+ ],
+ "JIT switches on by itself whenever LocalDevVPN is connected.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "JIT switches on by itself while LocalDevVPN is connected, on Wi-Fi if you can.": [
+  "JITOverview.swift"
+ ],
+ "JIT switches on when a game starts.": [
+  "JITOverview.swift"
+ ],
+ "Japan": [
+  "CoverArtNaming.swift"
+ ],
+ "Join the Discord": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Keep defaults": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Keep games where they are": [
+  "EspressUHome.swift"
+ ],
+ "Keep going": [
+  "RenderScale.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Keep playing": [
+  "HomeMenu.swift"
+ ],
+ "Keep waiting": [
+  "ContentView.swift"
+ ],
+ "Keyboard": [
+  "GameDataStore.swift"
+ ],
+ "Keys": [
+  "EspressUHome.swift"
+ ],
+ "Keys (keys.txt)": [
+  "ContentView.swift"
+ ],
+ "Keys loaded": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "L button": [
+  "Crema/CremaElements.swift"
+ ],
+ "L/R": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "L3": [
+  "ControllerMapping.swift",
+  "Crema/CremaInput.swift"
+ ],
+ "LEGO Dimensions Toypad": [
+  "EmulatedDevicesView.swift",
+  "Settings/EmulatedDevicesSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Lab Rats": [
+  "MenuMusic.swift"
+ ],
+ "Language": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Languages": [
+  "EspressUGamePage.swift",
+  "GameInfoView.swift"
+ ],
+ "Large": [
+  "TopBarAutoHide.swift"
+ ],
+ "Large covers": [
+  "LibraryOrganization.swift"
+ ],
+ "Last checked %@.": [
+  "GraphicPacksView.swift"
+ ],
+ "Last played": [
+  "ContentView.swift",
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Last updated": [
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Layout, brightness, volume": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Learned shaders": [
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Learned shaders are what a game has revealed by drawing with them. Importing adds them to this game's own file: anything the game already has stays as it is, and the file is never replaced.\n\nThe file has to be this game's: EspressU checks the version stamp inside it, not the name. Desktop Cemu's files work: learned shaders are named like 000500001010ec00_shaders.bin and are converted the first time the game starts. EspressU's are named ..._mtlshaders.bin. Desktop caches from before Cemu 1.16 use another format and can't be converted.\n\nPipeline caches have to be EspressU's own, named ..._mtlpipeline.bin; the ..._vkpipeline.bin files from desktop Cemu can't be used. A pipeline cache also needs the game's learned shaders. Import with the game closed. The sizes in Settings update the next time you open it.": [
+  "PerGameSettings.swift"
+ ],
+ "Leaves the game now.": [
+  "HomeMenu.swift"
+ ],
+ "Left Pad: Bottom Left": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Left Pad: Bottom Right": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Left Pad: Top": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Left bumper": [
+  "ControllerMapping.swift"
+ ],
+ "Left stick": [
+  "Crema/CremaElements.swift"
+ ],
+ "Left stick click": [
+  "ControllerMapping.swift"
+ ],
+ "Left trigger": [
+  "ControllerMapping.swift"
+ ],
+ "Less": [
+  "EspressUGamePage.swift"
+ ],
+ "Let EspressU choose again": [
+  "Settings/EmulatedClockSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Library": [
+  "EspressUHome.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Library layout": [
+  "LibraryOrganization.swift"
+ ],
+ "Library organization": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Library, keys, backups": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Light": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Lightens the picture beyond the screen's maximum.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Like Reset all settings, and every game's own options go back too. The welcome guide opens again.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Linear": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Link": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Link a folder": [
+  "EspressUHome.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Link a folder…": [
+  "ContentView.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Link a game file": [
+  "EspressUHome.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Link a game file…": [
+  "ContentView.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Linked": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Linked folders": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Linked games stay where they are. EspressU never copies, moves or deletes them. A game on a drive that isn't connected stays in the library until you plug the drive back in.": [
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Linked games stay where they are. EspressU never copies, moves or deletes them. Unlinking keeps your saves and options.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "List": [
+  "LibraryOrganization.swift"
+ ],
+ "Load": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Load a .%@ figure file or create a new one. Figures and their progress are saved in Documents/Emulated Devices. Clear removes the figure from the slot but keeps the file.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Load a figure dump you own, create a new one or clear a slot. No figures are included.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Load, create or clear figures.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Loading games...": [
+  "ContentView.swift"
+ ],
+ "LocalDevVPN connected": [
+  "JITOverview.swift"
+ ],
+ "LocalDevVPN is off": [
+  "JITOverview.swift"
+ ],
+ "LocalDevVPN isn't connected": [
+  "StikJITCoordinator.swift"
+ ],
+ "Long-press a game and choose Favourite to see it here.": [
+  "EspressUHome.swift"
+ ],
+ "Look": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Look up your game's ID on gametdb.com.": [
+  "CoverArtPickerView.swift"
+ ],
+ "Look, help and about EspressU.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Look, help, about": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Looking for packs": [
+  "GraphicPacksView.swift"
+ ],
+ "Looking for packs…": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Low": [
+  "GameDataStore.swift",
+  "ScreenBrightness.swift"
+ ],
+ "Low Power Mode is on, so games may run slowly. Turn it off in Control Centre for full speed.": [
+  "GameManager.swift"
+ ],
+ "Low controller battery": [
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "Lower-resolution GamePad screen": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Lowers resolution and CPU load when the device gets hot.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "MH3U Revival": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "MH3U Revival on GitHub": [
+  "CustomServers.swift"
+ ],
+ "MPL-2.0": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OpenSourceLicencesView.swift"
+ ],
+ "Made by the Cemu graphic packs project and its contributors (CC0).": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Made by the Cemu graphic packs project. Verified before anything is replaced.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Made for OpenGL, which EspressU doesn't use.": [
+  "GraphicPackModel.swift"
+ ],
+ "Made for Vulkan, which EspressU doesn't use.": [
+  "GraphicPackModel.swift"
+ ],
+ "Made for a different kind of graphics chip, so it never turns on here.": [
+  "GraphicPackModel.swift"
+ ],
+ "Make active": [
+  "AccountImport.swift"
+ ],
+ "Make the imported account the active one? Then set Network Service to Pretendo Network below.": [
+  "AccountImport.swift"
+ ],
+ "Make this the active Custom server.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Male": [
+  "CreateAccountView.swift"
+ ],
+ "Manage": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Manage Figures": [
+  "Settings/EmulatedDevicesSettingsSection.swift"
+ ],
+ "Manage figures": [
+  "Settings/EspressUSettingsModel.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Many small covers on screen at once": [
+  "LibraryOrganization.swift"
+ ],
+ "Matched %@ of %@ games from %@ database entries.": [
+  "GameDataStore.swift"
+ ],
+ "Matched by": [
+  "GameInfoView.swift"
+ ],
+ "Matches your icon": [
+  "ThemePickerView.swift"
+ ],
+ "Max brightness while playing": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Max screen brightness while playing": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Medium": [
+  "ScreenBrightness.swift"
+ ],
+ "Memory": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Memory is running low": [
+  "ContentView.swift"
+ ],
+ "Menu": [
+  "ContentView.swift",
+  "ControllerMapping.swift"
+ ],
+ "Menus follow the language set for EspressU in the iOS Settings app.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Meta files (app.xml, meta.xml, cos.xml) are missing or damaged.": [
+  "DlcUpdateImport.swift"
+ ],
+ "Metal draws the picture. Resolution, filters and gamma apply from the next game you start.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Microphone": [
+  "GameDataStore.swift"
+ ],
+ "Microphone access is off": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Microphone volume": [
+  "Settings/AudioSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Mii details": [
+  "CreateAccountView.swift"
+ ],
+ "Mii name": [
+  "CreateAccountView.swift"
+ ],
+ "Minus": [
+  "ControllerMapping.swift"
+ ],
+ "Minus button": [
+  "Crema/CremaElements.swift"
+ ],
+ "Missing": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Missing: ": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Missing: a valid network_services.xml.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Mods": [
+  "GraphicPackModel.swift"
+ ],
+ "Mods and fixes for your games.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Mono": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "More": [
+  "EspressUGamePage.swift"
+ ],
+ "More controllers are more players": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "More options": [
+  "EspressUHome.swift"
+ ],
+ "More options for %@": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Most games take a Pro Controller; some older ones want the Classic Controller.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Most played": [
+  "ContentView.swift"
+ ],
+ "Motion": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Motion & Aiming": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Motion aiming": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Motion aiming feeds this device's gyroscope and accelerometer to the emulated GamePad, so games that aim by moving the GamePad work the way they do on a Wii U. Hold the device like the GamePad, screen toward you, and tilt or turn it. It follows the way the screen is turned, so it works in every orientation.\n\nMotion from: This device uses the iPad or iPhone itself. Controller uses the motion sensors of a connected controller that has them (DualShock 4, DualSense, Switch Pro Controller) and falls back to the device when there is none. Controller motion has had little testing.\n\nSensitivity is how far the GamePad turns for a given movement. 1.00x matches the real GamePad. Turn it up if you have to move the device a long way to turn.\n\nRecentre aim forgets where the GamePad has been pointing and treats the current position as straight ahead. Use it when aim has drifted, or after turning in your seat. Many games also have their own recentre button.\n\nIf aiming turns the wrong way, \"If aim feels backwards\" reverses left and right, or up and down.\n\nTurn Motion aiming off to aim with the sticks only. A game with its own motion option, Splatoon included, should have that switched off as well.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Motion from": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Motion is off. Games see a GamePad that never moves.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Motion tuning": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Move": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Move controls": [
+  "HomeMenu.swift"
+ ],
+ "Name": [
+  "CustomServers.swift",
+  "EspressUGamePage.swift",
+  "EspressURenameView.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Names the folder your saves live in. Leave it alone unless you're importing saves from a real Wii U.": [
+  "CreateAccountView.swift"
+ ],
+ "Native": [
+  "RenderScale.swift"
+ ],
+ "Nearest Neighbor": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Needed for encrypted dumps (.wud, .wux).": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Needs speed to spare": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Network Service": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Network Service%@": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Network service": [
+  "Settings/EspressUSettingsModel.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Never flickers. A short hitch the first time a new effect appears.": [
+  "RenderScale.swift"
+ ],
+ "Never freezes. A new effect can be missing for a moment the first time.": [
+  "RenderScale.swift"
+ ],
+ "Never played": [
+  "LibraryOrganization.swift"
+ ],
+ "New Account": [
+  "CreateAccountView.swift"
+ ],
+ "Next": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Nintendo Network (shut down)": [
+  "NetworkService.swift"
+ ],
+ "No Favourites Yet": [
+  "ContentView.swift"
+ ],
+ "No GamePad is wired yet - start a game, then try again.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "No Games Yet": [
+  "ContentView.swift"
+ ],
+ "No JIT": [
+  "EspressUHome.swift",
+  "JITOverview.swift"
+ ],
+ "No JIT? Games still start, just much slower.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "No Matches": [
+  "ContentView.swift"
+ ],
+ "No automatic match": [
+  "ContentView.swift"
+ ],
+ "No built-in list for this slot. Enter the figure ID on the previous screen.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "No computer needed: EspressU shows up in Settings › Privacy & Security › Developer Mode.": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "No controller connected": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "No controller yet. It shows up here as soon as it's paired.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "No controller? The touch controls show up on screen and hide as soon as a controller connects.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "No cover art found for that ID.": [
+  "CoverArtPickerView.swift"
+ ],
+ "No cover found for that ID.": [
+  "EspressUCoverPicker.swift"
+ ],
+ "No favourites yet": [
+  "EspressUHome.swift"
+ ],
+ "No figures match “%@”.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "No game in your library matches this content.": [
+  "DlcUpdateImport.swift"
+ ],
+ "No game sound while the device is on silent.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "No games yet": [
+  "EspressUHome.swift"
+ ],
+ "No graphic pack found. A pack is a folder with a rules.txt file in it; pick that folder, a folder of packs, or a zip of either.": [
+  "GraphicPackStore.swift"
+ ],
+ "No graphic packs yet": [
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "No groups": [
+  "LibraryOrganization.swift"
+ ],
+ "No keys found in that file. Each key is 32 hex characters on its own line; anything after a # is a comment.": [
+  "WiiUKeys.swift"
+ ],
+ "No known figures": [
+  "EmulatedDevicesView.swift"
+ ],
+ "No matches": [
+  "EmulatedDevicesView.swift",
+  "EspressUHome.swift"
+ ],
+ "No matching key in keys.txt for this disc. Import the right key and try again.": [
+  "DecryptROMView.swift"
+ ],
+ "No packs for this game": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift"
+ ],
+ "No packs yet": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift"
+ ],
+ "No release dates listed.": [
+  "GameInfoView.swift"
+ ],
+ "No saved NNID/PNID login, so it can't play online yet.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "No saved servers yet": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "No saved servers yet.": [
+  "CustomServers.swift"
+ ],
+ "None": [
+  "GameContentSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Normal": [
+  "TopBarAutoHide.swift"
+ ],
+ "Normal game speed. Right when the recompiler is running.": [
+  "TimebaseScale.swift"
+ ],
+ "Normally this is Files → On My iPhone/iPad → EspressU. If you installed through LiveContainer, iOS lists the folder under LiveContainer instead; use the path shown above to find it.": [
+  "Settings/FilesSettingsSection.swift"
+ ],
+ "North America": [
+  "CoverArtNaming.swift"
+ ],
+ "Not Now": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Not Present": [
+  "StikJITCoordinator.swift"
+ ],
+ "Not available": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Not checked": [
+  "StikJITCoordinator.swift"
+ ],
+ "Not decided yet": [
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Not decided yet - the CPU path is chosen when the engine initializes, on the first launch.": [
+  "extra_strings.txt"
+ ],
+ "Not downloaded": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Not enough free space: the import needs about %@ and this device has %@ free.": [
+  "WiiUMenu.swift"
+ ],
+ "Not enough free storage to %@. It needs about %@ and this device has %@ free. Free some space and try again.": [
+  "GraphicPackModel.swift"
+ ],
+ "Not enough free storage.": [
+  "GraphicPackStore.swift"
+ ],
+ "Not fully supported": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Not fully supported here": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Not fully supported on Metal": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Not installed": [
+  "EspressUGamePage.swift"
+ ],
+ "Not installed (still in the Updates & DLC folder):\n": [
+  "EspressUInbox.swift"
+ ],
+ "Not now": [
+  "AccountImport.swift"
+ ],
+ "Not played yet": [
+  "LibraryOrganization.swift"
+ ],
+ "Not ready": [
+  "StikJITCoordinator.swift"
+ ],
+ "Not ready for online play. Missing: ": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Not ready for online play. Missing: a valid network_services.xml.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Not yet": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Nothing in GameTDB matches that.": [
+  "GameInfoView.swift"
+ ],
+ "Nothing is copied": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Nothing matches \"%@\".": [
+  "ContentView.swift"
+ ],
+ "Nothing matches “%@”.": [
+  "EspressUHome.swift"
+ ],
+ "Nothing new: this game already had all %@ in that file.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Nothing recognisable in that folder. Pick the package folder (the one containing mlc01 and cafeLibs), an mlc01 folder, a sys folder, a cafeLibs folder, or the Wii U Menu title folder itself.": [
+  "WiiUMenu.swift"
+ ],
+ "Nothing to import. Pick account.dat (or its 800000XX folder), otp.bin and seeprom.bin.": [
+  "AccountImport.swift"
+ ],
+ "Nothing turns on by itself. Higher resolutions and shadow options cost speed and memory, so raise them one step at a time. %@": [
+  "GraphicPacksView.swift"
+ ],
+ "Nothing was added.": [
+  "ShaderCacheImport.swift"
+ ],
+ "Notification looks": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Notifications": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "OK": [
+  "AccountImport.swift",
+  "ContentView.swift",
+  "CoverArtPickerView.swift",
+  "CreateAccountView.swift",
+  "CustomServers.swift",
+  "EmulatedDevicesView.swift",
+  "EspressUCoverPicker.swift",
+  "Settings/AccountSettingsSection.swift",
+  "Settings/DisplaySettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/EspressUSettingsView.swift",
+  "Settings/KeysSettingsSection.swift",
+  "Settings/LinkedLocationsRows.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Off": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "EspressURows.swift",
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift",
+  "ScreenBrightness.swift",
+  "Settings/DisplaySettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsView.swift",
+  "Settings/ScreenPosition.swift"
+ ],
+ "Off for games that break with it on.": [
+  "EspressUGamePage.swift"
+ ],
+ "Off: frames are shown the moment they're ready.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Off: the external display shows the TV screen.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Off: the normal balance of speed and quality.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Offline": [
+  "DeviceConnection.swift",
+  "NetworkService.swift"
+ ],
+ "On": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "EspressURows.swift",
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "On keeps the game running while a shader builds; things may flicker the first time they appear. Off waits for each shader and stutters instead.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "On or off, pairing, pairing file.": [
+  "EspressUJITPanel.swift"
+ ],
+ "On, the game keeps running while new shaders are built, and you may see something flicker or appear late the first time it is drawn. Off, the game waits for each one, which stutters instead.\n\nNano Assault Neo breaks with this on. Set it off for that game only: long-press it in your library.\n\nFavour accuracy (under CPU) always waits for each shader, whatever this is set to. It applies the next time you start a game.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "On-screen controls": [
+  "LayoutPanels.swift"
+ ],
+ "On: the external display shows the GamePad screen.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "One": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "One CPU core, whatever CPU cores is set to below.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "One CPU core, whatever CPU cores is set to.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "One CPU core, whatever CPU cores says.": [
+  "EspressUGamePage.swift"
+ ],
+ "One core": [
+  "RenderScale.swift"
+ ],
+ "One core. Cooler, and often faster on devices without spare performance cores.": [
+  "RenderScale.swift"
+ ],
+ "One game per row, with details": [
+  "LibraryOrganization.swift"
+ ],
+ "One of the files couldn't be read as a Wii U title.": [
+  "GameContentSection.swift"
+ ],
+ "One screen": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "One-core mode": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/CPUSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Online": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Online play": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Online play can't work yet. Missing: %@. %@": [
+  "OnlineReadiness.swift"
+ ],
+ "Online play is off for this account.": [
+  "NetworkService.swift"
+ ],
+ "Online play is off.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Online play is off. Pick a Network Service to use it.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Online play needs an account with a saved NNID or PNID login. Sign in on a real console and copy its account.dat here; EspressU can't create one.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Only EspressU's own Metal pipeline caches (..._mtlpipeline.bin) work here.": [
+  "EspressUGamePage.swift"
+ ],
+ "Only changes how the game is named in your library. Original title: %@": [
+  "LibraryOrganization.swift"
+ ],
+ "Only changes the name in your library. Original title: %@": [
+  "EspressURenameView.swift"
+ ],
+ "Only for encrypted games (.wud, .wux). Keys from your own Wii U, one per line. New keys apply to the next game you start.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Only for games that listen to the GamePad mic.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Only for screens that show the picture inverted.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Only needed for encrypted games. Homebrew and already-decrypted dumps don't need keys.": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Only needed if you later link this account to an NNID/PNID for online play.": [
+  "CreateAccountView.swift"
+ ],
+ "Only takes it out of your library. The file stays where it is. Saves and settings are kept.": [
+  "EspressUGamePage.swift"
+ ],
+ "Only takes the game out of your library. Its file stays where it is. Your saves and options are kept.": [
+  "GamePageView.swift"
+ ],
+ "Only the settings most people need. The rest are off, at their defaults.": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Only works with the Metal renderer. Switch the renderer in Settings > Graphics.": [
+  "GraphicPackModel.swift"
+ ],
+ "Open": [
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Open Settings": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Open Settings › Privacy & Security › Developer Mode and tap \"Pair with %@\".": [
+  "JITOverview.swift"
+ ],
+ "Open its page": [
+  "GamePageView.swift"
+ ],
+ "Open this game on GameTDB": [
+  "GameInfoView.swift"
+ ],
+ "Open-source licences": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsModel.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OpenSourceLicencesView.swift"
+ ],
+ "Opens Files at EspressU › Roms. New games show up on their own.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Opens Files to pick the file.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Opens a list of amiibo files to scan. The game has to be asking for an amiibo.": [
+  "HomeMenu.swift"
+ ],
+ "Opens the EspressU community server in your browser.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Opens the Files picker to choose a game to import.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Opens the Files picker to choose your keys.txt.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Opens the community server in your browser": [
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Opens the figure portals that are turned on in Settings.": [
+  "HomeMenu.swift"
+ ],
+ "Opens the screen layout choices.": [
+  "HomeMenu.swift"
+ ],
+ "Option": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Optional": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Options": [
+  "ControllerMapping.swift",
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Options and details": [
+  "GraphicPacksView.swift"
+ ],
+ "Or use Files": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Other": [
+  "GraphicPackModel.swift"
+ ],
+ "Other games": [
+  "LibraryOrganization.swift"
+ ],
+ "Out of memory for the picture": [
+  "ContentView.swift"
+ ],
+ "Overlay and notifications": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Overlay details": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Override gamma": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Override the game's gamma": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Overrides": [
+  "PerGameSettings.swift"
+ ],
+ "PAUSED": [
+  "ContentView.swift"
+ ],
+ "Pack": [
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Pack game, update and DLC into one .wua": [
+  "GameContentSection.swift"
+ ],
+ "Pack not found": [
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Packing into one .wua... %@ files, ": [
+  "GameContentSection.swift"
+ ],
+ "Packing leaves your installed files where they are.": [
+  "GameContentSection.swift"
+ ],
+ "Packs made for this game. Changes apply the next time you start a game.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Packs, saves and caches": [
+  "EspressUGamePage.swift",
+  "PerGameSettings.swift"
+ ],
+ "Pair": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pair again": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Pair one in the iOS Bluetooth settings to change buttons.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Pair one in the iOS Bluetooth settings.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Pair this device": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pair this device or import a pairing file first: Settings › JIT.": [
+  "StikJITCoordinator.swift"
+ ],
+ "Pair this device or import a pairing file.": [
+  "JITOverview.swift"
+ ],
+ "Paired in EspressU": [
+  "DevicePairing.swift"
+ ],
+ "Paired with %@.": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Paired, but the pairing file couldn't be saved: %@": [
+  "DevicePairing.swift"
+ ],
+ "Paired.": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pairing": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pairing couldn't start.": [
+  "DevicePairing.swift"
+ ],
+ "Pairing failed.": [
+  "DevicePairing.swift"
+ ],
+ "Pairing file": [
+  "JITOverview.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Pairing file missing": [
+  "JITOverview.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Pause": [
+  "ContentView.swift"
+ ],
+ "Paused": [
+  "HomeMenu.swift"
+ ],
+ "Paused. Resume": [
+  "ContentView.swift"
+ ],
+ "Performance": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Performance Overlay": [
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Performance overlay": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Performance tuning": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Persistent ID": [
+  "CreateAccountView.swift"
+ ],
+ "Phase Shift": [
+  "MenuMusic.swift"
+ ],
+ "Photos": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Photos, Files or GameTDB.": [
+  "EspressUGamePage.swift"
+ ],
+ "Pick a GamePad button, then press the one you want on your controller.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Pick a pack folder, a folder that holds several packs, or a zip of either. EspressU checks that it really contains a pack (a rules.txt) before adding it.\n\nImported packs are kept apart from the community download, so updating the community packs never removes them. Importing the same folder name again replaces the earlier copy. To remove an imported pack, open it and choose Remove.\n\nYou can also drop pack folders into graphicPacks inside EspressU's Documents folder in Files.": [
+  "GraphicPacksView.swift"
+ ],
+ "Pick an amiibo dump (.bin or .nfc). EspressU keeps a copy in Documents/amiibo so you can scan it again with one tap. The game has to be asking for an amiibo when you scan.": [
+  "AmiiboSheet.swift"
+ ],
+ "Pick an image": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Pick an image from Files, iCloud Drive, or another app.": [
+  "CoverArtPickerView.swift"
+ ],
+ "Picks per game and per device. Uses three cores when the game's profile asks for them or this device has the performance cores, memory and cooling headroom, and one core otherwise.": [
+  "RenderScale.swift"
+ ],
+ "Picture": [
+  "EspressUGamePage.swift",
+  "Settings/AdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Picture quality, frame pacing and shaders.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Pipelines cached": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Play": [
+  "ContentView.swift",
+  "EspressUGamePage.swift",
+  "EspressUHome.swift",
+  "GamePageView.swift",
+  "PerGameSettings.swift"
+ ],
+ "Play %@": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Play Set / Power Disc": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Play immediately": [
+  "GamePageView.swift"
+ ],
+ "Play it right where it is": [
+  "EspressUHome.swift"
+ ],
+ "Play one file right where it is.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Play the Wii U games you own on your %@. Setup takes about two minutes, and every step can be skipped.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Play the launch intro": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Play with a controller": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Play without JIT": [
+  "StikJITCoordinator.swift"
+ ],
+ "Play your own Wii U games. This takes a minute and you can skip any step.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Played ": [
+  "LibraryOrganization.swift"
+ ],
+ "Played before": [
+  "LibraryOrganization.swift"
+ ],
+ "Player %@: %@": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Player One": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Player One Ability One": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Player One Ability Two": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Player Two": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Player Two Ability One": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Player Two Ability Two": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Players": [
+  "GameInfoView.swift"
+ ],
+ "Players 2 to 4 use": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Plays EspressU's themes, or your own tracks, on loop in the menus, never in a game.": [
+  "MenuMusic.swift"
+ ],
+ "Plus": [
+  "ControllerMapping.swift"
+ ],
+ "Plus button": [
+  "Crema/CremaElements.swift"
+ ],
+ "Pop-ups for controllers, shader compiling and friends. They show in the corner you pick; choose Off to hide them all.": [
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "Portals": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Position": [
+  "Settings/NotificationSettingsSection.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Power Disc Three": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Power Disc Two": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Present": [
+  "StikJITCoordinator.swift"
+ ],
+ "Press a button": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Press a button on your controller": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Press again": [
+  "EspressUCoverPicker.swift",
+  "EspressURows.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Press again to remove": [
+  "EspressUHome.swift"
+ ],
+ "Press any button to test it:": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Pretendo Network": [
+  "NetworkService.swift"
+ ],
+ "Pretendo is a community-run replacement for Nintendo's Wii U online services. Its server addresses are built in, so there's nothing to configure.\n\nNintendo's own servers have been shut down, so that option can't be selected.\n\nCustom works with a network_services.xml, the same file desktop Cemu reads. Add one under Custom servers below. It needs no linked account or otp.bin and seeprom.bin.\n\n": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Pretendo online play won't work yet. Missing: %@. See Settings > Account.": [
+  "OnlineReadiness.swift"
+ ],
+ "Pro Controller": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Product code": [
+  "GameDataStore.swift",
+  "GameInfoView.swift"
+ ],
+ "Projects run by other people. EspressU doesn't run or check them.": [
+  "CustomServers.swift"
+ ],
+ "Publisher": [
+  "EspressUGamePage.swift",
+  "GameInfoView.swift"
+ ],
+ "Publisher, genre, languages and install": [
+  "EspressUGamePage.swift"
+ ],
+ "Put games in Files": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Put keys.txt into the keys folder: Files › EspressU › keys.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Puts every option in Settings back to its default, including controls, graphics, audio, overlay, appearance and Built-in JIT with its pairing file, and shows the welcome guide again. Your library, favourites, keys.txt, accounts and theme are not affected. Per-game options stay unless you pick the second button.": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Quit Game": [
+  "ContentView.swift"
+ ],
+ "Quit game": [
+  "HomeMenu.swift"
+ ],
+ "Quit game?": [
+  "HomeMenu.swift"
+ ],
+ "R button": [
+  "Crema/CremaElements.swift"
+ ],
+ "R3": [
+  "ControllerMapping.swift",
+  "Crema/CremaInput.swift"
+ ],
+ "Rating": [
+  "GameInfoView.swift"
+ ],
+ "Reading GameTDB's database…": [
+  "GameInfoView.swift"
+ ],
+ "Reading entries": [
+  "GameDataStore.swift"
+ ],
+ "Ready": [
+  "JITOverview.swift",
+  "Onboarding/EspressUOnboarding.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Ready for online play": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Ready for online play (custom server)": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "Ready for online play (custom server).": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Ready for online play.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Real time": [
+  "TimebaseScale.swift"
+ ],
+ "Rebuilds the default button bindings. Use it if some buttons do nothing while the sticks still work.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Recently added": [
+  "ContentView.swift"
+ ],
+ "Recently played": [
+  "LibraryOrganization.swift"
+ ],
+ "Recentre aim": [
+  "HomeMenu.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Recentred": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Recompiler": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Recompiler (JIT)": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Region unknown": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Reinstall": [
+  "GameContentSection.swift"
+ ],
+ "Reinstall EspressU with a signing method that keeps get-task-allow.": [
+  "JITOverview.swift"
+ ],
+ "Reinstall this version?": [
+  "GameContentSection.swift"
+ ],
+ "Remove": [
+  "ContentView.swift",
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "GameContentSection.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Remove %@?": [
+  "GameContentSection.swift"
+ ],
+ "Remove Custom Cover": [
+  "CoverArtPickerView.swift"
+ ],
+ "Remove DLC": [
+  "GamePageView.swift"
+ ],
+ "Remove content?": [
+  "ContentView.swift"
+ ],
+ "Remove custom cover": [
+  "GamePageView.swift"
+ ],
+ "Remove custom cover?": [
+  "CoverArtPickerView.swift"
+ ],
+ "Remove from favourites": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Remove from library": [
+  "GameManager.swift"
+ ],
+ "Remove from library…": [
+  "GameManager.swift"
+ ],
+ "Remove game": [
+  "GameManager.swift"
+ ],
+ "Remove game…": [
+  "GameManager.swift"
+ ],
+ "Remove imported pack": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Remove keys.txt": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Remove keys.txt?": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Remove the %@ installed for \"%@\"? This can't be undone - you'll need to import it again.": [
+  "ContentView.swift"
+ ],
+ "Remove the DLC": [
+  "EspressUGamePage.swift"
+ ],
+ "Remove the update": [
+  "EspressUGamePage.swift"
+ ],
+ "Remove this game from your library?": [
+  "GameManager.swift"
+ ],
+ "Remove this game?": [
+  "ContentView.swift",
+  "GameManager.swift"
+ ],
+ "Remove this imported pack?": [
+  "GraphicPacksView.swift"
+ ],
+ "Remove update": [
+  "GamePageView.swift"
+ ],
+ "Remove your cover": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Removed the %@.": [
+  "GameContentSection.swift"
+ ],
+ "Removes everything set for this game only.": [
+  "EspressUGamePage.swift"
+ ],
+ "Removing \"%@\"…": [
+  "ContentView.swift"
+ ],
+ "Removing %@ for \"%@\"…": [
+  "ContentView.swift"
+ ],
+ "Removing the cached Developer Disk Image…": [
+  "StikJITCoordinator.swift"
+ ],
+ "Rename": [
+  "EspressUGamePage.swift",
+  "EspressUHome.swift",
+  "EspressURenameView.swift",
+  "GamePageView.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Rename…": [
+  "PerGameSettings.swift"
+ ],
+ "Renderer and filters": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Renderer, scaling filters, gamma.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Rendering comes first: steady frames at the game's own Wii U frame rate, never faster.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Reopens the first-launch guide to keys, games, speed and controls.": [
+  "Onboarding/OnboardingState.swift"
+ ],
+ "Replace": [
+  "ContentView.swift",
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Replace an existing account?": [
+  "AccountImport.swift"
+ ],
+ "Replace and keep a backup": [
+  "AccountImport.swift"
+ ],
+ "Replace existing file?": [
+  "ContentView.swift"
+ ],
+ "Replace keys.txt": [
+  "Onboarding/OnboardingView.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Replace your settings?": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Replaces all settings with the file's. EspressU asks first.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Replaces shaders that are written for OpenGL and Vulkan. Metal can't use them, so those changes are skipped and the picture can look wrong. The pack's other changes still apply.": [
+  "GraphicPackModel.swift"
+ ],
+ "Replaces the current save. The old one is backed up first. Close the game before you do this.": [
+  "EspressUGamePage.swift"
+ ],
+ "Replaces the gamma a game asks for.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Required": [
+  "GameInfoView.swift"
+ ],
+ "Reset": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "LayoutPanels.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Reset %@": [
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Reset Settings": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Reset Settings and Per-Game Options": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Reset all": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Reset all settings": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Reset controller bindings": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Reset controls to default?": [
+  "LayoutPanels.swift"
+ ],
+ "Reset element": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Reset every button": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Reset every control?": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Reset settings and per-game options": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Reset settings to defaults": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Reset settings to defaults?": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Reset this game's options": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "Reset this game's options?": [
+  "PerGameAdvancedSettings.swift"
+ ],
+ "Reset to Original Title": [
+  "LibraryOrganization.swift"
+ ],
+ "Reset to default": [
+  "LayoutPanels.swift"
+ ],
+ "Reset to original title": [
+  "GamePageView.swift"
+ ],
+ "Reset to the pack's defaults": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Reset, but the GamePad still has no button bindings.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Reset. The GamePad now has %@ button bindings.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Resolution": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Resolution on this device": [
+  "GraphicPacksView.swift"
+ ],
+ "Resolution, frame rate, fixes and mods for this game. They apply the next time you start it.": [
+  "PerGameSettings.swift"
+ ],
+ "Resolution, frame rate, fixes and mods.": [
+  "EspressUGamePage.swift"
+ ],
+ "Resolution, shaders": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Respect silent mode": [
+  "MenuMusic.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Restart needed before %@": [
+  "ContentView.swift"
+ ],
+ "Restore": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Restore your previous advanced settings?": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Resume": [
+  "ContentView.swift",
+  "HomeMenu.swift"
+ ],
+ "Returns to the HOME menu.": [
+  "HomeMenu.swift"
+ ],
+ "Reverse left and right": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Reverse up and down": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Right Pad: Bottom Left": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Right Pad: Bottom Right": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Right Pad: Top": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Right bumper": [
+  "ControllerMapping.swift"
+ ],
+ "Right stick": [
+  "Crema/CremaElements.swift"
+ ],
+ "Right stick click": [
+  "ControllerMapping.swift"
+ ],
+ "Right trigger": [
+  "ControllerMapping.swift"
+ ],
+ "Roms folder in Files": [
+  "EspressUHome.swift"
+ ],
+ "Running on": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Save": [
+  "CustomServers.swift",
+  "EspressURenameView.swift",
+  "LibraryOrganization.swift"
+ ],
+ "Save %@...": [
+  "GameContentSection.swift"
+ ],
+ "Save every setting to a file, or load one.": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Save imported.%@ Start the game to check it.": [
+  "GameSaveTransfer.swift"
+ ],
+ "Saved %@ file to Files.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Saved %@ files to Files.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Saved %@.": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Saved amiibo": [
+  "AmiiboSheet.swift"
+ ],
+ "Saved shaders": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Saved to %@.": [
+  "GameSaveTransfer.swift"
+ ],
+ "Saved to Files → On My iPad/iPhone → EspressU → Decrypted → %@": [
+  "DecryptROMView.swift"
+ ],
+ "Saved to Files → On My iPad/iPhone → EspressU → Decrypted → %@.wua": [
+  "DecryptROMView.swift"
+ ],
+ "Saves every setting and every game's own options to one file you can keep or move to another device.": [
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Scan amiibo": [
+  "AmiiboSheet.swift",
+  "HomeMenu.swift"
+ ],
+ "Scanned %@.": [
+  "AmiiboSheet.swift"
+ ],
+ "Scans this amiibo.": [
+  "AmiiboSheet.swift"
+ ],
+ "Scrape now": [
+  "GameInfoView.swift"
+ ],
+ "Screen": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Screen & Sound": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Screen Layout": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Screen Layout arranges the TV and GamePad on this device. The external display is off until you turn it on, and needs a second screen that EspressU can open a window on; AirPlay mirroring doesn't count.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Screen and controls": [
+  "EspressUGamePage.swift"
+ ],
+ "Screen layout": [
+  "EspressUGamePage.swift",
+  "HomeMenu.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Screen layout, brightness, volume and the microphone.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Scroll": [
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Search": [
+  "EspressUHome.swift"
+ ],
+ "Search GameTDB titles": [
+  "GameInfoView.swift"
+ ],
+ "Search games and packs": [
+  "GraphicPacksView.swift"
+ ],
+ "Search games...": [
+  "ContentView.swift"
+ ],
+ "Search names or IDs": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Select": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Selects the game. Tap again to start.": [
+  "EspressUHome.swift"
+ ],
+ "Send this with any bug report. It lists your chip, memory and app build.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Sensitivity": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Serious": [
+  "ThermalMonitor.swift"
+ ],
+ "Server name": [
+  "CustomServers.swift"
+ ],
+ "Servers can't be changed while a game is running. Close the game first.": [
+  "CustomServers.swift",
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Set for this game only. Settings has it %@.": [
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift"
+ ],
+ "Sets your screen to full brightness during a game and puts it back afterwards.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Settings": [
+  "ContentView.swift",
+  "EspressUHome.swift",
+  "Settings/EspressUSettingsView.swift"
+ ],
+ "Settings and per-game options reset to defaults.": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Settings imported. Some changes apply the next time you start a game.": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "Settings mode": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "Settings reset to defaults.": [
+  "Settings/AboutSettingsSection.swift"
+ ],
+ "Shader Compilation": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Shader cache": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "GameShaderCacheSection.swift"
+ ],
+ "Shader caches": [
+  "PerGameSettings.swift"
+ ],
+ "Shader compiling": [
+  "Settings/NotificationSettingsSection.swift"
+ ],
+ "Shaders": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Shaders cached": [
+  "GameShaderCacheSection.swift"
+ ],
+ "Shaders not supported on Metal": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Sharper pictures cost more speed.": [
+  "EspressUGamePage.swift"
+ ],
+ "Sharpest. Four times the pixels of Balanced, and the shortest battery life.": [
+  "RenderScale.swift"
+ ],
+ "Shop addresses": [
+  "CustomServers.swift"
+ ],
+ "Short messages during a game. Pick a corner, or Off.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Shoulder button height": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Show": [
+  "EspressUGamePage.swift",
+  "LibraryOrganization.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Show %@ removed game again": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Show %@ removed games again": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Show CPU usage": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Show CPU usage per core": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Show FPS": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Show RAM usage": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Show VRAM usage": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Show all games": [
+  "ContentView.swift"
+ ],
+ "Show as": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Show control options": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Show favourites only": [
+  "ContentView.swift"
+ ],
+ "Show games as": [
+  "LibraryOrganization.swift"
+ ],
+ "Show swap button": [
+  "Settings/DisplaySettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Show swap button during play": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Show the welcome guide again": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Show top bar": [
+  "ContentView.swift",
+  "TopBarAutoHide.swift"
+ ],
+ "Show touch controls": [
+  "HomeMenu.swift"
+ ],
+ "Show welcome guide again": [
+  "Onboarding/OnboardingState.swift"
+ ],
+ "Shows FPS, CPU and RAM use on screen. Pick a corner to turn it on.": [
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Shows FPS, CPU and memory on screen. Pick a corner to turn it on.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Shows both screens: stacked in portrait, side by side in landscape.": [
+  "extra_strings.txt"
+ ],
+ "Shows every frame at the game's own speed.": [
+  "EspressUGamePage.swift"
+ ],
+ "Shows how many of the displayed frames per second were generated.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Shows one screen at a time. Tap the swap button to switch between TV and GamePad.": [
+  "extra_strings.txt"
+ ],
+ "Shows or hides the on-screen controls, for example to touch the GamePad screen.": [
+  "HomeMenu.swift"
+ ],
+ "Shows the TV screen with a small GamePad screen in the top-right corner.": [
+  "extra_strings.txt"
+ ],
+ "Single Screen": [
+  "extra_strings.txt"
+ ],
+ "Size": [
+  "Crema/CremaElementPanel.swift",
+  "GameInfoView.swift"
+ ],
+ "Size on disk": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift",
+  "GameShaderCacheSection.swift",
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "Size, opacity, spacing, shoulder height, single moved or resized controls, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Skip - I only play homebrew": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Skip certificate checks": [
+  "CustomServers.swift"
+ ],
+ "Skip intro": [
+  "LaunchIntro.swift"
+ ],
+ "Skip setup": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Skip those accounts": [
+  "AccountImport.swift"
+ ],
+ "Skipped account %@: it's already installed.": [
+  "AccountImport.swift"
+ ],
+ "Skips the intro.": [
+  "EspressUBranding.swift"
+ ],
+ "Skylander %@": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Skylanders Portal": [
+  "EmulatedDevicesView.swift",
+  "Settings/EmulatedDevicesSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Skylanders, Disney Infinity and LEGO Dimensions.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Slightly softer than Native, noticeably cheaper to draw.": [
+  "RenderScale.swift"
+ ],
+ "Slower but more accurate: one CPU core and stricter GPU syncing.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Slower but more accurate: one CPU core and stricter GPU syncing. Can fix a game that glitches or crashes.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Slows the clock by itself when a game doesn't start drawing.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Slows the game a little. Try this first if a game runs but stutters.": [
+  "TimebaseScale.swift"
+ ],
+ "Slows the game a lot. Helps most games under the interpreter.": [
+  "TimebaseScale.swift"
+ ],
+ "Softest, coolest, longest-running. Use it when a game won't hold its frame rate.": [
+  "RenderScale.swift"
+ ],
+ "Some files couldn't be copied, so the decrypted copy is incomplete. Your original wasn't changed. Free up some space and try again.": [
+  "DecryptROMView.swift"
+ ],
+ "Some files couldn't be read, so no .wua was made.": [
+  "GameContentSection.swift"
+ ],
+ "Some shaders skipped": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Song": [
+  "MenuMusic.swift"
+ ],
+ "Sort by": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Sort games": [
+  "ContentView.swift"
+ ],
+ "Sound": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "South Korea": [
+  "CoverArtNaming.swift"
+ ],
+ "Spacing between the two sides": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Speed": [
+  "EspressUGamePage.swift",
+  "Settings/EmulatedClockSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Speed and accuracy": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Speed and controls": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Starfall": [
+  "MenuMusic.swift"
+ ],
+ "Start": [
+  "EspressUGamePage.swift",
+  "EspressUHome.swift"
+ ],
+ "Start each with http:// or https://. Leave out any the server doesn't use; those fall back to Nintendo's, which are shut down. Skip certificate checks only for a server you trust that uses a self-signed certificate.": [
+  "CustomServers.swift"
+ ],
+ "Start playing": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Starting %@…": [
+  "ContentView.swift"
+ ],
+ "Starting the JIT helper…": [
+  "StikJITCoordinator.swift"
+ ],
+ "Starts the game.": [
+  "EspressUHome.swift"
+ ],
+ "Status, pairing": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Steady frame rate": [
+  "EspressUGamePage.swift",
+  "PerGameAdvancedSettings.swift",
+  "Settings/AdvancedSettings.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Step %@ of %@": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Step %@: %@. %@": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Stereo": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Stick deadzone": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Stick feel": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Stick only. The GamePad never moves.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Still above the Wii U's own 720p. The best trade on most games.": [
+  "RenderScale.swift"
+ ],
+ "Still missing for online play: ": [
+  "AccountImport.swift"
+ ],
+ "Stop": [
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Stop pairing": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Settings/EspressUSettingsJIT.swift"
+ ],
+ "Stops starting the game and returns to your games.": [
+  "InGameNotices.swift"
+ ],
+ "Stored outside EspressU, played in place": [
+  "LibraryOrganization.swift"
+ ],
+ "Stretch picture to fill the screen": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Stretch to fill": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Strong": [
+  "ScreenBrightness.swift",
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Suggested fix": [
+  "GraphicPacksView.swift"
+ ],
+ "Summary language: %@": [
+  "GameInfoView.swift"
+ ],
+ "Supported": [
+  "GameInfoView.swift"
+ ],
+ "Surround": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Swap TV and GamePad": [
+  "HomeMenu.swift"
+ ],
+ "Switches which Wii U screen is shown.": [
+  "HomeMenu.swift"
+ ],
+ "Switching JIT on": [
+  "StikJITCoordinator.swift"
+ ],
+ "Switching on…": [
+  "JITOverview.swift"
+ ],
+ "System": [
+  "ControllerMapping.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "TV and GamePad audio are separate tracks with their own on/off, volume and channel layout.\n\nChannels: Mono mixes everything to one channel, Stereo splits left and right (default), Surround asks the game for more channels; most games only use stereo. Turning TV or GamePad audio on or off, and changing channels, applies the next time you start a game.\n\nGamePad audio plays whatever the game sends to the GamePad speaker. Many games send nothing different from the TV mix.\n\nUse microphone feeds your device's real microphone to games that ask for the GamePad mic, while the game has the mic open. iOS asks for permission the first time you turn it on; if you say no, it switches back off. While it's on, the in-game Blow button is hidden. When it's off, games still see a GamePad mic, but it only hears the Blow button (a simulated puff of air) and iOS never asks for permission. Microphone volume (50 is normal, 100 is twice as loud) applies the next time a game opens the mic.": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "TV and GamePad audio have their own volume and channel layout. GamePad audio plays through this device's speaker or headphones. Use the microphone to give games your real voice and sounds through the GamePad mic; otherwise the in-game Blow button covers games that ask you to blow.": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "TV audio": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "TV channels": [
+  "Settings/AudioSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "TV screen": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "TV sound": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "TV volume": [
+  "Settings/AudioSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "TV with small GamePad": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Taiwan": [
+  "CoverArtNaming.swift"
+ ],
+ "Takes the way you are holding the device now as straight ahead, then goes back to the game.": [
+  "HomeMenu.swift"
+ ],
+ "Tap Import a Game, or put game files in Files > On My iPad > EspressU > Roms.": [
+  "ContentView.swift"
+ ],
+ "Tap Pair. A pairing file from iLoader works too: Settings › JIT.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Tap Quit Game and reopen EspressU. After you quit, a lower Resolution (in Settings, Graphics) uses less memory.": [
+  "ContentView.swift"
+ ],
+ "Tap a control to select it, then drag it to move it and use the slider to resize it.": [
+  "Crema/CremaElementPanel.swift"
+ ],
+ "Tap a server to make it the active Custom server, then pick Custom under Network Service. Swipe to delete.": [
+  "CustomServers.swift"
+ ],
+ "Tap a stick to click it. Slide across buttons to press them one after another. These settings apply to every game.": [
+  "Crema/CremaLayoutPanel.swift"
+ ],
+ "Tap or swipe down at the top edge to bring the bar back.": [
+  "ContentView.swift"
+ ],
+ "Tap the GamePad screen to use it in the game.": [
+  "ContentView.swift"
+ ],
+ "Tap the heart on a game to add it here.": [
+  "ContentView.swift"
+ ],
+ "Tap to resume": [
+  "ContentView.swift"
+ ],
+ "Tap to skip": [
+  "LaunchIntro.swift"
+ ],
+ "Text colour": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/NotificationSettingsSection.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "Text size": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/NotificationSettingsSection.swift",
+  "Settings/OverlaySettingsSection.swift"
+ ],
+ "That ID is already used by account %@.": [
+  "CreateAccountView.swift"
+ ],
+ "That didn't work": [
+  "EspressUGamePage.swift"
+ ],
+ "That doesn't look like a valid image.": [
+  "CoverArtPickerView.swift",
+  "EspressUCoverPicker.swift"
+ ],
+ "That file couldn't be read.": [
+  "DlcUpdateImport.swift",
+  "Settings/SettingsBackup.swift"
+ ],
+ "That file has no settings EspressU can use.": [
+  "Settings/SettingsBackup.swift"
+ ],
+ "That file is corrupted or incomplete.": [
+  "DlcUpdateImport.swift"
+ ],
+ "That file is far too big to be a keys.txt.": [
+  "WiiUKeys.swift"
+ ],
+ "That file is from a newer EspressU (settings file version %@). Update the app, then try again.": [
+  "Settings/SettingsBackup.swift"
+ ],
+ "That file is too big to be an amiibo dump (they are about 540 bytes).": [
+  "AmiiboSheet.swift"
+ ],
+ "That file isn't readable text - keys.txt is a plain text file with one key per line.": [
+  "WiiUKeys.swift"
+ ],
+ "That folder doesn't look like a Wii U save. Pick the folder named after the game's title ID, or the 'user' folder inside it.": [
+  "GameSaveTransfer.swift"
+ ],
+ "That image couldn't be saved in a supported format.": [
+  "GameManager.swift"
+ ],
+ "That isn't a usable network_services.xml. It needs a <content> element with a <urls> list of web addresses.": [
+  "CustomServers.swift"
+ ],
+ "That isn't an EspressU settings file.": [
+  "Settings/SettingsBackup.swift"
+ ],
+ "That title folder isn't a Wii U Menu (title id %@). The Menu is 0005001010040000, 0005001010040100 or 0005001010040200.": [
+  "WiiUMenu.swift"
+ ],
+ "That's it": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "The .wua doesn't contain a matching update or DLC for this game.": [
+  "DlcUpdateImport.swift"
+ ],
+ "The .wua file couldn't be read. It may be corrupted.": [
+  "DlcUpdateImport.swift"
+ ],
+ "The GameTDB download didn't contain wiiutdb.xml.": [
+  "GameDataStore.swift"
+ ],
+ "The JIT helper couldn't be started.": [
+  "StikJITCoordinator.swift"
+ ],
+ "The JIT helper finished, but JIT still isn't on.": [
+  "StikJITCoordinator.swift"
+ ],
+ "The JIT helper gave no reason.": [
+  "StikJITCoordinator.swift"
+ ],
+ "The JIT helper stopped responding (nothing for %@ seconds). Check LocalDevVPN and try again.": [
+  "StikJITCoordinator.swift"
+ ],
+ "The Network Service can't be changed while a game is running. Close the game first.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "The Wii U has two screens: the TV and the GamePad.\n\nScreen Layout: Single Screen shows one at a time with a swap button; Adaptive shows both, stacked in portrait and side by side in landscape; Both Screens (GamePad Top Right) keeps the TV full size with a small GamePad inset.\n\nAllow portrait during games (iPhone): hold the phone upright and the picture goes along the top with the controls below it. Menus stay in landscape. Turn it off if you'd rather a game never turns when the phone tilts; the iOS rotation lock works too.\n\nThe external display is off by default; turn it on before connecting a display. Then choose which Wii U screen it shows, and what this device shows next to it: the other screen, the same screen, or only the controls. It is experimental and hasn't been tested on much hardware.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "The Wii U system language games see. Automatic follows your device language. Games that don't have it fall back to their own default. Applies the next time you start a game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "The active Custom server. Pick Custom under Network Service to use it.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "The active network_services.xml goes too.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "The community packs are downloaded from the Cemu graphic packs project's latest release on GitHub. The download is verified (size and a checksum on every file) before it replaces anything, and it needs free space for the zip and the extracted copy. If it fails or is cancelled, the packs you already have stay as they were.\n\nEspressU checks for a newer release when you open this screen, at most once a day, or when you tap Check for updates. Pack choices (which packs are on and their options) are kept across updates.\n\nThe download keeps going if you leave the app.": [
+  "GraphicPacksView.swift"
+ ],
+ "The community packs are made by the Cemu graphic packs project and its contributors.": [
+  "GraphicPacksView.swift"
+ ],
+ "The community packs don't include one for %@. You can still import your own below.": [
+  "GraphicPacksView.swift"
+ ],
+ "The community packs don't include one for %@. You can still import your own.": [
+  "EspressUGamePacksView.swift"
+ ],
+ "The console will appear connected.": [
+  "DeviceConnection.swift"
+ ],
+ "The console will appear offline.": [
+  "DeviceConnection.swift"
+ ],
+ "The device has cooled down. The game should run at full speed again.": [
+  "InGameNotices.swift"
+ ],
+ "The device is hot, so iOS is slowing the game down. After you quit, try Cool down automatically (Settings, CPU) or a lower Resolution (Settings, Graphics).": [
+  "InGameNotices.swift"
+ ],
+ "The download failed (%@).": [
+  "GraphicPackStore.swift"
+ ],
+ "The download finished but couldn't be saved: %@": [
+  "GraphicPackStore.swift"
+ ],
+ "The download server answered with error %@.": [
+  "GameDataStore.swift"
+ ],
+ "The downloadable packs are the Cemu graphic packs project's community collection (github.com/cemu-project/cemu_graphic_packs), made and maintained by its many contributors and released under the CC0 1.0 public domain dedication. EspressU downloads them straight from that project's releases and doesn't change them.\n\nPacks that replace shaders are written for OpenGL and Vulkan. The Metal renderer can't use those shaders, so such packs are marked. Packs made only of settings, presets and patches work with Metal.": [
+  "GraphicPacksView.swift"
+ ],
+ "The drive or folder holding \"%@\" was disconnected. Connect it again, then start the game again. Your progress up to your last save is kept.": [
+  "GameManager.swift"
+ ],
+ "The drive or folder this game is stored on was disconnected. Connect it again, go back and start the game again.": [
+  "ContentView.swift"
+ ],
+ "The engine didn't report a reason.": [
+  "ContentView.swift"
+ ],
+ "The external display shows the %@ and this device shows the %@.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "The external display shows the %@. This device shows only the on-screen controls on black.": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "The fast way to run games. Needs a JIT enabler; without one the slow interpreter runs instead.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "The file isn't a valid zip archive.": [
+  "MiniZip.swift"
+ ],
+ "The file you picked wasn't changed.": [
+  "ShaderCacheImport.swift"
+ ],
+ "The first controller is Player 1 on the GamePad. The next ones play as Player 2 to 4. Applies the next time you start a game.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "The game is still running but the screen isn't taking frames. This goes away by itself if it recovers. If it doesn't, tap Quit Game and reopen EspressU.": [
+  "ContentView.swift"
+ ],
+ "The game itself and your saves are not touched.": [
+  "GameContentSection.swift"
+ ],
+ "The game keeps running; new effects can flicker the first time.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "The game starts as soon as JIT is on. LocalDevVPN has to be connected.": [
+  "StikJITCoordinator.swift"
+ ],
+ "The game stopped. Go back and try it again. If it keeps happening, close and reopen EspressU.": [
+  "ContentView.swift"
+ ],
+ "The game stutters while it relearns its shaders.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "The game's own save is kept.": [
+  "HomeMenu.swift"
+ ],
+ "The latest release doesn't have a download EspressU can use.": [
+  "GraphicPackStore.swift"
+ ],
+ "The latest release is a different size than graphic packs should be.": [
+  "GraphicPackStore.swift"
+ ],
+ "The main game sound.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "The match is for this install only. Another copy of the same game can match differently.": [
+  "GameInfoView.swift"
+ ],
+ "The next launch of each game is slow once.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "The next start of this game is slow once.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "The old account %@ was saved as %@.": [
+  "AccountImport.swift"
+ ],
+ "The on-screen pad can add analog sticks and comfort controls, and any MFi, Xbox, or PlayStation controller works right alongside it.": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "The open-source code inside EspressU.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "The order of the games on the home screen.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "The pairing file doesn't work": [
+  "StikJITCoordinator.swift"
+ ],
+ "The persistent ID must be %@ or higher.": [
+  "CreateAccountView.swift"
+ ],
+ "The persistent ID must be hexadecimal (0-9, A-F).": [
+  "CreateAccountView.swift"
+ ],
+ "The picture froze": [
+  "ContentView.swift"
+ ],
+ "The picture has stopped while the game keeps running. This goes away by itself if the picture comes back.": [
+  "ContentView.swift"
+ ],
+ "The recompiler is off in Settings, so the %@ interpreter is running. Cores: %@.": [
+  "extra_strings.txt"
+ ],
+ "The recompiler is on in Settings, but no JIT enabler is attached (cs_flags %@), so the %@ interpreter is running. Launch through StikJIT, SideStore or LiveContainer to use the recompiler. Cores: %@.": [
+  "extra_strings.txt"
+ ],
+ "The recompiler needs a JIT enabler (StikJIT, SideStore or LiveContainer). Without one the interpreter runs instead, which is much slower; the CPU line above shows which you got.\n\nFavour accuracy is slower but can fix a game that glitches, desyncs or crashes. It also builds every shader before it is needed, whatever Compile shaders in the background is set to.\n\nFavour performance is the opposite trade: everything runs as fast as EspressU can make it, and some quality goes. The picture is drawn at Balanced at most with linear scaling, so it's softer. Shaders skip the Wii U's exact multiply rule, which is faster but can make lighting or shadows look wrong in some games. Shaders always compile in the background, so things can pop in for a moment instead of the game pausing. Crash reports carry less detail. Favour accuracy and Favour performance turn each other off, and a game set to favour accuracy in its own options still does.\n\nCool down automatically acts when iOS reports the device is overheating, and Device heat shows that same state. In Advanced mode, Cool down starts at picks the point: Serious (the default) acts as soon as iOS starts throttling, Critical waits until iOS is throttling hard.\n\nThe recompiler, Favour accuracy, Favour performance, One-core mode and CPU cores apply the next time you start a game.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "The same title was added twice.": [
+  "GameContentSection.swift"
+ ],
+ "The same version is already installed. Reinstalling replaces it. Save data is not touched.": [
+  "GameContentSection.swift"
+ ],
+ "The save the game itself writes. Export is available once the game has saved.": [
+  "PerGameSettings.swift"
+ ],
+ "The saved copy is removed. If it's the active server, the active network_services.xml is removed too.": [
+  "CustomServers.swift"
+ ],
+ "The screen stopped updating": [
+  "ContentView.swift"
+ ],
+ "The slowest setting. If a game still won't move, the clock isn't the problem.": [
+  "TimebaseScale.swift"
+ ],
+ "The title list comes from GameTDB's database. Scrape once to download it.": [
+  "GameInfoView.swift"
+ ],
+ "The update or DLC belongs to a different game.": [
+  "GameContentSection.swift"
+ ],
+ "The zip contains a path outside its own folder (%@).": [
+  "MiniZip.swift"
+ ],
+ "The zip couldn't be read.": [
+  "GraphicPackStore.swift"
+ ],
+ "The zip is damaged (%@).": [
+  "MiniZip.swift"
+ ],
+ "The zip is larger than graphic packs should be.": [
+  "MiniZip.swift"
+ ],
+ "The zip uses a feature EspressU can't read (%@).": [
+  "MiniZip.swift"
+ ],
+ "Theme music": [
+  "MenuMusic.swift"
+ ],
+ "Theme music volume": [
+  "MenuMusic.swift"
+ ],
+ "There are no shader files for this game yet. Play it first.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "There is no game data for this install yet. Scrape it from Settings > Cover + data scraping, or here.": [
+  "GameInfoView.swift"
+ ],
+ "There's no save for this game yet. Play it once, then export.": [
+  "GameSaveTransfer.swift"
+ ],
+ "These are independent projects, listed for information. EspressU doesn't host them, and there's no server address built in for them: import the network_services.xml their host gives you.\n\nPretendo Network is built in under Network Service, but it needs a Wii U's account and console files.": [
+  "CustomServers.swift"
+ ],
+ "They were saved when you switched to Basic. Keep defaults forgets them.": [
+  "Settings/SettingsModeSection.swift"
+ ],
+ "This .wua holds more than the one update or DLC for this game. Use a .wua with just that content.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This account has no cached NNID/PNID login, so it can't play online yet.": [
+  "Settings/AccountSettingsSection.swift"
+ ],
+ "This build of EspressU doesn't contain the JIT helper.": [
+  "StikJITCoordinator.swift"
+ ],
+ "This clears every game's shaders. Games will stutter while they rebuild them.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "This content is for a different game or region than the one you picked.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This deletes \"%@\" from EspressU to free up space. Your saves and options are kept. To play it again, add the game back.": [
+  "GameManager.swift"
+ ],
+ "This device": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "This device doesn't support mesh shaders, so some graphic packs may not render correctly. See Graphic Packs under Library.": [
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "This device has no motion sensors, so the GamePad will stay still.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "This encrypted folder is missing one or more .app files listed in its title.tmd.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This encrypted folder's title.tik couldn't be read.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This encrypted folder's title.tmd couldn't be read.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This file has %@ settings and %@. Importing replaces all of your settings and every game's own options. Your library, keys and accounts are not touched.": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/SettingsBackupSection.swift"
+ ],
+ "This file is encrypted and no matching key is installed. Add your keys.txt in Settings first.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This folder is missing title.tik (the ticket), which EspressU needs to decrypt it.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This game didn't start. Try again. If it keeps happening, close and reopen EspressU.": [
+  "ContentView.swift"
+ ],
+ "This game folder is missing a readable title.tmd or title.tik, which EspressU needs to decrypt it.": [
+  "DecryptROMView.swift"
+ ],
+ "This game folder is missing one or more .app files listed in its title.tmd.": [
+  "DecryptROMView.swift"
+ ],
+ "This game is encrypted, so it needs a keys.txt file to start.": [
+  "ContentView.swift"
+ ],
+ "This game's own cache file couldn't be opened or created, so nothing was changed. If storage is full, free some up and try again.": [
+  "ShaderCacheImport.swift"
+ ],
+ "This game's own cache file was saved by a different version of the cache format, so nothing was changed. Clear this game's shaders in its options, then import again.": [
+  "ShaderCacheImport.swift"
+ ],
+ "This game's shaders are listed once the game has been identified. Start it once.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "This install": [
+  "GameInfoView.swift"
+ ],
+ "This installation does not have get-task-allow. Reinstall EspressU using a signing method that keeps this entitlement.": [
+  "StikJITCoordinator.swift"
+ ],
+ "This is %@, not %@. Use the other import option.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This is the save the game itself writes. It uses the Wii U's own format, so it can move between EspressU, desktop Cemu and a real console.\n\nExport writes a folder named after the game and title ID. Import accepts that folder, a folder named after the title ID from another Cemu install, or its 'user' folder. Importing replaces the current save; the old one is first copied to save-backups in EspressU's Documents folder.": [
+  "PerGameSettings.swift"
+ ],
+ "This isn't a Wii U DLC or update file.": [
+  "DlcUpdateImport.swift"
+ ],
+ "This isn't a Wii U game file EspressU can read. It accepts .wua, .wux, .wud, .iso, .rpx, .elf and .wuhb files, or a game folder. Encrypted games also need keys.txt.": [
+  "GameManager.swift"
+ ],
+ "This pack won't activate": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "This replaces %@'s current save. The one you have now is backed up first, and the game should be closed before you do this.": [
+  "PerGameSettings.swift"
+ ],
+ "Three": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Three cores (Experimental)": [
+  "RenderScale.swift"
+ ],
+ "Three cores. Can be faster on a device with spare performance cores and cooling, but heats up quickly on most iPads and has hung some games.": [
+  "RenderScale.swift"
+ ],
+ "Three things affect speed and control:": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Tilt and turn the device to aim, like the GamePad.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Times played": [
+  "EspressUGamePage.swift",
+  "GamePageView.swift"
+ ],
+ "Title": [
+  "ContentView.swift"
+ ],
+ "Title ID": [
+  "GameInfoView.swift"
+ ],
+ "Title ID unknown": [
+  "EspressUGamePacksView.swift"
+ ],
+ "Title and region": [
+  "GameDataStore.swift"
+ ],
+ "Top Centre": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Top Left": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Top Right": [
+  "Settings/ScreenPosition.swift"
+ ],
+ "Top bar": [
+  "Settings/AdvancedSettings.swift"
+ ],
+ "Touch controls": [
+  "HomeMenu.swift"
+ ],
+ "Touch or controller": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Touch, controllers, motion": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Try a Specific GameTDB ID": [
+  "CoverArtPickerView.swift"
+ ],
+ "Try again": [
+  "StikJITCoordinator.swift"
+ ],
+ "Turn On Anyway": [
+  "GraphicPacksView.swift"
+ ],
+ "Turn on": [
+  "EspressUGamePacksView.swift"
+ ],
+ "Turn on LocalDevVPN. JIT then switches on by itself.": [
+  "JITOverview.swift"
+ ],
+ "Turn on anyway": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Turn on full speed": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Turning a device on or off takes effect when a game next looks for it, which is usually when the game starts. If a figure doesn't appear in a game that's already running, quit it and start it again.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Type the addresses the server's host gave you.": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Type the game's name. Entries for this install's region are listed first.": [
+  "GameInfoView.swift"
+ ],
+ "Unfavourite": [
+  "PerGameSettings.swift"
+ ],
+ "Unknown": [
+  "ControllerMapping.swift",
+  "GameManager.swift",
+  "StikJITCoordinator.swift"
+ ],
+ "Unknown error.": [
+  "StikJITCoordinator.swift"
+ ],
+ "Unlink": [
+  "Settings/EspressUSettingsSubpages.swift",
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Unlink %@": [
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Unlink this location?": [
+  "Settings/LinkedLocationsRows.swift"
+ ],
+ "Unreachable": [
+  "StikJITCoordinator.swift"
+ ],
+ "Until you choose a value, EspressU picks one itself: if a game hasn't started drawing after 12 seconds, it slows its clock a step (down to 1/64). Choosing a value here turns that off.\n\nWithout the recompiler the emulated CPU is much slower than the console's, so games can fall behind their own timers and never draw a frame. Slowing the game's clock gives them room. Emulation accuracy isn't affected.": [
+  "Settings/EmulatedClockSection.swift"
+ ],
+ "Up to %@ local": [
+  "GameInfoView.swift"
+ ],
+ "Update": [
+  "EspressUGamePacksView.swift",
+  "EspressUGamePage.swift",
+  "EspressUHome.swift",
+  "EspressUInbox.swift",
+  "GameContentSection.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Update automatically": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Update available: %@. Your choices are kept.": [
+  "GraphicPacksView.swift"
+ ],
+ "Update community packs": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Updates & DLC": [
+  "GameContentSection.swift"
+ ],
+ "Updates and DLC": [
+  "EspressUGamePage.swift"
+ ],
+ "Updates and files": [
+  "GamePageView.swift"
+ ],
+ "Updates, DLC and keys": [
+  "EspressUHome.swift"
+ ],
+ "Use": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsControlsPages.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Use %@ microphone": [
+  "Settings/AudioSettingsSection.swift"
+ ],
+ "Use Global Default": [
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift"
+ ],
+ "Use Global Defaults for All": [
+  "PerGameSettings.swift"
+ ],
+ "Use JIT": [
+  "EspressUJITPanel.swift"
+ ],
+ "Use This Cover": [
+  "CoverArtPickerView.swift"
+ ],
+ "Use an external display": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "Use figure ID 0 to create a blank vehicle or gadget tag for the game to write.": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one.": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Use the automatic cover": [
+  "EspressUGamePage.swift"
+ ],
+ "Use the global settings": [
+  "EspressUGamePage.swift"
+ ],
+ "Use the global shader setting": [
+  "GamePageView.swift"
+ ],
+ "Use the microphone": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Use the original title": [
+  "EspressUGamePage.swift",
+  "EspressURenameView.swift"
+ ],
+ "Use the recompiler (JIT)": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "Use the suggested setting": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Use the suggested setting (%@)": [
+  "GraphicPacksView.swift"
+ ],
+ "Use this account?": [
+  "AccountImport.swift"
+ ],
+ "Use this cover": [
+  "EspressUCoverPicker.swift"
+ ],
+ "Use this pack": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Used when the picture is drawn larger.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Used when the picture is drawn smaller.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Using a connected controller's motion sensors.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Using this device's gyroscope and accelerometer.": [
+  "Settings/MotionSettingsSection.swift"
+ ],
+ "Using your custom cover.": [
+  "CoverArtPickerView.swift"
+ ],
+ "Variant": [
+  "EmulatedDevicesView.swift"
+ ],
+ "Version": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "Version %@ isn't newer than what's already installed (version %@).": [
+  "DlcUpdateImport.swift"
+ ],
+ "View on GitHub": [
+  "Settings/AboutSettingsSection.swift",
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "WUA": [
+  "LibraryOrganization.swift"
+ ],
+ "WUD": [
+  "LibraryOrganization.swift"
+ ],
+ "WUX": [
+  "LibraryOrganization.swift"
+ ],
+ "Wait": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Wait for it": [
+  "RenderScale.swift",
+  "Settings/GraphicsSettingsSection.swift"
+ ],
+ "Waiting for Settings…": [
+  "JITOverview.swift"
+ ],
+ "Waits until iOS is slowing the device hard. The game keeps its quality longer, and may stutter or run hot first.": [
+  "ThermalMonitor.swift"
+ ],
+ "Walks through games, JIT and controllers.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "Warm": [
+  "HeatStatus.swift"
+ ],
+ "Welcome to EspressU": [
+  "Onboarding/EspressUOnboarding.swift",
+  "Onboarding/OnboardingView.swift"
+ ],
+ "What EspressU shows on top of a game.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "What every game has saved so it starts faster.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "What every game has saved so it starts faster. To clear one game, open its options. Clearing needs the game closed.": [
+  "Settings/ShaderSettingsSections.swift"
+ ],
+ "What iOS reports right now.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "What moves the GamePad's gyro. Automatic uses a connected controller, otherwise this device.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "What the game sends to the GamePad speaker.": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "What this game has saved so it starts faster. Clearing needs the game closed.": [
+  "GameShaderCacheSection.swift"
+ ],
+ "When a TV is connected, this device shows": [
+  "Settings/DisplaySettingsSection.swift"
+ ],
+ "When a new effect appears": [
+  "EspressUGamePage.swift",
+  "Settings/EspressUSettingsContent.swift"
+ ],
+ "When iOS reports the device is overheating, lowers resolution and CPU load until it cools.": [
+  "Settings/CPUSettingsSection.swift"
+ ],
+ "When silent mode is on, games make no sound. Takes effect from the next game you start. With the microphone on, game audio keeps playing.": [
+  "MenuMusic.swift"
+ ],
+ "Where EspressU keeps games, saves and more.": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Where packs come from": [
+  "GraphicPacksView.swift"
+ ],
+ "Which online service games connect to.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Wi-Fi": [
+  "DeviceConnection.swift"
+ ],
+ "Wii U Keys": [
+  "Settings/KeysSettingsSection.swift"
+ ],
+ "Wii U game": [
+  "GameSaveTransfer.swift"
+ ],
+ "Wii U keys": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Won't activate here": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Word": [
+  "HeatStatus.swift"
+ ],
+ "Workarounds": [
+  "GraphicPackModel.swift"
+ ],
+ "Writes a decrypted copy to Files.": [
+  "EspressUGamePage.swift"
+ ],
+ "Writes the save in the Wii U's own format.": [
+  "EspressUGamePage.swift"
+ ],
+ "Wrong game?": [
+  "EspressUGamePage.swift"
+ ],
+ "Wrong game? Choose…": [
+  "GameInfoView.swift"
+ ],
+ "You can also drop updates and DLC into Files › EspressU › Updates & DLC.": [
+  "EspressUHome.swift"
+ ],
+ "You can browse packs, but change them only after you close it.": [
+  "EspressUGamePacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "You have the latest community packs.": [
+  "GraphicPackStore.swift"
+ ],
+ "You're offline. Packs you've already downloaded keep working.": [
+  "GraphicPackStore.swift"
+ ],
+ "You've reached the maximum number of accounts.": [
+  "CreateAccountView.swift"
+ ],
+ "Your Files": [
+  "Settings/FilesSettingsSection.swift"
+ ],
+ "Your Wii U account for saves and online play.": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Your controller": [
+  "Settings/EspressUSettingsControlsPages.swift"
+ ],
+ "Your custom cover will be deleted. The game goes back to its automatic cover, or the placeholder.": [
+  "CoverArtPickerView.swift"
+ ],
+ "Your files": [
+  "Settings/EspressUSettingsContent.swift",
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Your keys": [
+  "Onboarding/OnboardingView.swift"
+ ],
+ "Your library": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Your library, keys, files, backups and online.": [
+  "Settings/EspressUSettingsModel.swift"
+ ],
+ "Your original file isn't changed.": [
+  "DecryptROMView.swift"
+ ],
+ "Your own games": [
+  "Onboarding/EspressUOnboarding.swift"
+ ],
+ "Your own packs": [
+  "EspressUGamePacksView.swift",
+  "GraphicPacksView.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Your play": [
+  "GamePageView.swift"
+ ],
+ "ZL": [
+  "ControllerMapping.swift",
+  "Crema/CremaInput.swift"
+ ],
+ "ZL button": [
+  "Crema/CremaElements.swift"
+ ],
+ "ZR": [
+  "ControllerMapping.swift",
+  "Crema/CremaInput.swift"
+ ],
+ "ZR button": [
+  "Crema/CremaElements.swift"
+ ],
+ "a base game": [
+  "DlcUpdateImport.swift"
+ ],
+ "a demo": [
+  "DlcUpdateImport.swift"
+ ],
+ "a linked Pretendo or Nintendo Network ID on this account": [
+  "OnlineReadiness.swift"
+ ],
+ "a principal ID in this account": [
+  "OnlineReadiness.swift"
+ ],
+ "a saved password for the linked Pretendo or Nintendo Network ID on this account": [
+  "OnlineReadiness.swift"
+ ],
+ "account.dat or its 800000XX folder, plus otp.bin and seeprom.bin for online play.": [
+  "Settings/EspressUSettingsSubpages.swift"
+ ],
+ "an update": [
+  "DlcUpdateImport.swift"
+ ],
+ "critical": [
+  "extra_strings.txt"
+ ],
+ "critical (iOS is throttling hard)": [
+  "ThermalMonitor.swift"
+ ],
+ "download the graphic packs": [
+  "GraphicPackStore.swift"
+ ],
+ "fair": [
+  "extra_strings.txt"
+ ],
+ "frame rate": [
+  "GraphicPackModel.swift"
+ ],
+ "high": [
+  "extra_strings.txt"
+ ],
+ "iCloud or this iPad": [
+  "EspressUCoverPicker.swift"
+ ],
+ "iOS 17.4+": [
+  "JITOverview.swift"
+ ],
+ "iOS may close EspressU soon. Quit the game soon. After you quit, a lower Resolution (in Settings, Graphics) uses less memory.": [
+  "ContentView.swift"
+ ],
+ "iOS stopped running this game's graphics. Tap Quit Game. EspressU will then ask you to close and reopen it before the next game.": [
+  "ContentView.swift"
+ ],
+ "import this folder": [
+  "GraphicPackStore.swift"
+ ],
+ "import this zip": [
+  "GraphicPackStore.swift"
+ ],
+ "install the graphic packs": [
+  "GraphicPackStore.swift"
+ ],
+ "it has no linked Pretendo or Nintendo Network ID": [
+  "AccountImport.swift"
+ ],
+ "it has no principal ID": [
+  "AccountImport.swift"
+ ],
+ "it has no saved password for its Pretendo or Nintendo Network ID": [
+  "AccountImport.swift"
+ ],
+ "it holds no graphic packs": [
+  "GraphicPackStore.swift"
+ ],
+ "keys.txt for encrypted games": [
+  "EspressUHome.swift"
+ ],
+ "low": [
+  "extra_strings.txt"
+ ],
+ "multi-core": [
+  "extra_strings.txt"
+ ],
+ "nominal": [
+  "extra_strings.txt"
+ ],
+ "not a recognizable game title": [
+  "DlcUpdateImport.swift"
+ ],
+ "not available": [
+  "GameShaderCacheSection.swift"
+ ],
+ "not checked yet": [
+  "JITOverview.swift"
+ ],
+ "one core because Favour accuracy is on": [
+  "extra_strings.txt"
+ ],
+ "one core because One-core mode is on": [
+  "extra_strings.txt"
+ ],
+ "one core, chosen in Settings": [
+  "extra_strings.txt"
+ ],
+ "one core: this device has too little memory or too few cores to run three at once (%@)": [
+  "extra_strings.txt"
+ ],
+ "one core: three were chosen in Settings, but this device has too little memory or too few cores to run three at once (%@)": [
+  "extra_strings.txt"
+ ],
+ "otp.bin imported.": [
+  "WiiUMenu.swift"
+ ],
+ "seeprom.bin imported.": [
+  "WiiUMenu.swift"
+ ],
+ "serious": [
+  "extra_strings.txt"
+ ],
+ "serious (iOS is throttling)": [
+  "ThermalMonitor.swift"
+ ],
+ "set to %@": [
+  "PerGameAdvancedSettings.swift",
+  "PerGameSettings.swift"
+ ],
+ "single-core": [
+  "extra_strings.txt"
+ ],
+ "standard": [
+  "extra_strings.txt"
+ ],
+ "the Wii U's own 720p": [
+  "GraphicPackModel.swift"
+ ],
+ "the download is %@ bytes, expected %@": [
+  "GraphicPackStore.swift"
+ ],
+ "three cores, chosen in Settings (experimental; %@)": [
+  "extra_strings.txt"
+ ],
+ "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": [
+  "extra_strings.txt"
+ ],
+ "unknown": [
+  "extra_strings.txt"
+ ],
+ "up to %@ online": [
+  "GameInfoView.swift"
+ ],
+ "your game": [
+  "EspressUInbox.swift"
+ ]
+}

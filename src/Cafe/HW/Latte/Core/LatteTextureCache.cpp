@@ -1,4 +1,5 @@
 #include "Cafe/HW/Latte/Core/Latte.h"
+#include "Cafe/HW/Latte/Core/LatteTextureAsyncLoad.h"
 #include "Cafe/HW/Latte/Core/LatteDraw.h"
 #include "Cafe/HW/Latte/Core/LatteTexture.h"
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
@@ -288,6 +289,7 @@ bool LatteTC_IsTextureDataOverwritten(LatteTexture* texture)
 
 void LatteTexture_Delete(LatteTexture* texture)
 {
+	LatteTextureAsync::Forget(texture);
 	LatteTC_UnregisterTexture(texture);
 	LatteMRT::NotifyTextureDeletion(texture);
 	LatteTextureReadback_NotifyTextureDeletion(texture);

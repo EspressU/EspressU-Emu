@@ -27,14 +27,14 @@ struct GameMetadata: Codable, Identifiable {
         isExternal ? "install:" + id : Self.installKey(forRomPath: romPath, fallback: id)
     }
 
-    var removeActionTitle: String { isExternal ? "Remove from library\u{2026}" : "Remove game\u{2026}" }
-    var removeConfirmTitle: String { isExternal ? "Remove this game from your library?" : "Remove this game?" }
-    var removeConfirmButton: String { isExternal ? "Remove from library" : "Remove game" }
+    var removeActionTitle: String { isExternal ? loc("Remove from library\u{2026}") : loc("Remove game\u{2026}") }
+    var removeConfirmTitle: String { isExternal ? loc("Remove this game from your library?") : loc("Remove this game?") }
+    var removeConfirmButton: String { isExternal ? loc("Remove from library") : loc("Remove game") }
     var removeConfirmMessage: String {
         if isExternal {
-            return "\"\(cardName.name)\" is only linked, so its file stays where it is and isn't deleted. Your saves and options are kept. You can bring it back from Settings > Library."
+            return locf("\"%@\" is only linked, so its file stays where it is and isn't deleted. Your saves and options are kept. You can bring it back from Settings > Library.", cardName.name)
         }
-        return "This deletes \"\(cardName.name)\" from EspressU to free up space. Your saves and options are kept. To play it again, add the game back."
+        return locf("This deletes \"%@\" from EspressU to free up space. Your saves and options are kept. To play it again, add the game back.", cardName.name)
     }
 
     static func installKey(forRomPath romPath: String, fallback: String) -> String {
@@ -181,6 +181,7 @@ class GameManager: ObservableObject {
     @Published private(set) var needsCleanRestart = false
     @Published private(set) var titleEndedByEngine = false
     @Published private(set) var frameRate: Int = 0
+    @Published private(set) var frameGenDisplayRate: FrameGenDisplayRate?
     @Published private(set) var videoStalled = false
     @Published private(set) var videoStallKind = 0
     @Published private(set) var progress = EmulatorProgress()
@@ -284,8 +285,8 @@ class GameManager: ObservableObject {
 
         var errorDescription: String? {
             switch self {
-            case .notInLibrary: return "Couldn't find that game's files."
-            case .failed(let error): return "Couldn't remove the game: \(error.localizedDescription)"
+            case .notInLibrary: return loc("Couldn't find that game's files.")
+            case .failed(let error): return locf("Couldn't remove the game: %@", error.localizedDescription)
             }
         }
     }
@@ -421,8 +422,8 @@ class GameManager: ObservableObject {
                 romPath: bootPath,
                 coverPath: Self.findCover(for: gameID, romPath: bootPath, in: romsPath),
                 region: Self.nonEmptyOrNil(LibraryMetadataCache.cachedRegion(for: gameID)),
-                releaseDate: "Unknown",
-                genre: "Game",
+                releaseDate: loc("Unknown"),
+                genre: loc("Game"),
                 titleId: derivedTitleId ?? LibraryMetadataCache.cachedTitleId(for: gameID),
                 dumpDirectoryPath: dumpDirectory?.path,
                 displayTitle: Self.nonEmptyOrNil(LibraryMetadataCache.cachedTitleName(for: gameID)),
@@ -456,8 +457,8 @@ class GameManager: ObservableObject {
                     romPath: bootPath,
                     coverPath: Self.findCover(for: gameID, romPath: bootPath, in: romsPath),
                     region: Self.nonEmptyOrNil(LibraryMetadataCache.cachedRegion(for: gameID)),
-                    releaseDate: "Unknown",
-                    genre: "Game",
+                    releaseDate: loc("Unknown"),
+                    genre: loc("Game"),
                     titleId: record.titleId ?? LibraryMetadataCache.cachedTitleId(for: gameID),
                     dumpDirectoryPath: nil,
                     displayTitle: Self.nonEmptyOrNil(LibraryMetadataCache.cachedTitleName(for: gameID)),
@@ -752,11 +753,11 @@ class GameManager: ObservableObject {
             case .invalidROM:
                 return "This isn't a Wii U game file EspressU can read. It accepts .wua, .wux, .wud, .iso, .rpx, .elf and .wuhb files, or a game folder. Encrypted games also need keys.txt."
             case .notAWiiUDump(let name):
-                return "\"\(name)\" isn't a Wii U game dump. A dump folder needs code, content and meta folders inside it, or an encrypted game folder: title.tmd and title.tik next to its .app files."
+                return locf("\"%@\" isn't a Wii U game dump. A dump folder needs code, content and meta folders inside it, or an encrypted game folder: title.tmd and title.tik next to its .app files.", name)
             case .accessDenied:
-                return "Couldn't access that file."
+                return loc("Couldn't access that file.")
             case .copyFailed(let error):
-                return "Couldn't copy the ROM: \(error.localizedDescription)"
+                return locf("Couldn't copy the ROM: %@", error.localizedDescription)
             }
         }
     }
@@ -768,9 +769,9 @@ class GameManager: ObservableObject {
         var errorDescription: String? {
             switch self {
             case .unsupportedExtension:
-                return "That image couldn't be saved in a supported format."
+                return loc("That image couldn't be saved in a supported format.")
             case .noLibraryDirectory:
-                return "Couldn't find the game library folder."
+                return loc("Couldn't find the game library folder.")
             }
         }
     }
@@ -977,8 +978,8 @@ class GameManager: ObservableObject {
         if cemu_bridge_clean_start_required() {
             needsCleanRestart = true
             let reason = String(cString: cemu_bridge_clean_start_reason())
-            lastStatusMessage = "EspressU has to be closed and reopened before it can start another game."
-                + (reason.isEmpty ? "" : "\n\nWhat happened: \(reason).")
+            lastStatusMessage = loc("EspressU has to be closed and reopened before it can start another game.")
+                + (reason.isEmpty ? "" : locf("\n\nWhat happened: %@.", reason))
             emulationState = .error
             return
         }
@@ -1025,6 +1026,7 @@ class GameManager: ObservableObject {
             cemu_bridge_log_checkpoint("launchGame: engine.initialize() returned [background]")
 
             TimebaseScale.applyStoredChoiceIfAny()
+            GameLanguage.applyStoredToBridge()
 
             cemu_bridge_set_recompiler_enabled(
                 UserDefaults.standard.object(forKey: "espressu.cpu.recompiler") as? Bool ?? true)
@@ -1074,6 +1076,7 @@ class GameManager: ObservableObject {
             cemu_bridge_set_overlay_fps(
                 UserDefaults.standard.object(forKey: OverlaySettings.fpsKey) as? Bool
                     ?? OverlaySettings.defaultFps)
+            OverlaySettings.applyFrameGenBreakdownToBridge()
             cemu_bridge_set_overlay_drawcalls(
                 UserDefaults.standard.object(forKey: OverlaySettings.drawcallsKey) as? Bool
                     ?? OverlaySettings.defaultDrawcalls)
@@ -1158,7 +1161,7 @@ class GameManager: ObservableObject {
                 self.lastStatusMessage = engine.statusText
                 var notice = ""
                 if notice.isEmpty && status == CEMU_BRIDGE_OK && ProcessInfo.processInfo.isLowPowerModeEnabled {
-                    notice = "Low Power Mode is on, so games may run slowly. Turn it off in Control Centre for full speed."
+                    notice = loc("Low Power Mode is on, so games may run slowly. Turn it off in Control Centre for full speed.")
                 }
                 if notice.isEmpty && status == CEMU_BRIDGE_OK, let onlineNotice = OnlineReadiness.launchNotice() {
                     notice = onlineNotice
@@ -1260,7 +1263,7 @@ class GameManager: ObservableObject {
             ready = await Task.detached { ExternalLibrary.shared.probe(locationID, path: path) }.value
         }
         if !ready {
-            launchBlockedMessage = "\"\(game.cardName.name)\" is stored on a drive or folder EspressU can't reach right now. Connect the drive, then try again."
+            launchBlockedMessage = locf("\"%@\" is stored on a drive or folder EspressU can't reach right now. Connect the drive, then try again.", game.cardName.name)
         }
         return ready
     }
@@ -1270,7 +1273,7 @@ class GameManager: ObservableObject {
         stopEmulation()
         guard let game else { return }
         currentGame = game
-        lastStatusMessage = "The drive or folder holding \"\(game.cardName.name)\" was disconnected. Connect it again, then start the game again. Your progress up to your last save is kept."
+        lastStatusMessage = locf("The drive or folder holding \"%@\" was disconnected. Connect it again, then start the game again. Your progress up to your last save is kept.", game.cardName.name)
         driveWasLost = true
         titleEndedByEngine = true
         emulationState = .error
@@ -1286,6 +1289,16 @@ class GameManager: ObservableObject {
 
     func getFrameRate() -> Int {
         return frameRate
+    }
+
+    var frameRateHUDText: String {
+        if let frameGenDisplayRate {
+            if let generated = frameGenDisplayRate.generated {
+                return String(format: "%.1f FPS (FG +%.1f)", frameGenDisplayRate.output, generated)
+            }
+            return String(format: "%.1f FPS", frameGenDisplayRate.output)
+        }
+        return progress.hudText(wholeFramesPerSecond: frameRate)
     }
 
     private func startFrameRateMonitor() {
@@ -1316,6 +1329,10 @@ class GameManager: ObservableObject {
                 if fps != self.frameRate {
                     self.frameRate = fps
                 }
+                let displayRate = FrameGenDisplayRate.read()
+                if displayRate != self.frameGenDisplayRate {
+                    self.frameGenDisplayRate = displayRate
+                }
                 let stalled = cemu_bridge_video_stalled()
                 if stalled != self.videoStalled {
                     self.videoStalled = stalled
@@ -1336,6 +1353,7 @@ class GameManager: ObservableObject {
         frameRateTimer?.invalidate()
         frameRateTimer = nil
         frameRate = 0
+        frameGenDisplayRate = nil
         videoStalled = false
         videoStallKind = 0
         progress = EmulatorProgress()
@@ -1352,6 +1370,18 @@ class GameManager: ObservableObject {
         lastStatusMessage = reason
         titleEndedByEngine = true
         emulationState = .error
+    }
+}
+
+struct FrameGenDisplayRate: Equatable {
+    var output: Double
+    var generated: Double?
+
+    static func read() -> Self? {
+        let rates = cemu_bridge_get_framegen_display_rates()
+        guard rates.output > 0 else { return nil }
+        return Self(output: (rates.output * 10).rounded() / 10,
+                    generated: rates.show_breakdown ? (rates.generated * 10).rounded() / 10 : nil)
     }
 }
 
@@ -1384,7 +1414,7 @@ struct EmulatorProgress: Equatable {
             return String(format: "%llu frames", gx2FrameCount)
         }
         if gx2InitReached {
-            return "Started, no picture yet"
+            return loc("Started, no picture yet")
         }
         if osScreenScanouts > 0 || guestFlipRequests > 0 {
             return "Booting..."
@@ -1418,7 +1448,7 @@ final class TitleSwitchSettings {
         let resolutionChanged = ActiveGameSettings.begin(gameID: id)
         #if os(iOS)
         if resolutionChanged {
-            Task { @MainActor in DisplayRouter.shared.reapplyRenderScale(reason: "the game's own Resolution") }
+            Task { @MainActor in DisplayRouter.shared.reapplyRenderScale(reason: loc("the game's own Resolution")) }
         }
         #endif
         #if os(iOS)

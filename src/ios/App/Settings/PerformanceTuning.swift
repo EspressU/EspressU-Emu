@@ -5,39 +5,28 @@
 
 import Foundation
 
-/// Experimental performance options. Each one is off by default and keeps the
-/// behaviour EspressU had before the option existed.
+/// Graphics and diagnostics options the front end hands to the core (HostTuning).
+/// Freeing memory on warnings, the GPU fault history and skipping duplicate JIT work and keeping the TV smooth
+/// with both screens used to be experimental switches and are always on now.
 enum PerformanceTuning {
-    static let freeMemoryOnWarningKey = "espressu.tuning.freeMemoryOnWarning"
-    static let freeMemoryOnWarningDefault = false
-    static let gpuFaultHistoryKey = "espressu.tuning.gpuFaultHistory"
-    static let gpuFaultHistoryDefault = false
-    static let metalFxUpscaleKey = "espressu.tuning.metalFxUpscale"
-    static let metalFxUpscaleDefault = false
-    static let metal4OutputKey = "espressu.tuning.metal4Output"
-    static let metal4OutputDefault = false
-    static let padPresentPacingKey = "espressu.tuning.padPresentPacing"
-    static let padPresentPacingDefault = false
+    /// Experimental > Frame generation: EspressU's own frame interpolation for the TV picture (MetalFrameGen in the core).
+    static let frameGenerationKey = "espressu.tuning.frameInterpolation"
+    static let frameGenerationDefault = true
+    /// Experimental > Async texture loading: BC textures are converted on background threads (LatteTextureAsyncLoad).
+    static let asyncTexturesKey = "espressu.tuning.asyncTextures"
+    static let asyncTexturesDefault = true
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
-    static let interpreterBlockLinkingKey = "espressu.tuning.interpreterBlockLinking"
-    static let interpreterBlockLinkingDefault = false
-    static let diagnosticsLogKey = "espressu.tuning.diagnosticsLog"
-    static let diagnosticsLogDefault = false
-    static let jitSkipOverlapsKey = "espressu.tuning.jitSkipOverlaps"
-    static let jitSkipOverlapsDefault = false
+    /// "Logs" in Device report and logs: a summary line in the EspressU report every few seconds.
+    static let logsKey = "espressu.logs.enabled"
+    static let logsDefault = true
 
     static var advancedSettings: [AdvancedSetting] {
         [
-            AdvancedSetting(freeMemoryOnWarningKey, freeMemoryOnWarningDefault),
-            AdvancedSetting(gpuFaultHistoryKey, gpuFaultHistoryDefault),
-            AdvancedSetting(metalFxUpscaleKey, metalFxUpscaleDefault),
-            AdvancedSetting(metal4OutputKey, metal4OutputDefault),
-            AdvancedSetting(padPresentPacingKey, padPresentPacingDefault),
+            AdvancedSetting(frameGenerationKey, frameGenerationDefault),
+            AdvancedSetting(asyncTexturesKey, asyncTexturesDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
-            AdvancedSetting(interpreterBlockLinkingKey, interpreterBlockLinkingDefault),
-            AdvancedSetting(diagnosticsLogKey, diagnosticsLogDefault),
-            AdvancedSetting(jitSkipOverlapsKey, jitSkipOverlapsDefault),
+            AdvancedSetting(logsKey, logsDefault),
         ]
     }
 
@@ -46,35 +35,29 @@ enum PerformanceTuning {
     }
 
     static func applyToBridge() {
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING,
-                               bool(freeMemoryOnWarningKey, freeMemoryOnWarningDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY,
-                               bool(gpuFaultHistoryKey, gpuFaultHistoryDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE,
-                               bool(metalFxUpscaleKey, metalFxUpscaleDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT,
-                               bool(metal4OutputKey, metal4OutputDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING,
-                               bool(padPresentPacingKey, padPresentPacingDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING,
-                               bool(interpreterBlockLinkingKey, interpreterBlockLinkingDefault) ? 1 : 0)
+        applyAlwaysOn()
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION,
+                               bool(frameGenerationKey, frameGenerationDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_ASYNC_TEXTURES,
+                               bool(asyncTexturesKey, asyncTexturesDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
-                               bool(diagnosticsLogKey, diagnosticsLogDefault) ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS,
-                               bool(jitSkipOverlapsKey, jitSkipOverlapsDefault) ? 1 : 0)
+                               bool(logsKey, logsDefault) ? 1 : 0)
     }
 
     static func applyDefaultsToBridge() {
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING, freeMemoryOnWarningDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY, gpuFaultHistoryDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METALFX_UPSCALE, metalFxUpscaleDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_METAL4_OUTPUT, metal4OutputDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, padPresentPacingDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING, interpreterBlockLinkingDefault ? 1 : 0)
+        applyAlwaysOn()
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, frameGenerationDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_ASYNC_TEXTURES, asyncTexturesDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, diagnosticsLogDefault ? 1 : 0)
-        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS, jitSkipOverlapsDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, logsDefault ? 1 : 0)
+    }
+
+    private static func applyAlwaysOn() {
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING, 1)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY, 1)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS, 1)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING, 1)
     }
 }

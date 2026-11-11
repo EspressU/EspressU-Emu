@@ -28,16 +28,16 @@ enum WiiUMenu {
         var errorDescription: String? {
             switch self {
             case .accessDenied:
-                return "Couldn't access that item."
+                return loc("Couldn't access that item.")
             case .nothingRecognised:
-                return "Nothing recognisable in that folder. Pick the package folder (the one containing mlc01 and cafeLibs), an mlc01 folder, a sys folder, a cafeLibs folder, or the Wii U Menu title folder itself."
+                return loc("Nothing recognisable in that folder. Pick the package folder (the one containing mlc01 and cafeLibs), an mlc01 folder, a sys folder, a cafeLibs folder, or the Wii U Menu title folder itself.")
             case .notTheMenu(let id):
-                return "That title folder isn't a Wii U Menu (title id \(id)). The Menu is 0005001010040000, 0005001010040100 or 0005001010040200."
+                return locf("That title folder isn't a Wii U Menu (title id %@). The Menu is 0005001010040000, 0005001010040100 or 0005001010040200.", id)
             case .wrongSize(let name, let expected):
-                return "\(name) should be exactly \(expected) bytes."
+                return locf("%@ should be exactly %@ bytes.", name, expected)
             case .notEnoughSpace(let needed, let available):
                 let format = ByteCountFormatter()
-                return "Not enough free space: the import needs about \(format.string(fromByteCount: needed)) and this device has \(format.string(fromByteCount: available)) free."
+                return locf("Not enough free space: the import needs about %@ and this device has %@ free.", format.string(fromByteCount: needed), format.string(fromByteCount: available))
             case .failed(let message):
                 return message
             }
@@ -76,17 +76,17 @@ enum WiiUMenu {
             if fm.fileExists(atPath: destination.path) {
                 let backup = root.appendingPathComponent("\(target).backup-\(timestamp())")
                 try fm.moveItem(at: destination, to: backup)
-                lines.append("Existing \(target) saved as \(backup.lastPathComponent).")
+                lines.append(locf("Existing %@ saved as %@.", target, backup.lastPathComponent))
             }
             do {
                 try data.write(to: destination, options: .atomic)
             } catch {
-                throw ImportError.failed("Couldn't save \(target): \(error.localizedDescription)")
+                throw ImportError.failed(locf("Couldn't save %@: %@", target, error.localizedDescription))
             }
             if target == "otp.bin" { seenOTP = true } else { seenSeeprom = true }
         }
-        if seenOTP { lines.append("otp.bin imported.") }
-        if seenSeeprom { lines.append("seeprom.bin imported.") }
+        if seenOTP { lines.append(loc("otp.bin imported.")) }
+        if seenSeeprom { lines.append(loc("seeprom.bin imported.")) }
         return lines
     }
 

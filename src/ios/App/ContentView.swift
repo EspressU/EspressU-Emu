@@ -84,7 +84,7 @@ struct ContentView: View {
             get: { sharedImportError != nil }, set: { if !$0 { sharedImportError = nil } })) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(sharedImportError ?? "")
+            Text(loc(sharedImportError ?? ""))
         }
         .stikJITOverlay()
         .onReceive(NotificationCenter.default.publisher(for: .espressuReopenOnboarding)) { _ in
@@ -110,12 +110,12 @@ struct BootFailureView: View {
     private var name: String { game.displayTitle ?? game.title }
 
     private static let crashLogHint =
-        "If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report."
+        loc("If you report this, share the EspressU report: Settings > Diagnostics > Share EspressU report.")
 
     private var title: String {
-        if needsCleanRestart { return "Restart needed before \(name)" }
-        if driveWasLost { return "\(name) stopped: drive disconnected" }
-        return endedWhileRunning ? "\(name) stopped" : "Couldn't start \(name)"
+        if needsCleanRestart { return locf("Restart needed before %@", name) }
+        if driveWasLost { return locf("%@ stopped: drive disconnected", name) }
+        return endedWhileRunning ? "\(name) stopped" : locf("Couldn't start %@", name)
     }
 
     @State private var keysAdded: Int?
@@ -127,12 +127,12 @@ struct BootFailureView: View {
     }
 
     private var plainLine: String {
-        if needsCleanRestart { return "Close EspressU and open it again from your Home Screen, then start a game." }
-        if driveWasLost { return "The drive or folder this game is stored on was disconnected. Connect it again, go back and start the game again." }
-        if endedWhileRunning { return "The game stopped. Go back and try it again. If it keeps happening, close and reopen EspressU." }
+        if needsCleanRestart { return loc("Close EspressU and open it again from your Home Screen, then start a game.") }
+        if driveWasLost { return loc("The drive or folder this game is stored on was disconnected. Connect it again, go back and start the game again.") }
+        if endedWhileRunning { return loc("The game stopped. Go back and try it again. If it keeps happening, close and reopen EspressU.") }
         if needsKeys { return "This game is encrypted, so it needs a keys.txt file to start." }
-        if let keysAdded { return "Added \(keysAdded) key\(keysAdded == 1 ? "" : "s"). Go back and start the game again. If it still won't start, close and reopen EspressU." }
-        return "This game didn't start. Try again. If it keeps happening, close and reopen EspressU."
+        if let keysAdded { return locn(keysAdded, "Added %@ key. Go back and start the game again. If it still won't start, close and reopen EspressU.", "Added %@ keys. Go back and start the game again. If it still won't start, close and reopen EspressU.") }
+        return loc("This game didn't start. Try again. If it keeps happening, close and reopen EspressU.")
     }
 
     var body: some View {
@@ -172,20 +172,20 @@ struct BootFailureView: View {
                 .foregroundColor(EspressUTheme.alertOnDark)
                 .accessibilityHidden(true)
 
-            Text(title)
+            Text(loc(title))
                 .font(.system(.headline))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
-            Text(plainLine)
+            Text(loc(plainLine))
                 .font(.system(.footnote))
                 .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
 
             if let keysError {
-                Text(keysError)
+                Text(loc(keysError))
                     .font(.system(.footnote))
                     .foregroundColor(EspressUTheme.alertOnDark)
                     .multilineTextAlignment(.center)
@@ -206,12 +206,12 @@ struct BootFailureView: View {
 
             DisclosureGroup("Details") {
                 VStack(spacing: 10) {
-                    Text(message.isEmpty ? "The engine didn't report a reason." : message)
+                    Text(loc(message.isEmpty ? "The engine didn't report a reason." : message))
                         .font(.system(.footnote))
                         .foregroundColor(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .textSelection(.enabled)
-                    Text(Self.crashLogHint)
+                    Text(loc(Self.crashLogHint))
                         .font(.system(.caption2))
                         .foregroundColor(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
@@ -264,11 +264,11 @@ enum LibrarySortOrder: String, CaseIterable, Hashable {
 
     var title: String {
         switch self {
-        case .title: return "Title"
-        case .recentlyAdded: return "Recently added"
-        case .favoritesFirst: return "Favourites first"
-        case .lastPlayed: return "Last played"
-        case .mostPlayed: return "Most played"
+        case .title: return loc("Title")
+        case .recentlyAdded: return loc("Recently added")
+        case .favoritesFirst: return loc("Favourites first")
+        case .lastPlayed: return loc("Last played")
+        case .mostPlayed: return loc("Most played")
         }
     }
 
@@ -329,7 +329,7 @@ struct LibraryActivityBanner: View {
         HStack(spacing: 10) {
             ProgressView()
                 .tint(EspressUTheme.brownDarkest)
-            Text(text)
+            Text(loc(text))
                 .font(.footnote.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .lineLimit(1)
@@ -350,7 +350,7 @@ struct LaunchNoticeBanner: View {
     let text: String
 
     var body: some View {
-        Text(text)
+        Text(loc(text))
             .font(.footnote.weight(.semibold))
             .foregroundColor(EspressUTheme.brownDarkest)
             .multilineTextAlignment(.center)
@@ -515,7 +515,7 @@ struct GameBrowserView: View {
             showingFavorites: $showingFavorites,
             searchText: $searchText,
             activityText: {
-                if case .copying(let name) = gameManager.importState { return "Importing \(name)\u{2026}" }
+                if case .copying(let name) = gameManager.importState { return locf("Importing %@\u{2026}", name) }
                 return removingContentMessage
             }(),
             actions: EspressUHomeActions(
@@ -581,7 +581,7 @@ struct GameBrowserView: View {
                     }
                     .buttonStyle(EspressUSecondaryButtonStyle())
                     .frame(minWidth: 44, minHeight: 44)
-                    .accessibilityLabel(showingFavorites ? "Show all games" : "Show favourites only")
+                    .accessibilityLabel(showingFavorites ? loc("Show all games") : loc("Show favourites only"))
 
                     Menu {
                         Button {
@@ -659,9 +659,9 @@ struct GameBrowserView: View {
                             sortOrder = order
                         } label: {
                             if sortOrder == order {
-                                Label(order.title, systemImage: "checkmark")
+                                Label(loc(order.title), systemImage: "checkmark")
                             } else {
-                                Label(order.title, systemImage: order.systemImage)
+                                Label(loc(order.title), systemImage: order.systemImage)
                             }
                         }
                     }
@@ -723,7 +723,7 @@ struct GameBrowserView: View {
         .onDrop(of: [UTType.item], isTargeted: nil, perform: handleDrop)
         .overlay(alignment: .top) {
             if case .copying(let name) = gameManager.importState {
-                LibraryActivityBanner(text: "Importing \(name)…")
+                LibraryActivityBanner(text: locf("Importing %@…", name))
                     .padding(.top, 8)
             } else if let removingContentMessage {
                 LibraryActivityBanner(text: removingContentMessage)
@@ -771,7 +771,7 @@ struct GameBrowserView: View {
 
     private func removeGameNow(_ game: GameMetadata) {
         pendingGameRemoval = nil
-        removingContentMessage = "Removing \"\(game.cardName.name)\"\u{2026}"
+        removingContentMessage = locf("Removing \"%@\"\u{2026}", game.cardName.name)
         Task {
             do {
                 try await gameManager.removeGame(game)
@@ -827,40 +827,40 @@ struct GameBrowserView: View {
             .alert("Added", isPresented: .constant(dlcUpdateSuccessMessage != nil), presenting: dlcUpdateSuccessMessage) { _ in
                 Button("OK") { dlcUpdateSuccessMessage = nil }
             } message: { message in
-                Text(message)
+                Text(loc(message))
             }
             .alert("Couldn't add that game", isPresented: .constant(romImportErrorMessage != nil), presenting: romImportErrorMessage) { _ in
                 Button("OK") { romImportErrorMessage = nil }
             } message: { message in
-                Text(message)
+                Text(loc(message))
             }
             .alert("Couldn't import", isPresented: .constant(dlcImportErrorMessage != nil), presenting: dlcImportErrorMessage) { _ in
                 Button("OK") { dlcImportErrorMessage = nil }
             } message: { message in
-                Text(message)
+                Text(loc(message))
             }
             .alert(
-                "No automatic match",
+                loc("No automatic match"),
                 isPresented: .constant(pendingManualMatchConfirmation != nil),
                 presenting: pendingManualMatchConfirmation
             ) { pending in
-                Button("Add to \"\(pending.game.title)\"") {
+                Button(locf("Add to \"%@\"", pending.game.title)) {
                     pendingManualMatchConfirmation = nil
                     runDlcUpdateImport(from: pending.source, kind: pending.kind, longPressedGame: pending.game, manualMatch: pending.game)
                 }
                 Button("Cancel", role: .cancel) { pendingManualMatchConfirmation = nil }
             } message: { pending in
-                Text("Couldn't automatically match this \(pending.kind.displayName) to a game already in your library. Add it to \"\(pending.game.title)\" - the game you long-pressed?")
+                Text(locf("Couldn't automatically match this %@ to a game already in your library. Add it to \"%@\" - the game you long-pressed?", pending.kind.displayName, pending.game.title))
             }
             .confirmationDialog(
-                "Remove content?",
+                loc("Remove content?"),
                 isPresented: .constant(pendingRemoval != nil),
                 titleVisibility: .visible,
                 presenting: pendingRemoval
             ) { pending in
                 Button("Remove", role: .destructive) {
                     pendingRemoval = nil
-                    removingContentMessage = "Removing \(pending.kind.displayName) for \"\(pending.game.title)\"…"
+                    removingContentMessage = locf("Removing %@ for \"%@\"…", pending.kind.displayName, pending.game.title)
                     Task {
                         do {
                             _ = try await Task.detached {
@@ -874,20 +874,20 @@ struct GameBrowserView: View {
                 }
                 Button("Cancel", role: .cancel) { pendingRemoval = nil }
             } message: { pending in
-                Text("Remove the \(pending.kind.displayName) installed for \"\(pending.game.title)\"? This can't be undone - you'll need to import it again.")
+                Text(locf("Remove the %@ installed for \"%@\"? This can't be undone - you'll need to import it again.", pending.kind.displayName, pending.game.title))
             }
             .confirmationDialog(
-                pendingGameRemoval?.removeConfirmTitle ?? "Remove this game?",
+                pendingGameRemoval?.removeConfirmTitle ?? loc("Remove this game?"),
                 isPresented: .constant(pendingGameRemoval != nil),
                 titleVisibility: .visible,
                 presenting: pendingGameRemoval
             ) { pending in
-                Button(pending.removeConfirmButton, role: .destructive) {
+                Button(loc(pending.removeConfirmButton), role: .destructive) {
                     removeGameNow(pending)
                 }
                 Button("Cancel", role: .cancel) { pendingGameRemoval = nil }
             } message: { pending in
-                Text(pending.removeConfirmMessage)
+                Text(loc(pending.removeConfirmMessage))
             }
             .alert("Connect the drive to play", isPresented: .constant(gameManager.launchBlockedMessage != nil), presenting: gameManager.launchBlockedMessage) { _ in
                 Button("Check again") {
@@ -896,10 +896,10 @@ struct GameBrowserView: View {
                 }
                 Button("OK", role: .cancel) { gameManager.launchBlockedMessage = nil }
             } message: { message in
-                Text(message)
+                Text(loc(message))
             }
             .confirmationDialog(
-                "Replace existing file?",
+                loc("Replace existing file?"),
                 isPresented: .constant(pendingOverwriteConfirmation != nil),
                 titleVisibility: .visible,
                 presenting: pendingOverwriteConfirmation
@@ -915,7 +915,7 @@ struct GameBrowserView: View {
                     resume(false)
                 }
             } message: { pending in
-                Text("\"\(pending.name)\" already exists in your library. Replacing it can't be undone.")
+                Text(locf("\"%@\" already exists in your library. Replacing it can't be undone.", pending.name))
             }
     }
 
@@ -926,7 +926,7 @@ struct GameBrowserView: View {
                 guard let url = urls.first else { return }
                 do {
                     let count = try WiiUKeys.importKeys(from: url)
-                    dlcUpdateSuccessMessage = "Added \(count) key\(count == 1 ? "" : "s"). Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first."
+                    dlcUpdateSuccessMessage = locn(count, "Added %@ key. Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first.", "Added %@ keys. Games use them the next time you start one. If you've already started a game since opening EspressU, close and reopen EspressU first.")
                 } catch {
                     dlcImportErrorMessage = error.localizedDescription
                 }
@@ -1032,7 +1032,7 @@ struct GameBrowserView: View {
                     manualMatch: manualMatch
                 )
                 if let matched = result.matchedGame {
-                    dlcUpdateSuccessMessage = "Added \(kind.displayName) for \"\(matched.title)\"."
+                    dlcUpdateSuccessMessage = locf("Added %@ for \"%@\".", kind.displayName, matched.title)
                 }
                 DocumentImport.discardPickerCopy(url)
             } catch DlcUpdateImport.ImportError.noBaseGameMatch {
@@ -1065,12 +1065,12 @@ struct DlcUpdateGamePickerSheet: View {
                         onPick(game)
                         dismiss()
                     } label: {
-                        Text(game.title)
+                        Text(loc(game.title))
                             .foregroundColor(EspressUTheme.brownDarkest)
                     }
                 }
             }
-            .navigationTitle("Add \(kind.displayName) to which game?")
+            .navigationTitle(locf("Add %@ to which game?", kind.displayName))
             .espressuOpaqueNavigationBar(EspressUTheme.formGround)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1139,7 +1139,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .accessibilityLabel("More options for \(cardName.name)")
+                        .accessibilityLabel(locf("More options for %@", cardName.name))
                         .padding(8)
                         Spacer()
                         Button(action: onFavoriteTap) {
@@ -1151,7 +1151,7 @@ struct GameCardOptimized<Options: View>: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .accessibilityLabel(game.isFavorite ? "Remove from favourites" : "Add to favourites")
+                        .accessibilityLabel(game.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"))
                         .padding(8)
                     }
                     Spacer()
@@ -1160,14 +1160,14 @@ struct GameCardOptimized<Options: View>: View {
             .aspectRatio(3 / 4, contentMode: .fit)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(cardName.name)
+                Text(loc(cardName.name))
                     .font(.footnote.weight(.semibold))
                     .lineLimit(2)
                     .foregroundColor(EspressUTheme.brownDarkest)
 
                 HStack(spacing: 8) {
                     if let region = game.region {
-                        Label(region, systemImage: "globe")
+                        Label(loc(region), systemImage: "globe")
                             .font(.caption2)
                             .foregroundColor(EspressUTheme.brownMid)
                     }
@@ -1188,7 +1188,7 @@ struct GameCardOptimized<Options: View>: View {
                 .buttonStyle(EspressUPrimaryButtonStyle())
 
                 if let titleIdText = cardName.titleIdText {
-                    Text(titleIdText)
+                    Text(loc(titleIdText))
                         .font(.system(size: 10, weight: .regular, design: .monospaced))
                         .foregroundColor(EspressUTheme.brownMid)
                         .lineLimit(1)
@@ -1292,21 +1292,21 @@ struct EmptyGamesView: View {
 
     private var heading: String {
         switch kind {
-        case .emptyLibrary: return "No Games Yet"
-        case .noFavourites: return "No Favourites Yet"
-        case .noSearchMatch: return "No Matches"
+        case .emptyLibrary: return loc("No Games Yet")
+        case .noFavourites: return loc("No Favourites Yet")
+        case .noSearchMatch: return loc("No Matches")
         }
     }
 
     private var lines: [String] {
         switch kind {
         case .emptyLibrary:
-            return ["Tap Import a Game, or put game files in Files > On My iPad > EspressU > Roms.",
-                    "Games you add there show up when you come back to EspressU."]
+            return [loc("Tap Import a Game, or put game files in Files > On My iPad > EspressU > Roms."),
+                    loc("Games you add there show up when you come back to EspressU.")]
         case .noFavourites:
-            return ["Tap the heart on a game to add it here."]
+            return [loc("Tap the heart on a game to add it here.")]
         case .noSearchMatch(let text):
-            return ["Nothing matches \"\(text)\"."]
+            return [locf("Nothing matches \"%@\".", text)]
         }
     }
 
@@ -1318,14 +1318,14 @@ struct EmptyGamesView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text(heading)
+                Text(loc(heading))
                     .font(.headline)
                     .foregroundColor(EspressUTheme.brownDarkest)
                     .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .center, spacing: 4) {
                     ForEach(lines, id: \.self) { line in
-                        Text(line)
+                        Text(loc(line))
                             .font(.footnote)
                             .foregroundColor(EspressUTheme.brownMid)
                             .multilineTextAlignment(.center)
@@ -1494,8 +1494,8 @@ struct EmulatorViewOptimized: View {
         guard autoHideWithController, padHiddenByController || wasHidden else { return }
         if atStart && gameManager.launchNotice != nil { return }
         gameManager.showLaunchNotice(connected
-            ? "Controller connected. On-screen controls hidden. Menu: HOME, the touchpad or Select + Start."
-            : "Controller disconnected. On-screen controls shown.")
+            ? loc("Controller connected. On-screen controls hidden. Menu: HOME, the touchpad or Select + Start.")
+            : loc("Controller disconnected. On-screen controls shown."))
     }
 
     private func openHomeMenu() {
@@ -1595,19 +1595,19 @@ struct EmulatorViewOptimized: View {
                 HStack(alignment: .top, spacing: 10) {
                     HStack(spacing: 2) {
                         if gameManager.emulationState == .loading {
-                            InGamePillButton(symbol: "xmark", title: "Cancel") {
+                            InGamePillButton(symbol: "xmark", title: loc("Cancel")) {
                                 gameManager.stopEmulation()
                                 isRunning = true
                             }
                         } else if isEditingControlLayout {
-                            InGamePillButton(symbol: "checkmark", title: "Done") { finishEditingLayout() }
+                            InGamePillButton(symbol: "checkmark", title: loc("Done")) { finishEditingLayout() }
                         } else {
-                            InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : "Menu", action: openHomeMenu)
+                            InGamePillButton(symbol: "house.fill", title: isPhonePortrait ? nil : loc("Menu"), action: openHomeMenu)
                                 .disabled(gameManager.emulationState != .running || showHomeMenu)
                                 .accessibilityLabel("HOME menu")
                             InGamePillButton(symbol: isPaused ? "play.fill" : "pause.fill", title: nil, action: togglePause)
                                 .disabled(gameManager.emulationState != .running)
-                                .accessibilityLabel(isPaused ? "Resume" : "Pause")
+                                .accessibilityLabel(isPaused ? loc("Resume") : loc("Pause"))
                         }
                     }
                     .padding(4)
@@ -1619,9 +1619,10 @@ struct EmulatorViewOptimized: View {
                         InGameBlowButton(enabled: !isPaused)
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(gameManager.frameRate >= 20 ? Color.green : EspressUTheme.alertOnDark)
+                                .fill((gameManager.frameGenDisplayRate?.output ?? Double(gameManager.frameRate)) >= 20
+                                      ? Color.green : EspressUTheme.alertOnDark)
                                 .frame(width: 8, height: 8)
-                            Text(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
+                            Text(loc(gameManager.frameRateHUDText))
                                 .font(.footnote.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundColor(.white)
@@ -1632,7 +1633,7 @@ struct EmulatorViewOptimized: View {
                         .espressUSurface(Capsule())
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel("Frame rate")
-                        .accessibilityValue(gameManager.progress.hudText(wholeFramesPerSecond: gameManager.frameRate))
+                        .accessibilityValue(gameManager.frameRateHUDText)
                     }
                 }
                 .environment(\.colorScheme, .dark)
@@ -1714,7 +1715,7 @@ struct EmulatorViewOptimized: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(.white)
-                    Text("Starting \(game.title)…")
+                    Text(locf("Starting %@…", game.title))
                         .font(.footnote.weight(.semibold))
                         .foregroundColor(.white.opacity(0.8))
                         .multilineTextAlignment(.center)
@@ -1882,7 +1883,7 @@ struct EmulatorViewOptimized: View {
         try? await Task.sleep(nanoseconds: TopBarAutoHide.hideDelayNanoseconds)
         guard !Task.isCancelled else { return }
         setTopBarHidden(true)
-        showHintOnce(Self.topBarHintKey, "Tap or swipe down at the top edge to bring the bar back.")
+        showHintOnce(Self.topBarHintKey, loc("Tap or swipe down at the top edge to bring the bar back."))
     }
 
     private static let topBarHintKey = "espressu.hint.topBarReveal"
@@ -1904,7 +1905,7 @@ struct EmulatorViewOptimized: View {
 
     private func showGamePadHintIfNeeded() {
         #if os(iOS)
-        showHintOnce(Self.gamePadHintKey, "Tap the GamePad screen to use it in the game.", ready: {
+        showHintOnce(Self.gamePadHintKey, loc("Tap the GamePad screen to use it in the game."), ready: {
             gameManager.emulationState == .running && (isPadViewVisible || padIsOnDeviceInDualScreen)
         })
         #endif
@@ -1942,38 +1943,38 @@ struct EmulatorViewOptimized: View {
 
     private var stallTitle: String {
         switch gameManager.videoStallKind {
-        case 2: return "Graphics stopped working"
-        case 3: return "Out of memory for the picture"
-        case 4: return "Memory is running low"
-        case 5: return "The screen stopped updating"
-        default: return "The picture froze"
+        case 2: return loc("Graphics stopped working")
+        case 3: return loc("Out of memory for the picture")
+        case 4: return loc("Memory is running low")
+        case 5: return loc("The screen stopped updating")
+        default: return loc("The picture froze")
         }
     }
 
     private var stallAdvice: String {
         switch gameManager.videoStallKind {
-        case 2: return "iOS stopped running this game's graphics. Tap Quit Game. EspressU will then ask you to close and reopen it before the next game."
-        case 3: return "Tap Quit Game and reopen EspressU. After you quit, a lower Resolution (in Settings, Graphics) uses less memory."
-        case 4: return "iOS may close EspressU soon. Quit the game soon. After you quit, a lower Resolution (in Settings, Graphics) uses less memory."
-        case 5: return "The game is still running but the screen isn't taking frames. This goes away by itself if it recovers. If it doesn't, tap Quit Game and reopen EspressU."
-        default: return "The picture has stopped while the game keeps running. This goes away by itself if the picture comes back."
+        case 2: return loc("iOS stopped running this game's graphics. Tap Quit Game. EspressU will then ask you to close and reopen it before the next game.")
+        case 3: return loc("Tap Quit Game and reopen EspressU. After you quit, a lower Resolution (in Settings, Graphics) uses less memory.")
+        case 4: return loc("iOS may close EspressU soon. Quit the game soon. After you quit, a lower Resolution (in Settings, Graphics) uses less memory.")
+        case 5: return loc("The game is still running but the screen isn't taking frames. This goes away by itself if it recovers. If it doesn't, tap Quit Game and reopen EspressU.")
+        default: return loc("The picture has stopped while the game keeps running. This goes away by itself if the picture comes back.")
         }
     }
 
     private var stallDismissTitle: String {
         let kind = gameManager.videoStallKind
-        return (kind == 1 || kind == 5) ? "Keep waiting" : "Dismiss"
+        return (kind == 1 || kind == 5) ? loc("Keep waiting") : loc("Dismiss")
     }
 
     private var videoStalledCard: some View {
         VStack(spacing: 10) {
-            Text(stallTitle)
+            Text(loc(stallTitle))
                 .font(.system(.subheadline).weight(.semibold))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
             if gameManager.videoStalled {
-                Text(stallAdvice)
+                Text(loc(stallAdvice))
                     .font(.system(.caption))
                     .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
@@ -1984,7 +1985,7 @@ struct EmulatorViewOptimized: View {
                     gameManager.stopEmulation()
                     isRunning = true
                 }
-                Button(stallDismissTitle) {
+                Button(loc(stallDismissTitle)) {
                     stallCardDismissed = true
                 }
             }

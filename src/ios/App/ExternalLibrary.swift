@@ -44,7 +44,7 @@ final class ExternalLibrary: ObservableObject, @unchecked Sendable {
     private init() {
         let base = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
             ?? FileManager.default.temporaryDirectory
-        let folder = base.appendingPathComponent("EspressU", isDirectory: true)
+        let folder = base.appendingPathComponent(loc("EspressU"), isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         fileURL = folder.appendingPathComponent("LinkedLocations.json")
         if let data = try? Data(contentsOf: fileURL),
@@ -144,13 +144,13 @@ final class ExternalLibrary: ObservableObject, @unchecked Sendable {
         var errorDescription: String? {
             switch self {
             case .accessDenied:
-                return "Couldn't access that location."
+                return loc("Couldn't access that location.")
             case .notReadable(let name):
-                return "EspressU can't read \"\(name)\". If it's on a drive, make sure the drive is connected."
+                return locf("EspressU can't read \"%@\". If it's on a drive, make sure the drive is connected.", name)
             case .unsupportedFile(let name):
                 return "\"\(name)\" isn't a Wii U game file EspressU can read. It accepts .wua, .wux, .wud, .iso, .rpx, .elf and .wuhb files."
             case .bookmarkFailed(let error):
-                return "Couldn't keep access to that location: \(error.localizedDescription)"
+                return locf("Couldn't keep access to that location: %@", error.localizedDescription)
             }
         }
     }

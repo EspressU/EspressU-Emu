@@ -1,0 +1,86 @@
+# Texts that stay English (developer-facing, names, formats).
+Apache-2.0
+BSD-3-Clause
+BSL-1.0
+Boost
+Cemu
+Crema (EspressU's own touch controls)
+Crema Licence (non-commercial, open source, credit)
+Dear ImGui
+EspressU Licence (non-commercial, open source, credit)
+EspressU's own files (marked in their header)
+IJG and BSD-3-Clause
+ISC
+LibTIFF
+MIT
+MIT-0
+MuffinEMU (EspressU is based on it)
+Noto Sans CJK (JP, SC, KR, TC) – the bundled Wii U shared-font replacements CafeStd, CafeCn, CafeKr and CafeTw
+OpenSSL
+RapidJSON
+SDL
+SIL Open Font License 1.1
+StikJIT (helper for the built-in JIT)
+ZArchive
+Zstandard
+curl License
+idevice (bundled in StikJIT)
+ih264d (H.264 decoder)
+libpng License
+libtiff License
+FlushPipelineCache
+User-Agent
+UTC
+ZHTW
+AltIcon-
+27+ detected
+built with 27 SDK
+EspressU External Display
+external scene connected
+external scene disconnected
+auto-reduce turned off
+settings import
+settings reset
+%.1f FPS
+%.1f FPS (FG +%.1f)
+%llu frames
+-- FPS
+Booting...
+Started, no picture yet
+the game's own Resolution
+checksum of %@
+compression method %@
+size of %@
+local header of %@
+ (battery %.0f C)
+ (no sensor reading)
+ + missing.joined(separator: 
+ + report.added.joined(separator: 
+get-task-allow missing
+Wii Balance Board
+Wii MotionPlus
+Wii Remote
+Wii U GamePad
+Wii U Pro Controller
+Wii Wheel
+Wii Zapper
+Nunchuk
+Mii
+Log motion values
+Show debug info
+Show draw calls
+Show frame generation breakdown
+Show controls diagnostic
+Shows over the game whether button presses reach it, and why not.
+A small readout over the game showing whether your button presses are reaching the game, and why not if they aren't.
+Leave these off unless aiming turns the wrong way. The log writes one line a second to the engine log, to report when something looks off.
+Every 5 seconds notes in the EspressU report what the emulator did, lines start with [Tuning]. Helps with bug reports. The report is EspressU-Report.txt in EspressU's Logs folder in the Files app.
+Logs
+Launch log
+Close launch log
+Show launch log
+Pad is mounted but no touches are reaching it.
+Timestamped boot steps instead of the intro, for games that stay black.
+The launch log shows boot progress and replaces the intro while it's on.
+) + missing.joined(separator: 
+) + report.added.joined(separator: 

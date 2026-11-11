@@ -12,7 +12,7 @@ enum ArtLocations {
     static var root: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        var url = base.appendingPathComponent("EspressU", isDirectory: true).appendingPathComponent("Art", isDirectory: true)
+        var url = base.appendingPathComponent(loc("EspressU"), isDirectory: true).appendingPathComponent("Art", isDirectory: true)
         let fm = FileManager.default
         if !fm.fileExists(atPath: url.path) {
             try? fm.createDirectory(at: url, withIntermediateDirectories: true)
@@ -35,7 +35,7 @@ enum ArtLocations {
 
 enum ArtTitleNormalizer {
     static func loose(_ title: String) -> String {
-        let words = normalize(title.replacingOccurrences(of: "&", with: " and "))
+        let words = normalize(title.replacingOccurrences(of: "&", with: loc(" and ")))
             .split(separator: " ").filter { $0 != "the" && $0 != "and" }
         return words.joined().filter { $0.isLetter || $0.isNumber }
     }

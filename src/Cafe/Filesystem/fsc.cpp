@@ -1,5 +1,6 @@
 #include "Cafe/Filesystem/fsc.h"
 #include "Cafe/Filesystem/FST/fstUtil.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 
 struct FSCMountPathNode
 {
@@ -555,6 +556,7 @@ uint32 fsc_readFile(FSCVirtualFile* fscFile, void* buffer, uint32 size)
 	fscEnter();
 	uint32 fscStatus = fscFile->fscReadData(buffer, size);
 	fscLeave();
+	PerfTelemetry::Get().fileReadBytes.fetch_add(fscStatus, std::memory_order_relaxed);
 	return fscStatus;
 }
 

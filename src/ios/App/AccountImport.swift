@@ -71,7 +71,7 @@ enum AccountImport {
                     if let c = candidate(file: direct, folderId: persistentId(folderName: name.lowercased()), label: name) {
                         result.accounts.append(c)
                     } else {
-                        result.problems.append("\(name)/account.dat isn't a readable Wii U account file, or its folder name isn't an 8-digit account ID like 80000001.")
+                        result.problems.append(locf("%@/account.dat isn't a readable Wii U account file, or its folder name isn't an 8-digit account ID like 80000001.", name))
                     }
                 } else {
                     var found = false
@@ -83,10 +83,10 @@ enum AccountImport {
                         if let c = candidate(file: file, folderId: id, label: child) {
                             result.accounts.append(c)
                         } else {
-                            result.problems.append("\(child)/account.dat isn't a readable Wii U account file.")
+                            result.problems.append(locf("%@/account.dat isn't a readable Wii U account file.", child))
                         }
                     }
-                    if !found { result.problems.append("\(name) has no account.dat in it.") }
+                    if !found { result.problems.append(locf("%@ has no account.dat in it.", name)) }
                 }
             } else {
                 let lower = name.lowercased()
@@ -137,19 +137,19 @@ enum AccountImport {
             try candidate.data.write(to: file, options: .atomic)
         } catch {
             rollback()
-            throw WiiUMenu.ImportError.failed("Couldn't save the account: \(error.localizedDescription)")
+            throw WiiUMenu.ImportError.failed(locf("Couldn't save the account: %@", error.localizedDescription))
         }
         cemu_bridge_accounts_refresh()
         guard Account.loadAll().contains(where: { $0.persistentId == candidate.persistentId }) else {
             rollback()
-            throw WiiUMenu.ImportError.failed("\(candidate.source) couldn't be read as a Wii U account, so it wasn't installed. Your existing accounts are unchanged.")
+            throw WiiUMenu.ImportError.failed(locf("%@ couldn't be read as a Wii U account, so it wasn't installed. Your existing accounts are unchanged.", candidate.source))
         }
         let problem: String?
         switch cemu_bridge_account_online_error(candidate.persistentId) {
         case 0: problem = nil
-        case 2, 3: problem = "it has no saved password for its Pretendo or Nintendo Network ID"
-        case 4: problem = "it has no principal ID"
-        default: problem = "it has no linked Pretendo or Nintendo Network ID"
+        case 2, 3: problem = loc("it has no saved password for its Pretendo or Nintendo Network ID")
+        case 4: problem = loc("it has no principal ID")
+        default: problem = loc("it has no linked Pretendo or Nintendo Network ID")
         }
         return Installed(persistentId: candidate.persistentId, backupName: backup?.lastPathComponent, onlineProblem: problem)
     }
@@ -183,7 +183,7 @@ struct AccountImportButton: View {
         .fileImporter(isPresented: external ?? $showingImporter, allowedContentTypes: [.item, .folder], allowsMultipleSelection: true) { result in
             switch result {
             case .failure(let error):
-                resultTitle = "Couldn't import"
+                resultTitle = loc("Couldn't import")
                 resultMessage = error.localizedDescription
             case .success(let urls):
                 let found = AccountImport.prepare(urls: urls)
@@ -202,10 +202,10 @@ struct AccountImportButton: View {
         } message: {
             Text("An account with the same ID is already installed. If you replace it, its account.dat is saved next to the new one first.")
         }
-        .alert(resultTitle, isPresented: Binding(get: { resultMessage != nil }, set: { if !$0 { resultMessage = nil } })) {
+        .alert(loc(resultTitle), isPresented: Binding(get: { resultMessage != nil }, set: { if !$0 { resultMessage = nil } })) {
             Button("OK") { resultMessage = nil; offerActivation() }
         } message: {
-            Text(resultMessage ?? "")
+            Text(loc(resultMessage ?? ""))
         }
         .alert("Use this account?", isPresented: Binding(get: { activateCandidate != nil }, set: { if !$0 { activateCandidate = nil } })) {
             Button("Make active") {
@@ -234,17 +234,17 @@ struct AccountImportButton: View {
         var firstAny: UInt32?
         for candidate in found.accounts {
             if !replacing && AccountImport.exists(candidate.persistentId) {
-                lines.append("Skipped account \(String(format: "%08x", candidate.persistentId)): it's already installed.")
+                lines.append(locf("Skipped account %@: it's already installed.", String(format: "%08x", candidate.persistentId)))
                 continue
             }
             do {
                 let done = try AccountImport.install(candidate)
                 let id = String(format: "%08x", done.persistentId)
-                if let backup = done.backupName { lines.append("The old account \(id) was saved as \(backup).") }
+                if let backup = done.backupName { lines.append(locf("The old account %@ was saved as %@.", id, backup)) }
                 if let problem = done.onlineProblem {
-                    lines.append("Account \(id) was imported, but it can't play online: \(problem). Link a PNID on the console first, then dump account.dat again.")
+                    lines.append(locf("Account %@ was imported, but it can't play online: %@. Link a PNID on the console first, then dump account.dat again.", id, problem))
                 } else {
-                    lines.append("Account \(id) was imported and can play online.")
+                    lines.append(locf("Account %@ was imported and can play online.", id))
                     if firstValid == nil { firstValid = done.persistentId }
                 }
                 if firstAny == nil { firstAny = done.persistentId }
@@ -259,13 +259,13 @@ struct AccountImportButton: View {
                 lines.append(error.localizedDescription)
             }
         }
-        if lines.isEmpty { lines.append("Nothing to import. Pick account.dat (or its 800000XX folder), otp.bin and seeprom.bin.") }
+        if lines.isEmpty { lines.append(loc("Nothing to import. Pick account.dat (or its 800000XX folder), otp.bin and seeprom.bin.")) }
         let missing = OnlineReadiness.missingItems(accountId: firstValid ?? cemu_bridge_active_account_persistent_id())
         if !missing.isEmpty && (!found.accounts.isEmpty || !found.consoleFiles.isEmpty) {
-            lines.append("Still missing for online play: " + missing.joined(separator: ", ") + ".")
+            lines.append(loc("Still missing for online play: ") + missing.joined(separator: ", ") + ".")
         }
         pendingActivation = firstValid ?? firstAny
-        resultTitle = "Import"
+        resultTitle = loc("Import")
         resultMessage = lines.joined(separator: "\n")
         onChange()
     }

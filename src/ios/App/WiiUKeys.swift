@@ -33,15 +33,15 @@ enum WiiUKeys {
         var errorDescription: String? {
             switch self {
             case .accessDenied:
-                return "Couldn't access that file."
+                return loc("Couldn't access that file.")
             case .unreadable:
                 return "That file isn't readable text - keys.txt is a plain text file with one key per line."
             case .noKeysFound:
-                return "No keys found in that file. Each key is 32 hex characters on its own line; anything after a # is a comment."
+                return loc("No keys found in that file. Each key is 32 hex characters on its own line; anything after a # is a comment.")
             case .tooLarge:
                 return "That file is far too big to be a keys.txt."
             case .writeFailed(let error):
-                return "Couldn't save keys.txt: \(error.localizedDescription)"
+                return locf("Couldn't save keys.txt: %@", error.localizedDescription)
             }
         }
     }

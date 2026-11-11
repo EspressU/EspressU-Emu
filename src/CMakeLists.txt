@@ -130,7 +130,6 @@ if(IOS)
 		"-framework CoreMotion"
 		"-framework Metal"
 		"-framework QuartzCore"
-		"-weak_framework MetalFX"
 	)
 endif()
 

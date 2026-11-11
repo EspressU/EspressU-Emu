@@ -20,9 +20,9 @@ struct MiniZip {
         var errorDescription: String? {
             switch self {
             case .notAZip: return "The file isn't a valid zip archive."
-            case .unsupported(let what): return "The zip uses a feature EspressU can't read (\(what))."
-            case .corrupt(let what): return "The zip is damaged (\(what))."
-            case .unsafePath(let name): return "The zip contains a path outside its own folder (\(name))."
+            case .unsupported(let what): return locf("The zip uses a feature EspressU can't read (%@).", what)
+            case .corrupt(let what): return locf("The zip is damaged (%@).", what)
+            case .unsafePath(let name): return locf("The zip contains a path outside its own folder (%@).", name)
             case .tooLarge: return "The zip is larger than graphic packs should be."
             }
         }
@@ -177,18 +177,18 @@ struct MiniZip {
 
     func read(_ entry: Entry) throws -> Data {
         let o = entry.localHeaderOffset
-        guard o + 30 <= data.count, MiniZip.u32(data, o) == 0x04034b50 else { throw ZipError.corrupt("local header of \(entry.name)") }
+        guard o + 30 <= data.count, MiniZip.u32(data, o) == 0x04034b50 else { throw ZipError.corrupt(locf("local header of %@", entry.name)) }
         let nameLen = MiniZip.u16(data, o + 26)
         let extraLen = MiniZip.u16(data, o + 28)
         let start = o + 30 + nameLen + extraLen
-        guard start + entry.compressedSize <= data.count else { throw ZipError.corrupt("\(entry.name) is cut short") }
+        guard start + entry.compressedSize <= data.count else { throw ZipError.corrupt(locf("%@ is cut short", entry.name)) }
         let begin = data.startIndex + start
         let raw = data[begin..<(begin + entry.compressedSize)]
 
         let output: Data
         switch entry.method {
         case 0:
-            guard entry.compressedSize == entry.size else { throw ZipError.corrupt("size of \(entry.name)") }
+            guard entry.compressedSize == entry.size else { throw ZipError.corrupt(locf("size of %@", entry.name)) }
             output = Data(raw)
         case 8:
             if entry.size == 0 {
@@ -202,14 +202,14 @@ struct MiniZip {
                         return compression_decode_buffer(d, entry.size, s, entry.compressedSize, nil, COMPRESSION_ZLIB)
                     }
                 }
-                guard produced == entry.size else { throw ZipError.corrupt("\(entry.name) won't decompress") }
+                guard produced == entry.size else { throw ZipError.corrupt(locf("%@ won't decompress", entry.name)) }
                 output = buffer
             }
         default:
-            throw ZipError.unsupported("compression method \(entry.method)")
+            throw ZipError.unsupported(locf("compression method %@", entry.method))
         }
 
-        guard MiniZip.crc32(output) == entry.crc32 else { throw ZipError.corrupt("checksum of \(entry.name)") }
+        guard MiniZip.crc32(output) == entry.crc32 else { throw ZipError.corrupt(locf("checksum of %@", entry.name)) }
         return output
     }
 

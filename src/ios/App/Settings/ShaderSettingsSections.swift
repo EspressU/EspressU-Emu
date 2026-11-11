@@ -14,12 +14,12 @@ struct ShaderCompilationSection: View {
                 cemu_bridge_set_async_shader_compile(newValue)
             }
         } header: {
-            SettingsSectionHeader("Shader Compilation", icon: "hammer", accent: .core)
+            SettingsSectionHeader(loc("Shader Compilation"), icon: "hammer", accent: .core)
         } footer: {
             InfoButton.footer(
-                "On keeps the game running while a shader builds; things may flicker the first time they appear. Off waits for each shader and stutters instead.",
-                title: "Shader Compilation",
-                text: "On, the game keeps running while new shaders are built, and you may see something flicker or appear late the first time it is drawn. Off, the game waits for each one, which stutters instead.\n\nNano Assault Neo breaks with this on. Set it off for that game only: long-press it in your library.\n\nFavour accuracy (under CPU) always waits for each shader, whatever this is set to. It applies the next time you start a game.")
+                loc("On keeps the game running while a shader builds; things may flicker the first time they appear. Off waits for each shader and stutters instead."),
+                title: loc("Shader Compilation"),
+                text: loc("On, the game keeps running while new shaders are built, and you may see something flicker or appear late the first time it is drawn. Off, the game waits for each one, which stutters instead.\n\nNano Assault Neo breaks with this on. Set it off for that game only: long-press it in your library.\n\nFavour accuracy (under CPU) always waits for each shader, whatever this is set to. It applies the next time you start a game."))
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }
@@ -46,30 +46,30 @@ struct ShaderCacheSection: View {
             .onValueChange(of: asyncShaderCompile) { newValue in
                 cemu_bridge_set_async_shader_compile(newValue)
             }
-            SettingsRow(label: "Size on disk", value: Self.formatBytes(learnedCacheBytes + compiledCacheBytes))
-            SettingsRow(label: "Last updated", value: ShaderCacheInfo.formatDate(lastUpdated))
+            SettingsRow(label: loc("Size on disk"), value: Self.formatBytes(learnedCacheBytes + compiledCacheBytes))
+            SettingsRow(label: loc("Last updated"), value: ShaderCacheInfo.formatDate(lastUpdated))
             if SettingsMode.isAdvanced(raw: settingsModeRaw) {
-                SettingsRow(label: "Learned shaders", value: Self.formatBytes(learnedCacheBytes))
-                SettingsRow(label: "Compiled shaders", value: Self.formatBytes(compiledCacheBytes))
+                SettingsRow(label: loc("Learned shaders"), value: Self.formatBytes(learnedCacheBytes))
+                SettingsRow(label: loc("Compiled shaders"), value: Self.formatBytes(compiledCacheBytes))
             }
             Button { confirmClearCompiled = true } label: {
                 Label("Clear compiled shaders", systemImage: "arrow.counterclockwise")
             }
             .disabled(compiledCacheBytes <= 0)
             Button(role: .destructive) { confirmClearLearned = true } label: {
-                DestructiveSettingsLabel(title: "Clear everything, including learned", systemImage: "trash")
+                DestructiveSettingsLabel(title: loc("Clear everything, including learned"), systemImage: "trash")
             }
             .disabled(learnedCacheBytes <= 0 && compiledCacheBytes <= 0)
             if let cacheStatusMessage {
-                Text(cacheStatusMessage)
+                Text(loc(cacheStatusMessage))
                     .font(.system(size: 12))
                     .foregroundColor(cacheStatusIsError ? .red : EspressUTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         } header: {
-            SettingsSectionHeader("Shaders", icon: "externaldrive", accent: .core)
+            SettingsSectionHeader(loc("Shaders"), icon: "externaldrive", accent: .core)
         } footer: {
-            InfoButton.footer("What every game has saved so it starts faster. To clear one game, open its options. Clearing needs the game closed.")
+            InfoButton.footer(loc("What every game has saved so it starts faster. To clear one game, open its options. Clearing needs the game closed."))
         }
         .foregroundColor(EspressUTheme.brownDarkest)
         .onAppear(perform: refreshCacheStats)
@@ -90,11 +90,11 @@ struct ShaderCacheSection: View {
     private func clear(includeLearned: Bool) {
         let freed = cemu_bridge_clear_shader_cache(0, includeLearned)
         if freed < 0 {
-            cacheStatusMessage = "Close the game first, then clear the cache."
+            cacheStatusMessage = loc("Close the game first, then clear the cache.")
             cacheStatusIsError = true
         } else {
-            cacheStatusMessage = "Freed \(Self.formatBytes(freed)). "
-                + (includeLearned ? "Games will stutter while they relearn their shaders." : "The next launch of each game is slow once.")
+            cacheStatusMessage = locf("Freed %@. ", Self.formatBytes(freed))
+                + (includeLearned ? loc("Games will stutter while they relearn their shaders.") : loc("The next launch of each game is slow once."))
             cacheStatusIsError = false
         }
         refreshCacheStats()

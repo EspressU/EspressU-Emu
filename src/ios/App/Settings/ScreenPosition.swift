@@ -13,13 +13,13 @@ enum ScreenPosition: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .disabled:     return "Off"
-        case .topLeft:      return "Top Left"
-        case .topCenter:    return "Top Centre"
-        case .topRight:     return "Top Right"
-        case .bottomLeft:   return "Bottom Left"
-        case .bottomCenter: return "Bottom Centre"
-        case .bottomRight:  return "Bottom Right"
+        case .disabled:     return loc("Off")
+        case .topLeft:      return loc("Top Left")
+        case .topCenter:    return loc("Top Centre")
+        case .topRight:     return loc("Top Right")
+        case .bottomLeft:   return loc("Bottom Left")
+        case .bottomCenter: return loc("Bottom Centre")
+        case .bottomRight:  return loc("Bottom Right")
         }
     }
 }

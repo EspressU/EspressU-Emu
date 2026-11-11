@@ -109,18 +109,18 @@ struct EspressUOnboardingView: View {
             Spacer(minLength: 0)
             if input.showsFocus {
                 HStack(spacing: 16) {
-                    ControllerButtonHint(symbol: input.confirmSymbol, text: "Select")
-                    if page > 0 { ControllerButtonHint(symbol: input.backSymbol, text: "Back") }
+                    ControllerButtonHint(symbol: input.confirmSymbol, text: loc("Select"))
+                    if page > 0 { ControllerButtonHint(symbol: input.backSymbol, text: loc("Back")) }
                 }
             } else {
-                Text("Step \(page + 1) of \(pageCount)")
+                Text(locf("Step %@ of %@", page + 1, pageCount))
                     .font(.system(.subheadline))
                     .foregroundColor(EspressUTheme.brownMid)
             }
             Spacer(minLength: 0)
 
             Button(action: advance) {
-                Text(primaryTitle)
+                Text(loc(primaryTitle))
                     .font(.system(.headline))
                     .foregroundColor(EspressUTheme.onAccent)
                     .padding(.horizontal, 22)
@@ -129,7 +129,7 @@ struct EspressUOnboardingView: View {
             }
             .buttonStyle(.plain)
             .controllerFocusRing(isFocused(page == pageCount - 1 ? "finish" : "next"), shape: Capsule())
-            .accessibilityHint(page == pageCount - 1 ? "Finishes the guide and opens your library." : "Goes to the next page.")
+            .accessibilityHint(page == pageCount - 1 ? loc("Finishes the guide and opens your library.") : loc("Goes to the next page."))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -141,9 +141,9 @@ struct EspressUOnboardingView: View {
 
     private var primaryTitle: String {
         switch page {
-        case 0: return "Get started"
-        case pageCount - 1: return "Start playing"
-        default: return "Next"
+        case 0: return loc("Get started")
+        case pageCount - 1: return loc("Start playing")
+        default: return loc("Next")
         }
     }
 
@@ -158,7 +158,7 @@ struct EspressUOnboardingView: View {
                     .foregroundColor(EspressUTheme.onBackground)
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
-                Text("Play the Wii U games you own on your \(UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"). Setup takes about two minutes, and every step can be skipped.")
+                Text(locf("Play the Wii U games you own on your %@. Setup takes about two minutes, and every step can be skipped.", UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"))
                     .font(.system(.title3))
                     .foregroundColor(EspressUTheme.onBackgroundMuted)
                     .multilineTextAlignment(.center)
@@ -174,9 +174,9 @@ struct EspressUOnboardingView: View {
     }
 
     private var flowChips: some View {
-        let chips = [("arrow.down.to.line", "Your own games"),
-                     ("bolt.fill", "Full speed with JIT"),
-                     ("gamecontroller.fill", "Touch or controller")]
+        let chips = [("arrow.down.to.line", loc("Your own games")),
+                     ("bolt.fill", loc("Full speed with JIT")),
+                     ("gamecontroller.fill", loc("Touch or controller"))]
         return HStackOrVStack {
             ForEach(chips.indices, id: \.self) { index in
                 Label(chips[index].1, systemImage: chips[index].0)
@@ -192,20 +192,20 @@ struct EspressUOnboardingView: View {
     private func gamesPage(wide: Bool) -> some View {
         OnboardingColumns(wide: wide) {
             VStack(alignment: .leading, spacing: 16) {
-                pageHeading("Add your games",
-                            "Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one.")
-                bigButton(id: "choose", title: "Game file", detail: ".wua, .wud, .wux or .rpx",
+                pageHeading(loc("Add your games"),
+                            loc("Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one."))
+                bigButton(id: "choose", title: loc("Game file"), detail: loc(".wua, .wud, .wux or .rpx"),
                           systemImage: "doc.fill", primary: true, action: chooseGames)
-                bigButton(id: "folder", title: "Game folder", detail: "A dumped game with code, content and meta",
+                bigButton(id: "folder", title: loc("Game folder"), detail: loc("A dumped game with code, content and meta"),
                           systemImage: "folder.fill", primary: false, action: chooseGameFolder)
-                bigButton(id: "files", title: "Put games in Files",
-                          detail: "Opens Files at EspressU › Roms. New games show up on their own.",
+                bigButton(id: "files", title: loc("Put games in Files"),
+                          detail: loc("Opens Files at EspressU › Roms. New games show up on their own."),
                           systemImage: "folder.badge.plus", primary: false, action: openRomsInFiles)
                 keysRow
                 if case .copying(let name) = gameManager.importState {
                     HStack(spacing: 10) {
                         ProgressView()
-                        Text("Copying \(name)\u{2026}")
+                        Text(locf("Copying %@\u{2026}", name))
                     }
                     .font(.system(.subheadline))
                     .foregroundColor(EspressUTheme.brownMid)
@@ -222,14 +222,14 @@ struct EspressUOnboardingView: View {
             Image(systemName: "key.fill")
                 .foregroundColor(EspressUTheme.brownMid)
                 .accessibilityHidden(true)
-            Text(keyCount > 0
-                 ? "\(keyCount) key\(keyCount == 1 ? "" : "s") loaded for encrypted dumps (.wud, .wux)."
-                 : "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua.")
+            Text(loc(keyCount > 0
+                 ? locn(keyCount, "%@ key loaded for encrypted dumps (.wud, .wux).", "%@ keys loaded for encrypted dumps (.wud, .wux).")
+                 : "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua."))
                 .font(.system(.subheadline))
                 .foregroundColor(EspressUTheme.brownMid)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
-            Button(keyCount > 0 ? "Replace" : "Add keys", action: importKeys)
+            Button(keyCount > 0 ? loc("Replace") : loc("Add keys"), action: importKeys)
                 .font(.system(.subheadline).weight(.semibold))
                 .foregroundColor(EspressUTheme.accentText)
                 .frame(minHeight: 44)
@@ -249,7 +249,7 @@ struct EspressUOnboardingView: View {
                     .font(.system(.title3).weight(.semibold))
                     .foregroundColor(EspressUTheme.brownDarkest)
                 Spacer()
-                Text("\(gameManager.games.count) game\(gameManager.games.count == 1 ? "" : "s")")
+                Text(locn(gameManager.games.count, "%@ game", "%@ games"))
                     .font(.system(.subheadline))
                     .foregroundColor(EspressUTheme.brownMid)
             }
@@ -281,7 +281,7 @@ struct EspressUOnboardingView: View {
                             }
                             .aspectRatio(1, contentMode: .fit)
                             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            Text(game.cardName.name)
+                            Text(loc(game.cardName.name))
                                 .font(.system(.subheadline).weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                                 .lineLimit(1)
@@ -297,9 +297,9 @@ struct EspressUOnboardingView: View {
     private func jitPage(wide: Bool) -> some View {
         OnboardingColumns(wide: wide) {
             VStack(alignment: .leading, spacing: 16) {
-                pageHeading("Turn on full speed",
+                pageHeading(loc("Turn on full speed"),
                             DevicePairing.isSupported
-                                ? "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once."
+                                ? loc("Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once.")
                                 : "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once. This iOS version can't make one itself, so you import one.")
                 jitStatusCard
                 Text("No JIT? Games still start, just much slower.")
@@ -313,12 +313,12 @@ struct EspressUOnboardingView: View {
                     .foregroundColor(EspressUTheme.onBackground)
                     .accessibilityAddTraits(.isHeader)
                 if DevicePairing.isSupported {
-                    stepCard(1, "Pair this device", "Tap Pair. A pairing file from iLoader works too: Settings › JIT.")
+                    stepCard(1, loc("Pair this device"), loc("Tap Pair. A pairing file from iLoader works too: Settings › JIT."))
                 } else {
-                    stepCard(1, "Import a pairing file", "Built-in pairing needs iOS \(DevicePairing.minimumIOSVersion) or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.")
+                    stepCard(1, loc("Import a pairing file"), locf("Built-in pairing needs iOS %@ or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.", DevicePairing.minimumIOSVersion))
                 }
-                stepCard(2, "Connect LocalDevVPN", "EspressU reaches the device through it. Wi-Fi works best.")
-                stepCard(3, "That's it", "JIT switches on by itself whenever LocalDevVPN is connected.")
+                stepCard(2, loc("Connect LocalDevVPN"), loc("EspressU reaches the device through it. Wi-Fi works best."))
+                stepCard(3, loc("That's it"), loc("JIT switches on by itself whenever LocalDevVPN is connected."))
             }
         }
     }
@@ -330,7 +330,7 @@ struct EspressUOnboardingView: View {
                 JITPairingCard()
             }
             Button(action: pairOrStop) {
-                Text(pairing.isActive ? "Stop pairing" : pairButtonTitle)
+                Text(loc(pairing.isActive ? "Stop pairing" : pairButtonTitle))
                     .font(.system(.headline))
                     .foregroundColor(pairing.isActive ? EspressUTheme.brownDarkest : EspressUTheme.onAccent)
                     .frame(maxWidth: .infinity, minHeight: 52)
@@ -346,8 +346,8 @@ struct EspressUOnboardingView: View {
     }
 
     private var pairButtonTitle: String {
-        if DevicePairing.isSupported { return StikJITSetup.hasPairingFile ? "Pair again" : "Pair" }
-        return StikJITSetup.hasPairingFile ? "Import another pairing file" : "Import pairing file"
+        if DevicePairing.isSupported { return StikJITSetup.hasPairingFile ? loc("Pair again") : loc("Pair") }
+        return StikJITSetup.hasPairingFile ? loc("Import another pairing file") : loc("Import pairing file")
     }
 
     private func pairOrStop() {
@@ -370,10 +370,10 @@ struct EspressUOnboardingView: View {
                 StikJITCoordinator.shared.autoEnableIfPossible()
                 pairingNote = nil
             } catch {
-                pairingNote = "Couldn't import it: \(error.localizedDescription)"
+                pairingNote = locf("Couldn't import it: %@", error.localizedDescription)
             }
         case .failure(let error):
-            pairingNote = "Couldn't import it: \(error.localizedDescription)"
+            pairingNote = locf("Couldn't import it: %@", error.localizedDescription)
         }
     }
 
@@ -386,8 +386,8 @@ struct EspressUOnboardingView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.white.opacity(0.08), in: Capsule())
-                pageHeading("Play with a controller",
-                            "Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU.")
+                pageHeading(loc("Play with a controller"),
+                            loc("Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU."))
                 Text("No controller? The touch controls show up on screen and hide as soon as a controller connects.")
                     .font(.system(.subheadline))
                     .foregroundColor(EspressUTheme.onBackgroundMuted)
@@ -419,7 +419,7 @@ struct EspressUOnboardingView: View {
                                 .font(.system(size: 26))
                                 .foregroundColor(EspressUTheme.accentText)
                                 .accessibilityHidden(true)
-                            Text(controller.vendorName ?? "Controller")
+                            Text(loc(controller.vendorName ?? "Controller"))
                                 .font(.system(.headline))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             Spacer(minLength: 0)
@@ -454,12 +454,12 @@ struct EspressUOnboardingView: View {
 
     private func pageHeading(_ title: String, _ subtitle: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
+            Text(loc(title))
                 .font(.system(.largeTitle).weight(.bold))
                 .foregroundColor(EspressUTheme.onBackground)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            Text(subtitle)
+            Text(loc(subtitle))
                 .font(.system(.body))
                 .foregroundColor(EspressUTheme.onBackgroundMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -475,9 +475,9 @@ struct EspressUOnboardingView: View {
                     .frame(width: 34)
                     .foregroundColor(primary ? EspressUTheme.onAccent : EspressUTheme.accentText)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
+                    Text(loc(title))
                         .font(.system(.headline))
-                    Text(detail)
+                    Text(loc(detail))
                         .font(.system(.subheadline))
                         .opacity(primary ? 0.88 : 1)
                         .foregroundColor(primary ? EspressUTheme.onAccent : EspressUTheme.brownMid)
@@ -507,10 +507,10 @@ struct EspressUOnboardingView: View {
                 .background(EspressUTheme.wrapper, in: Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(loc(title))
                     .font(.system(.headline))
                     .foregroundColor(EspressUTheme.brownDarkest)
-                Text(detail)
+                Text(loc(detail))
                     .font(.system(.subheadline))
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
@@ -520,11 +520,11 @@ struct EspressUOnboardingView: View {
         .padding(16)
         .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Step \(number): \(title). \(detail)")
+        .accessibilityLabel(locf("Step %@: %@. %@", number, title, detail))
     }
 
     private func noteText(_ text: String) -> some View {
-        Text(text)
+        Text(loc(text))
             .font(.system(.subheadline))
             .foregroundColor(EspressUTheme.alertText)
             .fixedSize(horizontal: false, vertical: true)

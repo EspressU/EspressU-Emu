@@ -54,13 +54,13 @@ struct OnboardingView: View {
                 Spacer()
 
                 Button(action: advance) {
-                    Text(isLastPage ? "Start playing" : "Next")
+                    Text(loc(isLastPage ? "Start playing" : "Next"))
                 }
                 .buttonStyle(EspressUPrimaryButtonStyle())
-                .accessibilityLabel(isLastPage ? "Start playing" : "Next")
+                .accessibilityLabel(isLastPage ? loc("Start playing") : loc("Next"))
                 .accessibilityHint(isLastPage
-                    ? "Finishes the guide and opens your library."
-                    : "Goes to the next page of the guide.")
+                    ? loc("Finishes the guide and opens your library.")
+                    : loc("Goes to the next page of the guide."))
             }
         }
         .padding(.horizontal, 24)
@@ -137,13 +137,13 @@ private struct OnboardingPageScaffold<Content: View>: View {
                 hero.view
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                Text(title)
+                Text(loc(title))
                     .font(.system(.title).weight(.bold))
                     .foregroundColor(EspressUTheme.onBackground)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
 
-                Text(subtitle)
+                Text(loc(subtitle))
                     .font(.system(.body))
                     .foregroundColor(EspressUTheme.onBackgroundMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -171,7 +171,7 @@ private struct OnboardingFactRow: View {
                 .foregroundColor(EspressUTheme.accentText)
                 .frame(width: 22)
                 .accessibilityHidden(true)
-            Text(text)
+            Text(loc(text))
                 .font(.system(.body))
                 .foregroundColor(EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
@@ -182,8 +182,8 @@ private struct OnboardingFactRow: View {
 private struct OnboardingWelcomePage: View {
     var body: some View {
         OnboardingPageScaffold(
-            title: "Welcome to EspressU",
-            subtitle: "Play your own Wii U games. This takes a minute and you can skip any step.",
+            title: loc("Welcome to EspressU"),
+            subtitle: loc("Play your own Wii U games. This takes a minute and you can skip any step."),
             hero: .mark
         ) {
             EmptyView()
@@ -200,7 +200,7 @@ private struct OnboardingKeysPage: View {
 
     var body: some View {
         OnboardingPageScaffold(
-            title: "Your keys",
+            title: loc("Your keys"),
             subtitle: "Encrypted Wii U games need a keys.txt dumped from your own Wii U. EspressU doesn't include one. Homebrew doesn't need it.",
             hero: .symbol("key.fill")
         ) {
@@ -213,13 +213,13 @@ private struct OnboardingKeysPage: View {
                     .accessibilityHint("Opens the Files picker to choose your keys.txt.")
 
                     if hasKeys {
-                        Text("\(keyCount) key\(keyCount == 1 ? "" : "s") loaded")
+                        Text(locn(keyCount, "%@ key loaded", "%@ keys loaded"))
                             .font(.system(.subheadline).weight(.semibold))
                             .foregroundColor(EspressUTheme.brownMid)
                     }
 
                     if let errorMessage {
-                        Text(errorMessage)
+                        Text(loc(errorMessage))
                             .font(.system(.footnote))
                             .foregroundColor(EspressUTheme.alertText)
                             .fixedSize(horizontal: false, vertical: true)
@@ -273,8 +273,8 @@ private struct OnboardingGamesPage: View {
 
     var body: some View {
         OnboardingPageScaffold(
-            title: "Add your games",
-            subtitle: "Import games from Files: .wud, .wux, .wua, .iso, a dumped game folder or a homebrew .rpx. You can also drop them into Documents/Roms in the Files app.",
+            title: loc("Add your games"),
+            subtitle: loc("Import games from Files: .wud, .wux, .wua, .iso, a dumped game folder or a homebrew .rpx. You can also drop them into Documents/Roms in the Files app."),
             hero: .symbol("square.and.arrow.down.fill")
         ) {
             EspressUCard {
@@ -288,14 +288,14 @@ private struct OnboardingGamesPage: View {
                     if case .copying(let name) = gameManager.importState {
                         HStack(spacing: 8) {
                             ProgressView()
-                            Text("Copying \(name)\u{2026}")
+                            Text(locf("Copying %@\u{2026}", name))
                         }
                         .font(.system(.footnote))
                         .foregroundColor(EspressUTheme.brownMid)
                     }
 
                     if let errorMessage {
-                        Text(errorMessage)
+                        Text(loc(errorMessage))
                             .font(.system(.footnote))
                             .foregroundColor(EspressUTheme.alertText)
                             .fixedSize(horizontal: false, vertical: true)
@@ -330,23 +330,23 @@ private struct OnboardingGamesPage: View {
 private struct OnboardingSpeedControlsPage: View {
     var body: some View {
         OnboardingPageScaffold(
-            title: "Speed and controls",
-            subtitle: "Three things affect speed and control:",
+            title: loc("Speed and controls"),
+            subtitle: loc("Three things affect speed and control:"),
             hero: .symbol("bolt.fill")
         ) {
             EspressUCard {
                 VStack(alignment: .leading, spacing: 18) {
                     OnboardingFactRow(
                         systemImage: "bolt.fill",
-                        text: "Full speed needs a JIT enabler (StikJIT, SideStore or LiveContainer) attached at launch. Without one, EspressU still runs but much slower. Settings shows which you have."
+                        text: loc("Full speed needs a JIT enabler (StikJIT, SideStore or LiveContainer) attached at launch. Without one, EspressU still runs but much slower. Settings shows which you have.")
                     )
                     OnboardingFactRow(
                         systemImage: "checkmark.seal.fill",
-                        text: "If a game glitches, desyncs or crashes, turn on Favour accuracy in Settings > CPU. It's slower but more accurate."
+                        text: loc("If a game glitches, desyncs or crashes, turn on Favour accuracy in Settings > CPU. It's slower but more accurate.")
                     )
                     OnboardingFactRow(
                         systemImage: "gamecontroller.fill",
-                        text: "The on-screen pad can add analog sticks and comfort controls, and any MFi, Xbox, or PlayStation controller works right alongside it."
+                        text: loc("The on-screen pad can add analog sticks and comfort controls, and any MFi, Xbox, or PlayStation controller works right alongside it.")
                     )
                 }
                 .padding(16)

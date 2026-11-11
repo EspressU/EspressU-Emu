@@ -14,7 +14,7 @@ enum DlcUpdateImport {
 
         var displayName: String {
             switch self {
-            case .dlc: return "DLC"
+            case .dlc: return loc("DLC")
             case .update: return "update"
             }
         }
@@ -35,46 +35,46 @@ enum DlcUpdateImport {
         var errorDescription: String? {
             switch self {
             case .accessDenied:
-                return "Couldn't access that file."
+                return loc("Couldn't access that file.")
             case .copyFailed(let error):
-                return "Couldn't copy the file: \(error.localizedDescription)"
+                return locf("Couldn't copy the file: %@", error.localizedDescription)
             case .invalidTitle(let reason):
                 switch reason {
                 case 1:
-                    return "That file couldn't be read."
+                    return loc("That file couldn't be read.")
                 case 2:
-                    return "This isn't a Wii U DLC or update file."
+                    return loc("This isn't a Wii U DLC or update file.")
                 case 3:
                     return "This file is encrypted and no matching key is installed. Add your keys.txt in Settings first."
                 case 4:
-                    return "This folder is missing title.tik (the ticket), which EspressU needs to decrypt it."
+                    return loc("This folder is missing title.tik (the ticket), which EspressU needs to decrypt it.")
                 case 5:
-                    return "Meta files (app.xml, meta.xml, cos.xml) are missing or damaged."
+                    return loc("Meta files (app.xml, meta.xml, cos.xml) are missing or damaged.")
                 case 6:
-                    return "This encrypted folder's title.tmd couldn't be read."
+                    return loc("This encrypted folder's title.tmd couldn't be read.")
                 case 7:
-                    return "This encrypted folder's title.tik couldn't be read."
+                    return loc("This encrypted folder's title.tik couldn't be read.")
                 case 8:
-                    return "EspressU couldn't decrypt this folder. Its title.tik doesn't unlock the .app files."
+                    return loc("EspressU couldn't decrypt this folder. Its title.tik doesn't unlock the .app files.")
                 case 9:
-                    return "This encrypted folder is missing one or more .app files listed in its title.tmd."
+                    return loc("This encrypted folder is missing one or more .app files listed in its title.tmd.")
                 default:
-                    return "That file is corrupted or incomplete."
+                    return loc("That file is corrupted or incomplete.")
                 }
             case .wrongType(let expected, let actual):
-                return "This is \(actual), not \(expected == .dlc ? "DLC" : "an update"). Use the other import option."
+                return locf("This is %@, not %@. Use the other import option.", actual, expected == .dlc ? "DLC" : "an update")
             case .noBaseGameMatch:
-                return "No game in your library matches this content."
+                return loc("No game in your library matches this content.")
             case .alreadyInstalledSameOrNewer(let installed, let imported):
-                return "Version \(imported) isn't newer than what's already installed (version \(installed))."
+                return locf("Version %@ isn't newer than what's already installed (version %@).", imported, installed)
             case .wuaReadFailed:
-                return "The .wua file couldn't be read. It may be corrupted."
+                return loc("The .wua file couldn't be read. It may be corrupted.")
             case .noMatchingTitleInWua:
-                return "The .wua doesn't contain a matching update or DLC for this game."
+                return loc("The .wua doesn't contain a matching update or DLC for this game.")
             case .wuaHasOtherContent:
-                return "This .wua holds more than the one update or DLC for this game. Use a .wua with just that content."
+                return loc("This .wua holds more than the one update or DLC for this game. Use a .wua with just that content.")
             case .differentGame:
-                return "This content is for a different game or region than the one you picked."
+                return loc("This content is for a different game or region than the one you picked.")
             }
         }
     }
@@ -118,12 +118,12 @@ enum DlcUpdateImport {
 
     private static func titleTypeName(forByte byte: Int32) -> String {
         switch byte {
-        case 0x00: return "a base game"
-        case 0x02: return "a demo"
-        case 0x0E: return "an update"
-        case 0x0C: return "DLC"
+        case 0x00: return loc("a base game")
+        case 0x02: return loc("a demo")
+        case 0x0E: return loc("an update")
+        case 0x0C: return loc("DLC")
         case 0x0F: return "homebrew"
-        default: return "not a recognizable game title"
+        default: return loc("not a recognizable game title")
         }
     }
 

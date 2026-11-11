@@ -1,4 +1,5 @@
 #include "Cafe/HW/Latte/Core/Latte.h"
+#include "Cafe/HW/Latte/Core/LatteTextureAsyncLoad.h"
 #include "Cafe/HW/Latte/Core/LatteShader.h"
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
 #include "Cafe/HW/Latte/Core/LatteTexture.h"
@@ -1068,8 +1069,13 @@ LatteTextureView* LatteTC_GetTextureSliceViewOrTryCreate(MPTR srcImagePtr, MPTR 
 
 void LatteTexture_UpdateDataToLatest(LatteTexture* texture)
 {
+	// Used before copies, render target use and readbacks: those need the real data, not a pending async load.
 	if (LatteTC_HasTextureChanged(texture))
+	{
+		LatteTextureAsync::SyncScope sync;
 		LatteTexture_ReloadData(texture);
+	}
+	LatteTextureAsync::Finish(texture);
 
 	if (texture->reloadFromDynamicTextures)
 	{
@@ -1285,6 +1291,7 @@ LatteTexture::~LatteTexture()
 
 void LatteTexture_UpdateCacheFromDynamicTextures(LatteTexture* textureDest)
 {
+	LatteTextureAsync::Finish(textureDest);
 	LatteTexture_UpdateTextureFromDynamicChanges(textureDest);
 }
 

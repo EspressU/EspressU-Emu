@@ -42,11 +42,11 @@ struct EmulatedDevicesSettingsSection: View {
                 EmulatedDevicesView()
             }
         } header: {
-            SettingsSectionHeader("Emulated Devices", icon: "square.stack.3d.up", accent: .content)
+            SettingsSectionHeader(loc("Emulated Devices"), icon: "square.stack.3d.up", accent: .content)
         } footer: {
             InfoButton.footer(
-                "Emulates a Skylanders Portal, Disney Infinity Base or LEGO Dimensions Toypad. Changes apply the next time you start a game.",
-                title: "Emulated Devices",
+                loc("Emulates a Skylanders Portal, Disney Infinity Base or LEGO Dimensions Toypad. Changes apply the next time you start a game."),
+                title: loc("Emulated Devices"),
                 text: fullText)
         }
         .foregroundColor(EspressUTheme.brownDarkest)

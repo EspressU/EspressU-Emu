@@ -14,41 +14,41 @@ extension EspressUSettingsView {
         ]
         let pairingName = StikJITSetup.pairingFileName
         var pairingItems = [
-            SettingsItem(id: "jit.pairingFile", title: "Pairing file", detail: nil,
-                         control: .info(pairingName ?? "Missing",
+            SettingsItem(id: "jit.pairingFile", title: loc("Pairing file"), detail: nil,
+                         control: .info(pairingName ?? loc("Missing"),
                                         pairingName == nil ? EspressUTheme.cautionText : nil)),
         ]
         switch pairing.state {
         case .waiting, .pin:
             pairingItems.append(SettingsItem(id: "jit.pairingCard", title: "",
                                              control: .banner(AnyView(JITPairingCard()))))
-            pairingItems.append(SettingsItem(id: "jit.pairStop", title: "Stop pairing",
-                                             control: .action("Stop", destructive: false, confirm: false,
+            pairingItems.append(SettingsItem(id: "jit.pairStop", title: loc("Stop pairing"),
+                                             control: .action(loc("Stop"), destructive: false, confirm: false,
                                                               run: { pairing.cancel() })))
         case .idle, .paired, .failed:
             guard DevicePairing.isSupported else {
-                pairingItems.append(SettingsItem(id: "jit.pairUnsupported", title: "Pair this device",
-                                                 detail: "Built-in pairing needs iOS \(DevicePairing.minimumIOSVersion) or newer. Import a pairing file instead.",
-                                                 control: .info("Not available", EspressUTheme.cautionText)))
+                pairingItems.append(SettingsItem(id: "jit.pairUnsupported", title: loc("Pair this device"),
+                                                 detail: locf("Built-in pairing needs iOS %@ or newer. Import a pairing file instead.", DevicePairing.minimumIOSVersion),
+                                                 control: .info(loc("Not available"), EspressUTheme.cautionText)))
                 break
             }
-            var detail = "No computer needed: EspressU shows up in Settings › Privacy & Security › Developer Mode."
+            var detail = loc("No computer needed: EspressU shows up in Settings › Privacy & Security › Developer Mode.")
             if case .paired(let device) = pairing.state {
-                detail = device.map { "Paired with \($0)." } ?? "Paired."
+                detail = device.map { locf("Paired with %@.", $0) } ?? loc("Paired.")
             }
             if case .failed(let reason) = pairing.state { detail = reason }
-            pairingItems.append(SettingsItem(id: "jit.pair", title: "Pair this device", detail: detail,
-                                             control: .action(pairingName == nil ? "Pair" : "Pair again",
+            pairingItems.append(SettingsItem(id: "jit.pair", title: loc("Pair this device"), detail: detail,
+                                             control: .action(pairingName == nil ? loc("Pair") : loc("Pair again"),
                                                               destructive: false, confirm: false,
                                                               run: { pairing.start() }),
                                              enabled: !busy))
         }
-        pairingItems.append(SettingsItem(id: "jit.import", title: "Import pairing file",
-                                         detail: "From iLoader, idevice_pair or another tool.",
-                                         control: .action("Import", destructive: false, confirm: false,
+        pairingItems.append(SettingsItem(id: "jit.import", title: loc("Import pairing file"),
+                                         detail: loc("From iLoader, idevice_pair or another tool."),
+                                         control: .action(loc("Import"), destructive: false, confirm: false,
                                                           run: { importingPairing = true }),
                                          enabled: !busy && !pairing.isActive))
-        groups.append(SettingsGroup(id: "jit.pairing", title: "Pairing", items: pairingItems))
+        groups.append(SettingsGroup(id: "jit.pairing", title: loc("Pairing"), items: pairingItems))
 
         return groups
     }
@@ -60,12 +60,12 @@ extension EspressUSettingsView {
                 try StikJITSetup.importPairingFile(from: url)
                 StikJITCoordinator.shared.pairingFileChanged()
                 StikJITCoordinator.shared.autoEnableIfPossible()
-                notes["jit.import"] = "Imported. JIT switches on by itself when LocalDevVPN is connected."
+                notes["jit.import"] = loc("Imported. JIT switches on by itself when LocalDevVPN is connected.")
             } catch {
-                notes["jit.import"] = "Couldn't import it: \(error.localizedDescription)"
+                notes["jit.import"] = locf("Couldn't import it: %@", error.localizedDescription)
             }
         case .failure(let error):
-            notes["jit.import"] = "Couldn't import it: \(error.localizedDescription)"
+            notes["jit.import"] = locf("Couldn't import it: %@", error.localizedDescription)
         }
         values.refresh()
     }

@@ -109,8 +109,7 @@ void PPCCore_InitializePointer(bool recompilerEnabled)
         attemptEnterAddr = PPCInterpreter_jumpToInstruction;
         attemptEnter = PPCCore_executeInterpreter;
         attemptEnterThread = PPCCore_executeInterpreter;
-        cemuLog_log(LogType::Force, "No JIT: running the block-cache interpreter, block linking {}",
-            HostTuning::Get().interpreterBlockLinking.load() ? "on" : "off");
+        cemuLog_log(LogType::Force, "No JIT: running the block-cache interpreter with block linking and deferred IP");
     }
 }
 

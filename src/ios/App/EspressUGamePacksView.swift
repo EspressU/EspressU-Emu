@@ -87,10 +87,10 @@ struct EspressUGamePacksView: View {
                 .accessibilityLabel("Back")
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(selectedPack?.displayName ?? "Graphic packs")
+                Text(loc(selectedPack?.displayName ?? "Graphic packs"))
                     .font(.title2.weight(.bold))
                     .lineLimit(2)
-                Text(selectedPack == nil ? game.cardName.name : "Changes apply the next time you start the game.")
+                Text(loc(selectedPack == nil ? game.cardName.name : "Changes apply the next time you start the game."))
                     .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
             }
@@ -126,15 +126,15 @@ struct EspressUGamePacksView: View {
 
     private func supportGroups(_ warning: SupportWarning) -> [SettingsGroup] {
         [SettingsGroup(id: "gp.support", title: warning.title, items: [
-            SettingsItem(id: "gp.support.why", title: "Heads up", detail: warning.message, control: .info("", nil)),
-            SettingsItem(id: "gp.support.go", title: "Turn on anyway",
-                         control: .action("Turn on", destructive: false, confirm: false, run: {
+            SettingsItem(id: "gp.support.why", title: loc("Heads up"), detail: warning.message, control: .info("", nil)),
+            SettingsItem(id: "gp.support.go", title: loc("Turn on anyway"),
+                         control: .action(loc("Turn on"), destructive: false, confirm: false, run: {
                              store.setEnabled(warning.pack, true)
                              support = nil
                              refresh()
                          })),
-            SettingsItem(id: "gp.support.cancel", title: "Cancel",
-                         control: .action("Cancel", destructive: false, confirm: false, run: { support = nil })),
+            SettingsItem(id: "gp.support.cancel", title: loc("Cancel"),
+                         control: .action(loc("Cancel"), destructive: false, confirm: false, run: { support = nil })),
         ])]
     }
 
@@ -142,14 +142,14 @@ struct EspressUGamePacksView: View {
         var groups: [SettingsGroup] = []
         if store.gameRunning {
             groups.append(SettingsGroup(id: "gp.running", title: "", items: [
-                SettingsItem(id: "gp.runningNote", title: "A game is running",
-                             detail: "You can browse packs, but change them only after you close it.", control: .info("", nil)),
+                SettingsItem(id: "gp.runningNote", title: loc("A game is running"),
+                             detail: loc("You can browse packs, but change them only after you close it."), control: .info("", nil)),
             ]))
         }
         if game.titleId == nil {
             groups.append(SettingsGroup(id: "gp.noid", title: "", items: [
-                SettingsItem(id: "gp.noidNote", title: "Title ID unknown",
-                             detail: "EspressU couldn't read this game's title ID, so it can't pick out its packs.", control: .info("", nil)),
+                SettingsItem(id: "gp.noidNote", title: loc("Title ID unknown"),
+                             detail: loc("EspressU couldn't read this game's title ID, so it can't pick out its packs."), control: .info("", nil)),
             ]))
         } else {
             let own = store.packs.filter { !$0.universal && $0.appliesTo(titleId: game.titleId) }
@@ -157,22 +157,22 @@ struct EspressUGamePacksView: View {
             if own.isEmpty && universal.isEmpty {
                 groups.append(SettingsGroup(id: "gp.none", title: "", items: [
                     SettingsItem(id: "gp.noneNote",
-                                 title: store.packs.isEmpty ? "No packs yet" : "No packs for this game",
+                                 title: store.packs.isEmpty ? loc("No packs yet") : loc("No packs for this game"),
                                  detail: store.packs.isEmpty
-                                     ? "Download the community packs below, then come back."
-                                     : "The community packs don't include one for \(game.title). You can still import your own.",
+                                     ? loc("Download the community packs below, then come back.")
+                                     : locf("The community packs don't include one for %@. You can still import your own.", game.title),
                                  control: .info("", nil)),
                 ]))
             } else {
                 groups.append(contentsOf: categoryGroups(own, prefix: ""))
-                groups.append(contentsOf: categoryGroups(universal, prefix: "All games · "))
+                groups.append(contentsOf: categoryGroups(universal, prefix: loc("All games · ")))
             }
         }
         groups.append(sourceGroup)
-        groups.append(SettingsGroup(id: "gp.own", title: "Your own packs", items: [
-            SettingsItem(id: "gp.import", title: "Import a pack folder or zip",
+        groups.append(SettingsGroup(id: "gp.own", title: loc("Your own packs"), items: [
+            SettingsItem(id: "gp.import", title: loc("Import a pack folder or zip"),
                          detail: importNote ?? "A folder with a rules.txt, a folder of packs, or a zip of either.",
-                         control: .action("Choose", destructive: false, confirm: false, run: importPack),
+                         control: .action(loc("Choose"), destructive: false, confirm: false, run: importPack),
                          enabled: !store.gameRunning),
         ]))
         return groups
@@ -190,15 +190,15 @@ struct EspressUGamePacksView: View {
                     var notes: [String] = []
                     switch pack.support(on: api) {
                     case .full: break
-                    case .partial: notes.append(api == .metal ? "Shaders not supported on Metal" : "Some shaders skipped")
-                    case .inactive: notes.append("Won't activate here")
+                    case .partial: notes.append(api == .metal ? loc("Shaders not supported on Metal") : loc("Some shaders skipped"))
+                    case .inactive: notes.append(loc("Won't activate here"))
                     }
-                    if pack.canCostSpeed { notes.append("Can cost speed") }
-                    if pack.raisesFrameRate { notes.append("Needs speed to spare") }
-                    if pack.isImported { notes.append("Imported") }
+                    if pack.canCostSpeed { notes.append(loc("Can cost speed")) }
+                    if pack.raisesFrameRate { notes.append(loc("Needs speed to spare")) }
+                    if pack.isImported { notes.append(loc("Imported")) }
                     let detail = ([pack.brief] + [notes.joined(separator: " · ")]).filter { !$0.isEmpty }.joined(separator: "\n")
                     return SettingsItem(id: "pack.\(pack.path)", title: pack.displayName, detail: detail.isEmpty ? nil : detail,
-                                        control: .action(pack.enabled ? "On" : "Off", destructive: false, confirm: false, run: {
+                                        control: .action(pack.enabled ? loc("On") : loc("Off"), destructive: false, confirm: false, run: {
                                             open(pack)
                                         }))
                 }
@@ -208,43 +208,43 @@ struct EspressUGamePacksView: View {
 
     private var sourceGroup: SettingsGroup {
         var items: [SettingsItem] = [
-            SettingsItem(id: "gp.installed", title: "Community packs",
-                         detail: store.installed == nil ? "Made by the Cemu graphic packs project. Verified before anything is replaced." : nil,
+            SettingsItem(id: "gp.installed", title: loc("Community packs"),
+                         detail: store.installed == nil ? loc("Made by the Cemu graphic packs project. Verified before anything is replaced.") : nil,
                          control: .info(installedText, nil)),
         ]
         switch store.phase {
         case .checking:
-            items.append(SettingsItem(id: "gp.checking", title: "Checking for updates…", control: .info("", nil)))
+            items.append(SettingsItem(id: "gp.checking", title: loc("Checking for updates…"), control: .info("", nil)))
         case .downloading(let fraction), .installing(let fraction):
             let installing: Bool = { if case .installing = store.phase { return true } else { return false } }()
-            items.append(SettingsItem(id: "gp.progress", title: installing ? "Installing…" : "Downloading…",
+            items.append(SettingsItem(id: "gp.progress", title: installing ? loc("Installing…") : loc("Downloading…"),
                                       detail: "\(Int((fraction * 100).rounded()))%",
-                                      control: .action("Cancel", destructive: true, confirm: false, run: { store.cancel() })))
+                                      control: .action(loc("Cancel"), destructive: true, confirm: false, run: { store.cancel() })))
         case .waitingForGameToClose:
-            items.append(SettingsItem(id: "gp.waiting", title: "Downloaded",
-                                      detail: "It installs when this page is opened with no game running.", control: .info("", nil)))
+            items.append(SettingsItem(id: "gp.waiting", title: loc("Downloaded"),
+                                      detail: loc("It installs when this page is opened with no game running."), control: .info("", nil)))
         case .idle:
             if store.updateAvailable, let latest = store.latest {
                 items.append(SettingsItem(id: "gp.download",
-                                          title: store.installed == nil ? "Download community packs" : "Update community packs",
+                                          title: store.installed == nil ? loc("Download community packs") : loc("Update community packs"),
                                           detail: store.installed == nil
                                               ? "\(latest.name), \(GraphicPackStorage.describe(latest.size))."
-                                              : "\(latest.name). Your choices are kept.",
-                                          control: .action(store.installed == nil ? "Download" : "Update", destructive: false, confirm: false,
+                                              : locf("%@. Your choices are kept.", latest.name),
+                                          control: .action(store.installed == nil ? loc("Download") : loc("Update"), destructive: false, confirm: false,
                                                            run: { store.startDownload() }),
                                           enabled: !store.gameRunning))
             }
-            items.append(SettingsItem(id: "gp.check", title: store.latest == nil ? "Check for community packs" : "Check for updates",
+            items.append(SettingsItem(id: "gp.check", title: store.latest == nil ? loc("Check for community packs") : loc("Check for updates"),
                                       detail: store.notice?.text,
-                                      control: .action("Check", destructive: false, confirm: false, run: { store.checkForUpdate(force: true) })))
+                                      control: .action(loc("Check"), destructive: false, confirm: false, run: { store.checkForUpdate(force: true) })))
         }
-        return SettingsGroup(id: "gp.source", title: "Download", items: items)
+        return SettingsGroup(id: "gp.source", title: loc("Download"), items: items)
     }
 
     private var installedText: String {
-        guard let installed = store.installed else { return "Not downloaded" }
-        let name = installed.name.replacingOccurrences(of: "Cemu Graphic Packs: ", with: "")
-        return installed.packCount > 0 ? "\(name) · \(installed.packCount) packs" : name
+        guard let installed = store.installed else { return loc("Not downloaded") }
+        let name = installed.name.replacingOccurrences(of: loc("Cemu Graphic Packs: "), with: "")
+        return installed.packCount > 0 ? locf("%@ · %@ packs", name, installed.packCount) : name
     }
 
     private func open(_ pack: GraphicPack) {
@@ -257,7 +257,7 @@ struct EspressUGamePacksView: View {
     private func packGroups(_ pack: GraphicPack) -> [SettingsGroup] {
         let locked = store.gameRunning
         var main = [
-            SettingsItem(id: "gp.use", title: "Use this pack", detail: locked ? "A game is running. Close it to change this pack." : nil,
+            SettingsItem(id: "gp.use", title: loc("Use this pack"), detail: locked ? loc("A game is running. Close it to change this pack.") : nil,
                          control: .toggle(Binding(get: { store.packs.first { $0.path == pack.path }?.enabled ?? false },
                                                   set: { setPack(pack, $0) })),
                          enabled: !locked),
@@ -265,12 +265,12 @@ struct EspressUGamePacksView: View {
         switch pack.support(on: api) {
         case .full: break
         case .partial(let why), .inactive(let why):
-            main.append(SettingsItem(id: "gp.supportNote", title: "Not fully supported", detail: why, control: .info("", nil)))
+            main.append(SettingsItem(id: "gp.supportNote", title: loc("Not fully supported"), detail: why, control: .info("", nil)))
         }
         if let text = details?.description, !text.isEmpty {
-            main.append(SettingsItem(id: "gp.about", title: "About this pack", detail: text, control: .info("", nil)))
+            main.append(SettingsItem(id: "gp.about", title: loc("About this pack"), detail: text, control: .info("", nil)))
         }
-        var groups = [SettingsGroup(id: "gp.main", title: pack.game == GraphicPack.allGames ? "Every game" : pack.game, items: main)]
+        var groups = [SettingsGroup(id: "gp.main", title: pack.game == GraphicPack.allGames ? loc("Every game") : pack.game, items: main)]
 
         if let details {
             let profile = GraphicPackDeviceProfile.current
@@ -281,8 +281,8 @@ struct EspressUGamePacksView: View {
                 let isResolution = details.isResolutionCategory(category)
                 let suggestion = isResolution ? profile.suggestedPreset(in: choices) : nil
                 let selected = choices.first(where: \.active)?.name ?? ""
-                options.append(SettingsItem(id: "gp.opt.\(category)", title: category.isEmpty ? "Option" : category,
-                                            detail: isResolution ? "Higher resolutions cost speed and memory. \(profile.summary)" : nil,
+                options.append(SettingsItem(id: "gp.opt.\(category)", title: category.isEmpty ? loc("Option") : category,
+                                            detail: isResolution ? locf("Higher resolutions cost speed and memory. %@", profile.summary) : nil,
                                             control: .choice(choices.map { preset in
                                                 var label = preset.name
                                                 if isResolution, let height = preset.height, height > profile.suggestedMaxHeight { label += " · heavy here" }
@@ -293,28 +293,28 @@ struct EspressUGamePacksView: View {
                                             })),
                                             enabled: !locked))
                 if let suggestion, suggestion.name != selected {
-                    options.append(SettingsItem(id: "gp.suggest.\(category)", title: "Use the suggested setting",
+                    options.append(SettingsItem(id: "gp.suggest.\(category)", title: loc("Use the suggested setting"),
                                                 detail: suggestion.name,
-                                                control: .action("Use", destructive: false, confirm: false, run: {
+                                                control: .action(loc("Use"), destructive: false, confirm: false, run: {
                                                     store.setPreset(pack, category: category, preset: suggestion.name) { self.details = $0 }
                                                 }),
                                                 enabled: !locked))
                 }
             }
-            if !options.isEmpty { groups.append(SettingsGroup(id: "gp.options", title: "Options", items: options)) }
+            if !options.isEmpty { groups.append(SettingsGroup(id: "gp.options", title: loc("Options"), items: options)) }
         }
 
         var more = [
-            SettingsItem(id: "gp.reset", title: "Reset to the pack's defaults",
-                         control: .action("Reset", destructive: false, confirm: false, run: {
+            SettingsItem(id: "gp.reset", title: loc("Reset to the pack's defaults"),
+                         control: .action(loc("Reset"), destructive: false, confirm: false, run: {
                              store.reset(pack) { self.details = $0 }
                          }),
                          enabled: !locked),
         ]
         if pack.isImported {
-            more.append(SettingsItem(id: "gp.remove", title: "Remove imported pack",
-                                     detail: "Deletes its folder from graphicPacks/imported.",
-                                     control: .action("Remove", destructive: true, confirm: true, run: {
+            more.append(SettingsItem(id: "gp.remove", title: loc("Remove imported pack"),
+                                     detail: loc("Deletes its folder from graphicPacks/imported."),
+                                     control: .action(loc("Remove"), destructive: true, confirm: true, run: {
                                          store.removeImported(pack)
                                          selectedPath = nil
                                          details = nil
@@ -334,7 +334,7 @@ struct EspressUGamePacksView: View {
         case .partial(let why), .inactive(let why):
             let inactive: Bool = { if case .inactive = pack.support(on: api) { return true } else { return false } }()
             support = SupportWarning(pack: pack,
-                                     title: inactive ? "This pack won't activate" : (api == .metal ? "Not fully supported on Metal" : "Not fully supported here"),
+                                     title: inactive ? loc("This pack won't activate") : (api == .metal ? loc("Not fully supported on Metal") : loc("Not fully supported here")),
                                      message: why)
             focus = "gp.support.go"
         }
@@ -348,7 +348,7 @@ struct EspressUGamePacksView: View {
                 store.importPicked(url) { outcome in
                     switch outcome {
                     case .success(let done):
-                        importNote = "Imported \(done.packCount) pack\(done.packCount == 1 ? "" : "s") from \(done.folderName)."
+                        importNote = locn(done.packCount, "Imported %@ pack from %@.", "Imported %@ packs from %@.", done.folderName)
                     case .failure(let error):
                         importNote = error.localizedDescription
                     }

@@ -9,13 +9,13 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .jit:         return "JIT"
-        case .performance: return "Performance"
-        case .graphics:    return "Graphics"
-        case .controls:    return "Controls"
-        case .screenSound: return "Screen & Sound"
-        case .gamesData:   return "Games & Data"
-        case .system:      return "System"
+        case .jit:         return loc("JIT")
+        case .performance: return loc("Performance")
+        case .graphics:    return loc("Graphics")
+        case .controls:    return loc("Controls")
+        case .screenSound: return loc("Screen & Sound")
+        case .gamesData:   return loc("Games & Data")
+        case .system:      return loc("System")
         }
     }
 
@@ -34,37 +34,37 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .jit:         return "Built-in JIT: on or off, status and pairing."
-        case .performance: return "How games run: the CPU and heat."
-        case .graphics:    return "Picture quality, frame pacing and shaders."
-        case .controls:    return "Controllers and motion."
-        case .screenSound: return "Screen layout, brightness, volume and the microphone."
-        case .gamesData:   return "Your library, keys, files, backups and online."
-        case .system:      return "Look, help and about EspressU."
+        case .jit:         return loc("Built-in JIT: on or off, status and pairing.")
+        case .performance: return loc("How games run: the CPU and heat.")
+        case .graphics:    return loc("Picture quality, frame pacing and shaders.")
+        case .controls:    return loc("Controllers and motion.")
+        case .screenSound: return loc("Screen layout, brightness, volume and the microphone.")
+        case .gamesData:   return loc("Your library, keys, files, backups and online.")
+        case .system:      return loc("Look, help and about EspressU.")
         }
     }
 
     var hint: String {
         switch self {
-        case .jit:         return "Status, pairing"
-        case .performance: return "CPU cores, speed, heat"
-        case .graphics:    return "Resolution, shaders"
-        case .controls:    return "Touch, controllers, motion"
-        case .screenSound: return "Layout, brightness, volume"
-        case .gamesData:   return "Library, keys, backups"
-        case .system:      return "Look, help, about"
+        case .jit:         return loc("Status, pairing")
+        case .performance: return loc("CPU cores, speed, heat")
+        case .graphics:    return loc("Resolution, shaders")
+        case .controls:    return loc("Touch, controllers, motion")
+        case .screenSound: return loc("Layout, brightness, volume")
+        case .gamesData:   return loc("Library, keys, backups")
+        case .system:      return loc("Look, help, about")
         }
     }
 
     var icon: String {
         switch self {
-        case .jit:         return "bolt.fill"
-        case .performance: return "speedometer"
-        case .graphics:    return "photo.on.rectangle"
-        case .controls:    return "gamecontroller.fill"
-        case .screenSound: return "speaker.wave.2.fill"
-        case .gamesData:   return "folder.fill"
-        case .system:      return "gearshape.fill"
+        case .jit:         return loc("bolt.fill")
+        case .performance: return loc("speedometer")
+        case .graphics:    return loc("photo.on.rectangle")
+        case .controls:    return loc("gamecontroller.fill")
+        case .screenSound: return loc("speaker.wave.2.fill")
+        case .gamesData:   return loc("folder.fill")
+        case .system:      return loc("gearshape.fill")
         }
     }
 }
@@ -90,45 +90,45 @@ enum LegacySettingsPage: String, Identifiable {
 
     var summary: String {
         switch self {
-        case .emulatedClock: return "How fast the Wii U's clock runs."
-        case .figures:       return "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions."
-        case .overlay:       return "What EspressU shows on top of a game."
-        case .graphicPacks:  return "Mods and fixes for your games."
-        case .linkedFolders: return "Game folders that stay where they are."
-        case .keys:          return "Needed for encrypted dumps (.wud, .wux)."
-        case .files:         return "Where EspressU keeps games, saves and more."
-        case .backup:        return "Save every setting to a file, or load one."
-        case .account:       return "Your Wii U account for saves and online play."
-        case .diagnostics:   return "For bug reports."
-        case .about:         return "Credits and open-source licences."
-        case .figureManager: return "Load, create or clear figures."
-        case .networkService: return "Which online service games connect to."
-        case .licences:      return "The open-source code inside EspressU."
-        case .graphicPackGame: return "Packs made for this game. Changes apply the next time you start a game."
-        case .graphicPack:   return "Changes apply the next time you start a game."
-        case .controllerMapping: return "Choose which controller button does what."
+        case .emulatedClock: return loc("How fast the Wii U's clock runs.")
+        case .figures:       return loc("Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions.")
+        case .overlay:       return loc("What EspressU shows on top of a game.")
+        case .graphicPacks:  return loc("Mods and fixes for your games.")
+        case .linkedFolders: return loc("Game folders that stay where they are.")
+        case .keys:          return loc("Needed for encrypted dumps (.wud, .wux).")
+        case .files:         return loc("Where EspressU keeps games, saves and more.")
+        case .backup:        return loc("Save every setting to a file, or load one.")
+        case .account:       return loc("Your Wii U account for saves and online play.")
+        case .diagnostics:   return loc("For bug reports.")
+        case .about:         return loc("Credits and open-source licences.")
+        case .figureManager: return loc("Load, create or clear figures.")
+        case .networkService: return loc("Which online service games connect to.")
+        case .licences:      return loc("The open-source code inside EspressU.")
+        case .graphicPackGame: return loc("Packs made for this game. Changes apply the next time you start a game.")
+        case .graphicPack:   return loc("Changes apply the next time you start a game.")
+        case .controllerMapping: return loc("Choose which controller button does what.")
         }
     }
 
     var title: String {
         switch self {
-        case .emulatedClock: return "Emulated clock"
-        case .figures:       return "Figure portals"
-        case .overlay:       return "Overlay and notifications"
-        case .graphicPacks:  return "Graphic packs"
-        case .linkedFolders: return "Linked folders"
-        case .keys:          return "Wii U keys"
-        case .files:         return "Your files"
-        case .backup:        return "Back up and restore"
-        case .account:       return "Account and online"
-        case .diagnostics:   return "Device report and logs"
-        case .about:         return "About EspressU"
-        case .figureManager: return "Manage figures"
-        case .networkService: return "Network service"
-        case .licences:      return "Open-source licences"
-        case .graphicPackGame: return "Graphic packs"
-        case .graphicPack:   return "Pack"
-        case .controllerMapping: return "Controller buttons"
+        case .emulatedClock: return loc("Emulated clock")
+        case .figures:       return loc("Figure portals")
+        case .overlay:       return loc("Overlay and notifications")
+        case .graphicPacks:  return loc("Graphic packs")
+        case .linkedFolders: return loc("Linked folders")
+        case .keys:          return loc("Wii U keys")
+        case .files:         return loc("Your files")
+        case .backup:        return loc("Back up and restore")
+        case .account:       return loc("Account and online")
+        case .diagnostics:   return loc("Device report and logs")
+        case .about:         return loc("About EspressU")
+        case .figureManager: return loc("Manage figures")
+        case .networkService: return loc("Network service")
+        case .licences:      return loc("Open-source licences")
+        case .graphicPackGame: return loc("Graphic packs")
+        case .graphicPack:   return loc("Pack")
+        case .controllerMapping: return loc("Controller buttons")
         }
     }
 }
@@ -136,6 +136,12 @@ enum LegacySettingsPage: String, Identifiable {
 struct SettingsOption: Identifiable {
     let id: String
     let title: String
+
+    /// `verbatim` keeps names that must not be translated, like a language shown in its own words.
+    init(id: String, title: String, verbatim: Bool = false) {
+        self.id = id
+        self.title = verbatim ? title : loc(title)
+    }
 }
 
 struct SettingsItem: Identifiable {
@@ -160,6 +166,14 @@ struct SettingsItem: Identifiable {
     let control: Control
     var enabled: Bool = true
 
+    init(id: String, title: String, detail: String? = nil, control: Control, enabled: Bool = true) {
+        self.id = id
+        self.title = loc(title)
+        self.detail = detail.map(loc)
+        self.control = control
+        self.enabled = enabled
+    }
+
     var isFocusable: Bool {
         guard enabled else { return false }
         switch control {
@@ -173,6 +187,12 @@ struct SettingsGroup: Identifiable {
     let id: String
     let title: String
     let items: [SettingsItem]
+
+    init(id: String, title: String, items: [SettingsItem]) {
+        self.id = id
+        self.title = loc(title)
+        self.items = items
+    }
 }
 
 final class SettingsValues: ObservableObject {

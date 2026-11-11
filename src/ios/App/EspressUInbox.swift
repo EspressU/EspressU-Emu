@@ -46,8 +46,8 @@ enum EspressUInbox {
             cemu_bridge_log_checkpoint("Updates & DLC folder: installing \(name)")
             do {
                 let result = try await installEither(item, library: library)
-                let game = result.content.matchedGame?.title ?? "your game"
-                report.added.append("\(result.kind == .update ? "Update" : "DLC") for \"\(game)\"")
+                let game = result.content.matchedGame?.title ?? loc("your game")
+                report.added.append(locf("%@ for \"%@\"", result.kind == .update ? "Update" : "DLC", game))
                 try? fm.removeItem(at: item)
             } catch {
                 failedThisLaunch.insert(key)
@@ -71,9 +71,9 @@ enum EspressUInbox {
 
     static func summary(_ report: Report) -> String {
         var lines: [String] = []
-        if !report.added.isEmpty { lines.append("Installed: " + report.added.joined(separator: ", ") + ".") }
+        if !report.added.isEmpty { lines.append(loc("Installed: ") + report.added.joined(separator: ", ") + ".") }
         if !report.failed.isEmpty {
-            lines.append("Not installed (still in the Updates & DLC folder):\n" + report.failed.joined(separator: "\n"))
+            lines.append(loc("Not installed (still in the Updates & DLC folder):\n") + report.failed.joined(separator: "\n"))
         }
         return lines.joined(separator: "\n\n")
     }

@@ -45,7 +45,7 @@ struct DisplaySettingsSection: View {
 
                 Picker("Screen Layout", selection: $screenLayout) {
                     ForEach(ScreenLayout.allCases) { layout in
-                        Text(layout.string).tag(layout)
+                        Text(loc(layout.string)).tag(layout)
                     }
                 }
                 .pickerStyle(.menu)
@@ -55,7 +55,7 @@ struct DisplaySettingsSection: View {
             .alert("Screen Layout", isPresented: $screenLayoutInfoShown) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text(screenLayout.description)
+                Text(loc(screenLayout.description))
             }
 
             if screenLayout == .singleScreen {
@@ -76,7 +76,7 @@ struct DisplaySettingsSection: View {
                     Text("Brightness boost")
                         .font(.subheadline.weight(.semibold))
                     Spacer()
-                    Text(BrightnessBoost.label(for: brightnessBoost))
+                    Text(loc(BrightnessBoost.label(for: brightnessBoost)))
                         .font(.system(size: 13))
                         .foregroundColor(EspressUTheme.secondaryText)
                 }
@@ -122,9 +122,9 @@ struct DisplaySettingsSection: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("GamePad screen on the external display")
                             .font(.subheadline.weight(.semibold))
-                        Text(swapScreens
-                             ? "On: the external display shows the GamePad screen."
-                             : "Off: the external display shows the TV screen.")
+                        Text(loc(swapScreens
+                             ? loc("On: the external display shows the GamePad screen.")
+                             : loc("Off: the external display shows the TV screen.")))
                             .font(.system(size: 12))
                             .foregroundColor(EspressUTheme.secondaryText)
                     }
@@ -141,14 +141,14 @@ struct DisplaySettingsSection: View {
                         Spacer()
                         Picker("When a TV is connected, this device shows", selection: $deviceShows) {
                             ForEach(DeviceScreenMode.allCases) { mode in
-                                Text(mode.string).tag(mode)
+                                Text(loc(mode.string)).tag(mode)
                             }
                         }
                         .pickerStyle(.menu)
                         .labelsHidden()
                         .tint(EspressUTheme.accentText)
                     }
-                    Text(deviceShowsCaption)
+                    Text(loc(deviceShowsCaption))
                         .font(.system(size: 12))
                         .foregroundColor(EspressUTheme.secondaryText)
                 }
@@ -168,12 +168,12 @@ struct DisplaySettingsSection: View {
                 .tint(EspressUTheme.accentText)
             }
         } header: {
-            SettingsSectionHeader("Display", icon: "rectangle.on.rectangle", accent: .io)
+            SettingsSectionHeader(loc("Display"), icon: "rectangle.on.rectangle", accent: .io)
         } footer: {
             InfoButton.footer(
-                "Screen Layout arranges the TV and GamePad on this device. The external display is off until you turn it on, and needs a second screen that EspressU can open a window on; AirPlay mirroring doesn't count.",
-                title: "Display",
-                text: "The Wii U has two screens: the TV and the GamePad.\n\nScreen Layout: Single Screen shows one at a time with a swap button; Adaptive shows both, stacked in portrait and side by side in landscape; Both Screens (GamePad Top Right) keeps the TV full size with a small GamePad inset.\n\nAllow portrait during games (iPhone): hold the phone upright and the picture goes along the top with the controls below it. Menus stay in landscape. Turn it off if you'd rather a game never turns when the phone tilts; the iOS rotation lock works too.\n\nThe external display is off by default; turn it on before connecting a display. Then choose which Wii U screen it shows, and what this device shows next to it: the other screen, the same screen, or only the controls. It is experimental and hasn't been tested on much hardware.")
+                loc("Screen Layout arranges the TV and GamePad on this device. The external display is off until you turn it on, and needs a second screen that EspressU can open a window on; AirPlay mirroring doesn't count."),
+                title: loc("Display"),
+                text: loc("The Wii U has two screens: the TV and the GamePad.\n\nScreen Layout: Single Screen shows one at a time with a swap button; Adaptive shows both, stacked in portrait and side by side in landscape; Both Screens (GamePad Top Right) keeps the TV full size with a small GamePad inset.\n\nAllow portrait during games (iPhone): hold the phone upright and the picture goes along the top with the controls below it. Menus stay in landscape. Turn it off if you'd rather a game never turns when the phone tilts; the iOS rotation lock works too.\n\nThe external display is off by default; turn it on before connecting a display. Then choose which Wii U screen it shows, and what this device shows next to it: the other screen, the same screen, or only the controls. It is experimental and hasn't been tested on much hardware."))
         }
         .foregroundColor(EspressUTheme.brownDarkest)
     }
@@ -181,15 +181,15 @@ struct DisplaySettingsSection: View {
     @State private var screenLayoutInfoShown = false
 
     private var deviceShowsCaption: String {
-        let tvScreen = swapScreens ? "GamePad screen" : "TV screen"
-        let otherScreen = swapScreens ? "TV screen" : "GamePad screen"
+        let tvScreen = swapScreens ? loc("GamePad screen") : loc("TV screen")
+        let otherScreen = swapScreens ? loc("TV screen") : loc("GamePad screen")
         switch deviceShows {
         case .otherScreen:
-            return "The external display shows the \(tvScreen) and this device shows the \(otherScreen)."
+            return locf("The external display shows the %@ and this device shows the %@.", tvScreen, otherScreen)
         case .sameScreen:
-            return "Both show the \(tvScreen)."
+            return locf("Both show the %@.", tvScreen)
         case .nothing:
-            return "The external display shows the \(tvScreen). This device shows only the on-screen controls on black."
+            return locf("The external display shows the %@. This device shows only the on-screen controls on black.", tvScreen)
         }
     }
 }

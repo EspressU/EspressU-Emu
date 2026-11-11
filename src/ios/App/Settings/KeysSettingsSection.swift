@@ -24,17 +24,17 @@ struct KeysSettingsSection: View {
             .foregroundColor(EspressUTheme.brownDarkest)
 
             if WiiUKeys.keysFileExists() {
-                SettingsRow(label: "Keys loaded", value: "\(keyCount)")
+                SettingsRow(label: loc("Keys loaded"), value: "\(keyCount)")
                 Button(role: .destructive, action: { showingKeysRemovalConfirmation = true }) {
                     DestructiveSettingsLabel(title: "Remove keys.txt", systemImage: "trash")
                 }
             }
         } header: {
-            SettingsSectionHeader("Wii U Keys", icon: "key", accent: .content)
+            SettingsSectionHeader(loc("Wii U Keys"), icon: "key", accent: .content)
         } footer: {
             InfoButton.footer(
-                "Only needed for encrypted games. Homebrew and already-decrypted dumps don't need keys.",
-                title: "Wii U Keys",
+                loc("Only needed for encrypted games. Homebrew and already-decrypted dumps don't need keys."),
+                title: loc("Wii U Keys"),
                 text: "Encrypted games (.wux, .wud, .iso, .wua) need AES keys dumped from your own Wii U, in a text file called keys.txt with one key per line. EspressU doesn't include keys.\n\nYou can also open EspressU in the Files app and drop keys.txt into the \"keys\" folder.\n\nNew keys are used the next time you start a game. If you've already started a game since opening EspressU, quit and reopen EspressU first.")
         }
         .foregroundColor(EspressUTheme.brownDarkest)
@@ -48,14 +48,14 @@ struct KeysSettingsSection: View {
         .alert("Couldn't import keys", isPresented: .constant(keysErrorMessage != nil), presenting: keysErrorMessage) { _ in
             Button("OK") { keysErrorMessage = nil }
         } message: { message in
-            Text(message)
+            Text(loc(message))
         }
         .confirmationDialog("Remove keys.txt?", isPresented: $showingKeysRemovalConfirmation, titleVisibility: .visible) {
             Button("Remove", role: .destructive) {
                 do {
                     try WiiUKeys.removeKeys()
                 } catch {
-                    keysErrorMessage = "Couldn't remove keys.txt: \(error.localizedDescription)"
+                    keysErrorMessage = locf("Couldn't remove keys.txt: %@", error.localizedDescription)
                 }
                 keyCount = WiiUKeys.installedKeyCount()
             }

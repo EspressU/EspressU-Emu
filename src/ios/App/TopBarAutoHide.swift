@@ -35,8 +35,8 @@ enum TopBarAutoHide {
 
         var title: String {
             switch self {
-            case .normal: return "Normal"
-            case .large:  return "Large"
+            case .normal: return loc("Normal")
+            case .large:  return loc("Large")
             }
         }
 

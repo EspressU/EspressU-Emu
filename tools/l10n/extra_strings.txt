@@ -1,0 +1,39 @@
+%@ MB headroom - no JIT arena, so this launch is running the interpreter
+%@ MB headroom - JIT arena %@ MB reserved, %@ MB in use%@
+ (reduced - less room than the JIT asked for)
+Not decided yet - the CPU path is chosen when the engine initializes, on the first launch.
+The recompiler is off in Settings, so the %@ interpreter is running. Cores: %@.
+The recompiler is on in Settings, but no JIT enabler is attached (cs_flags %@), so the %@ interpreter is running. Launch through StikJIT, SideStore or LiveContainer to use the recompiler. Cores: %@.
+A JIT enabler is attached, so the AArch64 recompiler runs this launch. Cores: %@.
+single-core
+multi-core
+one core because Favour accuracy is on
+one core because One-core mode is on
+one core, chosen in Settings
+one core: three were chosen in Settings, but this device has too little memory or too few cores to run three at once (%@)
+one core: this device has too little memory or too few cores to run three at once (%@)
+three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core
+three cores, chosen in Settings (experimental; %@)
+Auto picked one core: a three-core run of this title crashed or hung before
+Auto picked one core: the device is already hot (%@)
+Auto picked three cores: without JIT the interpreter needs more than one host core (%@)
+Auto picked one core: too few performance cores (%@)
+Auto picked one core: this title's game profile asks for single-core (%@)
+Auto picked three cores: this title's game profile asks for multi-core (%@)
+Auto picked three cores: this device has the performance cores, memory and thermal room (%@)
+Auto picked one core: this device does not meet the cores, memory tier and thermal state needed for three (%@)
+%@ performance core(s), tier %@, thermal %@
+low
+standard
+high
+nominal
+fair
+serious
+critical
+unknown
+Single Screen
+Adaptive (Both Screens)
+Both Screens (GamePad Top Right)
+Shows one screen at a time. Tap the swap button to switch between TV and GamePad.
+Shows both screens: stacked in portrait, side by side in landscape.
+Shows the TV screen with a small GamePad screen in the top-right corner.

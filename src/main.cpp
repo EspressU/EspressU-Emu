@@ -24,6 +24,7 @@
 #include "config/ActiveSettings.h"
 #ifdef ENABLE_METAL
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalInitialization.h"
 #endif
 
 #include "Cafe/HW/Espresso/Recompiler/PPCRecompiler.h"
@@ -531,7 +532,7 @@ void CemuPrepareRenderer()
 #ifdef ENABLE_METAL
     if (ActiveSettings::GetGraphicsAPI() == kMetal)
     {
-        g_renderer = std::make_unique<MetalRenderer>();
+        RunMetalInitialization("creating the Metal renderer", [&] { g_renderer = std::make_unique<MetalRenderer>(); });
         usingMetal = true;
     }
 #endif

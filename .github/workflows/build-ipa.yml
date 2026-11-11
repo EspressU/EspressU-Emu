@@ -1,0 +1,109 @@
+# Reusable workflow: builds the unsigned IPA and uploads it as an artifact named "ipa".
+name: Build IPA
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref (branch, tag or SHA) to build
+        type: string
+        default: ''
+      runner:
+        description: macOS runner label
+        type: string
+        default: macos-26
+    outputs:
+      version:
+        description: MARKETING_VERSION from src/ios/project.yml
+        value: ${{ jobs.build.outputs.version }}
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 300
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    env:
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite
+      ESPRESSU_CCACHE: '1'
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+          fetch-depth: 0 # vcpkg needs its full history for versioned ports
+
+      - name: Select latest stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install tools
+        run: brew install ninja xcodegen ccache pkg-config autoconf automake libtool nasm
+
+      - name: Read version
+        id: version
+        run: |
+          v="$(sed -n "s/^[[:space:]]*MARKETING_VERSION:[[:space:]]*['\"]\{0,1\}\([^'\" ]*\).*/\1/p" src/ios/project.yml | head -1)"
+          test -n "$v"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ inputs.runner }}-${{ hashFiles('vcpkg.json', 'triplets/**', 'dependencies/vcpkg_overlay_ports*/**') }}
+          restore-keys: vcpkg-${{ inputs.runner }}-
+
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: .ccache
+          key: ccache-${{ inputs.runner }}-${{ github.sha }}
+          restore-keys: ccache-${{ inputs.runner }}-
+
+      - name: Restore StikJIT build
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /private/tmp/espressu-build/src-tree/dependencies/StikJIT.xcframework
+            /private/tmp/espressu-build/src-tree/dependencies/idevice
+            /private/tmp/espressu-build/src-tree/dependencies/.stikjit-commit
+          key: stikjit-${{ inputs.runner }}-${{ hashFiles('ci/build-stikjit.sh', 'ci/stikjit-framework-plist.sh') }}
+
+      - name: Build IPA
+        run: bash ci/build-ipa.sh "$RUNNER_TEMP/EspressU.ipa"
+
+      # Save caches even when the build fails or times out, so the next run continues where this one stopped.
+      - name: Save vcpkg binary cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ inputs.runner }}-${{ hashFiles('vcpkg.json', 'triplets/**', 'dependencies/vcpkg_overlay_ports*/**') }}-${{ github.run_id }}
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .ccache
+          key: ccache-${{ inputs.runner }}-${{ github.sha }}
+
+      - name: Save StikJIT build
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /private/tmp/espressu-build/src-tree/dependencies/StikJIT.xcframework
+            /private/tmp/espressu-build/src-tree/dependencies/idevice
+            /private/tmp/espressu-build/src-tree/dependencies/.stikjit-commit
+          key: stikjit-${{ inputs.runner }}-${{ hashFiles('ci/build-stikjit.sh', 'ci/stikjit-framework-plist.sh') }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: ${{ runner.temp }}/EspressU.ipa
+          retention-days: 1
+          if-no-files-found: error

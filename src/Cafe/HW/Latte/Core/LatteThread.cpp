@@ -4,6 +4,7 @@
 #include "Cafe/HW/Latte/Core/Latte.h"
 #include "Cafe/HW/Latte/Core/LatteDraw.h"
 #include "Cafe/HW/Latte/Core/LatteShader.h"
+#include "Cafe/HW/Latte/Core/LatteWorkEvent.h"
 #include "Cafe/HW/Latte/Core/LatteAsyncCommands.h"
 #include "Cafe/GameProfile/GameProfile.h"
 #include "Cafe/GraphicPack/GraphicPack2.h"
@@ -15,6 +16,7 @@
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
 #include "Cafe/HW/Latte/Core/LatteIndices.h"
 #include "Cafe/HW/Latte/Core/LatteTexture.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "util/helpers/helpers.h"
 
 #include <imgui.h>
@@ -124,6 +126,7 @@ void LatteThread_HandleOSScreen()
 static int Latte_ThreadEntryImpl()
 {
 	SetThreadName("LatteThread");
+	PerfTelemetry::t_isRenderThread = true;
 #if BOOST_OS_IOS
 	pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
 #endif
@@ -284,6 +287,7 @@ void Latte_Stop()
 	if (!sLatteThreadRunning)
 		return;
 	sLatteThreadRunning = false;
+	Latte_GetWorkEvent().Notify();
 	_lock.unlock();
 	sLatteThread.join();
 }

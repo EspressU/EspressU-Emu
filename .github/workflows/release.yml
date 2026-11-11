@@ -1,0 +1,48 @@
+# Manual: builds the IPA for an existing release and attaches it to that release.
+# Create the release (tag on main) first, then run this workflow and enter its tag.
+name: Attach IPA to release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the existing release (e.g. v1.4)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Release must exist
+        run: gh release view "${{ inputs.tag }}" --repo "$GITHUB_REPOSITORY" --json tagName,isPrerelease
+
+  build:
+    needs: check
+    uses: ./.github/workflows/build-ipa.yml
+    with:
+      ref: refs/tags/${{ inputs.tag }}
+
+  attach:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ipa
+
+      - name: Upload IPA to release
+        run: |
+          tag="${{ inputs.tag }}"
+          ipa="EspressU-${tag#v}.ipa"
+          mv EspressU.ipa "$ipa"
+          gh release upload "$tag" "$ipa" --repo "$GITHUB_REPOSITORY" --clobber

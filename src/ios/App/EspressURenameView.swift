@@ -35,7 +35,7 @@ struct EspressURenameView: View {
                         Text("Rename")
                             .font(.title.weight(.bold))
                             .foregroundColor(EspressUTheme.brownDarkest)
-                        Text("Only changes the name in your library. Original title: \(originalTitle)")
+                        Text(locf("Only changes the name in your library. Original title: %@", originalTitle))
                             .font(.subheadline)
                             .foregroundColor(EspressUTheme.brownMid)
                             .multilineTextAlignment(.center)

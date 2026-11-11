@@ -94,6 +94,23 @@ final class GraphicPackStore: NSObject, ObservableObject {
 
     private static let checkInterval: TimeInterval = 24 * 60 * 60
 
+    /// A missing value means on. It deliberately does not share the `espressu.graphicPacks.` prefix, which Reset
+    /// settings leaves alone, so Reset puts it back to on.
+    static let autoUpdateKey = "espressu.graphics.autoUpdatePacks"
+    static let autoUpdateDefault = true
+    static var autoUpdateEnabled: Bool { UserDefaults.standard.object(forKey: autoUpdateKey) as? Bool ?? autoUpdateDefault }
+
+    /// What the user decided about Breath of the Wild's FPS++ pack: "on" or "off". Absent means they never touched it,
+    /// so EspressU may switch it on. Kept out of Reset settings on purpose: it is a recorded choice, not a preference.
+    private static let fpsChoiceKey = "espressu.graphicPacks.fpsPlusPlusChoice"
+    private static let botwTitleIds: Set<String> = ["00050000101c9300", "00050000101c9400", "00050000101c9500"]
+
+    private static func isBotWFPSPlusPlus(_ pack: GraphicPack) -> Bool {
+        pack.name == "FPS++" && !pack.titleIds.isDisjoint(with: botwTitleIds)
+    }
+
+    private var launchRunStarted = false
+
     private lazy var session: URLSession = {
         let config = URLSessionConfiguration.background(withIdentifier: GraphicPackStore.sessionIdentifier)
         config.sessionSendsLaunchEvents = true
@@ -121,6 +138,18 @@ final class GraphicPackStore: NSObject, ObservableObject {
         checkForUpdate(force: false)
     }
 
+    /// Runs once per app launch: rescans the packs, then looks for a newer release and installs it in the background.
+    /// Offline or rate-limited checks are skipped quietly; the manual Check button still reports problems.
+    func runLaunchUpdate() {
+        guard !launchRunStarted else { return }
+        launchRunStarted = true
+        installed = Self.readInstalled()
+        finishPendingInstallIfPossible()
+        reload()
+        guard Self.autoUpdateEnabled else { return }
+        checkForUpdate(force: true, automatic: true)
+    }
+
     func refreshList() {
         bridgeQueue.async { [weak self] in
             let raw = String(cString: espressu_gp_list())
@@ -135,9 +164,11 @@ final class GraphicPackStore: NSObject, ObservableObject {
         bridgeQueue.async { [weak self] in
             try? FileManager.default.createDirectory(at: GraphicPackPaths.root, withIntermediateDirectories: true)
             _ = espressu_gp_reload(mlc)
-            let raw = String(cString: espressu_gp_list())
-            let parsed = GraphicPack.parseList(raw)
+            var parsed = GraphicPack.parseList(String(cString: espressu_gp_list()))
             let running = espressu_gp_title_running()
+            if !running, Self.enableFPSPlusPlusIfNeeded(parsed) {
+                parsed = GraphicPack.parseList(String(cString: espressu_gp_list()))
+            }
             DispatchQueue.main.async {
                 self?.packs = parsed
                 self?.gameRunning = running
@@ -146,7 +177,23 @@ final class GraphicPackStore: NSObject, ObservableObject {
         }
     }
 
+    /// Turns on FPS++ for Breath of the Wild with the pack's own default options, unless the user already chose.
+    private static func enableFPSPlusPlusIfNeeded(_ packs: [GraphicPack]) -> Bool {
+        guard UserDefaults.standard.string(forKey: fpsChoiceKey) == nil else { return false }
+        var changed = false
+        for pack in packs where isBotWFPSPlusPlus(pack) && !pack.enabled {
+            if pack.path.withCString({ espressu_gp_set_enabled($0, true) }) { changed = true }
+        }
+        return changed
+    }
+
+    private func rememberFPSChoice(_ pack: GraphicPack, enabled: Bool) {
+        guard Self.isBotWFPSPlusPlus(pack) else { return }
+        defaults.set(enabled ? "on" : "off", forKey: Self.fpsChoiceKey)
+    }
+
     func setEnabled(_ pack: GraphicPack, _ enabled: Bool) {
+        rememberFPSChoice(pack, enabled: enabled)
         if let i = packs.firstIndex(where: { $0.path == pack.path }) { packs[i].enabled = enabled }
         bridgeQueue.async { [weak self] in
             let ok = pack.path.withCString { espressu_gp_set_enabled($0, enabled) }
@@ -175,6 +222,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
     }
 
     func reset(_ pack: GraphicPack, completion: @escaping (GraphicPackDetails) -> Void) {
+        rememberFPSChoice(pack, enabled: pack.defaultEnabled)
         bridgeQueue.async { [weak self] in
             _ = pack.path.withCString { espressu_gp_reset_pack($0) }
             let raw = pack.path.withCString { String(cString: espressu_gp_details($0)) }
@@ -186,15 +234,17 @@ final class GraphicPackStore: NSObject, ObservableObject {
         }
     }
 
-    func checkForUpdate(force: Bool) {
+    func checkForUpdate(force: Bool, automatic: Bool = false) {
         guard phase == .idle || phase == .waitingForGameToClose else { return }
+        guard !automatic || !espressu_gp_title_running() else { return }
         if !force, let lastChecked, Date().timeIntervalSince(lastChecked) < Self.checkInterval { return }
 
         phase = .checking
-        if force { notice = nil }
+        let loud = force && !automatic
+        if loud { notice = nil }
         var request = URLRequest(url: Self.latestReleaseAPI, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("EspressU", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: loc("Accept"))
+        request.setValue(loc("EspressU"), forHTTPHeaderField: "User-Agent")
         let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             let outcome = Self.interpretLatestRelease(data: data, response: response, error: error)
             DispatchQueue.main.async {
@@ -207,11 +257,14 @@ final class GraphicPackStore: NSObject, ObservableObject {
                     self.lastChecked = Date()
                     self.defaults.set(try? JSONEncoder().encode(release), forKey: Key.latest)
                     self.defaults.set(self.lastChecked, forKey: Key.lastCheck)
-                    if force {
-                        self.notice = self.updateAvailable ? nil : Notice(text: "You have the latest community packs.", isError: false)
+                    if loud {
+                        self.notice = self.updateAvailable ? nil : Notice(text: loc("You have the latest community packs."), isError: false)
                     }
                 case .failure(let message):
-                    if force { self.notice = Notice(text: message, isError: true) }
+                    if loud { self.notice = Notice(text: message, isError: true) }
+                }
+                if automatic, case .success = outcome, self.updateAvailable, !self.gameRunning {
+                    self.startDownload()
                 }
             }
         }
@@ -226,11 +279,11 @@ final class GraphicPackStore: NSObject, ObservableObject {
 
     private static func interpretLatestRelease(data: Data?, response: URLResponse?, error: Error?) -> LatestOutcome {
         if let error { return .failure(describe(error)) }
-        guard let http = response as? HTTPURLResponse else { return .failure("GitHub didn't answer.") }
+        guard let http = response as? HTTPURLResponse else { return .failure(loc("GitHub didn't answer.")) }
         if http.statusCode == 403 || http.statusCode == 429 {
-            return .failure("GitHub is limiting requests right now. Try again in a little while.")
+            return .failure(loc("GitHub is limiting requests right now. Try again in a little while."))
         }
-        guard http.statusCode == 200, let data else { return .failure("GitHub answered with an error (\(http.statusCode)).") }
+        guard http.statusCode == 200, let data else { return .failure(locf("GitHub answered with an error (%@).", http.statusCode)) }
         struct Payload: Decodable {
             struct Asset: Decodable { let name: String; let size: Int64; let browser_download_url: URL }
             let tag_name: String
@@ -240,15 +293,15 @@ final class GraphicPackStore: NSObject, ObservableObject {
             let assets: [Asset]
         }
         guard let payload = try? JSONDecoder().decode(Payload.self, from: data) else {
-            return .failure("GitHub's answer wasn't what was expected.")
+            return .failure(loc("GitHub's answer wasn't what was expected."))
         }
         let asset = payload.assets.first { $0.name.hasPrefix("graphicPacks") && $0.name.hasSuffix(".zip") }
             ?? payload.assets.first { $0.name.hasSuffix(".zip") }
         guard let asset, isTrustedDownload(asset.browser_download_url) else {
-            return .failure("The latest release doesn't have a download EspressU can use.")
+            return .failure(loc("The latest release doesn't have a download EspressU can use."))
         }
         guard asset.size > 0, asset.size <= 256 * 1024 * 1024 else {
-            return .failure("The latest release is a different size than graphic packs should be.")
+            return .failure(loc("The latest release is a different size than graphic packs should be."))
         }
         return .success(GraphicPackRelease(tag: payload.tag_name, name: payload.name ?? payload.tag_name,
                                            assetName: asset.name, assetURL: asset.browser_download_url,
@@ -261,18 +314,18 @@ final class GraphicPackStore: NSObject, ObservableObject {
     }
 
     static func describe(_ error: Error) -> String {
-        if let storage = error as? GraphicPackStorage.StorageError { return storage.errorDescription ?? "Not enough free storage." }
-        if let zip = error as? MiniZip.ZipError { return zip.errorDescription ?? "The zip couldn't be read." }
+        if let storage = error as? GraphicPackStorage.StorageError { return storage.errorDescription ?? loc("Not enough free storage.") }
+        if let zip = error as? MiniZip.ZipError { return zip.errorDescription ?? loc("The zip couldn't be read.") }
         if let url = error as? URLError {
             switch url.code {
             case .notConnectedToInternet, .dataNotAllowed, .internationalRoamingOff:
-                return "You're offline. Packs you've already downloaded keep working."
+                return loc("You're offline. Packs you've already downloaded keep working.")
             case .timedOut, .networkConnectionLost, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
-                return "Couldn't reach GitHub. Check your connection and try again."
+                return loc("Couldn't reach GitHub. Check your connection and try again.")
             case .cancelled:
-                return "Cancelled."
+                return loc("Cancelled.")
             default:
-                return "The download failed (\(url.localizedDescription))."
+                return locf("The download failed (%@).", url.localizedDescription)
             }
         }
         return error.localizedDescription
@@ -281,10 +334,10 @@ final class GraphicPackStore: NSObject, ObservableObject {
     func startDownload() {
         guard let release = latest, !isBusy else { return }
         if espressu_gp_title_running() {
-            notice = Notice(text: "A game is running. Close it before downloading graphic packs.", isError: true)
+            notice = Notice(text: loc("A game is running. Close it before downloading graphic packs."), isError: true)
             return
         }
-        do { try GraphicPackStorage.require(release.size * 4, what: "download the graphic packs") } catch {
+        do { try GraphicPackStorage.require(release.size * 4, what: loc("download the graphic packs")) } catch {
             notice = Notice(text: Self.describe(error), isError: true)
             return
         }
@@ -307,7 +360,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
         switch phase {
         case .downloading, .installing, .checking:
             phase = .idle
-            notice = Notice(text: "Cancelled. Your installed packs weren't changed.", isError: false)
+            notice = Notice(text: loc("Cancelled. Your installed packs weren't changed."), isError: false)
         default:
             break
         }
@@ -345,19 +398,19 @@ final class GraphicPackStore: NSObject, ObservableObject {
                 let attributes = try fm.attributesOfItem(atPath: zip.path)
                 let onDisk = (attributes[.size] as? NSNumber)?.int64Value ?? -1
                 guard onDisk == release.size else {
-                    throw MiniZip.ZipError.corrupt("the download is \(onDisk) bytes, expected \(release.size)")
+                    throw MiniZip.ZipError.corrupt(locf("the download is %@ bytes, expected %@", onDisk, release.size))
                 }
 
                 let archive = try MiniZip(url: zip)
                 let total = archive.entries.reduce(Int64(0)) { $0 + Int64($1.size) }
-                try GraphicPackStorage.require(total, what: "install the graphic packs")
+                try GraphicPackStorage.require(total, what: loc("install the graphic packs"))
                 try archive.verify(progress: { p in self.setInstallProgress(p * 0.4) }, isCancelled: { self.cancelRequested })
 
                 try? fm.removeItem(at: staging)
                 try archive.extract(to: staging, progress: { p in self.setInstallProgress(0.4 + p * 0.55) },
                                     isCancelled: { self.cancelRequested })
                 let packCount = Self.countPacks(in: staging)
-                guard packCount > 0 else { throw MiniZip.ZipError.corrupt("it holds no graphic packs") }
+                guard packCount > 0 else { throw MiniZip.ZipError.corrupt(loc("it holds no graphic packs")) }
 
                 let info = GraphicPackInstall(tag: release.tag, name: release.name, installedAt: Date(), packCount: packCount)
                 try release.name.write(to: staging.appendingPathComponent("version.txt"), atomically: true, encoding: .utf8)
@@ -377,7 +430,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
                 DispatchQueue.main.async {
                     self.installed = info
                     self.phase = .idle
-                    self.notice = Notice(text: "Installed \(packCount) community packs (\(release.name)). Changes apply the next time you launch a game.", isError: false)
+                    self.notice = Notice(text: locf("Installed %@ community packs (%@). Changes apply the next time you launch a game.", packCount, release.name), isError: false)
                     self.reload()
                 }
             } catch is CancellationError {
@@ -390,7 +443,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
                 let message = Self.describe(error)
                 DispatchQueue.main.async {
                     self.phase = .idle
-                    self.notice = Notice(text: "\(message) Your installed packs weren't changed.", isError: true)
+                    self.notice = Notice(text: locf("%@ Your installed packs weren't changed.", message), isError: true)
                 }
             }
         }
@@ -510,14 +563,14 @@ final class GraphicPackStore: NSObject, ObservableObject {
         var errorDescription: String? {
             switch self {
             case .noPacks: return "No graphic pack found. A pack is a folder with a rules.txt file in it; pick that folder, a folder of packs, or a zip of either."
-            case .gameRunning: return "A game is running. Close it before importing packs."
+            case .gameRunning: return loc("A game is running. Close it before importing packs.")
             }
         }
     }
 
     private static func cleanFolderName(_ raw: String) -> String {
         let cleaned = raw.replacingOccurrences(of: "/", with: "-").trimmingCharacters(in: CharacterSet(charactersIn: ". \n\t"))
-        return cleaned.isEmpty ? "Imported pack" : String(cleaned.prefix(80))
+        return cleaned.isEmpty ? loc("Imported pack") : String(cleaned.prefix(80))
     }
 
     private static func folderSize(_ url: URL) -> Int64 {
@@ -548,7 +601,7 @@ extension GraphicPackStore: URLSessionDownloadDelegate {
         if let http = downloadTask.response as? HTTPURLResponse, http.statusCode != 200 {
             DispatchQueue.main.async {
                 self.phase = .idle
-                self.notice = Notice(text: "GitHub answered the download with an error (\(http.statusCode)).", isError: true)
+                self.notice = Notice(text: locf("GitHub answered the download with an error (%@).", http.statusCode), isError: true)
             }
             return
         }
@@ -559,7 +612,7 @@ extension GraphicPackStore: URLSessionDownloadDelegate {
         } catch {
             DispatchQueue.main.async {
                 self.phase = .idle
-                self.notice = Notice(text: "The download finished but couldn't be saved: \(error.localizedDescription)", isError: true)
+                self.notice = Notice(text: locf("The download finished but couldn't be saved: %@", error.localizedDescription), isError: true)
             }
             return
         }
@@ -577,7 +630,7 @@ extension GraphicPackStore: URLSessionDownloadDelegate {
         DispatchQueue.main.async {
             if case .downloading = self.phase { self.phase = .idle }
             if !cancelled && !self.cancelRequested {
-                self.notice = Notice(text: "\(Self.describe(error)) Your installed packs weren't changed.", isError: true)
+                self.notice = Notice(text: locf("%@ Your installed packs weren't changed.", Self.describe(error)), isError: true)
             }
         }
     }

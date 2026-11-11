@@ -25,28 +25,28 @@ enum PadMapping {
         Slot(pad: CEMU_BRIDGE_PAD_Y, name: "Y", label: "Y"),
         Slot(pad: CEMU_BRIDGE_PAD_L, name: "L", label: "L"),
         Slot(pad: CEMU_BRIDGE_PAD_R, name: "R", label: "R"),
-        Slot(pad: CEMU_BRIDGE_PAD_ZL, name: "ZL", label: "ZL"),
-        Slot(pad: CEMU_BRIDGE_PAD_ZR, name: "ZR", label: "ZR"),
-        Slot(pad: CEMU_BRIDGE_PAD_PLUS, name: "Plus", label: "+"),
-        Slot(pad: CEMU_BRIDGE_PAD_MINUS, name: "Minus", label: "\u{2212}"),
-        Slot(pad: CEMU_BRIDGE_PAD_UP, name: "D-pad up", label: "\u{25B2}"),
-        Slot(pad: CEMU_BRIDGE_PAD_DOWN, name: "D-pad down", label: "\u{25BC}"),
-        Slot(pad: CEMU_BRIDGE_PAD_LEFT, name: "D-pad left", label: "\u{25C0}"),
-        Slot(pad: CEMU_BRIDGE_PAD_RIGHT, name: "D-pad right", label: "\u{25B6}"),
-        Slot(pad: CEMU_BRIDGE_PAD_STICK_L, name: "Left stick click", label: "L3"),
-        Slot(pad: CEMU_BRIDGE_PAD_STICK_R, name: "Right stick click", label: "R3"),
+        Slot(pad: CEMU_BRIDGE_PAD_ZL, name: loc("ZL"), label: loc("ZL")),
+        Slot(pad: CEMU_BRIDGE_PAD_ZR, name: loc("ZR"), label: loc("ZR")),
+        Slot(pad: CEMU_BRIDGE_PAD_PLUS, name: loc("Plus"), label: "+"),
+        Slot(pad: CEMU_BRIDGE_PAD_MINUS, name: loc("Minus"), label: "\u{2212}"),
+        Slot(pad: CEMU_BRIDGE_PAD_UP, name: loc("D-pad up"), label: "\u{25B2}"),
+        Slot(pad: CEMU_BRIDGE_PAD_DOWN, name: loc("D-pad down"), label: "\u{25BC}"),
+        Slot(pad: CEMU_BRIDGE_PAD_LEFT, name: loc("D-pad left"), label: "\u{25C0}"),
+        Slot(pad: CEMU_BRIDGE_PAD_RIGHT, name: loc("D-pad right"), label: "\u{25B6}"),
+        Slot(pad: CEMU_BRIDGE_PAD_STICK_L, name: loc("Left stick click"), label: loc("L3")),
+        Slot(pad: CEMU_BRIDGE_PAD_STICK_R, name: loc("Right stick click"), label: loc("R3")),
     ]
 
     static func slot(_ pad: Int) -> Slot? { slots.first { $0.id == pad } }
 
     static let deviceNames = [
-        "A", "B", "X", "Y", "Left bumper", "Right bumper", "Left trigger", "Right trigger",
-        "Options", "Menu", "Left stick click", "Right stick click",
-        "D-pad up", "D-pad down", "D-pad left", "D-pad right",
+        "A", "B", "X", "Y", loc("Left bumper"), loc("Right bumper"), loc("Left trigger"), loc("Right trigger"),
+        loc("Options"), loc("Menu"), loc("Left stick click"), loc("Right stick click"),
+        loc("D-pad up"), loc("D-pad down"), loc("D-pad left"), loc("D-pad right"),
     ]
 
     static func deviceName(_ device: Int) -> String {
-        deviceNames.indices.contains(device) ? deviceNames[device] : "Unknown"
+        deviceNames.indices.contains(device) ? deviceNames[device] : loc("Unknown")
     }
 
     static func overrides() -> [Int: Int] {
@@ -117,7 +117,7 @@ enum PadMapping {
     }
 
     static var controllerName: String? {
-        GCController.controllers().first(where: { $0.extendedGamepad != nil }).map { $0.vendorName ?? "Controller" }
+        GCController.controllers().first(where: { $0.extendedGamepad != nil }).map { $0.vendorName ?? loc("Controller") }
     }
 }
 
@@ -128,11 +128,11 @@ final class ControllerMappingSession: ObservableObject {
     static let timeout: TimeInterval = 10
 
     static let groupLayout: [(title: String, pads: [CemuBridgePadMapButton])] = [
-        ("Face buttons", [CEMU_BRIDGE_PAD_A, CEMU_BRIDGE_PAD_B, CEMU_BRIDGE_PAD_X, CEMU_BRIDGE_PAD_Y]),
+        (loc("Face buttons"), [CEMU_BRIDGE_PAD_A, CEMU_BRIDGE_PAD_B, CEMU_BRIDGE_PAD_X, CEMU_BRIDGE_PAD_Y]),
         ("Shoulders", [CEMU_BRIDGE_PAD_L, CEMU_BRIDGE_PAD_R, CEMU_BRIDGE_PAD_ZL, CEMU_BRIDGE_PAD_ZR]),
-        ("D-pad", [CEMU_BRIDGE_PAD_UP, CEMU_BRIDGE_PAD_DOWN, CEMU_BRIDGE_PAD_LEFT, CEMU_BRIDGE_PAD_RIGHT]),
+        (loc("D-pad"), [CEMU_BRIDGE_PAD_UP, CEMU_BRIDGE_PAD_DOWN, CEMU_BRIDGE_PAD_LEFT, CEMU_BRIDGE_PAD_RIGHT]),
         ("Sticks", [CEMU_BRIDGE_PAD_STICK_L, CEMU_BRIDGE_PAD_STICK_R]),
-        ("System", [CEMU_BRIDGE_PAD_PLUS, CEMU_BRIDGE_PAD_MINUS]),
+        (loc("System"), [CEMU_BRIDGE_PAD_PLUS, CEMU_BRIDGE_PAD_MINUS]),
     ]
 
     @Published private(set) var listeningPad: Int?

@@ -298,6 +298,20 @@ bool MetalPipelineCompiler::Compile(bool forceCompile, bool isRenderThread, bool
 
     if (forceCompile)
 	{
+		// The render thread cannot skip this draw. When more than one shader is missing, hand all but the last to the
+		// shader workers first, so they compile in parallel with the one the render thread compiles itself.
+		if (PerfTelemetry::IsRenderThread())
+		{
+			RendererShaderMtl* missing[3];
+			uint32 missingCount = 0;
+			for (RendererShaderMtl* shader : { m_vertexShaderMtl, m_geometryShaderMtl, m_pixelShaderMtl })
+				if (shader && !shader->IsCompiled())
+					missing[missingCount++] = shader;
+			for (uint32 i = 0; i + 1 < missingCount; i++)
+				missing[i]->RequestUrgent();
+			if (missingCount > 1)
+				missing[missingCount - 1]->PreponeCompilation(isRenderThread);
+		}
 		if (m_vertexShaderMtl && !m_vertexShaderMtl->IsCompiled())
 			m_vertexShaderMtl->PreponeCompilation(isRenderThread);
 		if (m_geometryShaderMtl && !m_geometryShaderMtl->IsCompiled())
@@ -374,6 +388,11 @@ bool MetalPipelineCompiler::Compile(bool forceCompile, bool isRenderThread, bool
     }
     auto end = std::chrono::high_resolution_clock::now();
     auto creationDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    if (PerfTelemetry::IsRenderThread())
+    {
+        PerfTelemetry::Get().rtPipelineCompileNs.fetch_add((uint64)creationDuration, std::memory_order_relaxed);
+        PerfTelemetry::Get().rtPipelineCompiles.fetch_add(1, std::memory_order_relaxed);
+    }
     PerfTelemetry::Get().pipelineCompiles.fetch_add(1, std::memory_order_relaxed);
     PerfTelemetry::Get().pipelineCompileNs.fetch_add((uint64)creationDuration, std::memory_order_relaxed);
 

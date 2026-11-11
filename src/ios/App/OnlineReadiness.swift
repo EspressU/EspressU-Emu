@@ -6,9 +6,9 @@ enum OnlineReadiness {
         var missing: [String] = []
         switch cemu_bridge_account_online_error(accountId) {
         case 0: break
-        case 2, 3: missing.append("a saved password for the linked Pretendo or Nintendo Network ID on this account")
-        case 4: missing.append("a principal ID in this account")
-        default: missing.append("a linked Pretendo or Nintendo Network ID on this account")
+        case 2, 3: missing.append(loc("a saved password for the linked Pretendo or Nintendo Network ID on this account"))
+        case 4: missing.append(loc("a principal ID in this account"))
+        default: missing.append(loc("a linked Pretendo or Nintendo Network ID on this account"))
         }
         let fm = FileManager.default
         if let root = WiiUMenu.mlcRootURL {
@@ -33,7 +33,7 @@ enum OnlineReadiness {
         guard service == .pretendo || service == .nintendo else { return nil }
         let missing = missingItems(accountId: accountId)
         guard !missing.isEmpty else { return nil }
-        return "Online play can't work yet. Missing: \(list(missing)). \(howToFix)"
+        return locf("Online play can't work yet. Missing: %@. %@", list(missing), howToFix)
     }
 
     private static var noticeShown = false
@@ -45,6 +45,6 @@ enum OnlineReadiness {
         let missing = missingItems(accountId: accountId)
         guard !missing.isEmpty else { return nil }
         noticeShown = true
-        return "Pretendo online play won't work yet. Missing: \(list(missing)). See Settings > Account."
+        return locf("Pretendo online play won't work yet. Missing: %@. See Settings > Account.", list(missing))
     }
 }

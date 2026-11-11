@@ -2,6 +2,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPipelineCompiler.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameStats.h"
 
 #include "Cafe/HW/Latte/Core/FetchShader.h"
 #include "Cafe/HW/Latte/ISA/RegDefines.h"
@@ -13,6 +14,7 @@
 #include "Cafe/HW/Latte/ISA/LatteReg.h"
 #include "Cemu/FileCache/FileCache.h"
 #include "Common/precompiled.h"
+#include "util/helpers/ConcurrentQueue.h"
 #include "util/helpers/helpers.h"
 #include "config/ActiveSettings.h"
 
@@ -24,6 +26,7 @@
 #include <os/proc.h>
 #endif
 #include <condition_variable>
+#include <pthread/qos.h>
 #include <chrono>
 #include <deque>
 #include <fstream>
@@ -31,11 +34,13 @@
 static bool g_compilePipelineThreadInit{false};
 static std::mutex g_compilePipelineMutex;
 static std::condition_variable g_compilePipelineCondVar;
-static std::queue<MetalPipelineCompiler*> g_compilePipelineRequests;
+static std::deque<MetalPipelineCompiler*> g_compilePipelineRequests;
 static std::atomic<uint32_t> g_compilePipelineInFlight{0};
 
 namespace
 {
+	constexpr size_t kPipelineQueueCapacity = 64;
+	constexpr size_t kPipelineReadBatch = 32;
 	// Pipeline compiles hold a lot of memory while they run. Loading a big cache on all cores at once took a
 	// 6 GB iPad from 1.3 GB to 2 MB free in seconds, before a single texture existed, and iOS killed the app.
 	// With little memory left only a few compiles run at a time; one always may, so loading never stops.
@@ -45,6 +50,40 @@ namespace
 	std::condition_variable s_compileGateCv;
 	uint32 s_compilesRunning = 0;
 	std::atomic<uint32> s_compileGateLogs{0};
+
+	// During gameplay the async pipeline workers would otherwise take every core the emulated CPU and the render
+	// thread need, and their memory. Only a few run at once then; startup and in-game loading run them all.
+	uint32 s_asyncGameplayLimit = 2;
+	std::mutex s_asyncThrottleMutex;
+	std::condition_variable s_asyncThrottleCv;
+	uint32 s_asyncRunning = 0;
+
+	struct AsyncCompileThrottle
+	{
+		AsyncCompileThrottle()
+		{
+			std::unique_lock lock(s_asyncThrottleMutex);
+			uint64 waitStart = 0;
+			while (MetalFrameStats::CurrentPhase() == PerfTelemetry::kPhaseGameplay && s_asyncRunning >= s_asyncGameplayLimit)
+			{
+				// Idle workers wait here too; only count the time while requests are actually waiting for a slot.
+				if (!waitStart && g_compilePipelineInFlight.load(std::memory_order_relaxed) > s_asyncRunning)
+					waitStart = PerfTelemetry::NowNs();
+				s_asyncThrottleCv.wait_for(lock, std::chrono::milliseconds(10));
+			}
+			if (waitStart)
+				PerfTelemetry::Get().compileThrottleWaitNs.fetch_add(PerfTelemetry::NowNs() - waitStart, std::memory_order_relaxed);
+			++s_asyncRunning;
+		}
+		~AsyncCompileThrottle()
+		{
+			{
+				std::lock_guard lock(s_asyncThrottleMutex);
+				--s_asyncRunning;
+			}
+			s_asyncThrottleCv.notify_one();
+		}
+	};
 
 	struct CompileMemoryGate
 	{
@@ -79,19 +118,32 @@ namespace
 static void compileThreadFunc(sint32 threadIndex)
 {
 	SetThreadName("compilePl");
-
-	if (threadIndex != 0)
-		;
+#if TARGET_OS_IPHONE
+	// One step below the emulated CPU and the render thread, so a compile yields to them when cores are short.
+	pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+#endif
 
 	while (true)
 	{
+		AsyncCompileThrottle throttle;
 		std::unique_lock lock(g_compilePipelineMutex);
 		while (g_compilePipelineRequests.empty())
 			g_compilePipelineCondVar.wait(lock);
 
-		MetalPipelineCompiler* request = g_compilePipelineRequests.front();
-
-		g_compilePipelineRequests.pop();
+		// Most recently wanted first; among equals the oldest request.
+		auto best = g_compilePipelineRequests.begin();
+		uint32 bestWanted = (*best)->GetPipelineObject().m_wantedAt.load(std::memory_order_relaxed);
+		for (auto it = std::next(best); it != g_compilePipelineRequests.end(); ++it)
+		{
+			const uint32 wanted = (*it)->GetPipelineObject().m_wantedAt.load(std::memory_order_relaxed);
+			if ((sint32)(wanted - bestWanted) > 0)
+			{
+				best = it;
+				bestWanted = wanted;
+			}
+		}
+		MetalPipelineCompiler* request = *best;
+		g_compilePipelineRequests.erase(best);
 
 		lock.unlock();
 
@@ -111,7 +163,7 @@ void MetalPipelineCache_DrainAsyncCompiles()
 		while (!g_compilePipelineRequests.empty())
 		{
 			delete g_compilePipelineRequests.front();
-			g_compilePipelineRequests.pop();
+			g_compilePipelineRequests.pop_front();
 			g_compilePipelineInFlight.fetch_sub(1);
 		}
 	}
@@ -137,6 +189,8 @@ static void initCompileThread()
 		numCompileThreads = 2 + (cpuCoreCount - 3);
 
 	numCompileThreads = std::min(numCompileThreads, 8u);
+	s_asyncGameplayLimit = cpuCoreCount <= 4 ? 1 : 2;
+	cemuLog_log(LogType::Force, "Metal: {} async pipeline workers, at most {} at once during gameplay", numCompileThreads, s_asyncGameplayLimit);
 
 	for (uint32 i = 0; i < numCompileThreads; i++)
 	{
@@ -148,8 +202,9 @@ static void initCompileThread()
 static void queuePipeline(MetalPipelineCompiler* v)
 {
 	g_compilePipelineInFlight.fetch_add(1);
+	PerfTelemetry::Get().pipelinesQueued.fetch_add(1, std::memory_order_relaxed);
 	std::unique_lock lock(g_compilePipelineMutex);
-	g_compilePipelineRequests.push(std::move(v));
+	g_compilePipelineRequests.push_back(v);
 	lock.unlock();
 	g_compilePipelineCondVar.notify_one();
 }
@@ -188,7 +243,8 @@ MetalPipelineCache::~MetalPipelineCache()
     Close();
     for (auto& [key, pipelineObj] : m_pipelineCache)
     {
-        pipelineObj->m_pipeline->release();
+        if (pipelineObj->m_pipeline)
+            pipelineObj->m_pipeline->release();
         delete pipelineObj;
     }
     if (g_mtlPipelineCache == this)
@@ -200,9 +256,14 @@ PipelineObject* MetalPipelineCache::GetRenderPipelineState(const LatteFetchShade
     uint64 hash = CalculatePipelineHash(fetchShader, vertexShader, geometryShader, pixelShader, lastUsedAttachmentsInfo, activeAttachmentsInfo, lcr);
     PipelineObject*& pipelineObj = m_pipelineCache[hash];
     if (pipelineObj)
+    {
+        if (!pipelineObj->m_pipeline)
+            pipelineObj->m_wantedAt.store(PerfTelemetry::Get().gpuDraws.load(std::memory_order_relaxed), std::memory_order_relaxed);
         return pipelineObj;
+    }
 
     pipelineObj = new PipelineObject();
+    pipelineObj->m_wantedAt.store(PerfTelemetry::Get().gpuDraws.load(std::memory_order_relaxed), std::memory_order_relaxed);
 
     MetalPipelineCompiler* compiler = new MetalPipelineCompiler(m_mtlr, *pipelineObj);
     compiler->InitFromState(fetchShader, vertexShader, geometryShader, pixelShader, lastUsedAttachmentsInfo, activeAttachmentsInfo, lcr);
@@ -339,15 +400,6 @@ uint64 MetalPipelineCache::CalculatePipelineHash(const LatteFetchShader* fetchSh
 	return stateHash;
 }
 
-struct
-{
-	uint32 pipelineLoadIndex;
-	uint32 pipelineMaxFileIndex;
-
-	std::atomic_uint32_t pipelinesQueued;
-	std::atomic_uint32_t pipelinesLoaded;
-} g_mtlCacheState;
-
 static std::vector<LatteShaderCachePipelineRekey> s_pendingRekeys;
 
 uint32 MetalPipelineCache::BeginLoading(uint64 cacheTitleId)
@@ -356,10 +408,10 @@ uint32 MetalPipelineCache::BeginLoading(uint64 cacheTitleId)
 	fs::create_directories(ActiveSettings::GetCachePath("shaderCache/transferable"), ec);
 	const auto pathCacheFile = ActiveSettings::GetCachePath("shaderCache/transferable/{:016x}_mtlpipeline.bin", cacheTitleId);
 
-	g_mtlCacheState.pipelineLoadIndex = 0;
-	g_mtlCacheState.pipelineMaxFileIndex = 0;
-	g_mtlCacheState.pipelinesLoaded = 0;
-	g_mtlCacheState.pipelinesQueued = 0;
+	m_pipelineLoadIndex = 0;
+	m_pipelineMaxFileIndex = 0;
+	m_pipelinesLoaded = 0;
+	m_pipelinesQueued = 0;
 	s_pendingRekeys.clear();
 
 	m_loadStart = std::chrono::steady_clock::now();
@@ -372,19 +424,6 @@ uint32 MetalPipelineCache::BeginLoading(uint64 cacheTitleId)
 	m_pipelinesDeduped = 0;
 	OpenBinaryArchives(cacheTitleId);
 
-	m_compilationCount.store(0);
-	m_compilationQueue.clear();
-
-	uint32 cpuCoreCount = GetPhysicalCoreCount();
-	m_numCompilationThreads = std::clamp(cpuCoreCount, 1u, 8u);
-
-	for (uint32 i = 0; i < m_numCompilationThreads; i++)
-	{
-		m_loaderThreadsRunning.fetch_add(1);
-		std::thread compileThread(&MetalPipelineCache::CompilerThread, this);
-		compileThread.detach();
-	}
-
 	cemu_assert_debug(s_cache == nullptr);
 	s_cache = FileCache::Open(pathCacheFile, true, LatteShaderCache_getPipelineCacheExtraVersion(cacheTitleId));
 	if (!s_cache)
@@ -392,42 +431,86 @@ uint32 MetalPipelineCache::BeginLoading(uint64 cacheTitleId)
 		cemuLog_log(LogType::Force, "Failed to open or create Metal pipeline cache file: {}", _pathToUtf8(pathCacheFile));
 		return 0;
 	}
-	else
+	s_cache->UseCompression(false);
+	const uint32 count = s_cache->GetFileCount();
+	if (count == 0)
+		return 0;
+
+	m_pipelineMaxFileIndex = s_cache->GetMaximumFileIndex();
+	// Pipeline and shader compiles mostly wait on Metal's separate compiler process, so a few more threads than cores keep it busy;
+	// the memory gate in CompilerThread still limits how many run at once when memory is low
+	const uint32 threads = std::min(count, std::clamp(GetPhysicalCoreCount() + 3, 2u, 10u));
 	{
-		s_cache->UseCompression(false);
-		g_mtlCacheState.pipelineMaxFileIndex = s_cache->GetMaximumFileIndex();
+		std::lock_guard lock(m_loaderMutex);
+		m_loading = true;
+		for (uint32 i = 0; i < threads; ++i)
+		{
+			std::thread worker(&MetalPipelineCache::CompilerThread, this);
+			++m_loaderThreadsRunning;
+			worker.detach();
+		}
 	}
-	return s_cache->GetFileCount();
+	return count;
 }
 
 bool MetalPipelineCache::UpdateLoading(uint32& pipelinesLoadedTotal, uint32& pipelinesMissingShaders)
 {
-	pipelinesLoadedTotal = g_mtlCacheState.pipelinesLoaded;
 	pipelinesMissingShaders = 0;
-	while (g_mtlCacheState.pipelineLoadIndex <= g_mtlCacheState.pipelineMaxFileIndex)
+	size_t slots;
 	{
-		if (m_compilationQueue.size() >= 50)
+		std::unique_lock lock(m_loaderMutex);
+		pipelinesLoadedTotal = m_pipelinesLoaded;
+		if (!m_loading)
+			return false;
+		if (m_pipelineLoadIndex <= m_pipelineMaxFileIndex && m_compilationQueue.size() == kPipelineQueueCapacity)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			return true;
+			m_loaderProgress.wait_for(lock, std::chrono::milliseconds(8), [&] {
+				return !m_loading || m_compilationQueue.size() <= kPipelineQueueCapacity - kPipelineReadBatch;
+			});
+			if (!m_loading)
+				return false;
 		}
+		slots = kPipelineQueueCapacity - m_compilationQueue.size();
+	}
 
+	std::array<std::vector<uint8>, kPipelineReadBatch> batch;
+	size_t count = 0;
+	for (size_t scanned = 0; scanned < kPipelineReadBatch && count < slots && m_pipelineLoadIndex <= m_pipelineMaxFileIndex; ++scanned)
+	{
 		uint64 fileNameA, fileNameB;
-		std::vector<uint8> fileData;
-		if (s_cache->GetFileByIndex(g_mtlCacheState.pipelineLoadIndex, &fileNameA, &fileNameB, fileData))
+		auto& fileData = batch[count];
+		if (s_cache->GetFileByIndex(m_pipelineLoadIndex++, &fileNameA, &fileNameB, fileData))
 		{
 			LatteShaderCache_TranslatePipelineEntry(fileNameA, fileNameB, fileData, s_pendingRekeys);
-			g_mtlCacheState.pipelinesQueued++;
-			m_compilationQueue.push(std::move(fileData));
-			g_mtlCacheState.pipelineLoadIndex++;
-			return true;
+			++count;
 		}
-		g_mtlCacheState.pipelineLoadIndex++;
 	}
-	if (g_mtlCacheState.pipelinesLoaded != g_mtlCacheState.pipelinesQueued)
+	if (count != 0)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		{
+			std::lock_guard lock(m_loaderMutex);
+			if (!m_loading)
+				return false;
+			for (size_t i = 0; i < count; ++i)
+				m_compilationQueue.push_back(std::move(batch[i]));
+			m_pipelinesQueued += uint32(count);
+		}
+		m_loaderWork.notify_all();
 		return true;
+	}
+	if (m_pipelineLoadIndex <= m_pipelineMaxFileIndex)
+		return true;
+
+	{
+		std::unique_lock lock(m_loaderMutex);
+		m_loaderProgress.wait_for(lock, std::chrono::milliseconds(8), [&] {
+			return !m_loading || m_pipelinesLoaded == m_pipelinesQueued;
+		});
+		pipelinesLoadedTotal = m_pipelinesLoaded;
+		if (!m_loading)
+			return false;
+		if (m_pipelinesLoaded != m_pipelinesQueued)
+			return true;
 	}
 	LatteShaderCache_ApplyPipelineRekeys(s_cache, s_pendingRekeys);
 	{
@@ -436,19 +519,20 @@ bool MetalPipelineCache::UpdateLoading(uint32& pipelinesLoadedTotal, uint32& pip
 		const uint64 pipelineMs = (PerfTelemetry::Get().pipelineCompileNs.load(std::memory_order_relaxed) - m_loadPipelineCompileNsAtStart) / 1000000;
 		const uint32 shaderCompiles = PerfTelemetry::Get().shaderCompiles.load(std::memory_order_relaxed) - m_loadShaderCompilesAtStart;
 		cemuLog_log(LogType::Force, "Metal pipeline load: {} cache entries, {} pipelines built in {} ms summed ({} ms avg), {} duplicate entries skipped, binary archive {} hits / {} misses from {} file(s), {} shaders compiled on demand, {} ms wall for the pipeline stage",
-			g_mtlCacheState.pipelinesQueued.load(), pipelineCompiles, pipelineMs, pipelineCompiles ? pipelineMs / pipelineCompiles : 0, m_pipelinesDeduped.load(), m_archiveHits.load(), m_archiveMisses.load(), m_archiveFilesLoaded, shaderCompiles, wallMs);
+			pipelinesLoadedTotal, pipelineCompiles, pipelineMs, pipelineCompiles ? pipelineMs / pipelineCompiles : 0, m_pipelinesDeduped.load(), m_archiveHits.load(), m_archiveMisses.load(), m_archiveFilesLoaded, shaderCompiles, wallMs);
 	}
 	return false;
 }
 
 void MetalPipelineCache::EndLoading()
 {
-	uint32 threadCount = m_numCompilationThreads;
-	m_numCompilationThreads = 0;
-	for (uint32 i = 0; i < threadCount; i++)
 	{
-		m_compilationQueue.push({});
+		std::lock_guard lock(m_loaderMutex);
+		m_loading = false;
+		m_compilationQueue.clear();
 	}
+	m_loaderWork.notify_all();
+	m_loaderProgress.notify_all();
 }
 
 struct CachedPipeline
@@ -478,48 +562,36 @@ struct CachedPipeline
 
 void MetalPipelineCache::LoadPipelineFromCache(std::span<uint8> fileData)
 {
-	static FSpinlock s_spinlockSharedInternal;
-
-	LatteContextRegister* lcr = new LatteContextRegister();
-	s_spinlockSharedInternal.lock();
-	CachedPipeline* cachedPipeline = new CachedPipeline();
-	s_spinlockSharedInternal.unlock();
+	CachedPipeline cachedPipeline{};
 
 	MemStreamReader streamReader(fileData.data(), fileData.size());
-	if (!DeserializePipeline(streamReader, *cachedPipeline))
-	{
-		s_spinlockSharedInternal.lock();
-		delete lcr;
-		delete cachedPipeline;
-		s_spinlockSharedInternal.unlock();
+	if (!DeserializePipeline(streamReader, cachedPipeline))
 		return;
-	}
-	Latte::LoadGPURegisterState(*lcr, cachedPipeline->gpuState);
 
 	LatteDecompilerShader* vertexShader = nullptr;
 	LatteDecompilerShader* geometryShader = nullptr;
 	LatteDecompilerShader* pixelShader = nullptr;
-	if (cachedPipeline->vsHash.isPresent)
+	if (cachedPipeline.vsHash.isPresent)
 	{
-		vertexShader = LatteSHRC_FindVertexShader(cachedPipeline->vsHash.baseHash, cachedPipeline->vsHash.auxHash);
+		vertexShader = LatteSHRC_FindVertexShader(cachedPipeline.vsHash.baseHash, cachedPipeline.vsHash.auxHash);
 		if (!vertexShader)
 		{
 			cemuLog_log(LogType::Force, "Vertex shader not found in cache");
 			return;
 		}
 	}
-	if (cachedPipeline->gsHash.isPresent)
+	if (cachedPipeline.gsHash.isPresent)
 	{
-		geometryShader = LatteSHRC_FindGeometryShader(cachedPipeline->gsHash.baseHash, cachedPipeline->gsHash.auxHash);
+		geometryShader = LatteSHRC_FindGeometryShader(cachedPipeline.gsHash.baseHash, cachedPipeline.gsHash.auxHash);
 		if (!geometryShader)
 		{
 			cemuLog_log(LogType::Force, "Geometry shader not found in cache");
 			return;
 		}
 	}
-	if (cachedPipeline->psHash.isPresent)
+	if (cachedPipeline.psHash.isPresent)
 	{
-		pixelShader = LatteSHRC_FindPixelShader(cachedPipeline->psHash.baseHash, cachedPipeline->psHash.auxHash);
+		pixelShader = LatteSHRC_FindPixelShader(cachedPipeline.psHash.baseHash, cachedPipeline.psHash.auxHash);
 		if (!pixelShader)
 		{
 			cemuLog_log(LogType::Force, "Pixel shader not found in cache");
@@ -527,40 +599,38 @@ void MetalPipelineCache::LoadPipelineFromCache(std::span<uint8> fileData)
 		}
 	}
 
-	if (!pixelShader)
-	{
-		cemu_assert_debug(false);
+	if (!vertexShader || !vertexShader->compatibleFetchShader || !pixelShader)
 		return;
-	}
 
-	MetalAttachmentsInfo attachmentsInfo(*lcr, pixelShader);
+	auto lcr = std::make_unique<LatteContextRegister>();
+	Latte::LoadGPURegisterState(*lcr, cachedPipeline.gpuState);
+	const MetalAttachmentsInfo attachmentsInfo(*lcr, pixelShader);
 
-	uint64 pipelineStateHash = CalculatePipelineHash(vertexShader->compatibleFetchShader, vertexShader, geometryShader, pixelShader, cachedPipeline->lastUsedAttachmentsInfo, attachmentsInfo, *lcr);
-	PipelineObject* pipelineObject = new PipelineObject();
+	uint64 pipelineStateHash = CalculatePipelineHash(vertexShader->compatibleFetchShader, vertexShader, geometryShader, pixelShader, cachedPipeline.lastUsedAttachmentsInfo, attachmentsInfo, *lcr);
+	auto pipelineObject = std::make_unique<PipelineObject>();
 	m_pipelineCacheLock.lock();
-	const bool claimed = m_pipelineCache.try_emplace(pipelineStateHash, pipelineObject).second;
+	const bool claimed = m_pipelineCache.try_emplace(pipelineStateHash, pipelineObject.get()).second;
 	m_pipelineCacheLock.unlock();
 	if (!claimed)
 	{
-		delete pipelineObject;
 		m_pipelinesDeduped.fetch_add(1, std::memory_order_relaxed);
-		s_spinlockSharedInternal.lock();
-		delete lcr;
-		delete cachedPipeline;
-		s_spinlockSharedInternal.unlock();
 		return;
 	}
 
 	{
 		MetalPipelineCompiler pp(m_mtlr, *pipelineObject);
-		pp.InitFromState(vertexShader->compatibleFetchShader, vertexShader, geometryShader, pixelShader, cachedPipeline->lastUsedAttachmentsInfo, attachmentsInfo, *lcr);
+		pp.InitFromState(vertexShader->compatibleFetchShader, vertexShader, geometryShader, pixelShader, cachedPipeline.lastUsedAttachmentsInfo, attachmentsInfo, *lcr);
 		pp.Compile(true, true, false);
 	}
 
-	s_spinlockSharedInternal.lock();
-	delete lcr;
-	delete cachedPipeline;
-	s_spinlockSharedInternal.unlock();
+	if (pipelineObject->m_pipeline)
+		pipelineObject.release();
+	else
+	{
+		m_pipelineCacheLock.lock();
+		m_pipelineCache.erase(pipelineStateHash);
+		m_pipelineCacheLock.unlock();
+	}
 }
 
 ConcurrentQueue<CachedPipeline*> g_mtlPipelineCachingQueue;
@@ -688,18 +758,35 @@ bool MetalPipelineCache::DeserializePipeline(MemStreamReader& memReader, CachedP
 int MetalPipelineCache::CompilerThread()
 {
 	SetThreadName("plCacheCompiler");
-	while (m_numCompilationThreads != 0)
+	for (;;)
 	{
-		std::vector<uint8> pipelineData = m_compilationQueue.pop();
-		if(pipelineData.empty())
-			continue;
+		std::vector<uint8> pipelineData;
+		{
+			std::unique_lock lock(m_loaderMutex);
+			m_loaderWork.wait(lock, [&] { return !m_loading || !m_compilationQueue.empty(); });
+			if (!m_loading)
+				break;
+			pipelineData = std::move(m_compilationQueue.front());
+			m_compilationQueue.pop_front();
+			if (m_compilationQueue.size() == kPipelineQueueCapacity - kPipelineReadBatch)
+				m_loaderProgress.notify_one();
+		}
+		if (!pipelineData.empty())
 		{
 			CompileMemoryGate gate;
 			LoadPipelineFromCache(pipelineData);
 		}
-		++g_mtlCacheState.pipelinesLoaded;
+		{
+			std::lock_guard lock(m_loaderMutex);
+			if (++m_pipelinesLoaded == m_pipelinesQueued)
+				m_loaderProgress.notify_one();
+		}
 	}
-	m_loaderThreadsRunning.fetch_sub(1);
+	{
+		std::lock_guard lock(m_loaderMutex);
+		--m_loaderThreadsRunning;
+		m_loaderProgress.notify_all();
+	}
 	return 0;
 }
 
@@ -713,11 +800,10 @@ bool MetalPipelineCache_LoaderAbandoned()
 bool MetalPipelineCache::StopLoading(uint32 timeoutMs)
 {
 	EndLoading();
-	for (uint32 waited = 0; m_loaderThreadsRunning.load() != 0 && waited < timeoutMs; waited += 2)
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	if (m_loaderThreadsRunning.load() == 0)
+	std::unique_lock lock(m_loaderMutex);
+	if (m_loaderProgress.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&] { return m_loaderThreadsRunning == 0; }))
 		return true;
-	cemuLog_log(LogType::Force, "Metal: {} pipeline cache loader thread(s) did not stop within {} ms", m_loaderThreadsRunning.load(), timeoutMs);
+	cemuLog_log(LogType::Force, "Metal: {} pipeline cache loader thread(s) did not stop within {} ms", m_loaderThreadsRunning, timeoutMs);
 	g_mtlLoaderAbandoned.store(true);
 	return false;
 }
