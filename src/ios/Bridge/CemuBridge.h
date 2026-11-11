@@ -245,6 +245,9 @@ bool cemu_bridge_low_power_mode(void);
 bool cemu_bridge_favour_accuracy(void);
 
 void cemu_bridge_set_async_shader_compile(bool enabled);
+
+/// Wii U system language the game sees (CafeConsoleLanguage: 0 JA, 1 EN, 2 FR, 3 DE, 4 IT, 5 ES, 6 ZH, 7 KO, 8 NL, 9 PT, 10 RU, 11 TW).
+void cemu_bridge_set_console_language(int32_t language);
 bool cemu_bridge_async_shader_compile(void);
 
 void cemu_bridge_set_vsync_enabled(bool enabled);

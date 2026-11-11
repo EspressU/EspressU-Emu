@@ -2566,6 +2566,12 @@ void cemu_bridge_set_async_shader_compile(bool enabled) {
     GetConfig().async_compile = enabled;
 }
 
+void cemu_bridge_set_console_language(int32_t language) {
+    if (language < (int32_t)CafeConsoleLanguage::JA || language > (int32_t)CafeConsoleLanguage::TW)
+        language = (int32_t)CafeConsoleLanguage::EN;
+    GetConfig().console_language = (CafeConsoleLanguage)language;
+}
+
 bool cemu_bridge_async_shader_compile(void) {
     return GetConfig().async_compile.GetValue();
 }
