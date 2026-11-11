@@ -11,6 +11,9 @@ extension EspressUSettingsView {
     var graphicPacksGroups: [SettingsGroup] {
         let store = GraphicPackStore.shared
         var source = [
+            SettingsItem(id: "gp.auto", title: loc("Update automatically"),
+                         detail: loc("Checks for new community packs every time EspressU opens and installs them in the background."),
+                         control: .toggle(values.bool(GraphicPackStore.autoUpdateKey, GraphicPackStore.autoUpdateDefault))),
             SettingsItem(id: "gp.installed", title: loc("Community packs"),
                          detail: store.installed == nil ? loc("Made by the Cemu graphic packs project. Verified before anything is replaced.") : nil,
                          control: .info(installedPacksText, nil)),

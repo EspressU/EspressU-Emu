@@ -94,6 +94,14 @@ final class GraphicPackStore: NSObject, ObservableObject {
 
     private static let checkInterval: TimeInterval = 24 * 60 * 60
 
+    /// A missing value means on. It deliberately does not share the `espressu.graphicPacks.` prefix, which Reset
+    /// settings leaves alone, so Reset puts it back to on.
+    static let autoUpdateKey = "espressu.graphics.autoUpdatePacks"
+    static let autoUpdateDefault = true
+    static var autoUpdateEnabled: Bool { UserDefaults.standard.object(forKey: autoUpdateKey) as? Bool ?? autoUpdateDefault }
+
+    private var launchRunStarted = false
+
     private lazy var session: URLSession = {
         let config = URLSessionConfiguration.background(withIdentifier: GraphicPackStore.sessionIdentifier)
         config.sessionSendsLaunchEvents = true
@@ -119,6 +127,18 @@ final class GraphicPackStore: NSObject, ObservableObject {
         finishPendingInstallIfPossible()
         reload()
         checkForUpdate(force: false)
+    }
+
+    /// Runs once per app launch: rescans the packs, then looks for a newer release and installs it in the background.
+    /// Offline or rate-limited checks are skipped quietly; the manual Check button still reports problems.
+    func runLaunchUpdate() {
+        guard !launchRunStarted else { return }
+        launchRunStarted = true
+        installed = Self.readInstalled()
+        finishPendingInstallIfPossible()
+        reload()
+        guard Self.autoUpdateEnabled else { return }
+        checkForUpdate(force: true, automatic: true)
     }
 
     func refreshList() {
@@ -186,12 +206,14 @@ final class GraphicPackStore: NSObject, ObservableObject {
         }
     }
 
-    func checkForUpdate(force: Bool) {
+    func checkForUpdate(force: Bool, automatic: Bool = false) {
         guard phase == .idle || phase == .waitingForGameToClose else { return }
+        guard !automatic || !espressu_gp_title_running() else { return }
         if !force, let lastChecked, Date().timeIntervalSince(lastChecked) < Self.checkInterval { return }
 
         phase = .checking
-        if force { notice = nil }
+        let loud = force && !automatic
+        if loud { notice = nil }
         var request = URLRequest(url: Self.latestReleaseAPI, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: loc("Accept"))
         request.setValue(loc("EspressU"), forHTTPHeaderField: "User-Agent")
@@ -207,11 +229,14 @@ final class GraphicPackStore: NSObject, ObservableObject {
                     self.lastChecked = Date()
                     self.defaults.set(try? JSONEncoder().encode(release), forKey: Key.latest)
                     self.defaults.set(self.lastChecked, forKey: Key.lastCheck)
-                    if force {
+                    if loud {
                         self.notice = self.updateAvailable ? nil : Notice(text: loc("You have the latest community packs."), isError: false)
                     }
                 case .failure(let message):
-                    if force { self.notice = Notice(text: message, isError: true) }
+                    if loud { self.notice = Notice(text: message, isError: true) }
+                }
+                if automatic, case .success = outcome, self.updateAvailable, !self.gameRunning {
+                    self.startDownload()
                 }
             }
         }
