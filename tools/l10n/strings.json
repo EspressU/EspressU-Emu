@@ -541,6 +541,9 @@
  "Asks before leaving the game.": [
   "HomeMenu.swift"
  ],
+ "Async texture loading": [
+  "Settings/EspressUSettingsContent.swift"
+ ],
  "Audio": [
   "Settings/AudioSettingsSection.swift"
  ],
@@ -837,6 +840,9 @@
   "GraphicPacksView.swift",
   "Settings/EspressUSettingsGraphicPacks.swift"
  ],
+ "Checks for new community packs every time EspressU opens and installs them in the background.": [
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
  "China": [
   "CoverArtNaming.swift"
  ],
@@ -1058,6 +1064,9 @@
  ],
  "Controls": [
   "Settings/EspressUSettingsModel.swift"
+ ],
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": [
+  "Settings/EspressUSettingsContent.swift"
  ],
  "Cool": [
   "HeatStatus.swift"
@@ -5133,6 +5142,9 @@
   "EspressUHome.swift",
   "EspressUInbox.swift",
   "GameContentSection.swift",
+  "Settings/EspressUSettingsGraphicPacks.swift"
+ ],
+ "Update automatically": [
   "Settings/EspressUSettingsGraphicPacks.swift"
  ],
  "Update available: %@. Your choices are kept.": [

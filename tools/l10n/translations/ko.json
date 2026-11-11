@@ -1677,5 +1677,9 @@
  "standard": "표준",
  "three cores, chosen in Settings (experimental; %@)": "코어 3개, 설정에서 선택(실험적; %@)",
  "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": "코어 3개, 설정에서 선택(실험적; %@). 이 기기에는 성능 코어가 3개 미만이므로 코어 1개일 때보다 느려질 수 있습니다",
- "unknown": "알 수 없음"
+ "unknown": "알 수 없음",
+ "Async texture loading": "텍스처 비동기 로딩",
+ "Checks for new community packs every time EspressU opens and installs them in the background.": "EspressU를 열 때마다 새 커뮤니티 팩을 확인하고 백그라운드에서 설치합니다.",
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": "게임을 멈추는 대신 백그라운드에서 텍스처를 변환합니다. 새 텍스처는 잠깐 단색으로 보일 수 있습니다.",
+ "Update automatically": "자동 업데이트"
 }

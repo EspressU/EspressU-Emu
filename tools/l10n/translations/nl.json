@@ -1677,5 +1677,9 @@
  "standard": "standaard",
  "three cores, chosen in Settings (experimental; %@)": "drie kernen, gekozen in de instellingen (experimenteel; %@)",
  "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": "drie kernen, gekozen in de instellingen (experimenteel; %@). Dit apparaat heeft minder dan drie prestatiekernen, dus verwacht dat het trager draait dan met één kern",
- "unknown": "onbekend"
+ "unknown": "onbekend",
+ "Async texture loading": "Texturen asynchroon laden",
+ "Checks for new community packs every time EspressU opens and installs them in the background.": "Controleert elke keer dat EspressU opent op nieuwe communitypacks en installeert ze op de achtergrond.",
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": "Zet texturen op de achtergrond om in plaats van het spel te pauzeren. Nieuwe texturen kunnen even effen van kleur zijn.",
+ "Update automatically": "Automatisch bijwerken"
 }

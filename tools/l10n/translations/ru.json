@@ -1677,5 +1677,9 @@
  "standard": "стандартный",
  "three cores, chosen in Settings (experimental; %@)": "три ядра, выбрано в настройках (экспериментально; %@)",
  "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": "три ядра, выбрано в настройках (экспериментально; %@). У этого устройства меньше трёх производительных ядер, поэтому ожидайте, что оно будет работать медленнее, чем на одном ядре",
- "unknown": "неизвестно"
+ "unknown": "неизвестно",
+ "Async texture loading": "Асинхронная загрузка текстур",
+ "Checks for new community packs every time EspressU opens and installs them in the background.": "Проверяет новые пакеты сообщества при каждом запуске EspressU и устанавливает их в фоновом режиме.",
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": "Преобразует текстуры в фоне, не останавливая игру. Новые текстуры могут ненадолго отображаться однотонными.",
+ "Update automatically": "Обновлять автоматически"
 }

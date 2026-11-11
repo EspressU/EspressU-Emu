@@ -1677,5 +1677,9 @@
  "standard": "標準",
  "three cores, chosen in Settings (experimental; %@)": "三核，已在設定中選擇（實驗性；%@）",
  "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": "三核，已在設定中選擇（實驗性；%@）。此裝置的效能核心少於三個，因此預計會比單核更慢",
- "unknown": "未知"
+ "unknown": "未知",
+ "Async texture loading": "非同步載入紋理",
+ "Checks for new community packs every time EspressU opens and installs them in the background.": "每次開啟 EspressU 時檢查新的社群包,並在背景安裝。",
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": "在背景轉換紋理,而不是暫停遊戲。新紋理可能會短暫顯示為純色。",
+ "Update automatically": "自動更新"
 }

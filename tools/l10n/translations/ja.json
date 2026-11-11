@@ -1677,5 +1677,9 @@
  "standard": "標準",
  "three cores, chosen in Settings (experimental; %@)": "3コア(設定で選択、実験的; %@)",
  "three cores, chosen in Settings (experimental; %@). This device has fewer than three performance cores, so expect it to run slower than one core": "3コア(設定で選択、実験的; %@)。このデバイスにはパフォーマンスコアが3つ未満のため、1コアより遅くなる可能性があります",
- "unknown": "不明"
+ "unknown": "不明",
+ "Async texture loading": "テクスチャの非同期読み込み",
+ "Checks for new community packs every time EspressU opens and installs them in the background.": "EspressUを開くたびに新しいコミュニティパックを確認し、バックグラウンドでインストールします。",
+ "Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment.": "ゲームを一時停止せず、バックグラウンドでテクスチャを変換します。新しいテクスチャは一瞬だけ単色で表示されることがあります。",
+ "Update automatically": "自動的にアップデート"
 }
