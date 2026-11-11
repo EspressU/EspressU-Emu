@@ -94,7 +94,7 @@ extension EspressUSettingsView {
         let frameGeneration = values.bool(PerformanceTuning.frameGenerationKey, PerformanceTuning.frameGenerationDefault) { _ in
             PerformanceTuning.applyToBridge()
         }
-        let experimental: [SettingsItem] = [
+        var experimental: [SettingsItem] = [
             SettingsItem(id: "tuning.asyncTextures", title: loc("Async texture loading"),
                          detail: loc("Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment."),
                          control: .toggle(values.bool(PerformanceTuning.asyncTexturesKey, PerformanceTuning.asyncTexturesDefault) { _ in
@@ -103,13 +103,14 @@ extension EspressUSettingsView {
             SettingsItem(id: "tuning.frameGeneration", title: loc("Frame generation"),
                          detail: loc("Adds intermediate pictures to the TV output when there is room between real frames. Interpolation can add latency."),
                          control: .toggle(frameGeneration)),
-            SettingsItem(id: "tuning.showFrameGenBreakdown", title: loc("Show frame generation breakdown"),
-                         detail: loc("Shows how many of the displayed frames per second were generated."),
-                         control: .toggle(values.bool(OverlaySettings.showFrameGenBreakdownKey, OverlaySettings.defaultShowFrameGenBreakdown) {
-                             cemu_bridge_set_overlay_show_framegen_breakdown($0)
-                         }),
-                         enabled: frameGeneration.wrappedValue),
         ]
+        if frameGeneration.wrappedValue {
+            experimental.append(SettingsItem(id: "tuning.showFrameGenBreakdown", title: loc("Show frame generation breakdown"),
+                                             detail: loc("Shows how many of the displayed frames per second were generated."),
+                                             control: .toggle(values.bool(OverlaySettings.showFrameGenBreakdownKey, OverlaySettings.defaultShowFrameGenBreakdown) {
+                                                 cemu_bridge_set_overlay_show_framegen_breakdown($0)
+                                             })))
+        }
 
         return [
             SettingsGroup(id: "cpu", title: loc("CPU"), items: cpu),
