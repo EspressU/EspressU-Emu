@@ -7,6 +7,7 @@
 #include "Common/DeviceCapabilities.h"
 #include "astcenc.h"
 #include "astcenc_internal.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 
 static inline uint8 astcFloatToUNorm8(float v)
 {
@@ -40,6 +41,9 @@ static uint32 astcEncodeThreadCount()
 }
 
 static constexpr size_t kAstcThreadedMinTexels = 256 * 256;
+// The leftover blocks of a direct transcode are packed into one 4 texel high strip. They run on the render
+// thread while the game waits, so they are split across threads much earlier (512 blocks).
+static constexpr size_t kAstcThreadedMinTexelsLeftover = 512 * 16;
 
 struct ASTCEncoderContext
 {
@@ -72,7 +76,9 @@ static ASTCEncoderContext* astcGetContext(astcenc_profile profile)
     astcenc_error status = astcenc_config_init(
         profile,
         4, 4, 1,
-        ASTCENC_PRE_FAST,
+        // Only blocks the direct transcoders cannot convert get here (a few percent, mostly BC3 with varying
+        // alpha), but they made up two thirds of the texture time in BotW hitches; fastest is about twice as quick.
+        ASTCENC_PRE_FASTEST,
         0,
         &config);
     if (status != ASTCENC_SUCCESS)
@@ -130,7 +136,8 @@ static astcenc_error astcCompressImageThreaded(astcenc_context* context, astcenc
     return (astcenc_error)helperFailure.load();
 }
 
-static bool astcCompressRGBA8Image(const uint8* rgba8, sint32 width, sint32 height, astcenc_profile profile, uint8* outputData)
+static bool astcCompressRGBA8Image(const uint8* rgba8, sint32 width, sint32 height, astcenc_profile profile, uint8* outputData,
+                                   size_t threadedMinTexels = kAstcThreadedMinTexels)
 {
     ASTCEncoderContext* enc = astcGetContext(profile);
     if (!enc) {
@@ -154,7 +161,7 @@ static bool astcCompressRGBA8Image(const uint8* rgba8, sint32 width, sint32 heig
 
     size_t outputSize = astcCompressedImageSize(width, height);
     uint32 threads = enc->threads;
-    if ((size_t)width * (size_t)height < kAstcThreadedMinTexels)
+    if ((size_t)width * (size_t)height < threadedMinTexels)
         threads = 1;
 
     astcenc_error status;
@@ -270,6 +277,23 @@ namespace astcdirect
         memcpy(blk, &v, 16);
     }
 
+    // 4x4 grid, 2-bit weights, one partition, CEM 12 (RGBA direct) with a constant alpha: a BC3 block whose alpha is
+    // the same everywhere. Same layout as writeRGBBlock with two more 8-bit endpoint values for alpha.
+    static inline void writeRGBConstAlphaBlock(uint8* blk, const uint8 e0[3], const uint8 e1[3], uint8 alpha, const uint8* w)
+    {
+        unsigned __int128 v = (unsigned __int128)66u;
+        v |= (unsigned __int128)12u << 13;
+        const uint64 ep = (uint64)e0[0] | (uint64)e1[0] << 8 | (uint64)e0[1] << 16 | (uint64)e1[1] << 24
+                        | (uint64)e0[2] << 32 | (uint64)e1[2] << 40 | (uint64)alpha << 48 | (uint64)alpha << 56;
+        v |= (unsigned __int128)ep << 17;
+        unsigned __int128 wv = 0;
+        for (int t = 0; t < 16; t++)
+            wv |= (unsigned __int128)w[t] << (t * 2);
+        const uint64 lo = (uint64)wv, hi = (uint64)(wv >> 64);
+        v |= (unsigned __int128)__builtin_bitreverse64(lo) << 64 | (unsigned __int128)__builtin_bitreverse64(hi);
+        memcpy(blk, &v, 16);
+    }
+
     static inline void orderAndWrite(uint8* blk, uint8 e0[3], uint8 e1[3], uint8* w, int weightBits)
     {
         if (e1[0] + e1[1] + e1[2] < e0[0] + e0[1] + e0[2])
@@ -287,6 +311,76 @@ namespace astcdirect
     {
         const int r = c >> 11 & 31, g = c >> 5 & 63, b = c & 31;
         out[0] = (uint8)(r << 3 | r >> 2); out[1] = (uint8)(g << 2 | g >> 4); out[2] = (uint8)(b << 3 | b >> 2);
+    }
+
+    // A BC1 colour block in four-colour mode (BC3's colour half always is, whatever the endpoint order).
+    // alpha 255 writes RGB (CEM 8, alpha implied opaque), anything else RGBA with that alpha everywhere.
+    static inline void transcodeFourColour(const uint8* bc, uint8* blk, uint8 alpha)
+    {
+        const uint16 c0 = (uint16)(bc[0] | bc[1] << 8), c1 = (uint16)(bc[2] | bc[3] << 8);
+        uint8 e0[3], e1[3];
+        expand565(c0, e0); expand565(c1, e1);
+        static const uint8 kWeight[4] = { 0, 3, 1, 2 };
+        const uint32 idx = (uint32)bc[4] | (uint32)bc[5] << 8 | (uint32)bc[6] << 16 | (uint32)bc[7] << 24;
+        uint8 w[16];
+        for (int t = 0; t < 16; t++)
+            w[t] = kWeight[idx >> (2 * t) & 3];
+        if (alpha == 255)
+        {
+            orderAndWrite(blk, e0, e1, w, 2);
+            return;
+        }
+        if (e1[0] + e1[1] + e1[2] < e0[0] + e0[1] + e0[2])
+        {
+            uint8 t[3];
+            memcpy(t, e0, 3); memcpy(e0, e1, 3); memcpy(e1, t, 3);
+            for (int i = 0; i < 16; i++)
+                w[i] = (uint8)(3 - w[i]);
+        }
+        writeRGBConstAlphaBlock(blk, e0, e1, alpha, w);
+    }
+
+    // BC3 alpha half: true when all 16 texels have the same alpha, which is then returned. Only values the decoder
+    // produces exactly count (an endpoint, 0, 255, or an interpolation between two equal endpoints).
+    static inline bool bc3ConstantAlpha(const uint8* bc, uint8& alpha)
+    {
+        const int a0 = bc[0], a1 = bc[1];
+        uint64 bits = 0;
+        for (int k = 0; k < 6; k++)
+            bits |= (uint64)bc[2 + k] << (8 * k);
+        int value = -1;
+        for (int t = 0; t < 16; t++)
+        {
+            const int i = (int)(bits >> (3 * t) & 7);
+            int a;
+            if (i == 0)
+                a = a0;
+            else if (i == 1)
+                a = a1;
+            else if (a0 <= a1 && i == 6)
+                a = 0;
+            else if (a0 <= a1 && i == 7)
+                a = 255;
+            else if (a0 == a1)
+                a = a0;
+            else
+                return false;
+            if (value < 0)
+                value = a;
+            else if (value != a)
+                return false;
+        }
+        alpha = (uint8)value;
+        return true;
+    }
+
+    static inline bool transcodeBC3(const uint8* bc, uint8* blk)
+    {
+        uint8 alpha;
+        if (!bc3ConstantAlpha(bc, alpha))
+            return false;
+        transcodeFourColour(bc + 8, blk, alpha);
+        return true;
     }
 
     static inline bool transcodeBC1(const uint8* bc, uint8* blk)
@@ -425,8 +519,14 @@ static void transcodeOrCompressASTC(LatteTextureLoaderCtx* tl, uint8* outputData
                 rest.emplace_back(blockData, dst);
         }
     }
+    {
+        const uint32 total = (uint32)(((tl->height + tl->stepY - 1) / tl->stepY) * ((tl->width + tl->stepX - 1) / tl->stepX));
+        PerfTelemetry::Get().textureTranscodeDirect.fetch_add(total - (uint32)rest.size(), std::memory_order_relaxed);
+        PerfTelemetry::Get().textureTranscodes.fetch_add((uint32)rest.size(), std::memory_order_relaxed);
+    }
     if (rest.empty())
         return;
+    PerfTelemetry::ScopedTimer encodeTimer(PerfTelemetry::Get().textureTranscodeNs);
     const sint32 stripWidth = (sint32)rest.size() * 4;
     std::vector<uint8> strip((size_t)stripWidth * 4u * 4u);
     for (size_t i = 0; i < rest.size(); i++)
@@ -437,7 +537,7 @@ static void transcodeOrCompressASTC(LatteTextureLoaderCtx* tl, uint8* outputData
             memcpy(&strip[((size_t)py * (size_t)stripWidth + i * 4u) * 4u], &texels[py * 16], 16);
     }
     std::vector<uint8> encoded(rest.size() * 16u);
-    if (!astcCompressRGBA8Image(strip.data(), stripWidth, 4, profile, encoded.data()))
+    if (!astcCompressRGBA8Image(strip.data(), stripWidth, 4, profile, encoded.data(), kAstcThreadedMinTexelsLeftover))
         std::fill(encoded.begin(), encoded.end(), 0);
     for (size_t i = 0; i < rest.size(); i++)
         memcpy(rest[i].second, &encoded[i * 16u], 16);
@@ -447,6 +547,14 @@ static void bc1BlockToRGBA8(uint8* blockData, uint8* rgba8)
 {
     float buf[16 * 4];
     decodeBC1Block(blockData, buf);
+    for (int i = 0; i < 16 * 4; i++)
+        rgba8[i] = astcFloatToUNorm8(buf[i]);
+}
+
+static void bc3BlockToRGBA8(uint8* blockData, uint8* rgba8)
+{
+    float buf[16 * 4];
+    decodeBC3Block_UNORM(blockData, buf);
     for (int i = 0; i < 16 * 4; i++)
         rgba8[i] = astcFloatToUNorm8(buf[i]);
 }
@@ -573,7 +681,7 @@ public:
 
     void decode(LatteTextureLoaderCtx* tl, uint8* outputData) override
     {
-        decodeRGBAAndCompressASTC<Profile>(tl, outputData, decodeBC3Block_UNORM);
+        transcodeOrCompressASTC(tl, outputData, Profile, astcdirect::transcodeBC3, bc3BlockToRGBA8);
     }
 
     void decodePixelToRGBA(uint8* blockData, uint8* out, uint8 ox, uint8 oy) override

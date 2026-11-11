@@ -3983,6 +3983,7 @@ void MetalRenderer::UpdateMemoryStatsAndRelievePressure()
     if (!evictionRequested && available >= lowMark)
         return;
 
+    const uint64 evictStartNs = PerfTelemetry::NowNs();
     std::vector<LatteTexture*> candidates = LatteTC_GetDeleteableTextures();
     uint32 deleted = 0;
     uint64 freedBytes = 0;
@@ -4035,7 +4036,8 @@ void MetalRenderer::UpdateMemoryStatsAndRelievePressure()
     {
         w.texturesEvicted.fetch_add(deleted, std::memory_order_relaxed);
         if (m_memoryPressureLogs++ < 12)
-            cemuLog_log(LogType::Force, "Metal: memory is low ({} MB left), deleted {} unused textures (about {} MB)", os_proc_available_memory() / MB, deleted, freedBytes / MB);
+            cemuLog_log(LogType::Force, "Metal: memory is low ({} MB left), deleted {} unused textures (about {} MB) in {:.1f} ms", os_proc_available_memory() / MB, deleted, freedBytes / MB,
+                (double)(PerfTelemetry::NowNs() - evictStartNs) / 1e6);
     }
     if (evictionRequested)
         w.evictionPasses.fetch_add(1);
@@ -4047,17 +4049,37 @@ void MetalRenderer::FreeMemoryAfterSystemWarning()
     constexpr uint64 MB = 1024 * 1024;
     const uint64 allocatedBefore = m_device->currentAllocatedSize();
 
-    // Only textures the cache can rebuild from guest memory go, but all of them at once instead of the
-    // regular pass's 200, since iOS kills the app soon after a warning that frees nothing.
-    uint32 deletedTextures = 0;
+    // Only textures the cache can rebuild from guest memory go, longest unused first, until a good chunk is free
+    // (iOS kills the app soon after a warning that frees nothing). Throwing out every texture unused for 3 frames
+    // made the game decode (and on GPUs without BC, re-encode to ASTC) hundreds of them again seconds later,
+    // which caused most long frames in BotW.
+    // Textures unused for 10 s or more always go. Recently used ones only when that frees too little; they are the
+    // ones the game draws again when the camera turns, and rebuilding them caused most long frames.
+    constexpr uint32 kOldTextureFrames = 300;
+    constexpr uint64 kWarningFreeTarget = 128 * MB;
+    const uint32 currentFrame = LatteGPUState.frameCounter;
+    std::vector<std::pair<uint32, LatteTexture*>> candidates;
     for (LatteTexture* texture : LatteTC_GetDeleteableTextures())
+        candidates.emplace_back(currentFrame - texture->lastAccessFrameCount, texture);
+    std::sort(candidates.begin(), candidates.end(), [](const auto& l, const auto& r) { return l.first > r.first; });
+    uint32 deletedTextures = 0;
+    uint64 freedBytes = 0;
+    uint32 youngestDeletedAge = 0;
+    for (const auto& [age, texture] : candidates)
     {
+        if (age < kOldTextureFrames && freedBytes >= kWarningFreeTarget)
+            break;
         const auto& live = LatteTexture::GetAllTextures();
         if (std::find(live.begin(), live.end(), texture) == live.end())
             continue;
+        if (auto* mtlTexture = static_cast<LatteTextureMtl*>(texture)->GetTexture())
+            freedBytes += mtlTexture->allocatedSize();
         LatteTexture_Delete(texture);
         ++deletedTextures;
+        youngestDeletedAge = age;
     }
+    cemuLog_log(LogType::Force, "Metal: memory warning, freed {} of {} unused textures (about {} MB, oldest first, down to {} frames unused; all over 300 frames go, younger ones only up to 128 MB)",
+        deletedTextures, candidates.size(), freedBytes / MB, youngestDeletedAge);
 
     m_memoryManager->GetStagingAllocator().ReleaseIdleBuffers();
     if (m_frameGen)
