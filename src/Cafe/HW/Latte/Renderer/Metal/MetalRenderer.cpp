@@ -1,5 +1,6 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalInitialization.h"
+#include "Cafe/HW/Latte/Core/LatteTextureAsyncLoad.h"
 #if BOOST_OS_IOS
 #include <os/proc.h>
 #include <sys/sysctl.h>
@@ -685,6 +686,7 @@ void MetalRenderer::Initialize()
 
 void MetalRenderer::Shutdown()
 {
+    LatteTextureAsync::Shutdown();
     ResetFrameGeneration();
     MetalPipelineCache_DrainAsyncCompiles();
     if (m_pipelineCache)
@@ -761,6 +763,10 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
         ReportTuningDiagnostics();
         MetalFrameStats::OnTvFrame();
     }
+
+    // Textures the background threads finished during the last frame go in at the start of the next one, so
+    // their uploads do not split render passes in the middle of a frame.
+    LatteTextureAsync::ApplyFinished();
 
     m_performanceMonitor.ResetPerFrameData();
 
@@ -1440,6 +1446,7 @@ void MetalRenderer::texture_loadSlice(LatteTexture* hostTexture, sint32 width, s
 
 void MetalRenderer::texture_clearColorSlice(LatteTexture* hostTexture, sint32 sliceIndex, sint32 mipIndex, float r, float g, float b, float a)
 {
+    LatteTextureAsync::Finish(hostTexture);
     if (!FormatIsRenderable(hostTexture->format))
     {
         cemuLog_logOnce(LogType::Force, "cannot clear color texture with format {}, because it's not renderable", hostTexture->format);
@@ -1453,6 +1460,7 @@ void MetalRenderer::texture_clearColorSlice(LatteTexture* hostTexture, sint32 sl
 
 void MetalRenderer::texture_clearDepthSlice(LatteTexture* hostTexture, uint32 sliceIndex, sint32 mipIndex, bool clearDepth, bool clearStencil, float depthValue, uint32 stencilValue)
 {
+    LatteTextureAsync::Finish(hostTexture);
     clearStencil = (clearStencil && GetMtlPixelFormatInfo(hostTexture->format, true).hasStencil);
     if (!clearDepth && !clearStencil)
     {
@@ -1781,6 +1789,9 @@ const char* MetalRenderer::CopyRawBlocksIntoTranscodedTexture(LatteTexture* src,
 
 void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, sint32 effectiveSrcX, sint32 effectiveSrcY, sint32 srcSlice, LatteTexture* dst, sint32 dstMip, sint32 effectiveDstX, sint32 effectiveDstY, sint32 dstSlice, sint32 effectiveCopyWidth, sint32 effectiveCopyHeight, sint32 srcDepth_)
 {
+    // Copies and clears need the real data of both sides, not a pending background load.
+    LatteTextureAsync::Finish(src);
+    LatteTextureAsync::Finish(dst);
     const sint32 sourceCopyWidth = effectiveCopyWidth;
     const sint32 sourceCopyHeight = effectiveCopyHeight;
 
@@ -2025,6 +2036,7 @@ void MetalRenderer::texture_copyImageSubData(LatteTexture* src, sint32 srcMip, s
 
 LatteTextureReadbackInfo* MetalRenderer::texture_createReadback(LatteTextureView* textureView)
 {
+    LatteTextureAsync::Finish(textureView->baseTexture);
     if (!GetTextureReadbackBuffer())
     {
         cemuLog_logOnce(LogType::Force,
@@ -2057,6 +2069,8 @@ LatteTextureReadbackInfo* MetalRenderer::texture_createReadback(LatteTextureView
 
 void MetalRenderer::surfaceCopy_copySurfaceWithFormatConversion(LatteTexture* sourceTexture, sint32 srcMip, sint32 srcSlice, LatteTexture* destinationTexture, sint32 dstMip, sint32 dstSlice, sint32 width, sint32 height)
 {
+    LatteTextureAsync::Finish(sourceTexture);
+    LatteTextureAsync::Finish(destinationTexture);
     sint32 effectiveCopyWidth = width;
     sint32 effectiveCopyHeight = height;
     LatteTexture_scaleToEffectiveSize(sourceTexture, &effectiveCopyWidth, &effectiveCopyHeight, 0);

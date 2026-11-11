@@ -95,6 +95,11 @@ extension EspressUSettingsView {
             PerformanceTuning.applyToBridge()
         }
         let experimental: [SettingsItem] = [
+            SettingsItem(id: "tuning.asyncTextures", title: loc("Async texture loading"),
+                         detail: loc("Converts textures in the background instead of pausing the game. New textures can show a plain colour for a moment."),
+                         control: .toggle(values.bool(PerformanceTuning.asyncTexturesKey, PerformanceTuning.asyncTexturesDefault) { _ in
+                             PerformanceTuning.applyToBridge()
+                         })),
             SettingsItem(id: "tuning.frameGeneration", title: loc("Frame generation"),
                          detail: loc("Adds intermediate pictures to the TV output when there is room between real frames. Interpolation can add latency."),
                          control: .toggle(frameGeneration)),

@@ -207,6 +207,7 @@ typedef enum {
     CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS = 9,
     // 11 was the deferred instruction pointer of the interpreter, now always on
     CEMU_BRIDGE_TUNING_FRAME_GENERATION = 12,
+    CEMU_BRIDGE_TUNING_ASYNC_TEXTURES = 13,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);

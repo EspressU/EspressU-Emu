@@ -33,6 +33,9 @@ struct LatteTextureLoaderCtx
 
 uint8* LatteTextureLoader_GetInput(LatteTextureLoaderCtx* textureLoader, sint32 x, sint32 y);
 
+// Set on the async texture workers: the ASTC encoder must not start helper threads there.
+inline thread_local bool t_textureLoaderOnWorker = false;
+
 #include "Cafe/HW/Latte/LatteAddrLib/AddrLibFastDecode.h"
 
 void decodeBC1Block(uint8* inputData, float* output4x4RGBA);
@@ -113,6 +116,10 @@ public:
 	virtual void decode(LatteTextureLoaderCtx* textureLoader, uint8* outputData) = 0;
 
 	virtual void decodePixelToRGBA(uint8* blockData, uint8* outputPixel, uint8 blockOffsetX, uint8 blockOffsetY) = 0;
+
+	// True for the BC to ASTC 4x4 converters: slow enough to run on the async texture workers, and their output
+	// is 16 bytes per 4x4 block.
+	virtual bool isSlowTranscodeToASTC() const { return false; }
 };
 
 class TextureDecoder_R16_G16_B16_A16_FLOAT : public TextureDecoder, public SingletonClass<TextureDecoder_R16_G16_B16_A16_FLOAT>

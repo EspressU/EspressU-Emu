@@ -2976,6 +2976,9 @@ void cemu_bridge_set_tuning(CemuBridgeTuning option, int value) {
     case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
         tuning.frameGeneration.store(value != 0);
         break;
+    case CEMU_BRIDGE_TUNING_ASYNC_TEXTURES:
+        tuning.asyncTextureLoading.store(value != 0);
+        break;
     }
 }
 
@@ -2997,6 +3000,8 @@ int cemu_bridge_tuning(CemuBridgeTuning option) {
         return tuning.jitSkipOverlappingCompiles.load() ? 1 : 0;
     case CEMU_BRIDGE_TUNING_FRAME_GENERATION:
         return tuning.frameGeneration.load() ? 1 : 0;
+    case CEMU_BRIDGE_TUNING_ASYNC_TEXTURES:
+        return tuning.asyncTextureLoading.load() ? 1 : 0;
     }
     return 0;
 }

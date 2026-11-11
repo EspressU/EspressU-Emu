@@ -160,7 +160,7 @@ static bool astcCompressRGBA8Image(const uint8* rgba8, sint32 width, sint32 heig
     };
 
     size_t outputSize = astcCompressedImageSize(width, height);
-    uint32 threads = enc->threads;
+    uint32 threads = t_textureLoaderOnWorker ? 1 : enc->threads;
     if ((size_t)width * (size_t)height < threadedMinTexels)
         threads = 1;
 
@@ -526,7 +526,7 @@ static void transcodeOrCompressASTC(LatteTextureLoaderCtx* tl, uint8* outputData
     }
     if (rest.empty())
         return;
-    PerfTelemetry::ScopedTimer encodeTimer(PerfTelemetry::Get().textureTranscodeNs);
+    PerfTelemetry::ScopedTimer encodeTimer(t_textureLoaderOnWorker ? PerfTelemetry::Get().asyncTexEncodeNs : PerfTelemetry::Get().textureTranscodeNs);
     const sint32 stripWidth = (sint32)rest.size() * 4;
     std::vector<uint8> strip((size_t)stripWidth * 4u * 4u);
     for (size_t i = 0; i < rest.size(); i++)
@@ -614,6 +614,7 @@ class TextureDecoder_BC1_to_ASTC_Generic : public TextureDecoder
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -643,6 +644,7 @@ class TextureDecoder_BC2_to_ASTC_Generic : public TextureDecoder
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -676,6 +678,7 @@ class TextureDecoder_BC3_to_ASTC_Generic : public TextureDecoder
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -708,6 +711,7 @@ class TextureDecoder_BC4_UNORM_to_ASTC : public TextureDecoder, public Singleton
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -734,6 +738,7 @@ class TextureDecoder_BC4_SNORM_to_ASTC : public TextureDecoder, public Singleton
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -760,6 +765,7 @@ class TextureDecoder_BC5_UNORM_to_ASTC : public TextureDecoder, public Singleton
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 
@@ -784,6 +790,7 @@ class TextureDecoder_BC5_SNORM_to_ASTC : public TextureDecoder, public Singleton
 {
 public:
     sint32 getBytesPerTexel(LatteTextureLoaderCtx*) override { return 16; }
+    bool isSlowTranscodeToASTC() const override { return true; }
     sint32 getTexelCountX(LatteTextureLoaderCtx* tl) override { return (tl->width + 3) / 4; }
     sint32 getTexelCountY(LatteTextureLoaderCtx* tl) override { return (tl->height + 3) / 4; }
 

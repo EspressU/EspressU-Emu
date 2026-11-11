@@ -12,6 +12,9 @@ enum PerformanceTuning {
     /// Experimental > Frame generation: EspressU's own frame interpolation for the TV picture (MetalFrameGen in the core).
     static let frameGenerationKey = "espressu.tuning.frameInterpolation"
     static let frameGenerationDefault = false
+    /// Experimental > Async texture loading: BC textures are converted on background threads (LatteTextureAsyncLoad).
+    static let asyncTexturesKey = "espressu.tuning.asyncTextures"
+    static let asyncTexturesDefault = true
     static let padLowResolutionKey = "espressu.tuning.padLowResolution"
     static let padLowResolutionDefault = false
     /// "Logs" in Device report and logs: a summary line in the EspressU report every few seconds.
@@ -21,6 +24,7 @@ enum PerformanceTuning {
     static var advancedSettings: [AdvancedSetting] {
         [
             AdvancedSetting(frameGenerationKey, frameGenerationDefault),
+            AdvancedSetting(asyncTexturesKey, asyncTexturesDefault),
             AdvancedSetting(padLowResolutionKey, padLowResolutionDefault),
             AdvancedSetting(logsKey, logsDefault),
         ]
@@ -34,6 +38,8 @@ enum PerformanceTuning {
         applyAlwaysOn()
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION,
                                bool(frameGenerationKey, frameGenerationDefault) ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_ASYNC_TEXTURES,
+                               bool(asyncTexturesKey, asyncTexturesDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION,
                                bool(padLowResolutionKey, padLowResolutionDefault) ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG,
@@ -43,6 +49,7 @@ enum PerformanceTuning {
     static func applyDefaultsToBridge() {
         applyAlwaysOn()
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_FRAME_GENERATION, frameGenerationDefault ? 1 : 0)
+        cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_ASYNC_TEXTURES, asyncTexturesDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION, padLowResolutionDefault ? 1 : 0)
         cemu_bridge_set_tuning(CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG, logsDefault ? 1 : 0)
     }

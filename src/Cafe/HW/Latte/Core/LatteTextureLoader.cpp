@@ -3,6 +3,7 @@
 #include "config/ActiveSettings.h"
 #include "Cafe/CafeSystem.h"
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
+#include "Cafe/HW/Latte/Core/LatteTextureAsyncLoad.h"
 
 #ifdef BENCHMARK_TEXTURE_DECODING
 uint64 textureDecodeBenchmark_perFormatSum[0x40] = { 0 };
@@ -639,6 +640,23 @@ void LatteTextureLoader_UpdateTextureSliceData(LatteTexture* tex, uint32 sliceIn
 	textureLoader.decodedTexelCountY = texDecoder->getTexelCountY(&textureLoader);
 
 	uint32 imageSize = texDecoder->calculateImageSize(&textureLoader);
+
+	// Slow BC to ASTC conversions run on background threads; the frame goes on with the old picture (or the
+	// average colour for a new texture) until the slice is ready.
+	if (!textureLoader.dump && !tex->overwriteInfo.hasFormatOverwrite && !tex->overwriteInfo.hasResolutionOverwrite &&
+		LatteTextureAsync::TryQueue(tex, textureLoader, texDecoder, sliceIndex, mipIndex, depth, mipLevels, imageSize))
+	{
+		PerfTelemetry::Get().textureDecodes.fetch_add(1, std::memory_order_relaxed);
+		PerfTelemetry::Get().textureDecodesByFormat[(uint32)tex->format & 0x3F].fetch_add(1, std::memory_order_relaxed);
+		if (mipIndex == 0 || (tex->texDataPtrLow == 0 && tex->texDataPtrHigh == 0))
+		{
+			tex->texDataPtrLow = physImagePtr + textureLoader.minOffsetOutdated;
+			tex->texDataPtrHigh = physImagePtr + textureLoader.maxOffsetOutdated;
+			LatteTC_ResetTextureChangeTracker(tex, true);
+		}
+		return;
+	}
+	LatteTextureAsync::CancelSlice(tex, sliceIndex, mipIndex);
 
 	uint8* pixelData = (uint8*)g_renderer->texture_acquireTextureUploadBuffer(imageSize);
 	if (!pixelData)

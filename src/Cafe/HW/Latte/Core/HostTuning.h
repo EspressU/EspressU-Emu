@@ -22,6 +22,9 @@ namespace HostTuning
 		std::atomic<bool> jitSkipOverlappingCompiles{true};
 		// Only reported: the front end sizes the GamePad surface itself.
 		std::atomic<bool> padLowResolution{false};
+		// Convert textures the GPU cannot sample directly (BC on GPUs without BC support) on background threads
+		// instead of stalling the frame. New textures show their average colour for a few frames.
+		std::atomic<bool> asyncTextureLoading{true};
 		// Write a summary of what the options above actually did to the log every few seconds.
 		std::atomic<bool> diagnosticsLog{true};
 	};
