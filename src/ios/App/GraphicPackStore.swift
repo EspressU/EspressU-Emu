@@ -100,6 +100,15 @@ final class GraphicPackStore: NSObject, ObservableObject {
     static let autoUpdateDefault = true
     static var autoUpdateEnabled: Bool { UserDefaults.standard.object(forKey: autoUpdateKey) as? Bool ?? autoUpdateDefault }
 
+    /// What the user decided about Breath of the Wild's FPS++ pack: "on" or "off". Absent means they never touched it,
+    /// so EspressU may switch it on. Kept out of Reset settings on purpose: it is a recorded choice, not a preference.
+    private static let fpsChoiceKey = "espressu.graphicPacks.fpsPlusPlusChoice"
+    private static let botwTitleIds: Set<String> = ["00050000101c9300", "00050000101c9400", "00050000101c9500"]
+
+    private static func isBotWFPSPlusPlus(_ pack: GraphicPack) -> Bool {
+        pack.name == "FPS++" && !pack.titleIds.isDisjoint(with: botwTitleIds)
+    }
+
     private var launchRunStarted = false
 
     private lazy var session: URLSession = {
@@ -155,9 +164,11 @@ final class GraphicPackStore: NSObject, ObservableObject {
         bridgeQueue.async { [weak self] in
             try? FileManager.default.createDirectory(at: GraphicPackPaths.root, withIntermediateDirectories: true)
             _ = espressu_gp_reload(mlc)
-            let raw = String(cString: espressu_gp_list())
-            let parsed = GraphicPack.parseList(raw)
+            var parsed = GraphicPack.parseList(String(cString: espressu_gp_list()))
             let running = espressu_gp_title_running()
+            if !running, Self.enableFPSPlusPlusIfNeeded(parsed) {
+                parsed = GraphicPack.parseList(String(cString: espressu_gp_list()))
+            }
             DispatchQueue.main.async {
                 self?.packs = parsed
                 self?.gameRunning = running
@@ -166,7 +177,23 @@ final class GraphicPackStore: NSObject, ObservableObject {
         }
     }
 
+    /// Turns on FPS++ for Breath of the Wild with the pack's own default options, unless the user already chose.
+    private static func enableFPSPlusPlusIfNeeded(_ packs: [GraphicPack]) -> Bool {
+        guard UserDefaults.standard.string(forKey: fpsChoiceKey) == nil else { return false }
+        var changed = false
+        for pack in packs where isBotWFPSPlusPlus(pack) && !pack.enabled {
+            if pack.path.withCString({ espressu_gp_set_enabled($0, true) }) { changed = true }
+        }
+        return changed
+    }
+
+    private func rememberFPSChoice(_ pack: GraphicPack, enabled: Bool) {
+        guard Self.isBotWFPSPlusPlus(pack) else { return }
+        defaults.set(enabled ? "on" : "off", forKey: Self.fpsChoiceKey)
+    }
+
     func setEnabled(_ pack: GraphicPack, _ enabled: Bool) {
+        rememberFPSChoice(pack, enabled: enabled)
         if let i = packs.firstIndex(where: { $0.path == pack.path }) { packs[i].enabled = enabled }
         bridgeQueue.async { [weak self] in
             let ok = pack.path.withCString { espressu_gp_set_enabled($0, enabled) }
@@ -195,6 +222,7 @@ final class GraphicPackStore: NSObject, ObservableObject {
     }
 
     func reset(_ pack: GraphicPack, completion: @escaping (GraphicPackDetails) -> Void) {
+        rememberFPSChoice(pack, enabled: pack.defaultEnabled)
         bridgeQueue.async { [weak self] in
             _ = pack.path.withCString { espressu_gp_reset_pack($0) }
             let raw = pack.path.withCString { String(cString: espressu_gp_details($0)) }
