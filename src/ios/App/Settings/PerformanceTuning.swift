@@ -11,7 +11,7 @@ import Foundation
 enum PerformanceTuning {
     /// Experimental > Frame generation: EspressU's own frame interpolation for the TV picture (MetalFrameGen in the core).
     static let frameGenerationKey = "espressu.tuning.frameInterpolation"
-    static let frameGenerationDefault = false
+    static let frameGenerationDefault = true
     /// Experimental > Async texture loading: BC textures are converted on background threads (LatteTextureAsyncLoad).
     static let asyncTexturesKey = "espressu.tuning.asyncTextures"
     static let asyncTexturesDefault = true

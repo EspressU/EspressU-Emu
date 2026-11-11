@@ -14,7 +14,7 @@ namespace HostTuning
 		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
 		std::atomic<bool> keepGpuFaultHistory{true};
 		// Present TV pictures on the display clock, generating intermediate pictures when useful.
-		std::atomic<bool> frameGeneration{false};
+		std::atomic<bool> frameGeneration{true};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
 		std::atomic<bool> padPresentPacing{true};
