@@ -53,6 +53,7 @@
 #include "Cafe/HW/Latte/Core/LatteWaitInfo.h"
 #include "Cafe/HW/Latte/Core/HostTuning.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameStats.h"
 void PPCRecompiler_DumpJitMap(const fs::path& path);
 #include "StallDetector.h"
 #include "IOSReport.h"
@@ -1621,6 +1622,8 @@ namespace {
             while (g_perfRunning.load())
             {
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                PerfTelemetry::Get().thermalState.store(ios_thermal_state(), std::memory_order_relaxed);
+                PerfTelemetry::Get().titlePaused.store(IOSTitlePause_IsPaused(), std::memory_order_relaxed);
                 if (!g_titleRunning.load() || IOSTitlePause_IsPaused())
                 {
                     haveBaseline = false;
@@ -3487,6 +3490,7 @@ static CemuBridgeStatus ios_boot_prepared_title(int prepared) {
     ios_apply_render_profile();
 
     IOSSystemImplementation_ResetExit();
+    PerfTelemetry::Get().titleStartNs.store(PerfTelemetry::NowNs(), std::memory_order_relaxed);
     cemu_bridge_log_checkpoint("boot_title: about to call CemuRun()");
     try
     {
@@ -4118,6 +4122,8 @@ void cemu_bridge_resume(void) {
 }
 
 void cemu_bridge_shutdown_title(void) {
+    MetalFrameStats::LogSummary("game closed");
+    PerfTelemetry::Get().titleStartNs.store(0, std::memory_order_relaxed);
     IOSReport_TitleStopped("the game was closed");
     cemu_bridge_memory_note("before title shutdown");
     ios_timebase_ladder_stop();

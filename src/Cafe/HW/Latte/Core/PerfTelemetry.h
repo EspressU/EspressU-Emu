@@ -112,7 +112,49 @@ namespace PerfTelemetry
 		std::atomic<uint32_t> jitInvalidations{0};
 		std::atomic<uint32_t> jitArenaReleases{0};
 		std::atomic<uint32_t> jitArenaAllocFails{0};
+
+		// Frame hitch breakdown. Unsampled, so a single long frame can be explained. "rt" means the GPU (render) thread only.
+		std::atomic<uint64_t> rtShaderDecompileNs{0};  // translating a new guest shader to MSL
+		std::atomic<uint64_t> rtShaderCompileNs{0};    // compiling MSL into a Metal function on the render thread
+		std::atomic<uint32_t> rtShaderCompiles{0};
+		std::atomic<uint64_t> rtCompileWaitNs{0};      // render thread waiting for a compile a worker had already started
+		std::atomic<uint32_t> rtCompileWaits{0};
+		std::atomic<uint64_t> rtPipelineCompileNs{0};  // building a pipeline state on the render thread (the draw cannot be skipped)
+		std::atomic<uint32_t> rtPipelineCompiles{0};
+		std::atomic<uint64_t> rtTextureUploadNs{0};    // copying decoded texture data into Metal textures
+		std::atomic<uint64_t> rtReadbackWaitNs{0};     // waiting for the GPU so texture data can be read back for the game
+		std::atomic<uint32_t> rtReadbackWaits{0};
+		std::atomic<uint32_t> pipelinesQueued{0};      // async pipeline requests handed to the workers
+		std::atomic<uint32_t> pipelinesSkippedDraws{0}; // draws skipped because their pipeline was still compiling
+		std::atomic<uint32_t> shaderSourceDedupes{0};  // compiles saved because the same MSL was already compiled or compiling
+		std::atomic<uint64_t> shaderSourceDedupeWaitNs{0};
+		std::atomic<uint64_t> compileThrottleWaitNs{0}; // background pipeline compiles held back during gameplay
+		std::atomic<uint64_t> fileReadBytes{0};        // guest file reads, used to tell in-game loading from gameplay
+		std::atomic<int> thermalState{0};              // 0 nominal .. 3 critical, set by the iOS front end
+		std::atomic<uint64_t> titleStartNs{0};
+		std::atomic<bool> titlePaused{false};
+		std::atomic<int> framePhase{0};                // FramePhase, set by the frame statistics on the render thread
+		// Async texture loading (LatteTextureAsyncLoad)
+		std::atomic<uint32_t> asyncTexQueued{0};       // slices handed to the texture workers
+		std::atomic<uint32_t> asyncTexApplied{0};      // finished slices uploaded
+		std::atomic<uint32_t> asyncTexPlaceholders{0}; // new textures that showed their average colour while loading
+		std::atomic<uint32_t> asyncTexFallbacks{0};    // slices loaded synchronously because the queue was full
+		std::atomic<uint64_t> asyncTexWorkerNs{0};     // conversion time spent on the workers
+		std::atomic<uint64_t> asyncTexEncodeNs{0};     // of that, ASTC encoder time
+		std::atomic<uint64_t> rtAsyncTexWaitNs{0};     // render thread waiting for pending slices (copies, readbacks)
+		std::atomic<uint32_t> asyncTexWaits{0};
 	};
+
+	enum FramePhase : int
+	{
+		kPhaseStartup = 0,
+		kPhaseLoading = 1,
+		kPhaseGameplay = 2,
+	};
+
+	// Set once on the GPU thread so timers can tell render-thread time from worker time.
+	inline thread_local bool t_isRenderThread = false;
+	inline bool IsRenderThread() { return t_isRenderThread; }
 
 	enum RenderPassBreak : int
 	{

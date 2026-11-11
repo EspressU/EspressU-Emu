@@ -3,6 +3,7 @@
 #include "Cafe/HW/Latte/ISA/RegDefines.h"
 #include "Cafe/HW/Latte/ISA/LatteReg.h"
 #include "Cafe/HW/Latte/Core/LatteShader.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "Cafe/HW/Latte/Core/LatteCachedFBO.h"
 #include "Cafe/HW/Latte/LegacyShaderDecompiler/LatteDecompiler.h"
 #include "Cafe/HW/Latte/Core/FetchShader.h"
@@ -809,6 +810,7 @@ LatteDecompilerShader* LatteShader_CompileSeparableVertexShader2(uint64 baseHash
 
 LatteDecompilerShader* LatteShader_CompileSeparableVertexShader(uint64 baseHash, uint64& vsAuxHash, uint8* vertexShaderPtr, uint32 vertexShaderSize, bool usesGeometryShader, LatteFetchShader* fetchShader)
 {
+	PerfTelemetry::ScopedTimer decompileTimer(PerfTelemetry::Get().rtShaderDecompileNs);
 
 	LatteDecompilerOptions options;
 	LatteShader_GetDecompilerOptions(options, LatteConst::ShaderType::Vertex, usesGeometryShader);
@@ -843,6 +845,7 @@ LatteDecompilerShader* LatteShader_CompileSeparableVertexShader(uint64 baseHash,
 
 LatteDecompilerShader* LatteShader_CompileSeparableGeometryShader(uint64 baseHash, uint8* geometryShaderPtr, uint32 geometryShaderSize, uint8* geometryCopyShader, uint32 geometryCopyShaderSize)
 {
+	PerfTelemetry::ScopedTimer decompileTimer(PerfTelemetry::Get().rtShaderDecompileNs);
 	LatteDecompilerOptions options;
 	LatteShader_GetDecompilerOptions(options, LatteConst::ShaderType::Geometry, true);
 
@@ -874,6 +877,7 @@ LatteDecompilerShader* LatteShader_CompileSeparableGeometryShader(uint64 baseHas
 
 LatteDecompilerShader* LatteShader_CompileSeparablePixelShader(uint64 baseHash, uint64& psAuxHash, uint8* pixelShaderPtr, uint32 pixelShaderSize, bool usesGeometryShader)
 {
+	PerfTelemetry::ScopedTimer decompileTimer(PerfTelemetry::Get().rtShaderDecompileNs);
 	LatteDecompilerOptions options;
 	LatteShader_GetDecompilerOptions(options, LatteConst::ShaderType::Pixel, usesGeometryShader);
 

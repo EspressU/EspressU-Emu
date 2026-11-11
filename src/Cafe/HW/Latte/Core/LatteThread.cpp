@@ -16,6 +16,7 @@
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
 #include "Cafe/HW/Latte/Core/LatteIndices.h"
 #include "Cafe/HW/Latte/Core/LatteTexture.h"
+#include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 #include "util/helpers/helpers.h"
 
 #include <imgui.h>
@@ -125,6 +126,7 @@ void LatteThread_HandleOSScreen()
 static int Latte_ThreadEntryImpl()
 {
 	SetThreadName("LatteThread");
+	PerfTelemetry::t_isRenderThread = true;
 #if BOOST_OS_IOS
 	pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
 #endif

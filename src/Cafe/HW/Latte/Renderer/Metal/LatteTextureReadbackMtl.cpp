@@ -39,7 +39,7 @@ bool LatteTextureReadbackInfoMtl::IsFinished()
 
 void LatteTextureReadbackInfoMtl::ForceFinish()
 {
-    WaitForCommandBuffer(m_commandBuffer, "texture readback: waiting for the copy to finish");
+    WaitForCommandBuffer(m_commandBuffer, "texture readback: waiting for the copy to finish", true);
 }
 
 uint8* LatteTextureReadbackInfoMtl::GetData()

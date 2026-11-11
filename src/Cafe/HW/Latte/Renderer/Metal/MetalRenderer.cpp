@@ -20,6 +20,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/UtilityShaderSource.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalFaultHistory.h"
 #include "Cafe/HW/Latte/Core/HostTuning.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameStats.h"
 
 #include "Cafe/HW/Latte/Core/LatteShader.h"
 #include "Cafe/HW/Latte/Core/LatteTextureLoader.h"
@@ -758,6 +759,7 @@ void MetalRenderer::SwapBuffers(bool swapTV, bool swapDRC)
     {
         UpdatePadPacing();
         ReportTuningDiagnostics();
+        MetalFrameStats::OnTvFrame();
     }
 
     m_performanceMonitor.ResetPerFrameData();
@@ -1232,6 +1234,7 @@ static DepthStencilUploadLayout GetDepthStencilUploadLayout(Latte::E_GX2SURFFMT 
 
 void MetalRenderer::texture_loadSlice(LatteTexture* hostTexture, sint32 width, sint32 height, sint32 depth, void* pixelData, sint32 sliceIndex, sint32 mipIndex, uint32 compressedImageSize)
 {
+    PerfTelemetry::ScopedTimer uploadTimer(PerfTelemetry::Get().rtTextureUploadNs);
     auto textureMtl = (LatteTextureMtl*)hostTexture;
 
     uint32 offsetZ = 0;
@@ -1725,7 +1728,7 @@ const char* MetalRenderer::CopyRawBlocksIntoTranscodedTexture(LatteTexture* src,
     CommitCommandBuffer();
     bool finished = true;
     if (!m_executingCommandBuffers.empty())
-        finished = WaitForCommandBuffer(m_executingCommandBuffers.back(), "re-encoding raw blocks into a transcoded texture");
+        finished = WaitForCommandBuffer(m_executingCommandBuffers.back(), "re-encoding raw blocks into a transcoded texture", true);
     ProcessFinishedCommandBuffers();
     if (!finished)
     {
@@ -2554,7 +2557,10 @@ void MetalRenderer::draw_execute(uint32 baseVertex, uint32 baseInstance, uint32 
     PipelineObject* pipelineObj = m_pipelineCache->GetRenderPipelineState(fetchShader, vertexShader, geometryShader, pixelShader, m_state.m_lastUsedFBO.m_attachmentsInfo, m_state.m_activeFBO.m_attachmentsInfo, m_state.m_activeFBO.m_fbo->m_size, count, LatteGPUState.contextNew);
     PerfTelemetry::SampleEnd(PerfTelemetry::Get().gpuPipelineNs, pipelineStart);
     if (!pipelineObj->m_pipeline)
+    {
+        PerfTelemetry::Get().pipelinesSkippedDraws.fetch_add(1, std::memory_order_relaxed);
         return;
+    }
 
     if (pipelineObj->m_pipeline != encoderState.m_renderPipelineState)
        {
@@ -3173,7 +3179,7 @@ void MetalRenderer::PrepareOcclusionQueryDraw()
     if (completion)
     {
 
-        WaitForCommandBuffer(completion, "occlusion query buffer reuse: waiting for an older command buffer");
+        WaitForCommandBuffer(completion, "occlusion query buffer reuse: waiting for an older command buffer", true);
 
         for (auto* query : m_occlusionQuery.m_queries)
             query->AccumulateBuffer(nextBuffer);
@@ -3189,7 +3195,7 @@ void MetalRenderer::PrepareOcclusionQueryDraw()
 void MetalRenderer::occlusionQuery_flush() {
     CommitCommandBuffer();
     if (m_occlusionQuery.m_lastCommandBuffer)
-        WaitForCommandBuffer(m_occlusionQuery.m_lastCommandBuffer, "occlusion query flush: waiting for the query command buffer");
+        WaitForCommandBuffer(m_occlusionQuery.m_lastCommandBuffer, "occlusion query flush: waiting for the query command buffer", true);
 }
 
 void MetalRenderer::occlusionQuery_updateState() {

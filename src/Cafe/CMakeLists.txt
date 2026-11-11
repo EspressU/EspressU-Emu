@@ -581,6 +581,8 @@ if(ENABLE_METAL)
         HW/Latte/Renderer/Metal/MetalFrameGen.h
         HW/Latte/Renderer/Metal/MetalFrameGen.mm
         HW/Latte/Renderer/Metal/MetalFrameGenShaders.h
+        HW/Latte/Renderer/Metal/MetalFrameStats.cpp
+        HW/Latte/Renderer/Metal/MetalFrameStats.h
         HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h
         HW/Latte/Renderer/Metal/MetalPipelineCache.cpp
         HW/Latte/Renderer/Metal/MetalPipelineCache.h
