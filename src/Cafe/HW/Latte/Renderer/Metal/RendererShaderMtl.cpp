@@ -9,6 +9,9 @@
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 
 #include <chrono>
+#include <condition_variable>
+#include <optional>
+#include <unordered_map>
 #include <unordered_set>
 
 #if BOOST_OS_MACOS
@@ -27,6 +30,55 @@ static std::unordered_set<size_t> s_shaderLoadSourceHashes;
 static uint32 s_shaderLoadSourceDuplicates;
 static uint32 s_shaderLoadExtraThreads;
 static std::atomic<uint32> s_shaderLoadDeferred{0};
+
+// Different guest shaders (other aux hash, same game shader in another context) often translate to the same MSL.
+// Each distinct source is compiled once: a second request waits for the first or reuses its finished function.
+namespace
+{
+	struct SourceKey
+	{
+		uint64 a, b;
+		bool operator==(const SourceKey& o) const { return a == o.a && b == o.b; }
+	};
+	struct SourceKeyHash
+	{
+		size_t operator()(const SourceKey& k) const { return (size_t)(k.a ^ (k.b * 0x9E3779B97F4A7C15ull)); }
+	};
+	struct SourceEntry
+	{
+		MTL::Function* function = nullptr; // retained by the map
+		bool done = false;
+		uint32 waiters = 0;
+	};
+	std::mutex s_sourceMutex;
+	std::condition_variable s_sourceCv;
+	std::unordered_map<SourceKey, SourceEntry, SourceKeyHash> s_sourceFunctions;
+
+	SourceKey HashSource(const std::string& source)
+	{
+		uint64 fnv = 0xcbf29ce484222325ull;
+		for (unsigned char c : source)
+			fnv = (fnv ^ c) * 0x100000001b3ull;
+		return SourceKey{ fnv, (uint64)std::hash<std::string>{}(source) ^ ((uint64)source.size() << 40) };
+	}
+
+	void ClearSourceFunctions()
+	{
+		std::lock_guard<std::mutex> lock(s_sourceMutex);
+		for (auto it = s_sourceFunctions.begin(); it != s_sourceFunctions.end();)
+		{
+			// A compile still running keeps its entry, and so does one a waiter still has to read.
+			if (!it->second.done || it->second.waiters)
+			{
+				++it;
+				continue;
+			}
+			if (it->second.function)
+				it->second.function->release();
+			it = s_sourceFunctions.erase(it);
+		}
+	}
+}
 
 extern std::atomic_int g_compiled_shaders_total;
 extern std::atomic_int g_compiled_shaders_async;
@@ -197,6 +249,7 @@ void RendererShaderMtl::Shutdown()
     shaderMtlThreadPool.StopExtraThreads();
     shaderMtlThreadPool.StopThreads();
     s_isLoadingShadersMtl = false;
+    ClearSourceFunctions();
 }
 RendererShaderMtl::RendererShaderMtl(MetalRenderer* mtlRenderer, ShaderType type, uint64 baseHash, uint64 auxHash, bool isGameShader, bool isGfxPackShader, const std::string& mslCode)
 	: RendererShader(type, baseHash, auxHash, isGameShader, isGfxPackShader), m_mtlr{mtlRenderer}, m_mslCode{mslCode}
@@ -253,6 +306,12 @@ void RendererShaderMtl::PreponeCompilation(bool isRenderThread)
 	shaderMtlThreadPool.s_compilationQueueMutex.unlock();
 	if (!isStillQueued)
 	{
+		if (PerfTelemetry::IsRenderThread() && !m_compilationState.hasState(COMPILATION_STATE::DONE))
+		{
+			PerfTelemetry::ScopedTimer waitTimer(PerfTelemetry::Get().rtCompileWaitNs);
+			PerfTelemetry::Get().rtCompileWaits.fetch_add(1, std::memory_order_relaxed);
+			m_compilationState.waitUntilValue(COMPILATION_STATE::DONE);
+		}
 		m_compilationState.waitUntilValue(COMPILATION_STATE::DONE);
 		if (ShouldCountCompilation())
 		    --g_compiled_shaders_async;
@@ -262,6 +321,27 @@ void RendererShaderMtl::PreponeCompilation(bool isRenderThread)
 	{
 		CompileInternal();
 		m_compilationState.setValue(COMPILATION_STATE::DONE);
+	}
+}
+
+void RendererShaderMtl::RequestUrgent()
+{
+	std::lock_guard<std::mutex> lock(shaderMtlThreadPool.s_compilationQueueMutex);
+	auto& queue = shaderMtlThreadPool.s_compilationQueue;
+	if (m_compilationState.hasState(COMPILATION_STATE::QUEUED))
+	{
+		auto it = std::find(queue.begin(), queue.end(), this);
+		if (it != queue.end() && it != queue.begin())
+		{
+			queue.erase(it);
+			queue.push_front(this);
+		}
+	}
+	else if (m_compilationState.hasState(COMPILATION_STATE::DEFERRED))
+	{
+		m_compilationState.setValue(COMPILATION_STATE::QUEUED);
+		queue.push_front(this);
+		shaderMtlThreadPool.s_compilationQueueCount.increment();
 	}
 }
 
@@ -318,24 +398,72 @@ MTL::Library* RendererShaderMtl::LibraryFromSource()
 
 void RendererShaderMtl::CompileInternal()
 {
-	PerfTelemetry::Get().shaderCompiles.fetch_add(1, std::memory_order_relaxed);
-	PerfTelemetry::ScopedTimer compileTimer(PerfTelemetry::Get().shaderCompileNs);
+	const bool onRenderThread = PerfTelemetry::IsRenderThread();
 	NS_STACK_SCOPED NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
-    MTL::Library* library = nullptr;
 
-    if (!library)
-    {
-        library = LibraryFromSource();
-        FinishCompilation();
-        if (!library)
-            return;
+	const SourceKey key = HashSource(m_mslCode);
+	SourceEntry* entry = nullptr;
+	bool reuse = false;
+	{
+		std::unique_lock<std::mutex> lock(s_sourceMutex);
+		auto [it, inserted] = s_sourceFunctions.try_emplace(key);
+		entry = &it->second; // element references survive a rehash
+		if (!inserted)
+		{
+			reuse = true;
+			if (!entry->done)
+			{
+				const uint64 waitStart = PerfTelemetry::NowNs();
+				entry->waiters++;
+				s_sourceCv.wait(lock, [&] { return entry->done; });
+				entry->waiters--;
+				const uint64 waited = PerfTelemetry::NowNs() - waitStart;
+				PerfTelemetry::Get().shaderSourceDedupeWaitNs.fetch_add(waited, std::memory_order_relaxed);
+				if (onRenderThread)
+				{
+					PerfTelemetry::Get().rtCompileWaitNs.fetch_add(waited, std::memory_order_relaxed);
+					PerfTelemetry::Get().rtCompileWaits.fetch_add(1, std::memory_order_relaxed);
+				}
+			}
+			if (entry->function)
+				m_function = entry->function->retain();
+		}
+	}
 
-    }
+	if (reuse)
+	{
+		PerfTelemetry::Get().shaderSourceDedupes.fetch_add(1, std::memory_order_relaxed);
+		FinishCompilation();
+	}
+	else
+	{
+		PerfTelemetry::Get().shaderCompiles.fetch_add(1, std::memory_order_relaxed);
+		PerfTelemetry::ScopedTimer compileTimer(PerfTelemetry::Get().shaderCompileNs);
+		std::optional<PerfTelemetry::ScopedTimer> renderThreadTimer;
+		if (onRenderThread)
+		{
+			renderThreadTimer.emplace(PerfTelemetry::Get().rtShaderCompileNs);
+			PerfTelemetry::Get().rtShaderCompiles.fetch_add(1, std::memory_order_relaxed);
+		}
+		MTL::Library* library = LibraryFromSource();
+		FinishCompilation();
+		if (library)
+		{
+			m_function = library->newFunction(ToNSString("main0"));
+			library->release();
+		}
+		{
+			std::lock_guard<std::mutex> lock(s_sourceMutex);
+			entry->function = m_function ? m_function->retain() : nullptr;
+			entry->done = true;
+		}
+		s_sourceCv.notify_all();
+	}
 
-    m_function = library->newFunction(ToNSString("main0"));
-    library->release();
+	if (!m_function)
+		return;
 
-	if (m_function && m_isGameShader)
+	if (m_isGameShader)
 	{
 		m_argumentEncoder = m_function->newArgumentEncoder(MetalArgumentBuffer::BindingIndex);
 		if (!m_argumentEncoder)

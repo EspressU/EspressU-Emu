@@ -2,6 +2,7 @@
 #include "Cafe/HW/Latte/Renderer/Metal/MetalRenderer.h"
 #include "Cafe/HW/Latte/Renderer/Metal/LatteToMtl.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPipelineCompiler.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameStats.h"
 
 #include "Cafe/HW/Latte/Core/FetchShader.h"
 #include "Cafe/HW/Latte/ISA/RegDefines.h"
@@ -25,6 +26,7 @@
 #include <os/proc.h>
 #endif
 #include <condition_variable>
+#include <pthread/qos.h>
 #include <chrono>
 #include <deque>
 #include <fstream>
@@ -32,7 +34,7 @@
 static bool g_compilePipelineThreadInit{false};
 static std::mutex g_compilePipelineMutex;
 static std::condition_variable g_compilePipelineCondVar;
-static std::queue<MetalPipelineCompiler*> g_compilePipelineRequests;
+static std::deque<MetalPipelineCompiler*> g_compilePipelineRequests;
 static std::atomic<uint32_t> g_compilePipelineInFlight{0};
 
 namespace
@@ -48,6 +50,40 @@ namespace
 	std::condition_variable s_compileGateCv;
 	uint32 s_compilesRunning = 0;
 	std::atomic<uint32> s_compileGateLogs{0};
+
+	// During gameplay the async pipeline workers would otherwise take every core the emulated CPU and the render
+	// thread need, and their memory. Only a few run at once then; startup and in-game loading run them all.
+	uint32 s_asyncGameplayLimit = 2;
+	std::mutex s_asyncThrottleMutex;
+	std::condition_variable s_asyncThrottleCv;
+	uint32 s_asyncRunning = 0;
+
+	struct AsyncCompileThrottle
+	{
+		AsyncCompileThrottle()
+		{
+			std::unique_lock lock(s_asyncThrottleMutex);
+			uint64 waitStart = 0;
+			while (MetalFrameStats::CurrentPhase() == PerfTelemetry::kPhaseGameplay && s_asyncRunning >= s_asyncGameplayLimit)
+			{
+				// Idle workers wait here too; only count the time while requests are actually waiting for a slot.
+				if (!waitStart && g_compilePipelineInFlight.load(std::memory_order_relaxed) > s_asyncRunning)
+					waitStart = PerfTelemetry::NowNs();
+				s_asyncThrottleCv.wait_for(lock, std::chrono::milliseconds(10));
+			}
+			if (waitStart)
+				PerfTelemetry::Get().compileThrottleWaitNs.fetch_add(PerfTelemetry::NowNs() - waitStart, std::memory_order_relaxed);
+			++s_asyncRunning;
+		}
+		~AsyncCompileThrottle()
+		{
+			{
+				std::lock_guard lock(s_asyncThrottleMutex);
+				--s_asyncRunning;
+			}
+			s_asyncThrottleCv.notify_one();
+		}
+	};
 
 	struct CompileMemoryGate
 	{
@@ -82,19 +118,32 @@ namespace
 static void compileThreadFunc(sint32 threadIndex)
 {
 	SetThreadName("compilePl");
-
-	if (threadIndex != 0)
-		;
+#if TARGET_OS_IPHONE
+	// One step below the emulated CPU and the render thread, so a compile yields to them when cores are short.
+	pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+#endif
 
 	while (true)
 	{
+		AsyncCompileThrottle throttle;
 		std::unique_lock lock(g_compilePipelineMutex);
 		while (g_compilePipelineRequests.empty())
 			g_compilePipelineCondVar.wait(lock);
 
-		MetalPipelineCompiler* request = g_compilePipelineRequests.front();
-
-		g_compilePipelineRequests.pop();
+		// Most recently wanted first; among equals the oldest request.
+		auto best = g_compilePipelineRequests.begin();
+		uint32 bestWanted = (*best)->GetPipelineObject().m_wantedAt.load(std::memory_order_relaxed);
+		for (auto it = std::next(best); it != g_compilePipelineRequests.end(); ++it)
+		{
+			const uint32 wanted = (*it)->GetPipelineObject().m_wantedAt.load(std::memory_order_relaxed);
+			if ((sint32)(wanted - bestWanted) > 0)
+			{
+				best = it;
+				bestWanted = wanted;
+			}
+		}
+		MetalPipelineCompiler* request = *best;
+		g_compilePipelineRequests.erase(best);
 
 		lock.unlock();
 
@@ -114,7 +163,7 @@ void MetalPipelineCache_DrainAsyncCompiles()
 		while (!g_compilePipelineRequests.empty())
 		{
 			delete g_compilePipelineRequests.front();
-			g_compilePipelineRequests.pop();
+			g_compilePipelineRequests.pop_front();
 			g_compilePipelineInFlight.fetch_sub(1);
 		}
 	}
@@ -140,6 +189,8 @@ static void initCompileThread()
 		numCompileThreads = 2 + (cpuCoreCount - 3);
 
 	numCompileThreads = std::min(numCompileThreads, 8u);
+	s_asyncGameplayLimit = cpuCoreCount <= 4 ? 1 : 2;
+	cemuLog_log(LogType::Force, "Metal: {} async pipeline workers, at most {} at once during gameplay", numCompileThreads, s_asyncGameplayLimit);
 
 	for (uint32 i = 0; i < numCompileThreads; i++)
 	{
@@ -151,8 +202,9 @@ static void initCompileThread()
 static void queuePipeline(MetalPipelineCompiler* v)
 {
 	g_compilePipelineInFlight.fetch_add(1);
+	PerfTelemetry::Get().pipelinesQueued.fetch_add(1, std::memory_order_relaxed);
 	std::unique_lock lock(g_compilePipelineMutex);
-	g_compilePipelineRequests.push(std::move(v));
+	g_compilePipelineRequests.push_back(v);
 	lock.unlock();
 	g_compilePipelineCondVar.notify_one();
 }
@@ -204,9 +256,14 @@ PipelineObject* MetalPipelineCache::GetRenderPipelineState(const LatteFetchShade
     uint64 hash = CalculatePipelineHash(fetchShader, vertexShader, geometryShader, pixelShader, lastUsedAttachmentsInfo, activeAttachmentsInfo, lcr);
     PipelineObject*& pipelineObj = m_pipelineCache[hash];
     if (pipelineObj)
+    {
+        if (!pipelineObj->m_pipeline)
+            pipelineObj->m_wantedAt.store(PerfTelemetry::Get().gpuDraws.load(std::memory_order_relaxed), std::memory_order_relaxed);
         return pipelineObj;
+    }
 
     pipelineObj = new PipelineObject();
+    pipelineObj->m_wantedAt.store(PerfTelemetry::Get().gpuDraws.load(std::memory_order_relaxed), std::memory_order_relaxed);
 
     MetalPipelineCompiler* compiler = new MetalPipelineCompiler(m_mtlr, *pipelineObj);
     compiler->InitFromState(fetchShader, vertexShader, geometryShader, pixelShader, lastUsedAttachmentsInfo, activeAttachmentsInfo, lcr);

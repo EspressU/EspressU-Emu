@@ -8,6 +8,9 @@
 struct PipelineObject
 {
     MTL::RenderPipelineState* m_pipeline = nullptr;
+    // Draw counter of the last draw that wanted this pipeline while it was still compiling; the async workers take
+    // the most recently wanted pipeline first, so what the current scene draws goes before older requests.
+    std::atomic<uint32> m_wantedAt{0};
 };
 
 class MetalPipelineCompiler
@@ -19,6 +22,7 @@ public:
     void InitFromState(const LatteFetchShader* fetchShader, const LatteDecompilerShader* vertexShader, const LatteDecompilerShader* geometryShader, const LatteDecompilerShader* pixelShader, const class MetalAttachmentsInfo& lastUsedAttachmentsInfo, const class MetalAttachmentsInfo& activeAttachmentsInfo, const LatteContextRegister& lcr);
 
     bool Compile(bool forceCompile, bool isRenderThread, bool showInOverlay);
+    PipelineObject& GetPipelineObject() const { return m_pipelineObj; }
 
 private:
     class MetalRenderer* m_mtlr;

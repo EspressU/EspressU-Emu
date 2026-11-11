@@ -48,6 +48,9 @@ public:
 	}
 
 	void PreponeCompilation(bool isRenderThread) override;
+	// Moves a shader that is still waiting to the front of the worker queue, so a worker compiles it
+	// while the render thread compiles another shader of the same pipeline.
+	void RequestUrgent();
 	bool IsCompiled() override;
 	bool WaitForCompiled() override;
 
