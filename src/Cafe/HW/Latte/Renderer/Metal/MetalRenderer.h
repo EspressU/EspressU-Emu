@@ -1,12 +1,14 @@
 #pragma once
 
+#include <optional>
+
 #include "Cafe/HW/Latte/Renderer/Renderer.h"
 
 #include "Cafe/HW/Latte/Renderer/Metal/MetalLayerHandle.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPerformanceMonitor.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalOutputShaderCache.h"
 #include "Cafe/HW/Latte/Renderer/Metal/MetalAttachmentsInfo.h"
-#include "Cafe/HW/Latte/Renderer/Metal/MetalOutputUpscaler.h"
+#include "Cafe/HW/Latte/Renderer/Metal/MetalFrameGen.h"
 #include "Common/DeviceCapabilities.h"
 
 enum MetalGeneralShaderType
@@ -295,6 +297,7 @@ public:
 	void UpdateMemoryStatsAndRelievePressure();
 	void FreeMemoryAfterSystemWarning();
 	void NotifyLatteCommandProcessorIdle() override;
+	std::chrono::steady_clock::time_point GetIdleSubmissionDeadline() const override;
 
 	bool ImguiBegin(bool mainWindow) override;
 	void ImguiEnd() override;
@@ -459,15 +462,14 @@ public:
 	MTL::RenderCommandEncoder* GetTemporaryRenderCommandEncoder(MTL::RenderPassDescriptor* renderPassDescriptor);
 	MTL::RenderCommandEncoder* GetRenderCommandEncoder(bool forceRecreate = false);
     MTL::ComputeCommandEncoder* GetComputeCommandEncoder();
-    MTL::BlitCommandEncoder* GetBlitCommandEncoder(int passBreakReason = 3  );
+    MTL::BlitCommandEncoder* GetBlitCommandEncoder(int passBreakReason = 3, bool preservePendingClears = false);
     int m_nextBufferCopyBreak = 10;
-    void EndEncoding();
+    void EndEncoding(bool nextEncoderIsBlit = false);
     void CommitCommandBuffer();
     void ProcessFinishedCommandBuffers();
 
     bool AcquireDrawable(bool mainWindow);
 
-	bool CheckIfRenderPassNeedsFlush(LatteDecompilerShader* shader);
 	bool BindStageResources(MTL::RenderCommandEncoder* renderCommandEncoder, LatteDecompilerShader* shader, bool usesGeometryShader);
 
     void ClearColorTextureInternal(MTL::Texture* mtlTexture, sint32 sliceIndex, sint32 mipIndex, float r, float g, float b, float a);
@@ -598,9 +600,15 @@ private:
 
 	class MetalMemoryManager* m_memoryManager;
 	class MetalOutputShaderCache* m_outputShaderCache;
-	std::unique_ptr<MetalOutputUpscaler> m_outputUpscaler;
-	std::unique_ptr<Metal4OutputStage> m_metal4Output;
-	bool m_metal4OutputUnavailable = false;
+
+	void DrawOutputPass(MTL::Texture* target, MTL::Texture* presentTexture, RendererOutputShader* shader, uint8 shaderIndex,
+		bool useLinearTexFilter, sint32 imageX, sint32 imageY, sint32 imageWidth, sint32 imageHeight, bool clearBackground);
+	MTL::Texture* PrepareTVOutput(bool& firstCapture);
+	MTL::Texture* CurrentOutputTexture(bool mainWindow);
+	void ResetFrameGeneration();
+
+	std::unique_ptr<MetalFrameGen> m_frameGen;
+	MTL::Texture* m_frameGenTarget = nullptr; // leased by MetalFrameGen until SwapBuffer
 
 	// GamePad pacing (HostTuning::padPresentPacing).
 	bool m_padFrameWanted = true;
@@ -663,6 +671,43 @@ private:
 	MetalEncoderType m_encoderType = MetalEncoderType::None;
 	MTL::CommandEncoder* m_commandEncoder = nullptr;
 
+    struct ImageCopy
+    {
+        MTL::Texture* source;
+        MTL::Texture* destination;
+        uint32 sourceMip, destinationMip, sourceSlice, destinationSlice;
+        MTL::Origin sourceOrigin, destinationOrigin;
+        MTL::Size extent;
+        uint32 fullSlices;
+
+        void Encode(MTL::BlitCommandEncoder* encoder) const;
+    };
+    bool m_gameRenderPass = false;
+    std::vector<ImageCopy> m_deferredImageCopies;
+    void FlushDeferredImageCopies(MTL::BlitCommandEncoder* encoder = nullptr);
+    void ReleaseDeferredImageCopies();
+
+    struct PendingTextureClear
+    {
+        MTL::Texture* texture;
+        uint32 slice;
+        sint32 mip;
+        std::optional<MTL::ClearColor> color;
+        std::optional<double> depth;
+        std::optional<uint32> stencil;
+
+        bool Matches(const MTL::RenderPassAttachmentDescriptor* attachment, uint32 width, uint32 height) const;
+    };
+    std::vector<PendingTextureClear> m_pendingTextureClears;
+    enum class DrawPassDependency { None, EndPass, FlushClears };
+    DrawPassDependency GetDrawPassDependency(LatteDecompilerShader* shader);
+    bool HasPendingTextureClear(MTL::Texture* texture) const;
+    void ClearGameTexture(PendingTextureClear clear);
+    void EncodeStandaloneTextureClear(const PendingTextureClear& clear);
+    void FlushPendingTextureClears();
+    void ReleasePendingTextureClears();
+    MTL::RenderPassDescriptor* PrepareRenderPassClears(CachedFBOMtl& fbo);
+
     uint32 m_recordedDrawcalls;
     struct
     {
@@ -703,7 +748,6 @@ private:
 	}
 
 	void SwapBuffer(bool mainWindow);
-	void UpdateMetal4Output();
 
 	MetalDrawBreadcrumb* BeginDrawBreadcrumb();
 	void DumpDrawBreadcrumbs(uint32 firstDraw, uint32 lastDraw, bool haveRange);

@@ -54,6 +54,14 @@ void cemu_bridge_log_line(const char* message);
 
 double cemu_bridge_get_fps(void);
 
+typedef struct {
+    double output;
+    double generated;
+    bool show_breakdown;
+} CemuBridgeDisplayRates;
+
+CemuBridgeDisplayRates cemu_bridge_get_framegen_display_rates(void);
+
 bool cemu_bridge_video_stalled(void);
 
 int cemu_bridge_video_stall_kind(void);
@@ -137,20 +145,18 @@ bool cemu_bridge_full_speed_renders(void);
 typedef enum {
     CEMU_BRIDGE_TUNING_FREE_MEMORY_ON_WARNING = 0,
     CEMU_BRIDGE_TUNING_GPU_FAULT_HISTORY = 1,
-    CEMU_BRIDGE_TUNING_METALFX_UPSCALE = 2,
-    CEMU_BRIDGE_TUNING_METAL4_OUTPUT = 3,
     // 4 was frame generation, removed
     CEMU_BRIDGE_TUNING_PAD_PRESENT_PACING = 5,
-    CEMU_BRIDGE_TUNING_INTERPRETER_BLOCK_LINKING = 6,
+    // 6 was interpreter block linking, now always on
     CEMU_BRIDGE_TUNING_PAD_LOW_RESOLUTION = 7,
     CEMU_BRIDGE_TUNING_DIAGNOSTICS_LOG = 8,
-    CEMU_BRIDGE_TUNING_JIT_SKIP_OVERLAPS = 9,
+    // 11 was the deferred instruction pointer of the interpreter, now always on
+    CEMU_BRIDGE_TUNING_FRAME_GENERATION = 12,
+    CEMU_BRIDGE_TUNING_ASYNC_TEXTURES = 13,
 } CemuBridgeTuning;
 
 void cemu_bridge_set_tuning(CemuBridgeTuning option, int value);
 int cemu_bridge_tuning(CemuBridgeTuning option);
-
-bool cemu_bridge_metal4_output_supported(void);
 
 // The session report (EspressU-Report.txt): settings text from the front end, and the file paths.
 void cemu_bridge_report_settings(const char* text);
@@ -183,6 +189,9 @@ bool cemu_bridge_low_power_mode(void);
 bool cemu_bridge_favour_accuracy(void);
 
 void cemu_bridge_set_async_shader_compile(bool enabled);
+
+/// Wii U system language the game sees (CafeConsoleLanguage: 0 JA, 1 EN, 2 FR, 3 DE, 4 IT, 5 ES, 6 ZH, 7 KO, 8 NL, 9 PT, 10 RU, 11 TW).
+void cemu_bridge_set_console_language(int32_t language);
 bool cemu_bridge_async_shader_compile(void);
 
 void cemu_bridge_set_vsync_enabled(bool enabled);
@@ -215,6 +224,7 @@ int cemu_bridge_overlay_position(void);
 
 void cemu_bridge_set_overlay_fps(bool enabled);
 bool cemu_bridge_overlay_fps(void);
+void cemu_bridge_set_overlay_show_framegen_breakdown(bool enabled);
 void cemu_bridge_set_overlay_cpu_usage(bool enabled);
 bool cemu_bridge_overlay_cpu_usage(void);
 void cemu_bridge_set_overlay_ram_usage(bool enabled);

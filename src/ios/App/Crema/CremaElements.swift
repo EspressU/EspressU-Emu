@@ -19,17 +19,17 @@ enum CremaElement: String, CaseIterable, Codable, Hashable {
 
     var title: String {
         switch self {
-        case .dpad: return "D-pad"
-        case .leftStick: return "Left stick"
-        case .rightStick: return "Right stick"
-        case .faceButtons: return "A B X Y buttons"
-        case .zl: return "ZL button"
-        case .l: return "L button"
-        case .r: return "R button"
-        case .zr: return "ZR button"
-        case .minus: return "Minus button"
-        case .home: return "HOME button"
-        case .plus: return "Plus button"
+        case .dpad: return loc("D-pad")
+        case .leftStick: return loc("Left stick")
+        case .rightStick: return loc("Right stick")
+        case .faceButtons: return loc("A B X Y buttons")
+        case .zl: return loc("ZL button")
+        case .l: return loc("L button")
+        case .r: return loc("R button")
+        case .zr: return loc("ZR button")
+        case .minus: return loc("Minus button")
+        case .home: return loc("HOME button")
+        case .plus: return loc("Plus button")
         }
     }
 }

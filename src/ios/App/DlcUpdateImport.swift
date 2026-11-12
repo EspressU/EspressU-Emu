@@ -9,7 +9,7 @@ enum DlcUpdateImport {
 
         var displayName: String {
             switch self {
-            case .dlc: return "DLC"
+            case .dlc: return loc("DLC")
             case .update: return "update"
             }
         }

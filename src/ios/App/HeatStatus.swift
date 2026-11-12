@@ -19,11 +19,11 @@ enum HeatBand: Int, Comparable {
 
     var word: String {
         switch self {
-        case .cool:         return "Cool"
-        case .fair:         return "Fair"
-        case .warm:         return "Warm"
-        case .hot:          return "Hot"
-        case .extremelyHot: return "Extremely Hot"
+        case .cool:         return loc("Cool")
+        case .fair:         return loc("Fair")
+        case .warm:         return loc("Warm")
+        case .hot:          return loc("Hot")
+        case .extremelyHot: return loc("Extremely Hot")
         }
     }
 
@@ -82,6 +82,6 @@ struct HeatStatusBadge: View {
             }
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Device heat: \(band.word)")
+        .accessibilityLabel(locf("Device heat: %@", band.word))
     }
 }

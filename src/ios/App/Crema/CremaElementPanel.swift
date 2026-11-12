@@ -84,7 +84,7 @@ struct CremaElementPanel: View {
                     Image(systemName: expanded ? "chevron.up" : "slider.horizontal.3")
                         .font(.system(size: 14, weight: .bold))
                     if let element = selection {
-                        Text(element.title)
+                        Text(loc(element.title))
                             .font(.footnote.weight(.semibold))
                             .lineLimit(1)
                     }
@@ -95,7 +95,7 @@ struct CremaElementPanel: View {
                 .contentShape(Capsule())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(expanded ? "Hide control options" : "Show control options")
+            .accessibilityLabel(expanded ? loc("Hide control options") : loc("Show control options"))
 
             Button(action: onDone) {
                 Image(systemName: "checkmark")
@@ -117,7 +117,7 @@ struct CremaElementPanel: View {
     private var details: some View {
         VStack(spacing: 8) {
             if let element = selection {
-                PanelSliderRow("Size", leadingIcon: "minus", trailingIcon: "plus",
+                PanelSliderRow(loc("Size"), leadingIcon: "minus", trailingIcon: "plus",
                                value: Binding(
                                    get: { overrides[element].scale },
                                    set: { value in update(element) { $0.scale = value } }),
@@ -135,7 +135,7 @@ struct CremaElementPanel: View {
                 .disabled(overrides[element].isDefault)
                 .opacity(overrides[element].isDefault ? 0.5 : 1)
             } else {
-                PanelCaption(text: "Tap a control to select it, then drag it to move it and use the slider to resize it.")
+                PanelCaption(text: loc("Tap a control to select it, then drag it to move it and use the slider to resize it."))
             }
 
             Button { confirmingResetAll = true } label: {

@@ -20,13 +20,13 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .resume: return "Resume"
-        case .screenLayout: return "Screen layout"
-        case .touchControls: return "Touch controls"
-        case .moveControls: return "Move controls"
-        case .emulatedDevices: return "Emulated devices"
-        case .recentreAim: return "Recentre aim"
-        case .quit: return "Quit game"
+        case .resume: return loc("Resume")
+        case .screenLayout: return loc("Screen layout")
+        case .touchControls: return loc("Touch controls")
+        case .moveControls: return loc("Move controls")
+        case .emulatedDevices: return loc("Emulated devices")
+        case .recentreAim: return loc("Recentre aim")
+        case .quit: return loc("Quit game")
         }
     }
 
@@ -44,13 +44,13 @@ enum HomeMenuDestination: String, CaseIterable, Identifiable {
 
     var hint: String {
         switch self {
-        case .resume: return "Closes the menu and carries on with the game."
-        case .screenLayout: return "Opens the screen layout choices."
-        case .touchControls: return "Shows or hides the on-screen controls, for example to touch the GamePad screen."
-        case .moveControls: return "Closes the menu and lets you drag the on-screen controls."
-        case .emulatedDevices: return "Opens the figure portals that are turned on in Settings."
-        case .recentreAim: return "Takes the way you are holding the device now as straight ahead, then goes back to the game."
-        case .quit: return "Asks before leaving the game."
+        case .resume: return loc("Closes the menu and carries on with the game.")
+        case .screenLayout: return loc("Opens the screen layout choices.")
+        case .touchControls: return loc("Shows or hides the on-screen controls, for example to touch the GamePad screen.")
+        case .moveControls: return loc("Closes the menu and lets you drag the on-screen controls.")
+        case .emulatedDevices: return loc("Opens the figure portals that are turned on in Settings.")
+        case .recentreAim: return loc("Takes the way you are holding the device now as straight ahead, then goes back to the game.")
+        case .quit: return loc("Asks before leaving the game.")
         }
     }
 }
@@ -221,21 +221,21 @@ struct HomeMenuOverlay: View {
 
     private var headerTitle: String {
         switch page {
-        case .root: return "Paused"
-        case .layout: return "Screen layout"
-        case .confirmQuit: return "Quit game?"
+        case .root: return loc("Paused")
+        case .layout: return loc("Screen layout")
+        case .confirmQuit: return loc("Quit game?")
         }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(headerTitle)
+            Text(loc(headerTitle))
                 .font(.title.weight(.bold))
                 .foregroundColor(.white)
                 .accessibilityAddTraits(.isHeader)
             switch page {
             case .root:
-                Text(gameName)
+                Text(loc(gameName))
                     .font(EspressUTheme.Font.caption)
                     .foregroundColor(.white.opacity(0.6))
                     .lineLimit(1)
@@ -262,10 +262,10 @@ struct HomeMenuOverlay: View {
 
     private var confirmQuitRows: [HomeMenuRow] {
         [
-            HomeMenuRow(id: "keep", title: "Keep playing", symbol: "play.fill",
-                        hint: "Goes back to the HOME menu without quitting.", isPrimary: true, action: { show(.root) }),
-            HomeMenuRow(id: "quitNow", title: "Quit game", symbol: "xmark.circle",
-                        hint: "Leaves the game now.", isDestructive: true, action: actions.quit)
+            HomeMenuRow(id: "keep", title: loc("Keep playing"), symbol: "play.fill",
+                        hint: loc("Goes back to the HOME menu without quitting."), isPrimary: true, action: { show(.root) }),
+            HomeMenuRow(id: "quitNow", title: loc("Quit game"), symbol: "xmark.circle",
+                        hint: loc("Leaves the game now."), isDestructive: true, action: actions.quit)
         ]
     }
 
@@ -285,7 +285,7 @@ struct HomeMenuOverlay: View {
         case .screenLayout: return make(chevron: true, { show(.layout) })
         case .touchControls:
             guard let hidden = touchControlsHidden else { return nil }
-            return HomeMenuRow(id: destination.id, title: hidden ? "Show touch controls" : "Hide touch controls",
+            return HomeMenuRow(id: destination.id, title: hidden ? loc("Show touch controls") : loc("Hide touch controls"),
                                symbol: hidden ? "hand.raised.fill" : "hand.raised.slash.fill",
                                hint: destination.hint, action: actions.toggleTouchControls)
         case .moveControls: return make(actions.moveControls)
@@ -310,11 +310,11 @@ struct HomeMenuOverlay: View {
             }
         }
         if isDualScreen || screenLayout == .singleScreen {
-            result.append(HomeMenuRow(id: "swap", title: "Swap TV and GamePad", symbol: "rectangle.2.swap",
-                                      hint: "Switches which screen is shown.", action: actions.swapScreens))
+            result.append(HomeMenuRow(id: "swap", title: loc("Swap TV and GamePad"), symbol: "rectangle.2.swap",
+                                      hint: loc("Switches which screen is shown."), action: actions.swapScreens))
         }
-        result.append(HomeMenuRow(id: "back", title: "Back", symbol: "chevron.left",
-                                  hint: "Returns to the HOME menu.", showsChevron: false, action: { show(.root) }))
+        result.append(HomeMenuRow(id: "back", title: loc("Back"), symbol: "chevron.left",
+                                  hint: loc("Returns to the HOME menu."), showsChevron: false, action: { show(.root) }))
         return result
     }
 
@@ -376,8 +376,8 @@ private struct HomeMenuRowView: View {
         }
         .buttonStyle(.plain)
         .padding(.vertical, row.isPrimary ? 4 : 0)
-        .accessibilityLabel(row.title)
-        .accessibilityHint(row.hint)
+        .accessibilityLabel(loc(row.title))
+        .accessibilityHint(loc(row.hint))
         .accessibilityAddTraits(row.isSelected ? .isSelected : [])
     }
 
@@ -387,7 +387,7 @@ private struct HomeMenuRowView: View {
             Image(systemName: row.symbol)
                 .font(.body.weight(.semibold))
                 .accessibilityHidden(true)
-            Text(row.title)
+            Text(loc(row.title))
                 .font(.body.weight(.semibold))
         }
         .foregroundColor(EspressUTheme.onCremaTop)
@@ -404,7 +404,7 @@ private struct HomeMenuRowView: View {
                 .foregroundColor(row.isDestructive ? EspressUTheme.alertText : .white.opacity(0.85))
                 .frame(width: 28, height: 28)
                 .accessibilityHidden(true)
-            Text(row.title)
+            Text(loc(row.title))
                 .font(.body)
                 .foregroundColor(row.isDestructive ? EspressUTheme.alertText : .white)
                 .lineLimit(1)

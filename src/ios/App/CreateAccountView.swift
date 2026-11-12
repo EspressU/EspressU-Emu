@@ -26,7 +26,7 @@ struct CreateAccountView: View {
                                 .font(.caption2.weight(.semibold))
                                 .foregroundColor(miiName.count >= 10 ? EspressUTheme.alertText : EspressUTheme.brownMid)
                                 .monospacedDigit()
-                                .accessibilityLabel("\(miiName.count) of 10 characters used")
+                                .accessibilityLabel(locf("%@ of 10 characters used", miiName.count))
                         }
                         .onValueChange(of: miiName) { newValue in
                             let trimmedName = String(newValue.prefix(10))
@@ -65,7 +65,7 @@ struct CreateAccountView: View {
         )) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
-            Text(errorMessage ?? "")
+            Text(loc(errorMessage ?? ""))
         }
     }
 

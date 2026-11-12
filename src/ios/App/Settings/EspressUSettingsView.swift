@@ -77,13 +77,13 @@ struct EspressUSettingsView: View {
         .alert(pageAlert?.title ?? "", isPresented: Binding(
             get: { pageAlert != nil }, set: { if !$0 { pageAlert = nil } }), presenting: pageAlert) { alert in
             ForEach(alert.actions) { action in
-                Button(action.title, role: action.destructive ? .destructive : (action.cancel ? .cancel : nil)) {
+                Button(loc(action.title), role: action.destructive ? .destructive : (action.cancel ? .cancel : nil)) {
                     pageAlert = nil
                     action.run()
                 }
             }
         } message: { alert in
-            Text(alert.message)
+            Text(loc(alert.message))
         }
         .sheet(isPresented: $accountSheets.showingCreateAccount, onDismiss: accountSheets.sheetClosed) {
             CreateAccountView()
@@ -178,7 +178,7 @@ struct EspressUSettingsView: View {
                             .font(.system(size: 17, weight: .regular))
                             .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
                             .frame(width: 28, height: 28)
-                        Text(item.title)
+                        Text(loc(item.title))
                             .font(.body.weight(selected ? .semibold : .regular))
                             .foregroundColor(EspressUTheme.brownDarkest)
                             .lineLimit(1)
@@ -251,11 +251,11 @@ struct EspressUSettingsView: View {
                                     .foregroundColor(EspressUTheme.brownMid)
                                     .frame(width: 28, height: 28)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.title)
+                                    Text(loc(item.title))
                                         .font(.body.weight(.semibold))
                                         .foregroundColor(EspressUTheme.brownDarkest)
                                         .lineLimit(1)
-                                    Text(item.hint)
+                                    Text(loc(item.hint))
                                         .font(.footnote)
                                         .foregroundColor(EspressUTheme.brownMid)
                                         .lineLimit(2)
@@ -315,7 +315,7 @@ struct EspressUSettingsView: View {
 
     private func categoryPage(_ page: SettingsCategory, showsBack: Bool) -> some View {
         rowsPage(title: page.title, summary: page.summary, groups: groups(for: page),
-                 showsBack: showsBack, backLabel: "Settings", onBack: closeCategory)
+                 showsBack: showsBack, backLabel: loc("Settings"), onBack: closeCategory)
     }
 
     private func subpage(_ page: LegacySettingsPage, groups: [SettingsGroup]) -> some View {
@@ -334,7 +334,7 @@ struct EspressUSettingsView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     if showsBack {
                         Button { onBack() } label: {
-                            Label(backLabel, systemImage: "chevron.left")
+                            Label(loc(backLabel), systemImage: "chevron.left")
                                 .font(.body.weight(.semibold))
                                 .foregroundColor(EspressUTheme.accentText)
                         }
@@ -342,10 +342,10 @@ struct EspressUSettingsView: View {
                         .padding(.top, 12)
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(title)
+                        Text(loc(title))
                             .font(isWide ? .largeTitle.bold() : .title.bold())
                             .foregroundColor(EspressUTheme.brownDarkest)
-                        Text(summary)
+                        Text(loc(summary))
                             .font(.system(size: isWide ? 16 : 15))
                             .foregroundColor(EspressUTheme.brownMid)
                             .fixedSize(horizontal: false, vertical: true)
@@ -357,7 +357,7 @@ struct EspressUSettingsView: View {
                     ForEach(groups) { group in
                         VStack(alignment: .leading, spacing: 6) {
                             if !group.title.isEmpty {
-                                Text(group.title.uppercased())
+                                Text(loc(group.title.uppercased()))
                                     .font(.footnote.weight(.semibold))
                                     .tracking(0.6)
                                     .foregroundColor(EspressUTheme.brownMid)
@@ -415,7 +415,7 @@ struct EspressUSettingsView: View {
                 rowLabel(item) { SettingsSwitch(isOn: binding.wrappedValue) }
             }
             .buttonStyle(.plain)
-            .accessibilityValue(binding.wrappedValue ? "On" : "Off")
+            .accessibilityValue(binding.wrappedValue ? loc("On") : loc("Off"))
 
         case .choice(let options, let binding):
             if Self.usesSegments(options) {
@@ -426,7 +426,7 @@ struct EspressUSettingsView: View {
                 Button { openDropdown(item) } label: {
                     rowLabel(item) {
                         HStack(spacing: 6) {
-                            Text(options.first { $0.id == binding.wrappedValue }?.title ?? "")
+                            Text(loc(options.first { $0.id == binding.wrappedValue }?.title ?? ""))
                                 .font(.body)
                                 .foregroundColor(EspressUTheme.brownMid)
                                 .multilineTextAlignment(.trailing)
@@ -442,14 +442,14 @@ struct EspressUSettingsView: View {
         case .slider(let binding, let range, let step, let label):
             VStack(alignment: .leading, spacing: 6) {
                 rowLabel(item, padded: false) {
-                    Text(label(binding.wrappedValue))
+                    Text(loc(label(binding.wrappedValue)))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownMid)
                         .monospacedDigit()
                 }
                 Slider(value: binding, in: range, step: step)
                     .tint(EspressUTheme.pixelBlue)
-                    .accessibilityLabel(item.title)
+                    .accessibilityLabel(loc(item.title))
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 13)
@@ -461,7 +461,7 @@ struct EspressUSettingsView: View {
                 press(item.id, confirm: confirm, run: run)
             } label: {
                 rowLabel(item, titleColor: destructive ? EspressUTheme.alertText : nil) {
-                    Text(isArmed ? "Press again" : title)
+                    Text(loc(isArmed ? "Press again" : title))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(isArmed ? EspressUTheme.onAccent
                                          : (destructive ? EspressUTheme.alertText : EspressUTheme.accentText))
@@ -481,7 +481,7 @@ struct EspressUSettingsView: View {
                 rowLabel(item) {
                     HStack(spacing: 6) {
                         if !value.isEmpty {
-                            Text(value)
+                            Text(loc(value))
                                 .font(.body)
                                 .foregroundColor(EspressUTheme.brownMid)
                         }
@@ -501,7 +501,7 @@ struct EspressUSettingsView: View {
                 rowLabel(item) {
                     HStack(spacing: 6) {
                         if !value.isEmpty {
-                            Text(value)
+                            Text(loc(value))
                                 .font(.body)
                                 .foregroundColor(EspressUTheme.brownMid)
                         }
@@ -515,7 +515,7 @@ struct EspressUSettingsView: View {
 
         case .info(let value, let tint):
             rowLabel(item) {
-                Text(value)
+                Text(loc(value))
                     .font(.body.weight(.semibold))
                     .foregroundColor(tint ?? EspressUTheme.brownMid)
                     .multilineTextAlignment(.trailing)
@@ -536,7 +536,7 @@ struct EspressUSettingsView: View {
                     run()
                 } label: {
                     HStack(spacing: 14) {
-                        Text(label)
+                        Text(loc(label))
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(EspressUTheme.brownDarkest)
                             .minimumScaleFactor(0.6)
@@ -544,17 +544,17 @@ struct EspressUSettingsView: View {
                             .frame(width: 38, height: 38)
                             .background(Circle().fill(EspressUTheme.pixelBlue.opacity(changed ? 0.3 : 0.14)))
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(item.title)
+                            Text(loc(item.title))
                                 .font(.body.weight(.semibold))
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if let detail = item.detail, !detail.isEmpty {
-                                Text(detail)
+                                Text(loc(detail))
                                     .font(.footnote)
                                     .foregroundColor(EspressUTheme.brownMid)
                             }
                         }
                         Spacer(minLength: 8)
-                        Text(value)
+                        Text(loc(value))
                             .font(.system(size: 15, weight: changed ? .bold : .regular))
                             .foregroundColor(changed ? EspressUTheme.accentText : EspressUTheme.brownMid)
                             .padding(.horizontal, 12)
@@ -576,7 +576,7 @@ struct EspressUSettingsView: View {
                             .background(Circle().fill(EspressUTheme.wrapper.opacity(0.7)))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Reset \(item.title)")
+                    .accessibilityLabel(locf("Reset %@", item.title))
                 }
             }
             .padding(.horizontal, 18)
@@ -603,12 +603,12 @@ struct EspressUSettingsView: View {
                                           titleColor: Color? = nil,
                                           @ViewBuilder trailing: () -> Trailing) -> some View {
         let text = VStack(alignment: .leading, spacing: 3) {
-            Text(item.title)
+            Text(loc(item.title))
                 .font(.body.weight(.semibold))
                 .foregroundColor(titleColor ?? EspressUTheme.brownDarkest)
                 .fixedSize(horizontal: false, vertical: true)
             if let detail = notes[item.id] ?? item.detail, !detail.isEmpty {
-                Text(detail)
+                Text(loc(detail))
                     .font(.subheadline)
                     .foregroundColor(EspressUTheme.brownMid)
                     .fixedSize(horizontal: false, vertical: true)
@@ -648,7 +648,7 @@ struct EspressUSettingsView: View {
                     focus = id
                     binding.wrappedValue = option.id
                 } label: {
-                    Text(option.title)
+                    Text(loc(option.title))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
                         .lineLimit(1)
@@ -669,7 +669,7 @@ struct EspressUSettingsView: View {
     private func legacyPage(_ page: LegacySettingsPage) -> some View {
         EspressUNavigation {
             legacyContent(page)
-                .navigationTitle(page.title)
+                .navigationTitle(loc(page.title))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -705,7 +705,7 @@ struct EspressUSettingsView: View {
             if legacy == nil {
                 ControllerButtonHint(symbol: input.confirmSymbol, text: hintConfirm)
             } else {
-                ControllerButtonHint(symbol: "dpad", text: "Scroll")
+                ControllerButtonHint(symbol: "dpad", text: loc("Scroll"))
             }
             ControllerButtonHint(symbol: input.backSymbol, text: hintBack)
             if legacy == nil {
@@ -713,7 +713,7 @@ struct EspressUSettingsView: View {
                     Image(systemName: leftShoulderSymbol)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(EspressUTheme.brownMid)
-                    ControllerButtonHint(symbol: rightShoulderSymbol, text: "Category")
+                    ControllerButtonHint(symbol: rightShoulderSymbol, text: loc("Category"))
                 }
                 .accessibilityHidden(true)
             }
@@ -728,7 +728,7 @@ struct EspressUSettingsView: View {
                 if legacy == nil {
                     ControllerButtonHint(symbol: input.confirmSymbol, text: hintConfirm)
                 } else {
-                    ControllerButtonHint(symbol: "dpad", text: "Scroll")
+                    ControllerButtonHint(symbol: "dpad", text: loc("Scroll"))
                 }
                 ControllerButtonHint(symbol: input.backSymbol, text: hintBack)
                 if legacy == nil && (wide || showingCategory) {
@@ -736,7 +736,7 @@ struct EspressUSettingsView: View {
                         Image(systemName: leftShoulderSymbol)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(EspressUTheme.brownMid)
-                        ControllerButtonHint(symbol: rightShoulderSymbol, text: "Category")
+                        ControllerButtonHint(symbol: rightShoulderSymbol, text: loc("Category"))
                     }
                     .accessibilityHidden(true)
                 }
@@ -767,14 +767,14 @@ struct EspressUSettingsView: View {
     }
 
     private var hintConfirm: String {
-        if !isWide && !showingCategory { return "Open" }
-        return sidebarFocused && isWide ? "Open" : "Change"
+        if !isWide && !showingCategory { return loc("Open") }
+        return sidebarFocused && isWide ? loc("Open") : loc("Change")
     }
 
     private var hintBack: String {
-        if legacy != nil { return "Back" }
-        if isWide { return sidebarFocused ? "Close" : "Back" }
-        return showingCategory ? "Back" : "Close"
+        if legacy != nil { return loc("Back") }
+        if isWide { return sidebarFocused ? loc("Close") : loc("Back") }
+        return showingCategory ? loc("Back") : loc("Close")
     }
 
     private var leftShoulderSymbol: String {

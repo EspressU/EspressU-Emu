@@ -8,6 +8,7 @@
 #include "Cafe/HW/Latte/Core/LatteQueryObject.h"
 #include "Cafe/HW/Latte/Renderer/RendererOuputShader.h"
 
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -85,6 +86,11 @@ public:
 
 	virtual void Flush(bool waitIdle = false) = 0;
 	virtual void NotifyLatteCommandProcessorIdle() = 0;
+	// the command processor must not sleep past this time while it waits for work, because the renderer wants to submit deferred commands by then
+	virtual std::chrono::steady_clock::time_point GetIdleSubmissionDeadline() const
+	{
+		return std::chrono::steady_clock::time_point::max();
+	}
 
 	virtual bool ImguiBegin(bool mainWindow);
 	virtual void ImguiEnd() = 0;

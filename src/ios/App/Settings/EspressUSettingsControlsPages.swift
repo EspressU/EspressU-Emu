@@ -10,19 +10,19 @@ extension EspressUSettingsView {
         let listening = session.listeningPad
 
         var top: [SettingsItem] = [
-            SettingsItem(id: "map.status", title: connected ?? "No controller connected",
+            SettingsItem(id: "map.status", title: connected ?? loc("No controller connected"),
                          detail: connected == nil
-                             ? "Pair one in the iOS Bluetooth settings to change buttons."
-                             : "Pick a GamePad button, then press the one you want on your controller.",
-                         control: .info(connected == nil ? "None" : "Connected", connected == nil ? nil : EspressUTheme.accentText)),
+                             ? loc("Pair one in the iOS Bluetooth settings to change buttons.")
+                             : loc("Pick a GamePad button, then press the one you want on your controller."),
+                         control: .info(connected == nil ? loc("None") : loc("Connected"), connected == nil ? nil : EspressUTheme.accentText)),
         ]
         if let pad = listening, let slot = PadMapping.slot(pad) {
-            top.append(SettingsItem(id: "map.listening", title: "Press a button on your controller",
-                                    detail: "It will become GamePad \(slot.name). \(Int(session.secondsLeft.rounded(.up))) s left.",
-                                    control: .action("Cancel", destructive: false, confirm: false, run: { session.cancel() })))
+            top.append(SettingsItem(id: "map.listening", title: loc("Press a button on your controller"),
+                                    detail: locf("It will become GamePad %@. %@ s left.", slot.name, Int(session.secondsLeft.rounded(.up))),
+                                    control: .action(loc("Cancel"), destructive: false, confirm: false, run: { session.cancel() })))
         }
 
-        var groups = [SettingsGroup(id: "map.pad", title: "Your controller", items: top)]
+        var groups = [SettingsGroup(id: "map.pad", title: loc("Your controller"), items: top)]
         for group in ControllerMappingSession.groupLayout {
             var items: [SettingsItem] = []
             for pad in group.pads {
@@ -34,9 +34,9 @@ extension EspressUSettingsView {
                 if changed && listening == nil { resetAction = { session.reset(pad: slot.id) } }
                 items.append(SettingsItem(
                     id: "map.pad.\(slot.id)", title: slot.name,
-                    detail: changed ? "Built-in: \(builtIn)" : nil,
+                    detail: changed ? locf("Built-in: %@", builtIn) : nil,
                     control: .padButton(label: slot.label,
-                                        value: waiting ? "Press a button" : PadMapping.deviceName(PadMapping.device(for: slot.id)),
+                                        value: waiting ? loc("Press a button") : PadMapping.deviceName(PadMapping.device(for: slot.id)),
                                         changed: changed || waiting,
                                         run: { session.listen(for: slot.id) },
                                         reset: resetAction),
@@ -45,20 +45,20 @@ extension EspressUSettingsView {
             groups.append(SettingsGroup(id: "map.\(group.title)", title: group.title, items: items))
         }
 
-        groups.append(SettingsGroup(id: "map.more", title: "Reset", items: [
-            SettingsItem(id: "map.resetAll", title: "Reset every button",
-                         detail: "All GamePad buttons go back to the built-in layout.",
-                         control: .action("Reset", destructive: true, confirm: true, run: { session.resetAll() }),
+        groups.append(SettingsGroup(id: "map.more", title: loc("Reset"), items: [
+            SettingsItem(id: "map.resetAll", title: loc("Reset every button"),
+                         detail: loc("All GamePad buttons go back to the built-in layout."),
+                         control: .action(loc("Reset"), destructive: true, confirm: true, run: { session.resetAll() }),
                          enabled: !PadMapping.overrides().isEmpty && listening == nil),
-            SettingsItem(id: "tc.resetBindings", title: "Reset controller bindings",
-                         detail: "Rebuilds the default button bindings. Use it if some buttons do nothing while the sticks still work.",
-                         control: .action("Reset", destructive: true, confirm: true, run: {
+            SettingsItem(id: "tc.resetBindings", title: loc("Reset controller bindings"),
+                         detail: loc("Rebuilds the default button bindings. Use it if some buttons do nothing while the sticks still work."),
+                         control: .action(loc("Reset"), destructive: true, confirm: true, run: {
                              let ok = cemu_bridge_reset_controller_bindings()
                              let count = Int(cemu_bridge_input_button_mapping_count())
                              notes["tc.resetBindings"] = ok
-                                 ? "Reset. The GamePad now has \(count) button bindings."
-                                 : (count < 0 ? "No GamePad is wired yet - start a game, then try again."
-                                              : "Reset, but the GamePad still has no button bindings.")
+                                 ? locf("Reset. The GamePad now has %@ button bindings.", count)
+                                 : (count < 0 ? loc("No GamePad is wired yet - start a game, then try again.")
+                                              : loc("Reset, but the GamePad still has no button bindings."))
                          }),
                          enabled: listening == nil),
         ]))

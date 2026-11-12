@@ -7,6 +7,24 @@ enum RemovedSettingsCleanup {
 
     static func run() {
         let defaults = UserDefaults.standard
+        // The "Faster interpreter without JIT" switch is gone: block linking is always on now. Drop a stored
+        // value from older versions every launch, so nothing can bring an old "off" back.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterBlockLinking")
+        // Threaded dispatch was only an experiment on the fast-interpreter branch and is gone.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterThreaded")
+        // "Faster interpreter (beta)" is gone too: the deferred instruction pointer is always on now.
+        defaults.removeObject(forKey: "espressu.tuning.interpreterFast")
+        // Free memory on warnings, the GPU fault history, "No duplicate JIT work" and "Keep the TV smooth with both screens" are always on now.
+        defaults.removeObject(forKey: "espressu.tuning.freeMemoryOnWarning")
+        defaults.removeObject(forKey: "espressu.tuning.gpuFaultHistory")
+        defaults.removeObject(forKey: "espressu.tuning.jitSkipOverlaps")
+        defaults.removeObject(forKey: "espressu.tuning.padPresentPacing")
+        // "Log the experimental options" became "Logs" (on by default) under its own key.
+        defaults.removeObject(forKey: "espressu.tuning.diagnosticsLog")
+        defaults.removeObject(forKey: "espressu.tuning.metalFxUpscale")
+        // The first frame generation (on the Metal 4 output) is gone; its stored mode must not turn the new
+        // switch on. The new one lives under "espressu.tuning.frameInterpolation".
+        defaults.removeObject(forKey: "espressu.tuning.frameGeneration")
         guard !defaults.bool(forKey: doneKey) else { return }
         for key in [
             "espressu.cpu.favourAccuracy", FavourPerformance.storageKey, OneCoreMode.storageKey,

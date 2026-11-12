@@ -22,13 +22,13 @@ enum SettingsBackup {
         var errorDescription: String? {
             switch self {
             case .unreadable:
-                return "That file couldn't be read."
+                return loc("That file couldn't be read.")
             case .notASettingsFile:
-                return "That isn't an EspressU settings file."
+                return loc("That isn't an EspressU settings file.")
             case .newerVersion(let version):
-                return "That file is from a newer EspressU (settings file version \(version)). Update the app, then try again."
+                return locf("That file is from a newer EspressU (settings file version %@). Update the app, then try again.", version)
             case .nothingToImport:
-                return "That file has no settings EspressU can use."
+                return loc("That file has no settings EspressU can use.")
             }
         }
     }
@@ -139,6 +139,7 @@ enum SettingsBackup {
         DisplayRouter.shared.reapplyRenderScale(reason: "settings import")
         AdvancedSettings.applyToBridge()
         MotionSettings.applyToBridge()
+        OverlaySettings.applyFrameGenBreakdownToBridge()
         NotificationCenter.default.post(name: .espressuSettingsWereReset, object: nil)
     }
 

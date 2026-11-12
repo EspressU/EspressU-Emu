@@ -8,6 +8,7 @@
 #include "Cafe/HW/Latte/Core/PerfTelemetry.h"
 
 #include <chrono>
+#include <optional>
 #include <thread>
 
 struct MetalPixelFormatSupport
@@ -121,7 +122,9 @@ inline bool CommandBufferCompleted(MTL::CommandBuffer* commandBuffer)
     return (status == MTL::CommandBufferStatusCompleted || status == MTL::CommandBufferStatusError);
 }
 
-inline bool WaitForCommandBuffer(MTL::CommandBuffer* commandBuffer, const char* what)
+// isReadback: the game needs data back from the GPU (texture readback, query result, re-encode copy); counted apart from
+// waits that only throttle how far the CPU runs ahead, so a long frame can tell the two apart.
+inline bool WaitForCommandBuffer(MTL::CommandBuffer* commandBuffer, const char* what, bool isReadback = false)
 {
     if (!commandBuffer)
         return true;
@@ -135,6 +138,12 @@ inline bool WaitForCommandBuffer(MTL::CommandBuffer* commandBuffer, const char* 
     }
     LatteWait::Scope waitScope(what);
     PerfTelemetry::ScopedTimer syncTimer(PerfTelemetry::Get().gpuSyncNs);
+    std::optional<PerfTelemetry::ScopedTimer> readbackTimer;
+    if (isReadback)
+    {
+        readbackTimer.emplace(PerfTelemetry::Get().rtReadbackWaitNs);
+        PerfTelemetry::Get().rtReadbackWaits.fetch_add(1, std::memory_order_relaxed);
+    }
 
     const int64_t timeoutMs = state.gpuPresumedLost.load(std::memory_order_relaxed) ? 50 : 2500;
     const auto start = std::chrono::steady_clock::now();

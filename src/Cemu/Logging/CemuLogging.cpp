@@ -147,10 +147,13 @@ void cemuLog_thread()
 		cache_copy.swap(LogContext.text_cache);
 		lock.unlock();
 
-		for (const auto& entry : cache_copy)
-			LogContext.file_stream.write(entry.data(), entry.size());
+		if (LogContext.file_stream.is_open())
+		{
+			for (const auto& entry : cache_copy)
+				LogContext.file_stream.write(entry.data(), entry.size());
 
-		LogContext.file_stream.flush();
+			LogContext.file_stream.flush();
+		}
 
 		if (auto* tee = s_logTee.load(std::memory_order_relaxed))
 		{
@@ -171,6 +174,12 @@ fs::path cemuLog_GetLogFilePath()
 void cemuLog_createLogFile(bool triggeredByCrash)
 {
 	std::unique_lock lock(LogContext.log_mutex);
+#if BOOST_OS_IOS
+	// iOS writes no log.txt: every line goes through the tee into the EspressU report (Documents/Logs) and the
+	// in-app live log. Only the writer thread is started.
+	if (LogContext.threadRunning.load())
+		return;
+#else
 	if (LogContext.file_stream.is_open())
 		return;
 
@@ -183,6 +192,7 @@ void cemuLog_createLogFile(bool triggeredByCrash)
 		cemu_assert_debug(false);
 		return;
 	}
+#endif
 
 	LogContext.threadRunning.store(true);
 	LogContext.log_writer = std::thread(cemuLog_thread);

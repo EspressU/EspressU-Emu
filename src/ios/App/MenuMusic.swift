@@ -30,11 +30,11 @@ final class MenuMusic: NSObject, AVAudioPlayerDelegate {
 
         var title: String {
             switch self {
-            case .allSongs: return "All songs"
-            case .horizonDrive: return "Horizon Drive"
-            case .starfall: return "Starfall"
-            case .phaseShift: return "Phase Shift"
-            case .labRats: return "Lab Rats"
+            case .allSongs: return loc("All songs")
+            case .horizonDrive: return loc("Horizon Drive")
+            case .starfall: return loc("Starfall")
+            case .phaseShift: return loc("Phase Shift")
+            case .labRats: return loc("Lab Rats")
             }
         }
 
@@ -212,12 +212,12 @@ struct MenuMusicSettingsGroup: View {
         if enabled {
             Picker("Song", selection: $trackRaw) {
                 ForEach(MenuMusic.Track.allCases) { track in
-                    Text(track.title).tag(track.rawValue)
+                    Text(loc(track.title)).tag(track.rawValue)
                 }
                 if !customTracks.isEmpty {
                     Text("All my tracks").tag(MenuMusic.customAllTag)
                     ForEach(customTracks, id: \.self) { url in
-                        Text(url.deletingPathExtension().lastPathComponent)
+                        Text(loc(url.deletingPathExtension().lastPathComponent))
                             .tag(MenuMusic.customPrefix + url.lastPathComponent)
                     }
                 }

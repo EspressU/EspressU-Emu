@@ -7,7 +7,7 @@ struct DeviceCapabilities {
 
     enum Tier: Int {
         case low = 0, standard = 1, high = 2
-        var name: String { self == .low ? "low" : (self == .high ? "high" : "standard") }
+        var name: String { self == .low ? loc("low") : (self == .high ? loc("high") : loc("standard")) }
     }
 
     enum ScreenClass: Int {

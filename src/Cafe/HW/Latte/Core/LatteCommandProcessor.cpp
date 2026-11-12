@@ -7,6 +7,8 @@
 #include "Cafe/HW/Latte/Core/LatteDraw.h"
 #include "Cafe/HW/Latte/Core/LatteShader.h"
 #include "Cafe/HW/Latte/Core/LatteAsyncCommands.h"
+#include "Cafe/HW/Latte/Core/LatteTiming.h"
+#include "Cafe/HW/Latte/Core/LatteWorkEvent.h"
 #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
 #include "Cafe/HW/Latte/Core/LatteIndices.h"
 #include "Cafe/HW/Latte/Core/LatteBufferCache.h"
@@ -133,6 +135,16 @@ void LatteCP_signalEnterWait()
 	LatteIndices_invalidateAll();
 }
 
+// longest sleep while waiting for GPU work, a safety net in case a wake-up source does not notify the work event
+static constexpr auto LATTE_CP_MAX_IDLE_SLEEP = std::chrono::milliseconds(2);
+
+static inline void LatteCP_waitForWork(std::size_t workGeneration)
+{
+	auto deadline = std::min(LatteTiming_GetNextVsyncDeadline(), g_renderer->GetIdleSubmissionDeadline());
+	deadline = std::min(deadline, std::chrono::steady_clock::now() + LATTE_CP_MAX_IDLE_SLEEP);
+	Latte_GetWorkEvent().WaitUntil(workGeneration, deadline);
+}
+
 static inline void LatteCP_waitBackoff(uint32& idleRounds)
 {
 #if BOOST_OS_IOS
@@ -149,9 +161,9 @@ static inline void LatteCP_waitBackoff(uint32& idleRounds)
 
 uint32 LatteCP_readU32Deprc()
 {
-	uint32 idleRounds = 0;
 	while (true)
 	{
+		const auto workGeneration = Latte_GetWorkEvent().Snapshot();
 		uint32 cmdWord;
 		if ( TCL::TCLGPUReadRBWord(cmdWord) )
 		{
@@ -181,11 +193,15 @@ uint32 LatteCP_readU32Deprc()
 
 		LatteTiming_HandleTimedVsync();
 		LatteAsyncCommands_checkAndExecute();
-#if BOOST_OS_IOS
-		LatteCP_waitBackoff(idleRounds);
-#else
-		std::this_thread::yield();
-#endif
+		// commands that arrived after the snapshot must not be slept through
+		if ( TCL::TCLGPUReadRBWord(cmdWord) )
+		{
+			LatteWait::Clear();
+			performanceMonitor.gpuTime_idleTime.endMeasuring();
+			PerfTelemetry::Get().gpuIdleNs.fetch_add(PerfTelemetry::NowNs() - idleIterationStart, std::memory_order_relaxed);
+			return cmdWord;
+		}
+		LatteCP_waitForWork(workGeneration);
 		performanceMonitor.gpuTime_idleTime.endMeasuring();
 		PerfTelemetry::Get().gpuIdleNs.fetch_add(PerfTelemetry::NowNs() - idleIterationStart, std::memory_order_relaxed);
 	}
@@ -908,13 +924,17 @@ LatteCMDPtr LatteCP_itHLEWaitForFlip(LatteCMDPtr cmd, uint32 nWords)
 	PerfTelemetry::ScopedTimer syncTimer(PerfTelemetry::Get().gpuSyncNs);
 	while (true)
 	{
-		_mm_pause();
+		const auto workGeneration = Latte_GetWorkEvent().Snapshot();
 		if (currentFlipCount != LatteGPUState.flipCounter)
 		{
 			break;
 		}
 		LatteTiming_HandleTimedVsync();
-		std::this_thread::yield();
+		g_renderer->NotifyLatteCommandProcessorIdle();
+		if (Latte_GetStopSignal())
+			LatteThread_Exit();
+		if (currentFlipCount == LatteGPUState.flipCounter)
+			LatteCP_waitForWork(workGeneration);
 	}
 	return cmd;
 }

@@ -285,7 +285,7 @@ void IOSReport_Write(const char* text, size_t length)
 	if (fstat(s_fd, &info) == 0 && info.st_size - s_sessionStart > kLogTeeLimit)
 	{
 		if (!s_logTeeFull.exchange(true))
-			WriteString("\n[report] this session reached 48 MB in the report; further ordinary log lines are only in log.txt\n");
+			WriteString("\n[report] this session reached 48 MB in the report; further ordinary log lines are left out\n");
 		return;
 	}
 	WriteAll(text, length);

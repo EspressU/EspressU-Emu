@@ -37,7 +37,7 @@ struct ThemePickerView: View {
                                     .fill(Color(light: theme.pixelBlueLight, dark: theme.pixelBlueDark))
                                     .frame(width: 26, height: 26)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(theme.name)
+                                    Text(loc(theme.name))
                                         .foregroundColor(.primary)
                                     if theme.iconId == currentIconId {
                                         Text("Matches your icon")

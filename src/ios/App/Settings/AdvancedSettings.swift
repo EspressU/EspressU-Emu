@@ -16,8 +16,8 @@ enum SettingsMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .basic:    return "Basic"
-        case .advanced: return "Advanced"
+        case .basic:    return loc("Basic")
+        case .advanced: return loc("Advanced")
         }
     }
 

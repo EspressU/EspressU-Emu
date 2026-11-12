@@ -9,10 +9,10 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .performance: return "Performance"
+        case .performance: return loc("Performance")
         case .graphics:    return "Graphics"
         case .controls:    return "Controls"
-        case .screenSound: return "Screen & Sound"
+        case .screenSound: return loc("Screen & Sound")
         case .gamesData:   return "Games & Data"
         case .system:      return "System"
         }
@@ -32,10 +32,10 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .performance: return "How games run: the CPU and heat. Performance depends on the game and your device."
+        case .performance: return loc("How games run: the CPU and heat. Performance depends on the game and your device.")
         case .graphics:    return "Picture quality, frame pacing and shaders."
         case .controls:    return "Controllers and motion."
-        case .screenSound: return "Screen layout, brightness, volume and the microphone."
+        case .screenSound: return loc("Screen layout, brightness, volume and the microphone.")
         case .gamesData:   return "Your library, files and backups."
         case .system:      return "Look, help and about EspressU."
         }
@@ -43,10 +43,10 @@ enum SettingsCategory: Int, CaseIterable, Identifiable {
 
     var hint: String {
         switch self {
-        case .performance: return "CPU cores, speed, heat"
+        case .performance: return loc("CPU cores, speed, heat")
         case .graphics:    return "Resolution, shaders"
         case .controls:    return "Touch, controllers, motion"
-        case .screenSound: return "Layout, brightness, volume"
+        case .screenSound: return loc("Layout, brightness, volume")
         case .gamesData:   return "Library, files, backups"
         case .system:      return "Look, help, about"
         }
@@ -82,37 +82,37 @@ enum LegacySettingsPage: String, Identifiable {
 
     var summary: String {
         switch self {
-        case .emulatedClock: return "How fast the emulated console's clock runs."
+        case .emulatedClock: return loc("How fast the emulated console's clock runs.")
         case .figures:       return "Toy figure portals for Skylanders, Disney Infinity and LEGO Dimensions."
         case .overlay:       return "What EspressU shows on top of a game."
-        case .linkedFolders: return "Game folders that stay where they are."
+        case .linkedFolders: return loc("Game folders that stay where they are.")
         case .graphicPacks:  return "Mods you import yourself. They apply the next time you start a game."
         case .files:         return "Where EspressU keeps games, saves and more."
         case .backup:        return "Save every setting to a file, or load one."
         case .account:       return "Your local profile for game saves."
         case .diagnostics:   return "For bug reports."
         case .about:         return "Credits and open-source licences."
-        case .figureManager: return "Load, create or clear figures."
+        case .figureManager: return loc("Load, create or clear figures.")
         case .licences:      return "The open-source code inside EspressU."
-        case .controllerMapping: return "Choose which controller button does what."
+        case .controllerMapping: return loc("Choose which controller button does what.")
         }
     }
 
     var title: String {
         switch self {
-        case .emulatedClock: return "Emulated clock"
+        case .emulatedClock: return loc("Emulated clock")
         case .figures:       return "Figure portals"
         case .overlay:       return "Overlay and notifications"
-        case .linkedFolders: return "Linked folders"
+        case .linkedFolders: return loc("Linked folders")
         case .graphicPacks:  return "Mods"
         case .files:         return "Your files"
         case .backup:        return "Back up and restore"
         case .account:       return "Profile"
         case .diagnostics:   return "Device report and logs"
         case .about:         return "About EspressU"
-        case .figureManager: return "Manage figures"
+        case .figureManager: return loc("Manage figures")
         case .licences:      return "Open-source licences"
-        case .controllerMapping: return "Controller buttons"
+        case .controllerMapping: return loc("Controller buttons")
         }
     }
 }
@@ -120,6 +120,12 @@ enum LegacySettingsPage: String, Identifiable {
 struct SettingsOption: Identifiable {
     let id: String
     let title: String
+
+    /// `verbatim` keeps names that must not be translated, like a language shown in its own words.
+    init(id: String, title: String, verbatim: Bool = false) {
+        self.id = id
+        self.title = verbatim ? title : loc(title)
+    }
 }
 
 struct SettingsItem: Identifiable {
@@ -143,6 +149,14 @@ struct SettingsItem: Identifiable {
     let control: Control
     var enabled: Bool = true
 
+    init(id: String, title: String, detail: String? = nil, control: Control, enabled: Bool = true) {
+        self.id = id
+        self.title = loc(title)
+        self.detail = detail.map(loc)
+        self.control = control
+        self.enabled = enabled
+    }
+
     var isFocusable: Bool {
         guard enabled else { return false }
         switch control {
@@ -156,6 +170,12 @@ struct SettingsGroup: Identifiable {
     let id: String
     let title: String
     let items: [SettingsItem]
+
+    init(id: String, title: String, items: [SettingsItem]) {
+        self.id = id
+        self.title = loc(title)
+        self.items = items
+    }
 }
 
 final class SettingsValues: ObservableObject {

@@ -22,19 +22,19 @@ enum LibraryCardStyle: String, CaseIterable, Hashable, Identifiable {
 
     var title: String {
         switch self {
-        case .standard: return "Cards"
-        case .largeCovers: return "Large covers"
-        case .compact: return "Compact grid"
-        case .list: return "List"
+        case .standard: return loc("Cards")
+        case .largeCovers: return loc("Large covers")
+        case .compact: return loc("Compact grid")
+        case .list: return loc("List")
         }
     }
 
     var detail: String {
         switch self {
-        case .standard: return "Cover, name and a Play button"
-        case .largeCovers: return "Bigger covers, tap a cover to play"
-        case .compact: return "Many small covers on screen at once"
-        case .list: return "One game per row, with details"
+        case .standard: return loc("Cover, name and a Play button")
+        case .largeCovers: return loc("Bigger covers, tap a cover to play")
+        case .compact: return loc("Many small covers on screen at once")
+        case .list: return loc("One game per row, with details")
         }
     }
 
@@ -96,10 +96,10 @@ enum LibraryGrouping: String, CaseIterable, Hashable, Identifiable {
 
     var title: String {
         switch self {
-        case .none: return "No groups"
-        case .favorites: return "Favourites and the rest"
-        case .recentlyPlayed: return "Recently played"
-        case .alphabet: return "A to Z"
+        case .none: return loc("No groups")
+        case .favorites: return loc("Favourites and the rest")
+        case .recentlyPlayed: return loc("Recently played")
+        case .alphabet: return loc("A to Z")
         }
     }
 
@@ -126,10 +126,10 @@ enum LibraryFilter: String, CaseIterable, Hashable, Identifiable {
 
     var title: String {
         switch self {
-        case .all: return "All games"
-        case .favorites: return "Favourites only"
-        case .played: return "Played before"
-        case .neverPlayed: return "Never played"
+        case .all: return loc("All games")
+        case .favorites: return loc("Favourites only")
+        case .played: return loc("Played before")
+        case .neverPlayed: return loc("Never played")
         }
     }
 
@@ -167,8 +167,8 @@ extension LibraryGrouping {
             let favs = games.filter { $0.isFavorite }
             let rest = games.filter { !$0.isFavorite }
             return [
-                LibrarySection(id: "favorites", title: "Favourites", games: favs),
-                LibrarySection(id: "rest", title: favs.isEmpty ? nil : "Other games", games: rest),
+                LibrarySection(id: "favorites", title: loc("Favourites"), games: favs),
+                LibrarySection(id: "rest", title: favs.isEmpty ? nil : loc("Other games"), games: rest),
             ].filter { !$0.games.isEmpty }
         case .recentlyPlayed:
             let recentIDs = Set(stats.recentIDs(limit: 8))
@@ -176,8 +176,8 @@ extension LibraryGrouping {
                 .sorted { (stats.entry(for: $0.id)?.last ?? .distantPast) > (stats.entry(for: $1.id)?.last ?? .distantPast) }
             let rest = games.filter { !recentIDs.contains($0.id) }
             return [
-                LibrarySection(id: "recent", title: "Recently played", games: recent),
-                LibrarySection(id: "rest", title: recent.isEmpty ? nil : "Everything else", games: rest),
+                LibrarySection(id: "recent", title: loc("Recently played"), games: recent),
+                LibrarySection(id: "rest", title: recent.isEmpty ? nil : loc("Everything else"), games: rest),
             ].filter { !$0.games.isEmpty }
         case .alphabet:
             var order: [String] = []
@@ -269,7 +269,7 @@ struct LibraryRenameSheet: View {
                     TextField("Name", text: $text)
                         .autocapitalization(.words)
                 } footer: {
-                    Text("Only changes how the game is named in your library. Original title: \(originalTitle)"
+                    Text(locf("Only changes how the game is named in your library. Original title: %@", originalTitle)
                          + (installDescription.isEmpty ? "" : "\nInstall: \(installDescription)"))
                 }
                 if LibraryCustomNames.shared.name(for: game.installKey) != nil {
@@ -373,7 +373,7 @@ struct LibrarySectionHeader: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(title)
+            Text(loc(title))
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(EspressUTheme.brownDarkest)
             Text("\(count)")
@@ -426,7 +426,7 @@ private struct LibraryHeartButton: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel(isFavorite ? "Remove from favourites" : "Add to favourites")
+        .accessibilityLabel(isFavorite ? loc("Remove from favourites") : loc("Add to favourites"))
     }
 }
 
@@ -448,7 +448,7 @@ private struct LibraryOptionsButton<Options: View>: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel("More options for \(name)")
+        .accessibilityLabel(locf("More options for %@", name))
     }
 }
 
@@ -517,7 +517,7 @@ struct LibraryLargeCoverCard<Options: View>: View {
                             .aspectRatio(3 / 4, contentMode: .fit)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Play \(name.name)")
+                    .accessibilityLabel(locf("Play %@", name.name))
                     LibraryHeartButton(isFavorite: game.isFavorite, size: 34, action: onFavoriteTap)
                         .padding(4)
                 }
@@ -526,12 +526,12 @@ struct LibraryLargeCoverCard<Options: View>: View {
                         .padding(4)
                 }
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(name.name)
+                    Text(loc(name.name))
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(2)
                         .foregroundColor(EspressUTheme.brownDarkest)
                     if let region = game.region {
-                        Label(region, systemImage: "globe")
+                        Label(loc(region), systemImage: "globe")
                             .font(.caption)
                             .foregroundColor(EspressUTheme.brownMid)
                     }
@@ -562,7 +562,7 @@ struct LibraryCompactCard<Options: View>: View {
                         .aspectRatio(3 / 4, contentMode: .fit)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Play \(name.name)")
+                .accessibilityLabel(locf("Play %@", name.name))
                 LibraryHeartButton(isFavorite: game.isFavorite, size: 26, action: onFavoriteTap)
                     .padding(.top, -6)
                     .padding(.trailing, -6)
@@ -572,7 +572,7 @@ struct LibraryCompactCard<Options: View>: View {
                     .padding(.top, -6)
                     .padding(.leading, -6)
             }
-            Text(name.name)
+            Text(loc(name.name))
                 .font(.caption2.weight(.semibold))
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
@@ -605,10 +605,10 @@ struct LibraryListRow<Options: View>: View {
         if let entry = stats.entry(for: game.id) {
             let relative = RelativeDateTimeFormatter()
             relative.unitsStyle = .short
-            parts.append("Played " + relative.localizedString(for: entry.last, relativeTo: Date()))
+            parts.append(loc("Played ") + relative.localizedString(for: entry.last, relativeTo: Date()))
             if entry.count > 1 { parts.append("\(entry.count) launches") }
         } else {
-            parts.append("Not played yet")
+            parts.append(loc("Not played yet"))
         }
         return parts.joined(separator: "  \u{2022}  ")
     }
@@ -622,20 +622,20 @@ struct LibraryListRow<Options: View>: View {
                         LibraryCoverWell(game: game, radius: 10, glyphSize: 18)
                             .frame(width: 56 * listScale, height: 74 * listScale)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(name.name)
+                            Text(loc(name.name))
                                 .font(.subheadline.weight(.semibold))
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                                 .foregroundColor(EspressUTheme.brownDarkest)
                             if let label = game.installLabel { LibraryInstallLine(text: label, size: 12) }
                             LibraryExternalLine(game: game, size: 12)
-                            Text(detailLine)
+                            Text(loc(detailLine))
                                 .font(.caption)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                                 .foregroundColor(EspressUTheme.brownMid)
                             if let idText = name.titleIdText {
-                                Text(idText)
+                                Text(loc(idText))
                                     .font(.system(size: 10, weight: .regular, design: .monospaced))
                                     .foregroundColor(EspressUTheme.brownMid)
                                     .lineLimit(1)
@@ -647,7 +647,7 @@ struct LibraryListRow<Options: View>: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Play \(name.name)")
+                .accessibilityLabel(locf("Play %@", name.name))
 
                 Menu {
                     options
@@ -658,7 +658,7 @@ struct LibraryListRow<Options: View>: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel("More options for \(name.name)")
+                .accessibilityLabel(locf("More options for %@", name.name))
 
                 Button(action: onFavoriteTap) {
                     Image(systemName: game.isFavorite ? "heart.fill" : "heart")
@@ -667,7 +667,7 @@ struct LibraryListRow<Options: View>: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel(game.isFavorite ? "Remove from favourites" : "Add to favourites")
+                .accessibilityLabel(game.isFavorite ? loc("Remove from favourites") : loc("Add to favourites"))
             }
             .padding(.leading, 10)
             .padding(.trailing, 4)
@@ -688,7 +688,7 @@ struct LibraryViewMenu: View {
             Section("Show games as") {
                 ForEach(LibraryCardStyle.choices) { style in
                     Button { styleRaw = style.rawValue } label: {
-                        Label(style.title, systemImage: styleRaw == style.rawValue ? "checkmark" : style.systemImage)
+                        Label(loc(style.title), systemImage: styleRaw == style.rawValue ? "checkmark" : style.systemImage)
                     }
                 }
             }
@@ -696,14 +696,14 @@ struct LibraryViewMenu: View {
                 Section("Group by") {
                     ForEach(LibraryGrouping.allCases) { grouping in
                         Button { groupingRaw = grouping.rawValue } label: {
-                            Label(grouping.title, systemImage: groupingRaw == grouping.rawValue ? "checkmark" : grouping.systemImage)
+                            Label(loc(grouping.title), systemImage: groupingRaw == grouping.rawValue ? "checkmark" : grouping.systemImage)
                         }
                     }
                 }
                 Section("Show") {
                     ForEach(LibraryFilter.allCases) { filter in
                         Button { filterRaw = filter.rawValue } label: {
-                            Label(filter.title, systemImage: filterRaw == filter.rawValue ? "checkmark" : filter.systemImage)
+                            Label(loc(filter.title), systemImage: filterRaw == filter.rawValue ? "checkmark" : filter.systemImage)
                         }
                     }
                 }
@@ -724,7 +724,7 @@ struct LibraryInstallLine: View {
     var centered = false
 
     var body: some View {
-        Text(text)
+        Text(loc(text))
             .font(.system(size: size, weight: .medium))
             .foregroundColor(EspressUTheme.brownMid)
             .lineLimit(2)
@@ -740,14 +740,14 @@ struct LibraryExternalLine: View {
 
     var body: some View {
         if game.isExternal {
-            Label(game.isUnavailable ? ExternalLibrary.unavailableMessage : "External",
+            Label(game.isUnavailable ? ExternalLibrary.unavailableMessage : loc("External"),
                   systemImage: game.isUnavailable ? "externaldrive.badge.exclamationmark" : "externaldrive")
                 .font(.system(size: size, weight: .medium))
                 .foregroundColor(game.isUnavailable ? EspressUTheme.alertText : EspressUTheme.brownMid)
                 .lineLimit(2)
                 .multilineTextAlignment(centered ? .center : .leading)
                 .frame(maxWidth: centered ? .infinity : nil, alignment: centered ? .center : .leading)
-                .accessibilityLabel(game.isUnavailable ? ExternalLibrary.unavailableMessage : "Stored outside EspressU, played in place")
+                .accessibilityLabel(game.isUnavailable ? ExternalLibrary.unavailableMessage : loc("Stored outside EspressU, played in place"))
         }
     }
 }
@@ -761,11 +761,11 @@ final class DuplicateInstalls {
     private static func format(of game: GameMetadata) -> String {
         let ext = (game.romPath as NSString).pathExtension.lowercased()
         switch ext {
-        case "wua": return "WUA"
-        case "wud": return "WUD"
-        case "wux": return "WUX"
-        case "rpx", "tmd": return "Folder"
-        default: return ext.isEmpty ? "Folder" : ext.uppercased()
+        case "wua": return loc("WUA")
+        case "wud": return loc("WUD")
+        case "wux": return loc("WUX")
+        case "rpx", "tmd": return loc("Folder")
+        default: return ext.isEmpty ? loc("Folder") : ext.uppercased()
         }
     }
 

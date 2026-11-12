@@ -273,7 +273,7 @@ struct ControllerButtonHint: View {
         HStack(spacing: 5) {
             Image(systemName: symbol)
                 .font(.system(size: 17, weight: .semibold))
-            Text(text)
+            Text(loc(text))
                 .font(.system(size: 14, weight: .semibold))
         }
         .foregroundColor(EspressUTheme.brownMid)

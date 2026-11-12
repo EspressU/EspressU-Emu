@@ -4,29 +4,30 @@
 #include <cstdint>
 
 // Host-side performance options that the iOS front end switches at runtime.
-// Every option defaults to the behaviour EspressU had before it existed.
+// The defaults match what the front end sets when it starts.
 namespace HostTuning
 {
 	struct Options
 	{
 		// Free textures and idle GPU buffers on the render thread when iOS sends a memory warning.
-		std::atomic<bool> freeMemoryOnWarning{false};
+		std::atomic<bool> freeMemoryOnWarning{true};
 		// Write failed Metal allocations and GPU faults to a small file that survives a crash.
-		std::atomic<bool> keepGpuFaultHistory{false};
-		// Enlarge the finished TV and GamePad images with the MetalFX spatial scaler.
-		std::atomic<bool> metalFxUpscale{false};
-		// Present TV and GamePad frames through a Metal 4 command queue (iOS 26, Metal 4 GPUs).
-		std::atomic<bool> metal4Output{false};
+		std::atomic<bool> keepGpuFaultHistory{true};
+		// Present TV pictures on the display clock, generating intermediate pictures when useful.
+		std::atomic<bool> frameGeneration{true};
 		// When TV and GamePad are both on screen, draw the GamePad every second frame and hold it back while its
 		// drawables are slow, so it never delays the TV image.
-		std::atomic<bool> padPresentPacing{false};
+		std::atomic<bool> padPresentPacing{true};
 		// Let the block-cache interpreter jump from one cached block to the next through stored links
 		// instead of a hash lookup per block.
 		std::atomic<bool> interpreterBlockLinking{false};
 		// Only reported: the front end sizes the GamePad surface itself.
 		std::atomic<bool> padLowResolution{false};
+		// Convert textures the GPU cannot sample directly (BC on GPUs without BC support) on background threads
+		// instead of stalling the frame. New textures show their average colour for a few frames.
+		std::atomic<bool> asyncTextureLoading{true};
 		// Write a summary of what the options above actually did to the log every few seconds.
-		std::atomic<bool> diagnosticsLog{false};
+		std::atomic<bool> diagnosticsLog{true};
 	};
 
 	inline Options& Get()
@@ -47,17 +48,11 @@ namespace HostTuning
 		std::atomic<uint64_t> substituteTextures{0};
 		std::atomic<uint64_t> viewFallbacks{0};
 		std::atomic<uint64_t> faultsRecorded{0};
-		// MetalFX spatial
-		std::atomic<uint64_t> fxUpscales{0};
-		std::atomic<uint64_t> fxRebuilds{0};
-		std::atomic<uint64_t> fxFailures{0};
-		std::atomic<uint64_t> fxNotEnlarged{0};
-		// Metal 4 output
-		std::atomic<uint64_t> m4Frames{0};
-		std::atomic<uint64_t> m4Dropped{0};
-		std::atomic<uint64_t> m4RegularPath{0};
-		std::atomic<uint64_t> m4SlotTimeouts{0};
-		std::atomic<uint64_t> m4GpuMicros{0};
+		// Frame generation
+		std::atomic<uint64_t> fgGenerated{0};
+		std::atomic<uint64_t> fgBacklog{0};
+		std::atomic<uint64_t> fgDrawableWaits{0};
+		std::atomic<uint64_t> fgFailures{0};
 		// GamePad pacing
 		std::atomic<uint64_t> padSkippedFrames{0};
 		std::atomic<uint64_t> padSlowDrawables{0};

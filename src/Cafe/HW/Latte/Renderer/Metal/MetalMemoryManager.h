@@ -157,6 +157,7 @@ private:
     {
         std::vector<ArgumentCacheEntry> entries;
         uint64 useCounter = 0;
+        size_t lastIndex = ARGUMENT_CACHE_ENTRIES;
     } m_argumentCaches[METAL_SHADER_TYPE_TOTAL]{};
     uint64 m_argumentGeneration = 0;
 

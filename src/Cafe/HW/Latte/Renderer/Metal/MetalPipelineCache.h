@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "Cafe/HW/Latte/Renderer/Metal/MetalPipelineCompiler.h"
-#include "util/helpers/ConcurrentQueue.h"
 #include "util/helpers/fspinlock.h"
 #include "util/math/vector2.h"
 
@@ -35,7 +34,6 @@ public:
 	uint32 BeginLoading(uint64 cacheTitleId);
 	bool UpdateLoading(uint32& pipelinesLoadedTotal, uint32& pipelinesMissingShaders);
 	void EndLoading();
-	void LoadPipelineFromCache(std::span<uint8> fileData);
        void Close();
 	bool StopLoading(uint32 timeoutMs);
 
@@ -56,10 +54,16 @@ private:
 
 	class FileCache* s_cache{nullptr};
 
-	std::atomic_uint32_t m_numCompilationThreads{ 0 };
-	std::atomic_uint32_t m_loaderThreadsRunning{ 0 };
-	ConcurrentQueue<std::vector<uint8>> m_compilationQueue;
-	std::atomic_uint32_t m_compilationCount;
+    std::mutex m_loaderMutex;
+    std::condition_variable m_loaderWork;
+    std::condition_variable m_loaderProgress;
+    std::deque<std::vector<uint8>> m_compilationQueue;
+    bool m_loading = false;
+    uint32 m_loaderThreadsRunning = 0;
+    uint32 m_pipelineLoadIndex = 0;
+    uint32 m_pipelineMaxFileIndex = 0;
+    uint32 m_pipelinesQueued = 0;
+    uint32 m_pipelinesLoaded = 0;
 
     static uint64 CalculatePipelineHash(const LatteFetchShader* fetchShader, const LatteDecompilerShader* vertexShader, const LatteDecompilerShader* geometryShader, const LatteDecompilerShader* pixelShader, const class MetalAttachmentsInfo& lastUsedAttachmentsInfo, const class MetalAttachmentsInfo& activeAttachmentsInfo, const LatteContextRegister& lcr);
 
@@ -98,5 +102,6 @@ private:
     void BinaryArchiveWriterThread();
 
     int CompilerThread();
+    void LoadPipelineFromCache(std::span<uint8> fileData);
 	void WorkerThread();
 };

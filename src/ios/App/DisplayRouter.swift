@@ -58,20 +58,20 @@ enum ScreenLayout: String, CaseIterable, Identifiable {
 
     var string: String {
         switch self {
-        case .singleScreen: return "Single Screen"
-        case .bothScreens: return "Adaptive (Both Screens)"
-        case .smallGamePadTopRight: return "Both Screens (GamePad Top Right)"
+        case .singleScreen: return loc("Single Screen")
+        case .bothScreens: return loc("Adaptive (Both Screens)")
+        case .smallGamePadTopRight: return loc("Both Screens (GamePad Top Right)")
         }
     }
 
     var description: String {
         switch self {
         case .singleScreen:
-            return "Shows one screen at a time. Tap the swap button to switch between TV and GamePad."
+            return loc("Shows one screen at a time. Tap the swap button to switch between TV and GamePad.")
         case .bothScreens:
-            return "Shows both screens: stacked in portrait, side by side in landscape."
+            return loc("Shows both screens: stacked in portrait, side by side in landscape.")
         case .smallGamePadTopRight:
-            return "Shows the TV screen with a small GamePad screen in the top-right corner."
+            return loc("Shows the TV screen with a small GamePad screen in the top-right corner.")
         }
     }
 

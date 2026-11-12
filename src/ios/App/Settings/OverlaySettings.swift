@@ -14,6 +14,9 @@ enum OverlaySettings {
     static let fpsKey = "espressu.overlay.fps"
     static let defaultFps = true
 
+    static let showFrameGenBreakdownKey = "espressu.overlay.showFrameGenBreakdown"
+    static let defaultShowFrameGenBreakdown = false
+
     static let drawcallsKey = "espressu.overlay.drawcalls"
     static let defaultDrawcalls = false
 
@@ -31,6 +34,12 @@ enum OverlaySettings {
 
     static let debugKey = "espressu.overlay.debug"
     static let defaultDebug = true
+
+    static func applyFrameGenBreakdownToBridge() {
+        let enabled = UserDefaults.standard.object(forKey: showFrameGenBreakdownKey) as? Bool
+            ?? defaultShowFrameGenBreakdown
+        cemu_bridge_set_overlay_show_framegen_breakdown(enabled)
+    }
 }
 
 func packedColourBinding(_ value: Binding<Int>) -> Binding<Color> {

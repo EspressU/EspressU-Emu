@@ -84,7 +84,7 @@ enum GameSaveTransfer {
                         completion(.failure(TransferError.cancelled))
                         return
                     }
-                    completion(.success("Saved to \(dest.lastPathComponent)."))
+                    completion(.success(locf("Saved to %@.", dest.lastPathComponent)))
                 case .failure(let error):
                     completion(.failure(error))
                 }
@@ -98,7 +98,7 @@ enum GameSaveTransfer {
         let unsafe = CharacterSet(charactersIn: "/\\:*?\"<>|")
         let title = game.title.components(separatedBy: unsafe).joined(separator: "-")
         let trimmed = String(title.prefix(60)).trimmingCharacters(in: .whitespacesAndNewlines)
-        let id = resolvedTitleId(for: game).map { String(format: "%016llX", $0) } ?? "unknown"
+        let id = resolvedTitleId(for: game).map { String(format: "%016llX", $0) } ?? loc("unknown")
         return "\(trimmed.isEmpty ? "Game" : trimmed) [\(id)] save"
     }
 
@@ -178,7 +178,7 @@ enum GameSaveTransfer {
             }
             throw error
         }
-        return "Save imported.\(backupNote) Start the game to check it."
+        return locf("Save imported.%@ Start the game to check it.", backupNote)
     }
 
     enum TransferError: LocalizedError {
@@ -190,13 +190,13 @@ enum GameSaveTransfer {
         var errorDescription: String? {
             switch self {
             case .noSaveYet:
-                return "There's no save for this game yet. Play it once, then export."
+                return loc("There's no save for this game yet. Play it once, then export.")
             case .unknownTitleId:
-                return "EspressU couldn't read this game's title ID, so it doesn't know where its save lives."
+                return loc("EspressU couldn't read this game's title ID, so it doesn't know where its save lives.")
             case .unrecognisedFolder:
                 return "That folder doesn't look like a game save. Pick the folder named after the game's title ID, or the 'user' folder inside it."
             case .cancelled:
-                return "Export cancelled."
+                return loc("Export cancelled.")
             }
         }
     }
