@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://flekstore.com/espressu">Download on FlekStore</a> ·
+  <a href="https://flekstore.com/espressu">FlekSt0re</a> ·
   <a href="https://github.com/EspressU/EspressU-Emu/releases">Releases</a> ·
   <a href="https://discord.gg/HPRJGXTEt8">Discord</a>
 </p>
