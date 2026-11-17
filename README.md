@@ -59,7 +59,7 @@
 
 ## Installation
 
-1. **Get the app.** Download it from [FlekStore](https://flekstore.com/espressu), or get the unsigned `EspressU.ipa` from the [Releases](https://github.com/EspressU/EspressU-Emu/releases) page.
+1. **Get the app.** Download the unsigned `EspressU.ipa` from the [Releases](https://github.com/EspressU/EspressU-Emu/releases) page.
 2. **Sign and install the IPA.** Use [SideInstaller](https://sideinstaller.net/). It signs the app on your device, so you do not need a computer.
 3. **Raise the memory limit.** In SideInstaller, turn on the built-in memory limit increase for EspressU. Without it most games run out of memory.
 
