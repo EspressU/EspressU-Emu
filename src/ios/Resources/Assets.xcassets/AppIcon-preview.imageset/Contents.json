@@ -1,8 +1,8 @@
 {
   "images" : [
     {
+      "filename" : "EspressU-Appstore.png",
       "idiom" : "universal",
-      "filename" : "icon.png",
       "scale" : "1x"
     }
   ],
