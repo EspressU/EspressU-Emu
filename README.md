@@ -6,9 +6,9 @@
 
 <p align="center">A game emulator for iPhone and iPad.</p>
 
-EspressU runs decrypted games you own. It contains no games, firmware or keys, has no network access and needs iOS 17.4 or later. It is built on [Cemu](https://github.com/cemu-project/Cemu) and is based on [MuffinEMU](https://github.com/MuffinEMU/Muffin-EMU).
+<p align="center"> It contains no games, firmware or keys and needs iOS 17.4 or later. It is built on Cemu </p>
 
-This is the App Store edition (branch `appstore`).
+<br>
 
 ## License
 
