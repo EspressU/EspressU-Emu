@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/Store-rounded.png" width="140" alt="EspressU icon">
+  <img src="assets/icon.png" width="140" alt="EspressU icon">
 </p>
 
 <h1 align="center">EspressU</h1>
