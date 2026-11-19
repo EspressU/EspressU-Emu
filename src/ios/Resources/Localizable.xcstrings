@@ -4591,6 +4591,7 @@
         }
       }
     },
+    "A profile keeps the saves of a game apart. It is stored on this device only." : {},
     "Async texture loading" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4804,6 +4805,7 @@
         }
       }
     },
+    "Good to know" : {},
     "Update automatically" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -95905,6 +95907,7 @@
         }
       }
     },
+    "You can also drop updates and DLC into Files › EspressU › Updates & DLC." : {},
     "You can browse packs, but change them only after you close it." : {
       "extractionState" : "manual",
       "localizations" : {
