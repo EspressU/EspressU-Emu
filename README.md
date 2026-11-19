@@ -1,76 +1,17 @@
 <p align="center">
-  <img src="assets/Store.png" width="160" alt="EspressU icon">
+  <img src="assets/Store-rounded.png" width="140" alt="EspressU icon">
 </p>
 
 <h1 align="center">EspressU</h1>
 
-<p align="center"><b>App Store edition</b></p>
+<p align="center">A game emulator for iPhone and iPad.</p>
 
-<p align="center">
-  A game emulator for iPad and iPhone, built on <a href="https://github.com/cemu-project/Cemu">Cemu</a>.
-  Based on <a href="https://github.com/MuffinEMU/Muffin-EMU">MuffinEMU</a> by Void.
-</p>
+EspressU runs decrypted games you own. It contains no games, firmware or keys, has no network access and needs iOS 17.4 or later. It is built on [Cemu](https://github.com/cemu-project/Cemu) and is based on [MuffinEMU](https://github.com/MuffinEMU/Muffin-EMU).
 
-<p align="center">
-  <img src="https://img.shields.io/badge/iOS%20%2F%20iPadOS-17.4%2B-0a84ff" alt="iOS 17.4+">
-  <img src="https://img.shields.io/badge/Renderer-Metal-555" alt="Metal">
-  <img src="https://img.shields.io/badge/Built%20on-Cemu-0b7285" alt="Built on Cemu">
-  <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-MPL--2.0-blue" alt="License: MPL-2.0"></a>
-  <a href="LICENSES/EspressU-Licence.txt"><img src="https://img.shields.io/badge/EspressU%20files-EspressU%20Licence-orange" alt="EspressU files: EspressU Licence"></a>
-  <a href="src/ios/App/Crema/LICENSE.txt"><img src="https://img.shields.io/badge/Crema-Crema%20Licence-orange" alt="Crema: Crema Licence"></a>
-</p>
-
----
-
-> **This is the App Store edition of EspressU** (branch `appstore`). It is a separate, reduced build made to meet App Store rules. The sideload edition with JIT lives in its own project and is not part of this repository.
-
-## What is different in the App Store edition
-
-| | App Store edition |
-| --- | --- |
-| CPU | Interpreter only. No JIT, no special entitlements |
-| Games | Decrypted `.wua`, decrypted folders and homebrew `.rpx` only. Encrypted files are refused |
-| Keys | None. EspressU does not decrypt anything |
-| Network | None. No accounts, no online play, no downloads, no cover or mod downloads |
-| Covers | From the game's own icon, or a picture you pick from Photos or Files |
-| Updates, DLC, mods | You import your own decrypted folders. Nothing is bundled |
-| Entitlements | Increased Memory Limit and Extended Virtual Addressing only |
-
-## Features
-
-- Metal renderer with a persistent shader cache
-- Interpreter-only CPU emulation: no JIT, no special code-signing entitlements
-- Controller support (DualSense, Xbox, MFi) and an on-screen touch GamePad (Crema)
-- Runs decrypted games as `.wua` archives or decrypted game folders, and homebrew `.rpx` files
-- No network access: no accounts, no downloads, no online play
-
-EspressU contains no games, firmware or keys, and it does not decrypt anything. You import games you own, in a decrypted format. Because the App Store edition runs the CPU with an interpreter, performance depends on the game and on your device, and some games run slowly.
-
-## Build (App Store edition)
-
-You need a Mac with Xcode. Once:
-
-```sh
-brew install cmake ninja xcodegen pkg-config autoconf automake libtool
-xcodebuild -downloadComponent MetalToolchain
-```
-
-Then, from a clone with submodules:
-
-```sh
-cmake -S . -B build-ios -G Ninja \
-  -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=17.4 -DVCPKG_TARGET_TRIPLET=arm64-ios \
-  -DBUILD_HEADLESS_DYLIB=ON -DCMAKE_MACOSX_BUNDLE=OFF -DCMAKE_BUILD_TYPE=Release
-cmake --build build-ios --target CemuBin
-mkdir -p build-ios/out && rm -rf build-ios/out/Cemu.framework && cp -R build-ios/src/Cemu.framework build-ios/out/
-cd src/ios && xcodegen generate
-```
-
-This build is for the App Store only. Open the generated `EspressU.xcodeproj`, set your team under Signing & Capabilities and archive. Copy `src/ios/Local.xcconfig.example` to `src/ios/Local.xcconfig` to keep your team ID out of the project file. The app needs two capabilities on its App ID: Increased Memory Limit and Extended Virtual Addressing. Bump `CURRENT_PROJECT_VERSION` in `src/ios/project.yml` for every upload.
+This is the App Store edition (branch `appstore`).
 
 ## License
 
-[MPL-2.0](LICENSE.txt), with two exceptions. First, files EspressU wrote itself (marked in their header, not Muffin or third-party files) are under the [EspressU Licence](LICENSES/EspressU-Licence.txt). Second, the on-screen touch controls (Crema, in [src/ios/App/Crema](src/ios/App/Crema)) are EspressU's own work under the [Crema Licence](src/ios/App/Crema/LICENSE.txt). Both licences require the notice to stay in every copy and a credit to "EspressU (https://espressu.dev)". EspressU is built on Cemu; the copyright notices in the source files stay in place. Contributions are described in [CONTRIBUTING.md](CONTRIBUTING.md). Libraries and their licenses are listed in [docs/docs/licenses.html](docs/docs/licenses.html) and in the app under Settings > About. The licence texts were not reviewed by a lawyer.
+[MPL-2.0](LICENSE.txt). Files written by EspressU are under the [EspressU Licence](LICENSES/EspressU-Licence.txt), the touch controls under the [Crema Licence](src/ios/App/Crema/LICENSE.txt). Third-party libraries are listed in the app under Settings > About.
 
 Wii U is a trademark of Nintendo. EspressU is not affiliated with Nintendo.
