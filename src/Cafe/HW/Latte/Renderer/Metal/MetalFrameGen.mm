@@ -263,13 +263,15 @@ namespace
 		CAMetalLayer* layer;
 		id<MTLCommandQueue> queue;
 		Pipelines pipelines;
-		Motion motion;
+		std::array<Motion, 2> motions;
+		size_t lastMotion = 0;
 		std::mutex mutex;
 		std::condition_variable wake;
 		std::deque<std::shared_ptr<Image>> history;
 		std::atomic<bool> ready{false}, failed{false}, stopped{false};
 		std::atomic<unsigned> inFlight{0};
 		std::atomic<double> gpuCooldownUntil{0.0};
+		std::atomic<uint32_t> lateStreak{0};
 		uint64_t generation = 0, meterSession = 0, tick = 0;
 		double target = 0.0, refresh = 1.0 / 60.0, interval = 0.0, gpuLag = 0.0;
 		uint64_t lastReal = 0, presentedGeneration = 0;
@@ -409,7 +411,12 @@ namespace
 				target >= state->gpuCooldownUntil.load() &&
 				NSProcessInfo.processInfo.thermalState < NSProcessInfoThermalStateSerious)
 			{
-				const double sample = target - state->refresh - state->interval - std::min(state->gpuLag, state->interval);
+				// At low base rates (interpreter, heavy scenes) show the timeline one more
+				// refresh late, ramping in between 1.5 and 2.5 refreshes per source frame.
+				// That gives the motion analysis a whole refresh of GPU time ahead of the
+				// first generated picture and absorbs uneven source pacing.
+				const double lead = state->refresh * std::clamp(state->interval / state->refresh - 1.5, 0.0, 1.0);
+				const double sample = target - state->refresh - lead - state->interval - std::min(state->gpuLag, state->interval);
 				for (size_t i = 1; i < state->history.size(); ++i)
 				{
 					const auto& first = state->history[i - 1];
@@ -472,11 +479,30 @@ namespace
 		if (!command)
 			return;
 		const size_t format = output.pixelFormat == MTLPixelFormatBGRA8Unorm_sRGB ? 1 : 0;
-		interpolate = interpolate && state->motion.Prepare(state->device, b->texture);
+		Motion* motion = nullptr;
 		if (interpolate)
 		{
-			state->motion.Analyze(command, state->pipelines, a->texture, b->texture, a->id, b->id);
-			state->motion.Project(command, state->pipelines, a->texture, b->texture, float(phase));
+			size_t slot = state->lastMotion;
+			bool found = false;
+			for (size_t i = 0; i < state->motions.size(); ++i)
+			{
+				if (state->motions[i].first == a->id && state->motions[i].second == b->id)
+				{
+					slot = i;
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				slot = (state->lastMotion + 1) % state->motions.size();
+			motion = &state->motions[slot];
+			interpolate = motion->Prepare(state->device, b->texture);
+			if (interpolate)
+			{
+				state->lastMotion = slot;
+				motion->Analyze(command, state->pipelines, a->texture, b->texture, a->id, b->id);
+				motion->Project(command, state->pipelines, a->texture, b->texture, float(phase));
+			}
 		}
 
 		auto pass = [MTLRenderPassDescriptor renderPassDescriptor];
@@ -493,15 +519,15 @@ namespace
 		[render setRenderPipelineState:interpolate ? state->pipelines.interpolate[format] : state->pipelines.copy[format]];
 		if (interpolate)
 		{
-			Grid params = state->motion.grid;
+			Grid params = motion->grid;
 			params.phase = float(phase);
 			[render setFragmentTexture:a->texture atIndex:0];
 			[render setFragmentTexture:b->texture atIndex:1];
-			[render setFragmentTexture:state->motion.directions[0].field atIndex:2];
-			[render setFragmentTexture:state->motion.directions[1].field atIndex:3];
+			[render setFragmentTexture:motion->directions[0].field atIndex:2];
+			[render setFragmentTexture:motion->directions[1].field atIndex:3];
 			[render setFragmentBytes:&params length:sizeof(params) atIndex:0];
-			[render setFragmentBuffer:state->motion.directions[0].projection offset:0 atIndex:1];
-			[render setFragmentBuffer:state->motion.directions[1].projection offset:0 atIndex:2];
+			[render setFragmentBuffer:motion->directions[0].projection offset:0 atIndex:1];
+			[render setFragmentBuffer:motion->directions[1].projection offset:0 atIndex:2];
 		}
 		else
 			[render setFragmentTexture:b->texture atIndex:0];
@@ -518,8 +544,20 @@ namespace
 				state->failed.store(true);
 				HostTuning::Count(HostTuning::GetStats().fgFailures);
 			}
-			else if (interpolate && finished.GPUEndTime - finished.GPUStartTime > refresh * 0.8)
-				state->gpuCooldownUntil.store(CACurrentMediaTime() + 0.5);
+			else if (interpolate && finished.GPUEndTime > 0.0)
+			{
+				// Judge the generated picture by whether it made its display slot, not by how
+				// long the GPU took: while the game keeps the GPU busy the raw duration says
+				// little. Back off briefly after a miss, longer after repeated ones.
+				if (finished.GPUEndTime > target)
+				{
+					const uint32_t streak = std::min(state->lateStreak.fetch_add(1), 3u);
+					state->gpuCooldownUntil.store(CACurrentMediaTime() + 0.25 * double(1u << streak));
+					HostTuning::Count(HostTuning::GetStats().fgThrottled);
+				}
+				else
+					state->lateStreak.store(0);
+			}
 		}];
 		[drawable addPresentedHandler:^(id<MTLDrawable> shown) {
 			const double time = shown.presentedTime;
@@ -543,6 +581,53 @@ namespace
 		if (!interpolate)
 			state->lastReal = b->id;
 		[command presentDrawable:drawable atTime:std::max(target, CACurrentMediaTime())];
+		[command commit];
+	}
+
+	// Runs the motion analysis of the newest source pair as soon as it exists, in
+	// its own command buffer, so the generated pictures only pay for projecting.
+	// Only worth it at low base rates, where several display slots share one pair.
+	void Prefetch(const std::shared_ptr<Presenter>& state)
+	{
+		std::shared_ptr<Image> a, b;
+		double interval = 0.0;
+		{
+			std::lock_guard lock(state->mutex);
+			if (state->history.size() < 2 || state->failed.load() ||
+				CACurrentMediaTime() - state->history.back()->time > kHistoryGap)
+				return;
+			interval = state->interval;
+			if (!(interval >= state->refresh * 1.9) || state->target < state->gpuCooldownUntil.load() ||
+				NSProcessInfo.processInfo.thermalState >= NSProcessInfoThermalStateSerious)
+				return;
+			a = state->history[state->history.size() - 2];
+			b = state->history.back();
+		}
+		for (const auto& motion : state->motions)
+			if (motion.first == a->id && motion.second == b->id)
+				return;
+		const size_t slot = (state->lastMotion + 1) % state->motions.size();
+		auto& motion = state->motions[slot];
+		if (!motion.Prepare(state->device, b->texture))
+			return;
+		auto command = [state->queue commandBuffer];
+		if (!command)
+			return;
+		motion.Analyze(command, state->pipelines, a->texture, b->texture, a->id, b->id);
+		[command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
+			(void)a;
+			(void)b;
+			if (finished.status == MTLCommandBufferStatusError)
+			{
+				state->failed.store(true);
+				HostTuning::Count(HostTuning::GetStats().fgFailures);
+			}
+			else if (finished.GPUEndTime - finished.GPUStartTime > interval)
+			{
+				state->gpuCooldownUntil.store(CACurrentMediaTime() + 0.5);
+				HostTuning::Count(HostTuning::GetStats().fgThrottled);
+			}
+		}];
 		[command commit];
 	}
 
@@ -574,7 +659,10 @@ namespace
 			{
 				if (!PerfTelemetry::AppInBackground().load() &&
 					(WindowSystem::GetWindowInfo().visible_outputs.load() & 1u))
+				{
+					Prefetch(state);
 					Present(state);
+				}
 			}
 			lock.lock();
 		}

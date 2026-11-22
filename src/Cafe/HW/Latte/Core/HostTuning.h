@@ -51,6 +51,7 @@ namespace HostTuning
 		// Frame generation
 		std::atomic<uint64_t> fgGenerated{0};
 		std::atomic<uint64_t> fgBacklog{0};
+		std::atomic<uint64_t> fgThrottled{0};
 		std::atomic<uint64_t> fgDrawableWaits{0};
 		std::atomic<uint64_t> fgFailures{0};
 		// GamePad pacing
