@@ -4960,7 +4960,7 @@ void MetalRenderer::ReportTuningDiagnostics()
         &s.padSkippedFrames, &s.padSlowDrawables,
         &s.itpBlocks, &s.itpLinkHits, &s.itpDecodes,
         &s.jitCompiled, &s.jitDiscarded, &s.jitWaited,
-        &s.fgGenerated, &s.fgBacklog, &s.fgDrawableWaits, &s.fgFailures,
+        &s.fgGenerated, &s.fgBacklog, &s.fgDrawableWaits, &s.fgFailures, &s.fgThrottled,
     };
     constexpr size_t kCounters = sizeof(counters) / sizeof(counters[0]);
     if (m_tuningReportLast.size() != kCounters)
@@ -4986,7 +4986,7 @@ void MetalRenderer::ReportTuningDiagnostics()
     }
     const auto [memWarnings, memCleanups, memTextures, memMB, substitutes, viewFallbacks, faults,
         padSkipped, padSlow, itpBlocks, itpHits, itpDecodes, jitCompiled, jitDiscarded, jitWaited,
-        fgGenerated, fgBacklog, fgDrawableWaits, fgFailures] = d;
+        fgGenerated, fgBacklog, fgDrawableWaits, fgFailures, fgThrottled] = d;
     const double tvFps = m_tuningReportFrames / seconds;
     m_tuningReportFrames = 0;
     m_tuningReportSince = now;
@@ -5013,8 +5013,8 @@ void MetalRenderer::ReportTuningDiagnostics()
     {
         const auto rates = MetalFrameGen::DisplayRates();
         cemuLog_log(LogType::Force,
-            "[Tuning] framegen: display {:.1f} fps including {:.1f} generated | generated presents +{}, skipped +{}, missing drawables +{}, failures +{}",
-            rates.output, rates.generated, fgGenerated, fgBacklog, fgDrawableWaits, fgFailures);
+            "[Tuning] framegen: display {:.1f} fps including {:.1f} generated | generated presents +{}, skipped +{}, missing drawables +{}, failures +{}, GPU back-offs +{}",
+            rates.output, rates.generated, fgGenerated, fgBacklog, fgDrawableWaits, fgFailures, fgThrottled);
     }
     if (padOn || padLow)
     {
