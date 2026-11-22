@@ -569,77 +569,6 @@
         }
       }
     },
-    ".wua, .wud, .wux or .rpx" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux oder .rpx"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux o .rpx"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux ou .rpx"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux o .rpx"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua、.wud、.wux または .rpx"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux 또는 .rpx"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux of .rpx"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux ou .rpx"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua, .wud, .wux или .rpx"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua、.wud、.wux 或 .rpx"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ".wua、.wud、.wux 或 .rpx"
-          }
-        }
-      }
-    },
     "\"%@\" already exists in your library. Replacing it can't be undone." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1635,7 +1564,6 @@
       }
     },
     "%@" : {
-
     },
     "%@ · %@ packs" : {
       "extractionState" : "manual",
@@ -1790,7 +1718,6 @@
       }
     },
     "%@ earlier lines dropped" : {
-
     },
     "%@ entries were left out: damaged, not in a usable format, or there wasn't room on this device. If storage is low, free some up and import the file again; entries already added are kept." : {
       "extractionState" : "manual",
@@ -2153,148 +2080,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此裝置剩餘 %@。"
-          }
-        }
-      }
-    },
-    "%@ game" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Spiel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ juego"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ jeu"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ gioco"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@個のゲーム"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "게임 %@개"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ game"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ jogo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Игр: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 款游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 款遊戲"
-          }
-        }
-      }
-    },
-    "%@ games" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Spiele"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ juegos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ jeux"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ giochi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@個のゲーム"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "게임 %@개"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ games"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ jogos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Игр: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 款游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 款遊戲"
           }
         }
       }
@@ -2796,292 +2581,7 @@
         }
       }
     },
-    "%@ key loaded" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Schlüssel geladen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clave cargada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clé chargée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chiave caricata"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@個のキーを読み込み済み"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키 %@개 불러옴"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ sleutel geladen"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chave carregada"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загружено ключей: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已载入 %@ 个密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已載入 %@ 個金鑰"
-          }
-        }
-      }
-    },
-    "%@ key loaded for encrypted dumps (.wud, .wux)." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Schlüssel für verschlüsselte Dumps geladen (.wud, .wux)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clave cargada para volcados cifrados (.wud, .wux)."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clé chargée pour les dumps chiffrés (.wud, .wux)."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chiave caricata per i dump cifrati (.wud, .wux)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暗号化ダンプ(.wud、.wux)用に%@個のキーを読み込み済み。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호화된 덤프(.wud, .wux)용 키 %@개 불러옴."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ sleutel geladen voor versleutelde dumps (.wud, .wux)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chave carregada para dumps criptografados (.wud, .wux)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загружено ключей для зашифрованных дампов (.wud, .wux): %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已载入 %@ 个用于加密转储（.wud、.wux）的密钥。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已載入 %@ 個用於加密轉儲（.wud、.wux）的金鑰。"
-          }
-        }
-      }
-    },
-    "%@ keys loaded" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Schlüssel geladen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ claves cargadas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clés chargées"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chiavi caricate"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@個のキーを読み込み済み"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키 %@개 불러옴"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ sleutels geladen"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chaves carregadas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загружено ключей: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已载入 %@ 个密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已載入 %@ 個金鑰"
-          }
-        }
-      }
-    },
-    "%@ keys loaded for encrypted dumps (.wud, .wux)." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Schlüssel für verschlüsselte Dumps geladen (.wud, .wux)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ claves cargadas para volcados cifrados (.wud, .wux)."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ clés chargées pour les dumps chiffrés (.wud, .wux)."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chiavi caricate per i dump cifrati (.wud, .wux)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暗号化ダンプ(.wud、.wux)用に%@個のキーを読み込み済み。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호화된 덤프(.wud, .wux)용 키 %@개 불러옴."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ sleutels geladen voor versleutelde dumps (.wud, .wux)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ chaves carregadas para dumps criptografados (.wud, .wux)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загружено ключей для зашифрованных дампов (.wud, .wux): %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已载入 %@ 个用于加密转储（.wud、.wux）的密钥。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已載入 %@ 個用於加密轉儲（.wud、.wux）的金鑰。"
-          }
-        }
-      }
-    },
     "%@ lines" : {
-
     },
     "%@ MB headroom - JIT arena %@ MB reserved, %@ MB in use%@" : {
       "extractionState" : "manual",
@@ -4453,10 +3953,8 @@
       }
     },
     "%@…" : {
-
     },
     "%@/10" : {
-
     },
     "%@/account.dat isn't a readable Wii U account file, or its folder name isn't an 8-digit account ID like 80000001." : {
       "extractionState" : "manual",
@@ -4601,7 +4099,6 @@
       }
     },
     "%@%%" : {
-
     },
     "1 game's own options" : {
       "extractionState" : "manual",
@@ -5810,6 +5307,219 @@
         }
       }
     },
+    "EspressU doesn't include any games. Add dumps of your own Wii U games from the Library afterwards." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU enthält keine Spiele. Füge danach in der Bibliothek Dumps deiner eigenen Wii-U-Spiele hinzu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU no incluye ningún juego. Después, añade desde la biblioteca volcados de tus propios juegos de Wii U."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU ne contient aucun jeu. Ajoute ensuite depuis la bibliothèque des dumps de tes propres jeux Wii U."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU non include alcun gioco. Dopo, aggiungi dalla libreria i dump dei tuoi giochi Wii U."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressUにはゲームは含まれていません。あとでライブラリから、お持ちのWii Uゲームのダンプを追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU에는 게임이 포함되어 있지 않습니다. 나중에 보관함에서 본인 Wii U 게임의 덤프를 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU bevat geen games. Voeg daarna in de bibliotheek dumps van je eigen Wii U-games toe."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O EspressU não inclui nenhum jogo. Depois, adicione pela biblioteca dumps dos seus próprios jogos de Wii U."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В EspressU нет игр. Позже добавьте в библиотеке дампы своих игр Wii U."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU 不含任何游戏。之后请在资料库中添加你自己 Wii U 游戏的转储文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EspressU 不含任何遊戲。之後請在資料庫中加入你自己 Wii U 遊戲的轉存檔。"
+          }
+        }
+      }
+    },
+    "Play the Wii U games you own on your %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiele die Wii-U-Spiele, die du besitzt, auf deinem %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juega en tu %@ a los juegos de Wii U que ya tienes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue à tes jeux Wii U sur ton %@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gioca sul tuo %@ ai giochi Wii U che possiedi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お持ちのWii Uゲームを%@で遊べます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가지고 있는 Wii U 게임을 %@에서 즐기세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speel de Wii U-games die je bezit op je %@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jogue no seu %@ os jogos de Wii U que você tem."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Играйте на %@ в игры Wii U, которые у вас есть."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你的%@上玩你拥有的 Wii U 游戏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你的%@上玩你擁有的 Wii U 遊戲。"
+          }
+        }
+      }
+    },
+    "Reopens the first-launch guide." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet die Einführung vom ersten Start erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a abrir la guía del primer inicio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rouvre le guide du premier lancement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riapre la guida del primo avvio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初回起動時のガイドをもう一度開きます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "첫 실행 안내를 다시 엽니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opent de introductie van de eerste start opnieuw."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reabre o guia do primeiro uso."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Снова открывает приветствие первого запуска."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新打开首次启动的引导。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新開啟首次啟動的導覽。"
+          }
+        }
+      }
+    },
     "Update automatically" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6232,77 +5942,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已轉儲的遊戲資料夾"
-          }
-        }
-      }
-    },
-    "A dumped game with code, content and meta" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein entpacktes Spiel mit Code, Inhalt und Meta"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un juego volcado con code, content y meta"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un jeu extrait avec code, contenu et méta"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un gioco estratto con code, content e meta"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "code、content、meta を含むダンプ済みゲーム"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "code, content, meta가 있는 덤프한 게임"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een uitgelezen game met code, content en meta"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Um jogo extraído com code, content e meta"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Снятая игра с code, content и meta"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "包含 code、content 和 meta 的已转储游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "包含 code、content 和 meta 的已轉儲遊戲"
           }
         }
       }
@@ -8012,7 +7651,6 @@
       }
     },
     "A small readout over the game showing whether your button presses are reaching the game, and why not if they aren't." : {
-
     },
     "A to Z" : {
       "extractionState" : "manual",
@@ -9860,77 +9498,6 @@
         }
       }
     },
-    "Add keys" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schlüssel hinzufügen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Añadir claves"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter des clés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiungi chiavi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キーを追加"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키 추가"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sleutels toevoegen"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adicionar chaves"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добавить ключи"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新增金鑰"
-          }
-        }
-      }
-    },
     "Add one from Add on the home screen." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10353,77 +9920,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增更新或 DLC..."
-          }
-        }
-      }
-    },
-    "Add your games" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deine Spiele hinzufügen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Añade tus juegos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajoutez vos jeux"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiungi i tuoi giochi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゲームを追加"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "게임 추가하기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voeg je games toe"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adicione seus jogos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добавьте свои игры"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加你的游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新增你的遊戲"
           }
         }
       }
@@ -20439,77 +19935,6 @@
         }
       }
     },
-    "Closes the guide and opens your library." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schließt die Anleitung und öffnet deine Bibliothek."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cierra la guía y abre tu biblioteca."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ferme le guide et ouvre votre bibliothèque."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chiude la guida e apre la tua libreria."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ガイドを閉じてライブラリを開きます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "안내를 닫고 라이브러리를 엽니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sluit de gids en opent je bibliotheek."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fecha o guia e abre sua biblioteca."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Закрывает руководство и открывает вашу библиотеку."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭指南并打开你的游戏库。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關閉指南並開啟你的資料庫。"
-          }
-        }
-      }
-    },
     "Closes the menu and carries on with the game." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22072,77 +21497,6 @@
         }
       }
     },
-    "Continues without importing keys. Homebrew doesn't need them, and you can add keys later from Settings." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Macht ohne Schlüsselimport weiter. Homebrew braucht sie nicht, und du kannst Schlüssel später in den Einstellungen hinzufügen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continúa sin importar claves. El homebrew no las necesita, y puedes añadirlas más tarde desde Ajustes."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue sans importer de clés. Les homebrews n'en ont pas besoin, et vous pourrez en ajouter plus tard dans les réglages."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continua senza importare le chiavi. L'homebrew non le richiede e puoi aggiungerle in seguito dalle Impostazioni."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キーを読み込まずに続行します。ホームブリューには不要で、キーは後から設定で追加できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키를 가져오지 않고 계속합니다. 홈브루에는 필요하지 않으며 나중에 설정에서 키를 추가할 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gaat door zonder sleutels te importeren. Homebrew heeft ze niet nodig en je kunt later sleutels toevoegen via Instellingen."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continua sem importar chaves. Homebrew não precisa delas, e você pode adicioná-las depois nos Ajustes."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Продолжает без импорта ключей. Homebrew они не нужны, а добавить ключи можно позже в настройках."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不导入密钥直接继续。自制软件不需要密钥，之后你可以在设置中添加。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不匯入金鑰直接繼續。自制軟體不需要金鑰，之後你可以在設定中新增。"
-          }
-        }
-      }
-    },
     "Control size" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23204,77 +22558,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製裝置報告"
-          }
-        }
-      }
-    },
-    "Copying %@…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ wird kopiert …"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copiando %@…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copie de %@…"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copia di %@…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@をコピー中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 복사 중…"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ kopiëren…"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copiando %@…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Копирование %@…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在拷贝 %@…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在複製 %@…"
           }
         }
       }
@@ -32580,77 +31863,6 @@
         }
       }
     },
-    "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verschlüsselte Dumps (.wud, .wux) brauchen auch deine keys.txt. Für .wua nicht nötig."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los volcados cifrados (.wud, .wux) también necesitan tu keys.txt. No hace falta para .wua."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les dumps chiffrés (.wud, .wux) nécessitent aussi votre keys.txt. Pas nécessaire pour .wua."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I dump cifrati (.wud, .wux) richiedono anche il tuo keys.txt. Non serve per i .wua."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暗号化ダンプ(.wud、.wux)にも keys.txt が必要です。.wua には不要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호화된 덤프(.wud, .wux)에도 keys.txt가 필요합니다. .wua에는 필요하지 않습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Versleutelde dumps (.wud, .wux) hebben ook je keys.txt nodig. Niet nodig voor .wua."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dumps criptografados (.wud, .wux) também precisam do seu keys.txt. Não é necessário para .wua."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для зашифрованных дампов (.wud, .wux) также нужен ваш keys.txt. Для .wua не требуется."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加密转储（.wud、.wux）也需要你的 keys.txt。.wua 不需要。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加密轉儲（.wud、.wux）也需要你的 keys.txt。.wua 不需要。"
-          }
-        }
-      }
-    },
     "Encrypted games (.wux, .wud, .iso, .wua) need AES keys dumped from your own Wii U, in a text file called keys.txt with one key per line. EspressU doesn't include keys.\n\nYou can also open EspressU in the Files app and drop keys.txt into the \"keys\" folder.\n\nNew keys are used the next time you start a game. If you've already started a game since opening EspressU, quit and reopen EspressU first." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32860,77 +32072,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新匯入金鑰之前，加密遊戲無法執行。"
-          }
-        }
-      }
-    },
-    "Encrypted Wii U games need a keys.txt dumped from your own Wii U. EspressU doesn't include one. Homebrew doesn't need it." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verschlüsselte Wii-U-Spiele brauchen eine keys.txt, die du von deiner eigenen Wii U gesichert hast. EspressU enthält keine. Homebrew braucht sie nicht."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los juegos de Wii U cifrados necesitan un keys.txt volcado de tu propia Wii U. EspressU no incluye ninguno. El homebrew no lo necesita."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les jeux Wii U chiffrés nécessitent un keys.txt extrait de votre propre Wii U. EspressU n'en inclut pas. Les homebrews n'en ont pas besoin."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I giochi Wii U cifrati richiedono un keys.txt ottenuto dal tuo Wii U. EspressU non ne include uno. L'homebrew non lo richiede."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暗号化された Wii U ゲームには、お持ちの Wii U からダンプした keys.txt が必要です。EspressU には含まれていません。ホームブリューには不要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호화된 Wii U 게임에는 보유한 Wii U에서 덤프한 keys.txt가 필요합니다. EspressU에는 포함되어 있지 않습니다. 홈브루에는 필요하지 않습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Versleutelde Wii U-games hebben een keys.txt nodig die van je eigen Wii U is gedumpt. EspressU levert er geen mee. Homebrew heeft het niet nodig."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jogos de Wii U criptografados precisam de um keys.txt extraído do seu próprio Wii U. O EspressU não inclui um. Homebrew não precisa dele."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для зашифрованных игр Wii U нужен keys.txt, снятый с вашей собственной Wii U. EspressU его не содержит. Homebrew он не нужен."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加密的 Wii U 游戏需要从你自己的 Wii U 转储出的 keys.txt。EspressU 不包含该文件。自制软件不需要它。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加密的 Wii U 遊戲需要從你自己的 Wii U 轉儲出的 keys.txt。EspressU 不包含該檔案。自制軟體不需要它。"
           }
         }
       }
@@ -41526,148 +40667,6 @@
         }
       }
     },
-    "Full speed needs a JIT enabler (StikJIT, SideStore or LiveContainer) attached at launch. Without one, EspressU still runs but much slower. Settings shows which you have." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volles Tempo braucht beim Start einen angehängten JIT-Aktivierer (StikJIT, SideStore oder LiveContainer). Ohne läuft EspressU trotzdem, aber viel langsamer. Die Einstellungen zeigen, welchen du hast."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Para ir a máxima velocidad hace falta un activador de JIT (StikJIT, SideStore o LiveContainer) conectado al iniciar. Sin él, EspressU funciona pero mucho más lento. Los Ajustes muestran cuál tienes."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La pleine vitesse nécessite un activateur JIT (StikJIT, SideStore ou LiveContainer) attaché au lancement. Sans lui, EspressU fonctionne quand même mais bien plus lentement. Les réglages montrent lequel vous avez."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Per la massima velocità serve un attivatore JIT (StikJIT, SideStore o LiveContainer) collegato all'avvio. Senza, EspressU funziona ma molto più lentamente. Le Impostazioni mostrano quale hai."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フルスピードには、起動時に接続されたJITイネーブラ（StikJIT、SideStore、LiveContainer）が必要です。なくてもEspressUは動きますが、かなり遅くなります。どれを使っているかは設定で確認できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최고 속도를 내려면 실행 시 연결된 JIT 활성화 도구(StikJIT, SideStore 또는 LiveContainer)가 필요합니다. 없어도 EspressU는 실행되지만 훨씬 느립니다. 어떤 도구를 사용 중인지는 설정에서 확인할 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voor volle snelheid is een JIT-activator (StikJIT, SideStore of LiveContainer) nodig die bij het starten is gekoppeld. Zonder werkt EspressU nog steeds, maar veel trager. Instellingen toont welke je hebt."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Para velocidade máxima é preciso um ativador de JIT (StikJIT, SideStore ou LiveContainer) conectado na inicialização. Sem um, o EspressU funciona, mas bem mais devagar. Os Ajustes mostram qual você tem."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для полной скорости нужен активатор JIT (StikJIT, SideStore или LiveContainer), подключённый при запуске. Без него EspressU работает, но намного медленнее. В настройках видно, какой у вас есть."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要获得全速，需要在启动时连接 JIT 启用器（StikJIT、SideStore 或 LiveContainer）。没有的话 EspressU 仍可运行，但会慢得多。“设置”中会显示你使用的是哪一种。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要獲得全速，需要在啟動時連接 JIT 啟用器（StikJIT、SideStore 或 LiveContainer）。沒有的話 EspressU 仍可執行，但會慢得多。「設定」中會顯示你使用的是哪一種。"
-          }
-        }
-      }
-    },
-    "Full speed with JIT" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volle Geschwindigkeit mit JIT"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocidad máxima con JIT"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pleine vitesse avec JIT"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocità massima con JIT"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "JIT でフルスピード"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "JIT로 최대 속도"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volle snelheid met JIT"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocidade máxima com JIT"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Полная скорость с JIT"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "借助 JIT 全速运行"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "藉助 JIT 全速執行"
-          }
-        }
-      }
-    },
     "Game" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -42947,7 +41946,6 @@
       }
     },
     "games" : {
-
     },
     "Games" : {
       "extractionState" : "manual",
@@ -43442,77 +42440,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "遊戲在重新學習著色器期間會卡頓。"
-          }
-        }
-      }
-    },
-    "Games you add show up here, with their own icon and name." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hinzugefügte Spiele erscheinen hier mit eigenem Symbol und Namen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los juegos que añadas aparecerán aquí, con su propio icono y nombre."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les jeux que vous ajoutez apparaissent ici, avec leur icône et leur nom."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I giochi che aggiungi compaiono qui, con la loro icona e il loro nome."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "追加したゲームが、専用のアイコンと名前でここに表示されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추가한 게임이 고유한 아이콘과 이름으로 여기에 표시됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Games die je toevoegt verschijnen hier, met hun eigen icoon en naam."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os jogos que você adicionar aparecem aqui, com ícone e nome próprios."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добавленные игры появятся здесь со своим значком и названием."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你添加的游戏会显示在这里，带有各自的图标和名称。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你加入的遊戲會顯示在這裡，附有各自的圖示與名稱。"
           }
         }
       }
@@ -45075,77 +44002,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "返回 HOME 選單而不結束。"
-          }
-        }
-      }
-    },
-    "Goes to the next page of the guide." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geht zur nächsten Seite der Anleitung."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasa a la página siguiente de la guía."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passe à la page suivante du guide."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Va alla pagina successiva della guida."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ガイドの次のページに進みます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가이드의 다음 페이지로 이동합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gaat naar de volgende pagina van de gids."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vai para a próxima página do guia."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Переходит на следующую страницу руководства."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "前往指南的下一页。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "前往指南的下一頁。"
           }
         }
       }
@@ -47351,77 +46207,6 @@
         }
       }
     },
-    "How to set it up" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "So richtest du es ein"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cómo configurarlo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comment le configurer"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Come configurarlo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定方法"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정 방법"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoe stel je het in"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Como configurar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Как настроить"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设置方法"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定方式"
-          }
-        }
-      }
-    },
     "iCloud or this iPad" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -47560,77 +46345,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ID %@"
-          }
-        }
-      }
-    },
-    "If a game glitches, desyncs or crashes, turn on Favour accuracy in Settings > CPU. It's slower but more accurate." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wenn ein Spiel Fehler macht, desynchronisiert oder abstürzt, schalte „Genauigkeit bevorzugen“ in Einstellungen > CPU ein. Es ist langsamer, aber genauer."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si un juego da fallos, se desincroniza o se cierra, activa «Priorizar precisión» en Ajustes > CPU. Es más lento pero más preciso."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si un jeu bugue, se désynchronise ou plante, activez « Privilégier la précision » dans Réglages > CPU. C'est plus lent mais plus précis."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se un gioco ha glitch, si desincronizza o si chiude, attiva Privilegia precisione in Impostazioni > CPU. È più lento ma più preciso."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゲームで不具合、同期ずれ、クラッシュが起きる場合は、設定 > CPUで「精度を優先」をオンにしてください。遅くなりますが、より正確になります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "게임에서 오류, 동기화 문제, 충돌이 발생하면 설정 > CPU에서 '정확도 우선'을 켜세요. 더 느리지만 더 정확합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Als een game haperingen vertoont, uit de pas loopt of crasht, zet dan Nauwkeurigheid voorrang geven aan in Instellingen > CPU. Het is trager maar nauwkeuriger."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se um jogo apresentar falhas, dessincronizar ou travar, ative Priorizar precisão em Ajustes > CPU. É mais lento, mas mais preciso."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Если игра глючит, рассинхронизируется или вылетает, включите «Точность важнее скорости» в Настройки > ЦП. Это медленнее, но точнее."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "如果游戏出现故障、不同步或崩溃，请在“设置”>“CPU”中打开“优先精确度”。速度较慢，但更精确。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "若遊戲出現異常、不同步或當機，請在「設定」>「CPU」中開啟「優先精確度」。速度較慢，但更精確。"
           }
         }
       }
@@ -47915,77 +46629,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入檔案"
-          }
-        }
-      }
-    },
-    "Import a game" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiel importieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importar un juego"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer un jeu"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa un gioco"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゲームを読み込む"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "게임 가져오기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een game importeren"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importar um jogo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импорт игры"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匯入遊戲"
           }
         }
       }
@@ -48767,77 +47410,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入遊戲存檔資料夾"
-          }
-        }
-      }
-    },
-    "Import games from Files: .wud, .wux, .wua, .iso, a dumped game folder or a homebrew .rpx. You can also drop them into Documents/Roms in the Files app." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importiere Spiele aus Dateien: .wud, .wux, .wua, .iso, einen entpackten Spielordner oder ein Homebrew-.rpx. Du kannst sie auch in der Dateien-App in Documents/Roms ablegen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa juegos desde Archivos: .wud, .wux, .wua, .iso, una carpeta de juego volcada o un .rpx homebrew. También puedes soltarlos en Documents/Roms en la app Archivos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importez des jeux depuis Fichiers : .wud, .wux, .wua, .iso, un dossier de jeu extrait ou un .rpx homebrew. Vous pouvez aussi les déposer dans Documents/Roms dans l'app Fichiers."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa giochi da File: .wud, .wux, .wua, .iso, una cartella di gioco estratta o un .rpx homebrew. Puoi anche trascinarli in Documents/Roms nell'app File."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルからゲームを読み込みます：.wud、.wux、.wua、.iso、ダンプしたゲームフォルダ、またはホームブリューの.rpx。ファイルAppのDocuments/Romsに入れることもできます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 앱에서 게임을 가져옵니다: .wud, .wux, .wua, .iso, 덤프한 게임 폴더 또는 홈브루 .rpx. 파일 앱의 Documents/Roms에 넣어 둘 수도 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importeer games uit Bestanden: .wud, .wux, .wua, .iso, een uitgelezen gamemap of een homebrew .rpx. Je kunt ze ook neerzetten in Documents/Roms in de Bestanden-app."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importe jogos do app Arquivos: .wud, .wux, .wua, .iso, uma pasta de jogo extraída ou um .rpx homebrew. Você também pode soltá-los em Documents/Roms no app Arquivos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортируйте игры из «Файлов»: .wud, .wux, .wua, .iso, снятую папку игры или homebrew .rpx. Их также можно положить в Documents/Roms в приложении «Файлы»."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从“文件”导入游戏：.wud、.wux、.wua、.iso、已转储的游戏文件夹或自制软件 .rpx。你也可以把它们放进“文件”App 的 Documents/Roms。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從「檔案」匯入遊戲：.wud、.wux、.wua、.iso、已傾印的遊戲資料夾或自製軟體 .rpx。你也可以把它們放進「檔案」App 的 Documents/Roms。"
           }
         }
       }
@@ -54381,7 +52953,6 @@
       }
     },
     "Launch log" : {
-
     },
     "Layout, brightness, volume" : {
       "extractionState" : "manual",
@@ -63116,77 +61687,6 @@
         }
       }
     },
-    "Next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weiter"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avanti"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "次へ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다음"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volgende"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Далее"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
-          }
-        }
-      }
-    },
     "Nintendo Network (shut down)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -63538,148 +62038,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未連接控制器"
-          }
-        }
-      }
-    },
-    "No controller yet. It shows up here as soon as it's paired." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noch kein Controller. Er erscheint hier, sobald er gekoppelt ist."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aún no hay ningún mando. Aparecerá aquí en cuanto se empareje."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas encore de manette. Elle apparaît ici dès qu'elle est appairée."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ancora nessun controller. Comparirà qui non appena sarà abbinato."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コントローラはまだありません。ペアリングするとここに表示されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아직 컨트롤러가 없습니다. 페어링되면 여기에 표시됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nog geen controller. Die verschijnt hier zodra hij is gekoppeld."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhum controle ainda. Ele aparece aqui assim que for pareado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Контроллера пока нет. Он появится здесь, как только будет сопряжён."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "还没有手柄。配对后会立即显示在这里。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "還沒有控制器。配對後會立即顯示在這裡。"
-          }
-        }
-      }
-    },
-    "No controller? The touch controls show up on screen and hide as soon as a controller connects." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kein Controller? Die Touch-Steuerung erscheint auf dem Bildschirm und verschwindet, sobald ein Controller verbunden ist."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Sin mando? Los controles táctiles aparecen en pantalla y se ocultan en cuanto se conecta un mando."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de manette ? Les commandes tactiles s'affichent à l'écran et disparaissent dès qu'une manette se connecte."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun controller? I controlli touch compaiono sullo schermo e spariscono appena si connette un controller."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コントローラがない場合は、タッチ操作が画面に表示され、コントローラが接続されると隠れます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "컨트롤러가 없나요? 터치 조작이 화면에 표시되며 컨트롤러가 연결되면 숨겨집니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen controller? De aanraakbesturing verschijnt op het scherm en verdwijnt zodra een controller verbindt."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sem controle? Os controles de toque aparecem na tela e somem assim que um controle conecta."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет контроллера? Сенсорное управление появится на экране и скроется, как только подключится контроллер."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有手柄？触控操作会显示在屏幕上，手柄一连接就会隐藏。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有控制器？觸控操作會顯示在螢幕上，控制器一連接就會隱藏。"
           }
         }
       }
@@ -72275,77 +70633,6 @@
         }
       }
     },
-    "Opens Files at EspressU › Roms. New games show up on their own." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffnet Dateien bei EspressU › Roms. Neue Spiele erscheinen von selbst."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Archivos en EspressU › Roms. Los juegos nuevos aparecen solos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvre Fichiers sur EspressU › Roms. Les nouveaux jeux apparaissent tout seuls."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apre File su EspressU › Roms. I nuovi giochi compaiono da soli."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルAppでEspressU › Romsを開きます。新しいゲームは自動で表示されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 앱에서 EspressU › Roms를 엽니다. 새 게임은 저절로 표시됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opent Bestanden bij EspressU › Roms. Nieuwe games verschijnen vanzelf."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre o app Arquivos em EspressU › Roms. Os jogos novos aparecem sozinhos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывает «Файлы» в EspressU › Roms. Новые игры появляются сами."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在“文件”中打开 EspressU › Roms。新游戏会自动出现。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在「檔案」中開啟 EspressU › Roms。新遊戲會自動出現。"
-          }
-        }
-      }
-    },
     "Opens Files to pick the file." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -72630,148 +70917,6 @@
         }
       }
     },
-    "Opens the Files picker to choose a game to import." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffnet die Dateiauswahl, um ein Spiel zum Importieren zu wählen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre el selector de Archivos para elegir un juego que importar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvre le sélecteur de Fichiers pour choisir un jeu à importer."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apre il selettore di File per scegliere un gioco da importare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルピッカーを開いて、読み込むゲームを選びます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 선택기를 열어 가져올 게임을 선택합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opent de Bestanden-kiezer om een game te importeren."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre o seletor do Arquivos para escolher um jogo a importar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывает выбор файлов, чтобы выбрать игру для импорта."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开“文件”选取器以选择要导入的游戏。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟「檔案」選取器以選擇要匯入的遊戲。"
-          }
-        }
-      }
-    },
-    "Opens the Files picker to choose your keys.txt." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffnet die Dateiauswahl, um deine keys.txt zu wählen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre el selector de Archivos para elegir tu keys.txt."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvre le sélecteur de Fichiers pour choisir votre keys.txt."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apre il selettore di File per scegliere il tuo keys.txt."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルピッカーを開いて、keys.txtを選びます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 선택기를 열어 keys.txt를 선택합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opent de Bestanden-kiezer om je keys.txt te kiezen."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre o seletor do Arquivos para escolher seu keys.txt."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывает выбор файлов, чтобы выбрать ваш keys.txt."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开“文件”选取器以选择你的 keys.txt。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟「檔案」選取器以選擇你的 keys.txt。"
-          }
-        }
-      }
-    },
     "Opens the screen layout choices." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -72910,77 +71055,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選項"
-          }
-        }
-      }
-    },
-    "Optional" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optional"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opcional"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Facultatif"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Facoltativo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任意"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "선택 사항"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optioneel"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opcional"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Необязательно"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可选"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選填"
           }
         }
       }
@@ -74335,7 +72409,6 @@
       }
     },
     "Pad is mounted but no touches are reaching it." : {
-
     },
     "Pair" : {
       "extractionState" : "manual",
@@ -74475,77 +72548,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新配對"
-          }
-        }
-      }
-    },
-    "Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppeln unter Einstellungen › Bluetooth. Xbox-, PlayStation-, Switch-Pro- und MFi-Controller funktionieren, in Spielen und in jedem Menü von EspressU."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empárejalo en Ajustes › Bluetooth. Funcionan mandos de Xbox, PlayStation, Switch Pro y MFi, en los juegos y en todos los menús de EspressU."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Associez-la dans Réglages › Bluetooth. Les manettes Xbox, PlayStation, Switch Pro et MFi fonctionnent, dans les jeux et dans chaque menu d'EspressU."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abbinalo in Impostazioni › Bluetooth. Funzionano i controller Xbox, PlayStation, Switch Pro e MFi, nei giochi e in ogni menu di EspressU."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定 › Bluetooth でペアリングしてください。Xbox、PlayStation、Switch Pro、MFi コントローラーが、ゲーム内でも EspressU のすべてのメニューでも使えます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정 › Bluetooth에서 페어링하세요. Xbox, PlayStation, Switch Pro, MFi 컨트롤러가 게임에서도, EspressU의 모든 메뉴에서도 작동합니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppel hem in Instellingen › Bluetooth. Xbox-, PlayStation-, Switch Pro- en MFi-controllers werken, in games en in elk menu van EspressU."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pareie em Ajustes › Bluetooth. Controles de Xbox, PlayStation, Switch Pro e MFi funcionam, nos jogos e em todos os menus do EspressU."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Свяжите его в Настройки › Bluetooth. Работают контроллеры Xbox, PlayStation, Switch Pro и MFi — в играх и в каждом меню EspressU."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在 设置 › 蓝牙 中配对。Xbox、PlayStation、Switch Pro 和 MFi 手柄均可使用，既可在游戏中，也可在 EspressU 的每个菜单中使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請在 設定 › 藍芽 中配對。Xbox、PlayStation、Switch Pro 和 MFi 手柄均可使用，既可在遊戲中，也可在 EspressU 的每個選單中使用。"
           }
         }
       }
@@ -77532,148 +75534,6 @@
         }
       }
     },
-    "Play the Wii U games you own on your %@. Setup takes about two minutes, and every step can be skipped." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiele die Wii-U-Spiele, die du besitzt, auf deinem %@. Die Einrichtung dauert etwa zwei Minuten, und jeder Schritt lässt sich überspringen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Juega a los juegos de Wii U que tengas en tu %@. La configuración tarda unos dos minutos y se puede omitir cualquier paso."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jouez aux jeux Wii U que vous possédez sur votre %@. La configuration prend environ deux minutes, et chaque étape peut être passée."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gioca ai giochi Wii U che possiedi sul tuo %@. La configurazione richiede circa due minuti e ogni passaggio si può saltare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お持ちのWii Uゲームを%@で遊びましょう。セットアップには約2分かかり、どの手順もスキップできます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보유하고 있는 Wii U 게임을 %@에서 즐기세요. 설정에는 약 2분이 걸리며 모든 단계를 건너뛸 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speel de Wii U-games die je bezit op je %@. De installatie duurt ongeveer twee minuten en elke stap kan worden overgeslagen."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jogue os jogos de Wii U que você tem no seu %@. A configuração leva cerca de dois minutos e todo passo pode ser pulado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Играйте в имеющиеся у вас игры Wii U на вашем %@. Настройка занимает около двух минут, любой шаг можно пропустить."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的 %@ 上畅玩你拥有的 Wii U 游戏。设置大约需要两分钟，每一步都可以跳过。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的 %@ 上暢玩你擁有的 Wii U 遊戲。設定大約需要兩分鐘，每一步都可以略過。"
-          }
-        }
-      }
-    },
-    "Play with a controller" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mit Controller spielen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jugar con un mando"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jouer avec une manette"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gioca con un controller"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コントローラーでプレイ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "컨트롤러로 플레이"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spelen met een controller"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jogue com um controle"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Играйте с контроллером"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用手柄游玩"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用手柄遊玩"
-          }
-        }
-      }
-    },
     "Play without JIT" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -77741,77 +75601,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不使用 JIT 遊玩"
-          }
-        }
-      }
-    },
-    "Play your own Wii U games. This takes a minute and you can skip any step." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiele deine eigenen Wii-U-Spiele. Das dauert eine Minute, und du kannst jeden Schritt überspringen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Juega a tus propios juegos de Wii U. Lleva un minuto y puedes omitir cualquier paso."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jouez à vos propres jeux Wii U. Cela prend une minute et vous pouvez passer chaque étape."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gioca ai tuoi giochi Wii U. Ci vuole un minuto e puoi saltare qualsiasi passaggio."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お持ちのWii Uゲームを遊びましょう。1分ほどで終わり、どの手順もスキップできます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보유한 Wii U 게임을 즐기세요. 1분 정도 걸리며 어느 단계든 건너뛸 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speel je eigen Wii U-games. Het duurt een minuutje en je kunt elke stap overslaan."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jogue seus próprios jogos de Wii U. Leva um minuto e você pode pular qualquer passo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Играйте в свои игры Wii U. Это займёт минуту, любой шаг можно пропустить."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "畅玩你自己的 Wii U 游戏。只需一分钟，任何步骤都可以跳过。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暢玩你自己的 Wii U 遊戲。只需一分鐘，任何步驟都可以略過。"
           }
         }
       }
@@ -79520,77 +77309,6 @@
         }
       }
     },
-    "Press any button to test it:" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drücke eine beliebige Taste zum Testen:"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pulsa cualquier botón para probarlo:"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appuyez sur un bouton pour le tester :"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premi un pulsante qualsiasi per provarlo:"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任意のボタンを押してテストしてください："
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "테스트할 버튼을 아무거나 누르세요:"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Druk op een willekeurige knop om te testen:"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pressione qualquer botão para testá-lo:"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нажмите любую кнопку, чтобы проверить её:"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按任意键进行测试："
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按任意鍵進行測試："
-          }
-        }
-      }
-    },
     "Pretendo is a community-run replacement for Nintendo's Wii U online services. Its server addresses are built in, so there's nothing to configure.\n\nNintendo's own servers have been shut down, so that option can't be selected.\n\nCustom works with a network_services.xml, the same file desktop Cemu reads. Add one under Custom servers below. It needs no linked account or otp.bin and seeprom.bin.\n\n" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -80155,77 +77873,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "發行商、類型、語言與安裝"
-          }
-        }
-      }
-    },
-    "Put games in Files" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiele in Dateien ablegen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poner juegos en Archivos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mettre des jeux dans Fichiers"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Metti i giochi in File"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゲームをファイルに入れる"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일에 게임 넣기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Games in Bestanden zetten"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colocar jogos no Arquivos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Положить игры в «Файлы»"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把游戏放进“文件”"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把遊戲放進「檔案」"
           }
         }
       }
@@ -84486,77 +82133,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "渲染優先：以遊戲自身的 Wii U 影格率輸出穩定的影格，絕不更快。"
-          }
-        }
-      }
-    },
-    "Reopens the first-launch guide to keys, games, speed and controls." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffnet die Anleitung vom ersten Start zu Schlüsseln, Spielen, Tempo und Steuerung erneut."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vuelve a abrir la guía de primer inicio sobre claves, juegos, velocidad y controles."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rouvre le guide de premier lancement : clés, jeux, vitesse et commandes."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Riapre la guida del primo avvio su chiavi, giochi, velocità e controlli."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キー、ゲーム、速度、操作についての初回起動ガイドを再び開きます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키, 게임, 속도, 조작에 대한 첫 실행 가이드를 다시 엽니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opent de gids voor de eerste start opnieuw, over sleutels, games, snelheid en besturing."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reabre o guia de primeira abertura sobre chaves, jogos, velocidade e controles."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Снова открывает руководство первого запуска о ключах, играх, скорости и управлении."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新打开首次启动指南，内容涵盖密钥、游戏、速度和控制。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新開啟首次啟動指南，內容涵蓋金鑰、遊戲、速度和控制。"
           }
         }
       }
@@ -93153,7 +90729,6 @@
       }
     },
     "Show controls diagnostic" : {
-
     },
     "Show CPU usage" : {
       "extractionState" : "manual",
@@ -93511,7 +91086,6 @@
       }
     },
     "Show launch log" : {
-
     },
     "Show RAM usage" : {
       "extractionState" : "manual",
@@ -95004,77 +92578,6 @@
         }
       }
     },
-    "Skip - I only play homebrew" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Überspringen – ich spiele nur Homebrew"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Omitir: solo juego homebrew"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer – je ne joue qu'à des homebrews"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salta: gioco solo homebrew"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スキップ - ホームブリューのみ遊びます"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "건너뛰기 - 홈브루만 플레이합니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Overslaan - ik speel alleen homebrew"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pular: só jogo homebrew"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пропустить — я играю только в homebrew"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳过——我只玩自制软件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "略過——我只玩自製軟體"
-          }
-        }
-      }
-    },
     "Skip certificate checks" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -95213,77 +92716,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "略過片頭"
-          }
-        }
-      }
-    },
-    "Skip setup" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einrichtung überspringen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Omitir configuración"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer la configuration"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salta configurazione"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "セットアップをスキップ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정 건너뛰기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installatie overslaan"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pular configuração"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пропустить настройку"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳过设置"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "略過設定"
           }
         }
       }
@@ -96992,77 +94424,6 @@
         }
       }
     },
-    "Speed and controls" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tempo und Steuerung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocidad y controles"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vitesse et commandes"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocità e controlli"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速度と操作"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "속도와 조작"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Snelheid en besturing"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocidade e controles"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скорость и управление"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速度与控制"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速度與控制"
-          }
-        }
-      }
-    },
     "standard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -97769,77 +95130,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "穩定影格率"
-          }
-        }
-      }
-    },
-    "Step %@ of %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schritt %@ von %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paso %@ de %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étape %@ sur %@"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passaggio %@ di %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ステップ%@/%@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@/%@단계"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stap %@ van %@"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passo %@ de %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Шаг %@ из %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第 %@ 步，共 %@ 步"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第 %@ 步，共 %@ 步"
           }
         }
       }
@@ -104022,7 +101312,6 @@
       }
     },
     "The GamePad has no button bindings, so presses go nowhere while sticks still work. Settings > Controls > Controller buttons > Reset controller bindings." : {
-
     },
     "The GameTDB download didn't contain wiiutdb.xml." : {
       "extractionState" : "manual",
@@ -104943,77 +102232,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "舊帳號 %@ 已儲存為 %@。"
-          }
-        }
-      }
-    },
-    "The on-screen pad can add analog sticks and comfort controls, and any MFi, Xbox, or PlayStation controller works right alongside it." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Pad auf dem Bildschirm kann Analogsticks und Komfortsteuerung hinzufügen, und jeder MFi-, Xbox- oder PlayStation-Controller funktioniert direkt daneben."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El mando en pantalla puede añadir palancas analógicas y controles de comodidad, y cualquier mando MFi, Xbox o PlayStation funciona a su lado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le pad à l'écran peut ajouter des sticks analogiques et des commandes de confort, et toute manette MFi, Xbox ou PlayStation fonctionne à côté."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il pad su schermo può aggiungere levette analogiche e controlli di comodità, e qualsiasi controller MFi, Xbox o PlayStation funziona accanto a esso."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画面上のパッドにアナログスティックや快適操作を追加でき、MFi、Xbox、PlayStationのどのコントローラもそのまま併用できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "화면 패드는 아날로그 스틱과 편의 조작을 추가할 수 있으며, MFi, Xbox, PlayStation 컨트롤러도 함께 사용할 수 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De aanraakbesturing kan analoge sticks en comfortknoppen toevoegen, en elke MFi-, Xbox- of PlayStation-controller werkt er gewoon naast."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O controle na tela pode adicionar direcionais analógicos e controles de conforto, e qualquer controle MFi, Xbox ou PlayStation funciona junto com ele."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Экранный геймпад может добавлять аналоговые стики и удобные элементы управления, а любой контроллер MFi, Xbox или PlayStation работает рядом с ним."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "屏幕手柄可以添加模拟摇杆和便利控制，任何 MFi、Xbox 或 PlayStation 手柄都可以与它同时使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "螢幕手把可以加入類比搖桿和便利控制，任何 MFi、Xbox 或 PlayStation 控制器都可以與它同時使用。"
           }
         }
       }
@@ -109846,77 +107064,6 @@
         }
       }
     },
-    "Three things affect speed and control:" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drei Dinge beeinflussen Tempo und Steuerung:"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tres cosas afectan a la velocidad y al control:"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trois choses influencent la vitesse et les commandes :"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tre cose influenzano velocità e controllo:"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速度と操作に影響するものは3つあります："
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "속도와 조작에 영향을 주는 것은 세 가지입니다:"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drie dingen beïnvloeden snelheid en besturing:"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Três coisas afetam velocidade e controle:"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скорость и управление зависят от трёх вещей:"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有三件事会影响速度和控制："
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有三件事會影響速度和控制："
-          }
-        }
-      }
-    },
     "Tilt and turn the device to aim, like the GamePad." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -110694,77 +107841,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "觸控控制"
-          }
-        }
-      }
-    },
-    "Touch or controller" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Touch oder Controller"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Táctil o mando"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tactile ou manette"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Touch o controller"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "タッチまたはコントローラー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "터치 또는 컨트롤러"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Touch of controller"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toque ou controle"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Касание или контроллер"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "触控或手柄"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "觸控或手柄"
           }
         }
       }
@@ -112190,7 +109266,6 @@
       }
     },
     "U" : {
-
     },
     "Unfavourite" : {
       "extractionState" : "manual",
@@ -113750,77 +110825,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用公仔 ID 0 可建立一個空白的載具或配件標籤，供遊戲寫入。"
-          }
-        }
-      }
-    },
-    "Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verwende Spiele, die du von deiner eigenen Wii U gedumpt hast. Eine einzelne .wua-Datei ist am einfachsten: Sie enthält das Spiel, sein Update und den DLC in einem."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa juegos volcados de tu propia Wii U. Un único archivo .wua es lo más fácil: contiene el juego, su actualización y el DLC en uno."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisez des jeux extraits de votre propre Wii U. Un seul fichier .wua est le plus simple : il contient le jeu, sa mise à jour et ses DLC en un seul."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa giochi estratti dalla tua Wii U. Un singolo file .wua è il più semplice: contiene il gioco, il suo aggiornamento e il DLC in uno."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ご自身の Wii U からダンプしたゲームを使ってください。1つの .wua ファイルが最も簡単です。ゲーム、アップデート、DLC がまとめて入っています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "본인의 Wii U에서 덤프한 게임을 사용하세요. 단일 .wua 파일이 가장 쉽습니다. 게임, 업데이트, DLC가 하나에 들어 있습니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gebruik games die je van je eigen Wii U hebt gedumpt. Eén .wua-bestand is het makkelijkst: het bevat de game, de update en de DLC in één."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use jogos extraídos do seu próprio Wii U. Um único arquivo .wua é o mais fácil: ele contém o jogo, a atualização e a DLC em um só."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Используйте игры, снятые с вашей собственной Wii U. Проще всего один файл .wua: в нём игра, её обновление и DLC вместе."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请使用从你自己的 Wii U 转储出的游戏。单个 .wua 文件最简单：它把游戏、更新和 DLC 合在一起。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請使用從你自己的 Wii U 轉儲出的遊戲。單個 .wua 檔案最簡單：它把遊戲、更新和 DLC 合在一起。"
           }
         }
       }
@@ -118724,148 +115728,6 @@
         }
       }
     },
-    "Your keys" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deine Schlüssel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tus claves"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vos clés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le tue chiavi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "あなたのキー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "내 키"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je sleutels"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suas chaves"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваши ключи"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的金鑰"
-          }
-        }
-      }
-    },
-    "Your library" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deine Bibliothek"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu biblioteca"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre bibliothèque"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La tua libreria"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "あなたのライブラリ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "내 라이브러리"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je bibliotheek"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sua biblioteca"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваша библиотека"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的游戏库"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的資料庫"
-          }
-        }
-      }
-    },
     "Your library, keys, files, backups and online." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -119004,77 +115866,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的原始檔案不會被更改。"
-          }
-        }
-      }
-    },
-    "Your own games" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deine eigenen Spiele"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tus propios juegos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vos propres jeux"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I tuoi giochi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自分のゲーム"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "내 게임"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je eigen games"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seus próprios jogos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваши собственные игры"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你自己的游戏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你自己的遊戲"
           }
         }
       }
@@ -119572,6 +116363,361 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ZR 鍵"
+          }
+        }
+      }
+    },
+    "Next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次へ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próximo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Далее"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步"
+          }
+        }
+      }
+    },
+    "No controller yet. It shows up here as soon as it's paired." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Controller. Er erscheint hier, sobald er gekoppelt ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay ningún mando. Aparecerá aquí en cuanto se empareje."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore de manette. Elle apparaît ici dès qu'elle est appairée."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ancora nessun controller. Comparirà qui non appena sarà abbinato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントローラはまだありません。ペアリングするとここに表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 컨트롤러가 없습니다. 페어링되면 여기에 표시됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen controller. Die verschijnt hier zodra hij is gekoppeld."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum controle ainda. Ele aparece aqui assim que for pareado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Контроллера пока нет. Он появится здесь, как только будет сопряжён."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有手柄。配对后会立即显示在这里。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有控制器。配對後會立即顯示在這裡。"
+          }
+        }
+      }
+    },
+    "No controller? The touch controls show up on screen and hide as soon as a controller connects." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Controller? Die Touch-Steuerung erscheint auf dem Bildschirm und verschwindet, sobald ein Controller verbunden ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Sin mando? Los controles táctiles aparecen en pantalla y se ocultan en cuanto se conecta un mando."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de manette ? Les commandes tactiles s'affichent à l'écran et disparaissent dès qu'une manette se connecte."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun controller? I controlli touch compaiono sullo schermo e spariscono appena si connette un controller."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントローラがない場合は、タッチ操作が画面に表示され、コントローラが接続されると隠れます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "컨트롤러가 없나요? 터치 조작이 화면에 표시되며 컨트롤러가 연결되면 숨겨집니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen controller? De aanraakbesturing verschijnt op het scherm en verdwijnt zodra een controller verbindt."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem controle? Os controles de toque aparecem na tela e somem assim que um controle conecta."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет контроллера? Сенсорное управление появится на экране и скроется, как только подключится контроллер."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有手柄？触控操作会显示在屏幕上，手柄一连接就会隐藏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有控制器？觸控操作會顯示在螢幕上，控制器一連接就會隱藏。"
+          }
+        }
+      }
+    },
+    "Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppeln unter Einstellungen › Bluetooth. Xbox-, PlayStation-, Switch-Pro- und MFi-Controller funktionieren, in Spielen und in jedem Menü von EspressU."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empárejalo en Ajustes › Bluetooth. Funcionan mandos de Xbox, PlayStation, Switch Pro y MFi, en los juegos y en todos los menús de EspressU."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associez-la dans Réglages › Bluetooth. Les manettes Xbox, PlayStation, Switch Pro et MFi fonctionnent, dans les jeux et dans chaque menu d'EspressU."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbinalo in Impostazioni › Bluetooth. Funzionano i controller Xbox, PlayStation, Switch Pro e MFi, nei giochi e in ogni menu di EspressU."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 › Bluetooth でペアリングしてください。Xbox、PlayStation、Switch Pro、MFi コントローラーが、ゲーム内でも EspressU のすべてのメニューでも使えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 › Bluetooth에서 페어링하세요. Xbox, PlayStation, Switch Pro, MFi 컨트롤러가 게임에서도, EspressU의 모든 메뉴에서도 작동합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel hem in Instellingen › Bluetooth. Xbox-, PlayStation-, Switch Pro- en MFi-controllers werken, in games en in elk menu van EspressU."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pareie em Ajustes › Bluetooth. Controles de Xbox, PlayStation, Switch Pro e MFi funcionam, nos jogos e em todos os menus do EspressU."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свяжите его в Настройки › Bluetooth. Работают контроллеры Xbox, PlayStation, Switch Pro и MFi — в играх и в каждом меню EspressU."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在 设置 › 蓝牙 中配对。Xbox、PlayStation、Switch Pro 和 MFi 手柄均可使用，既可在游戏中，也可在 EspressU 的每个菜单中使用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在 設定 › 藍芽 中配對。Xbox、PlayStation、Switch Pro 和 MFi 手柄均可使用，既可在遊戲中，也可在 EspressU 的每個選單中使用。"
+          }
+        }
+      }
+    },
+    "Play with a controller" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Controller spielen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jugar con un mando"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouer avec une manette"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gioca con un controller"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントローラーでプレイ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "컨트롤러로 플레이"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spelen met een controller"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jogue com um controle"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Играйте с контроллером"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用手柄游玩"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用手柄遊玩"
           }
         }
       }

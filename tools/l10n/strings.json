@@ -92,12 +92,6 @@
  "%@ free on this device.": [
   "GraphicPacksView.swift"
  ],
- "%@ game": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
- "%@ games": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "%@ games' own options": [
   "Settings/EspressUSettingsSubpages.swift",
   "Settings/SettingsBackupSection.swift"
@@ -120,18 +114,6 @@
  ],
  "%@ isn't a web address. Addresses start with http:// or https://.": [
   "CustomServers.swift"
- ],
- "%@ key loaded": [
-  "Onboarding/OnboardingView.swift"
- ],
- "%@ key loaded for encrypted dumps (.wud, .wux).": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
- "%@ keys loaded": [
-  "Onboarding/OnboardingView.swift"
- ],
- "%@ keys loaded for encrypted dumps (.wud, .wux).": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "%@ of 10 characters used": [
   "CreateAccountView.swift"
@@ -192,9 +174,6 @@
  "%@/account.dat isn't a readable Wii U account file.": [
   "AccountImport.swift"
  ],
- ".wua, .wud, .wux or .rpx": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "1 game's own options": [
   "Settings/EspressUSettingsSubpages.swift",
   "Settings/SettingsBackupSection.swift"
@@ -249,9 +228,6 @@
  ],
  "A dumped game folder": [
   "EspressUHome.swift"
- ],
- "A dumped game with code, content and meta": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "A folder or .wua for a game you have": [
   "EspressUHome.swift"
@@ -401,9 +377,6 @@
  "Add games": [
   "EspressUHome.swift"
  ],
- "Add keys": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Add one from Add on the home screen.": [
   "EspressUGamePage.swift"
  ],
@@ -423,10 +396,6 @@
  ],
  "Add update or DLC...": [
   "GameContentSection.swift"
- ],
- "Add your games": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
  ],
  "Add your own tracks": [
   "MenuMusic.swift"
@@ -595,7 +564,6 @@
   "HomeMenu.swift",
   "InGameNotices.swift",
   "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift",
   "Settings/EspressUSettingsView.swift"
  ],
  "Back to games": [
@@ -949,9 +917,6 @@
  "Close the running game before creating an account.": [
   "CreateAccountView.swift"
  ],
- "Closes the guide and opens your library.": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Closes the menu and carries on with the game.": [
   "HomeMenu.swift"
  ],
@@ -1010,7 +975,6 @@
  ],
  "Connected": [
   "DeviceConnection.swift",
-  "Onboarding/EspressUOnboarding.swift",
   "Settings/EspressUSettingsControlsPages.swift"
  ],
  "Connected controllers": [
@@ -1029,9 +993,6 @@
  ],
  "Continue playing %@": [
   "EspressUHome.swift"
- ],
- "Continues without importing keys. Homebrew doesn't need them, and you can add keys later from Settings.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "Control size": [
   "Crema/CremaLayoutPanel.swift"
@@ -1086,10 +1047,6 @@
  ],
  "Copy device report": [
   "Settings/EspressUSettingsSubpages.swift"
- ],
- "Copying %@…": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
  ],
  "Could not resolve a Documents folder for this install.": [
   "Settings/EspressUSettingsSubpages.swift",
@@ -1529,12 +1486,6 @@
  "Emulates a Skylanders Portal, Disney Infinity Base or LEGO Dimensions Toypad. Changes apply the next time you start a game.": [
   "Settings/EmulatedDevicesSettingsSection.swift"
  ],
- "Encrypted Wii U games need a keys.txt dumped from your own Wii U. EspressU doesn't include one. Homebrew doesn't need it.": [
-  "Onboarding/OnboardingView.swift"
- ],
- "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua.": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Encrypted games (.wux, .wud, .iso, .wua) need AES keys dumped from your own Wii U, in a text file called keys.txt with one key per line. EspressU doesn't include keys.\n\nYou can also open EspressU in the Files app and drop keys.txt into the \"keys\" folder.\n\nNew keys are used the next time you start a game. If you've already started a game since opening EspressU, quit and reopen EspressU first.": [
   "Settings/KeysSettingsSection.swift"
  ],
@@ -1631,6 +1582,9 @@
  ],
  "EspressU couldn't show itself to Settings (error %@). Check that Local Network is on for EspressU in Settings › Privacy & Security › Local Network, then try again.": [
   "DevicePairing.swift"
+ ],
+ "EspressU doesn't include any games. Add dumps of your own Wii U games from the Library afterwards.": [
+  "Onboarding/EspressUOnboarding.swift"
  ],
  "EspressU has to be closed and reopened before it can start another game.": [
   "GameManager.swift"
@@ -1850,8 +1804,7 @@
   "EspressUGamePage.swift"
  ],
  "Finishes the guide and opens your library.": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
+  "Onboarding/EspressUOnboarding.swift"
  ],
  "First time a new effect appears": [
   "PerGameAdvancedSettings.swift",
@@ -1944,12 +1897,6 @@
  "Full path": [
   "Settings/EspressUSettingsSubpages.swift"
  ],
- "Full speed needs a JIT enabler (StikJIT, SideStore or LiveContainer) attached at launch. Without one, EspressU still runs but much slower. Settings shows which you have.": [
-  "Onboarding/OnboardingView.swift"
- ],
- "Full speed with JIT": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "GAMETDB": [
   "EspressUCoverPicker.swift"
  ],
@@ -1967,13 +1914,11 @@
  ],
  "Game file": [
   "ContentView.swift",
-  "EspressUHome.swift",
-  "Onboarding/EspressUOnboarding.swift"
+  "EspressUHome.swift"
  ],
  "Game folder": [
   "ContentView.swift",
-  "EspressUHome.swift",
-  "Onboarding/EspressUOnboarding.swift"
+  "EspressUHome.swift"
  ],
  "Game folders that stay where they are.": [
   "Settings/EspressUSettingsContent.swift",
@@ -2052,9 +1997,6 @@
  "Games will stutter while they relearn their shaders.": [
   "Settings/ShaderSettingsSections.swift"
  ],
- "Games you add show up here, with their own icon and name.": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Games you add there show up when you come back to EspressU.": [
   "ContentView.swift"
  ],
@@ -2103,9 +2045,6 @@
  ],
  "Goes back to the HOME menu without quitting.": [
   "HomeMenu.swift"
- ],
- "Goes to the next page of the guide.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "Goes to the next page.": [
   "Onboarding/EspressUOnboarding.swift"
@@ -2207,14 +2146,8 @@
  "How games run: the CPU and heat.": [
   "Settings/EspressUSettingsModel.swift"
  ],
- "How to set it up": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "ID %@": [
   "EmulatedDevicesView.swift"
- ],
- "If a game glitches, desyncs or crashes, turn on Favour accuracy in Settings > CPU. It's slower but more accurate.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "If aim feels backwards": [
   "Settings/MotionSettingsSection.swift"
@@ -2244,9 +2177,6 @@
  "Import a Game": [
   "ContentView.swift"
  ],
- "Import a game": [
-  "Onboarding/OnboardingView.swift"
- ],
  "Import a game save folder": [
   "EspressUGamePage.swift"
  ],
@@ -2273,9 +2203,6 @@
  ],
  "Import game save folder": [
   "PerGameSettings.swift"
- ],
- "Import games from Files: .wud, .wux, .wua, .iso, a dumped game folder or a homebrew .rpx. You can also drop them into Documents/Roms in the Files app.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "Import keys.txt": [
   "ContentView.swift"
@@ -2898,8 +2825,7 @@
   "CreateAccountView.swift"
  ],
  "Next": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
+  "Onboarding/EspressUOnboarding.swift"
  ],
  "Nintendo Network (shut down)": [
   "NetworkService.swift"
@@ -3315,9 +3241,6 @@
   "Settings/EspressUSettingsSubpages.swift",
   "Settings/OpenSourceLicencesView.swift"
  ],
- "Opens Files at EspressU › Roms. New games show up on their own.": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Opens Files to pick the file.": [
   "Settings/EspressUSettingsControlsPages.swift"
  ],
@@ -3326,12 +3249,6 @@
  ],
  "Opens the EspressU community server in your browser.": [
   "Settings/EspressUSettingsContent.swift"
- ],
- "Opens the Files picker to choose a game to import.": [
-  "Onboarding/OnboardingView.swift"
- ],
- "Opens the Files picker to choose your keys.txt.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "Opens the community server in your browser": [
   "Settings/EspressUSettingsView.swift"
@@ -3346,9 +3263,6 @@
   "EspressUGamePacksView.swift",
   "GraphicPacksView.swift",
   "Settings/EspressUSettingsGraphicPacks.swift"
- ],
- "Optional": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Options": [
   "ControllerMapping.swift",
@@ -3560,7 +3474,7 @@
  "Play one file right where it is.": [
   "Settings/EspressUSettingsSubpages.swift"
  ],
- "Play the Wii U games you own on your %@. Setup takes about two minutes, and every step can be skipped.": [
+ "Play the Wii U games you own on your %@.": [
   "Onboarding/EspressUOnboarding.swift"
  ],
  "Play the launch intro": [
@@ -3571,9 +3485,6 @@
  ],
  "Play without JIT": [
   "StikJITCoordinator.swift"
- ],
- "Play your own Wii U games. This takes a minute and you can skip any step.": [
-  "Onboarding/OnboardingView.swift"
  ],
  "Played ": [
   "LibraryOrganization.swift"
@@ -3650,9 +3561,6 @@
  "Press again to remove": [
   "EspressUHome.swift"
  ],
- "Press any button to test it:": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Pretendo Network": [
   "NetworkService.swift"
  ],
@@ -3678,9 +3586,6 @@
  ],
  "Publisher, genre, languages and install": [
   "EspressUGamePage.swift"
- ],
- "Put games in Files": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Put keys.txt into the keys folder: Files › EspressU › keys.": [
   "Settings/EspressUSettingsSubpages.swift"
@@ -3884,12 +3789,11 @@
  "Rendering comes first: steady frames at the game's own Wii U frame rate, never faster.": [
   "Settings/GraphicsSettingsSection.swift"
  ],
- "Reopens the first-launch guide to keys, games, speed and controls.": [
+ "Reopens the first-launch guide.": [
   "Onboarding/OnboardingState.swift"
  ],
  "Replace": [
-  "ContentView.swift",
-  "Onboarding/EspressUOnboarding.swift"
+  "ContentView.swift"
  ],
  "Replace an existing account?": [
   "AccountImport.swift"
@@ -3901,7 +3805,6 @@
   "ContentView.swift"
  ],
  "Replace keys.txt": [
-  "Onboarding/OnboardingView.swift",
   "Settings/EspressUSettingsSubpages.swift",
   "Settings/KeysSettingsSection.swift"
  ],
@@ -4365,17 +4268,11 @@
  "Size, opacity, spacing, shoulder height, single moved or resized controls, haptics, controller hiding and deadzone go back to how EspressU ships, in every game.": [
   "Crema/CremaLayoutPanel.swift"
  ],
- "Skip - I only play homebrew": [
-  "Onboarding/OnboardingView.swift"
- ],
  "Skip certificate checks": [
   "CustomServers.swift"
  ],
  "Skip intro": [
   "LaunchIntro.swift"
- ],
- "Skip setup": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Skip those accounts": [
   "AccountImport.swift"
@@ -4455,9 +4352,6 @@
  "Speed and accuracy": [
   "Settings/EspressUSettingsContent.swift"
  ],
- "Speed and controls": [
-  "Onboarding/OnboardingView.swift"
- ],
  "Starfall": [
   "MenuMusic.swift"
  ],
@@ -4469,8 +4363,7 @@
   "CustomServers.swift"
  ],
  "Start playing": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
+  "Onboarding/EspressUOnboarding.swift"
  ],
  "Starting %@…": [
   "ContentView.swift"
@@ -4490,9 +4383,6 @@
   "Settings/AdvancedSettings.swift",
   "Settings/EspressUSettingsContent.swift",
   "Settings/GraphicsSettingsSection.swift"
- ],
- "Step %@ of %@": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Step %@: %@. %@": [
   "Onboarding/EspressUOnboarding.swift"
@@ -4832,9 +4722,6 @@
  "The old account %@ was saved as %@.": [
   "AccountImport.swift"
  ],
- "The on-screen pad can add analog sticks and comfort controls, and any MFi, Xbox, or PlayStation controller works right alongside it.": [
-  "Onboarding/OnboardingView.swift"
- ],
  "The open-source code inside EspressU.": [
   "Settings/EspressUSettingsModel.swift"
  ],
@@ -5029,9 +4916,6 @@
  "Three cores. Can be faster on a device with spare performance cores and cooling, but heats up quickly on most iPads and has hung some games.": [
   "RenderScale.swift"
  ],
- "Three things affect speed and control:": [
-  "Onboarding/OnboardingView.swift"
- ],
  "Tilt and turn the device to aim, like the GamePad.": [
   "Settings/MotionSettingsSection.swift"
  ],
@@ -5065,9 +4949,6 @@
  ],
  "Touch controls": [
   "HomeMenu.swift"
- ],
- "Touch or controller": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Touch, controllers, motion": [
   "Settings/EspressUSettingsModel.swift"
@@ -5194,9 +5075,6 @@
  "Use figure ID 0 to create a blank vehicle or gadget tag for the game to write.": [
   "EmulatedDevicesView.swift"
  ],
- "Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one.": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Use the automatic cover": [
   "EspressUGamePage.swift"
  ],
@@ -5293,8 +5171,7 @@
   "HeatStatus.swift"
  ],
  "Welcome to EspressU": [
-  "Onboarding/EspressUOnboarding.swift",
-  "Onboarding/OnboardingView.swift"
+  "Onboarding/EspressUOnboarding.swift"
  ],
  "What EspressU shows on top of a game.": [
   "Settings/EspressUSettingsModel.swift"
@@ -5409,20 +5286,11 @@
   "Settings/EspressUSettingsContent.swift",
   "Settings/EspressUSettingsModel.swift"
  ],
- "Your keys": [
-  "Onboarding/OnboardingView.swift"
- ],
- "Your library": [
-  "Onboarding/EspressUOnboarding.swift"
- ],
  "Your library, keys, files, backups and online.": [
   "Settings/EspressUSettingsModel.swift"
  ],
  "Your original file isn't changed.": [
   "DecryptROMView.swift"
- ],
- "Your own games": [
-  "Onboarding/EspressUOnboarding.swift"
  ],
  "Your own packs": [
   "EspressUGamePacksView.swift",
