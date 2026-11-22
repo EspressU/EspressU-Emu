@@ -51,3 +51,27 @@ extension EspressUThemePresets {
         shadowLight: "#2B3640", shadowDark: "#000000"
     )
 }
+
+/// Applies the chosen appearance inside sheets. `preferredColorScheme(nil)` does not
+/// clear a previously set override in a presented sheet, so "system" is resolved to the
+/// device's real style (read from the screen, which ignores window overrides).
+private struct EspressUAppearanceModifier: ViewModifier {
+    @AppStorage(EspressUAppearance.storageKey) private var mode = "system"
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var systemStyle: ColorScheme = EspressUAppearanceModifier.deviceScheme()
+
+    static func deviceScheme() -> ColorScheme {
+        UIScreen.main.traitCollection.userInterfaceStyle == .dark ? .dark : .light
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .preferredColorScheme(mode == "light" ? .light : (mode == "dark" ? .dark : systemStyle))
+            .onValueChange(of: mode) { _ in systemStyle = Self.deviceScheme() }
+            .onValueChange(of: scenePhase) { _ in systemStyle = Self.deviceScheme() }
+    }
+}
+
+extension View {
+    func espressuAppearance() -> some View { modifier(EspressUAppearanceModifier()) }
+}

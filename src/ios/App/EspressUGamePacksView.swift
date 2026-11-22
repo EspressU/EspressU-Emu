@@ -61,7 +61,7 @@ struct EspressUGamePacksView: View {
         }
         .overlay { SettingsDropdownOverlay(state: $dropdown, groups: groups, showsFocus: input.showsFocus) }
         .animation(.easeOut(duration: 0.15), value: dropdown)
-        .preferredColorScheme(EspressUAppearance.colorScheme)
+        .espressuAppearance()
         .foregroundColor(EspressUTheme.brownDarkest)
         .onAppear {
             store.onOpen()

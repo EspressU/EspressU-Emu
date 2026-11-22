@@ -70,7 +70,7 @@ struct EspressUSettingsView: View {
             .onAppear { isWide = wide }
             .onValueChange(of: wide) { isWide = $0 }
         }
-        .preferredColorScheme(EspressUAppearance.colorScheme)
+        .espressuAppearance()
         .onAppear(perform: appear)
         .onDisappear {
             ControllerMappingSession.shared.cancel()
