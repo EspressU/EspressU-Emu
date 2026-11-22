@@ -529,7 +529,7 @@ struct GameBrowserView: View {
                 importFile: { beginImport(contentTypes: Self.fileImportTypes) },
                 importFolder: { beginImport(contentTypes: Self.folderImportTypes) },
                 importPickedGame: { handleImport(.success([$0])) },
-                importPickedContent: { runDlcUpdateImport(from: $0, kind: $1, longPressedGame: nil, manualMatch: nil) },
+                importPickedContent: { runDlcUpdateImport(from: $0, kind: $1, longPressedGame: nil, manualMatch: nil, autoDetect: true) },
                 importKeys: { beginKeysImport() },
                 linkFolder: { beginLink(contentTypes: Self.folderImportTypes) },
                 linkFile: { beginLink(contentTypes: Self.fileImportTypes) },
@@ -1021,7 +1021,8 @@ struct GameBrowserView: View {
         from url: URL,
         kind: DlcUpdateImport.ContentKind,
         longPressedGame: GameMetadata?,
-        manualMatch: GameMetadata?
+        manualMatch: GameMetadata?,
+        autoDetect: Bool = false
     ) {
         Task {
             do {
@@ -1035,6 +1036,9 @@ struct GameBrowserView: View {
                     dlcUpdateSuccessMessage = locf("Added %@ for \"%@\".", kind.displayName, matched.title)
                 }
                 DocumentImport.discardPickerCopy(url)
+            } catch DlcUpdateImport.ImportError.wrongType where autoDetect && kind == .update {
+                // One entry for both: it wasn't an update, so try it as DLC.
+                runDlcUpdateImport(from: url, kind: .dlc, longPressedGame: longPressedGame, manualMatch: manualMatch)
             } catch DlcUpdateImport.ImportError.noBaseGameMatch {
                 if let longPressedGame {
                     pendingManualMatchConfirmation = (source: url, kind: kind, game: longPressedGame)
@@ -1241,7 +1245,7 @@ struct SearchBarPolished: View {
         .espressUSurface(Capsule())
         .onAppear {
             if autoFocus {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { focused = true }
             }
         }
         .onValueChange(of: focused) { isFocused in
