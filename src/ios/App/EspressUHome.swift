@@ -111,7 +111,10 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     private var backdropFade: Double { isPhone ? 0.3 : 0.8 }
 
     private var backdropPath: String? {
-        games.indices.contains(centerIndex) ? games[centerIndex].coverPath : nil
+        // iPhone: no tint until a game has been tapped. After that the last tint stays
+        // (showBackdrop ignores nil), so deselecting does not flash back to plain.
+        if isPhone { return selectedGame?.coverPath }
+        return games.indices.contains(centerIndex) ? games[centerIndex].coverPath : nil
     }
 
     /// The centred game's cover, blurred behind everything, so glass bars have something to refract.
@@ -141,7 +144,16 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         guard let path else { return }
         if backdropPaths[backdropTop] == nil {
             backdropPaths[backdropTop] = path
-            backdropOpacity[backdropTop] = 1
+            if isPhone {
+                // First selection on iPhone: fade the tint in instead of popping it in.
+                backdropOpacity[backdropTop] = 0
+                let layer = backdropTop
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: backdropFade)) { backdropOpacity[layer] = 1 }
+                }
+            } else {
+                backdropOpacity[backdropTop] = 1
+            }
             return
         }
         backdropPending = path
