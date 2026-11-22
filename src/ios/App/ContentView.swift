@@ -91,7 +91,7 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { showOnboarding = true }
         }
         .fullScreenCover(isPresented: $showOnboarding, onDismiss: { onboardingCompleted = true }) {
-            EspressUOnboardingView(gameManager: gameManager) {
+            EspressUOnboardingView {
                 onboardingCompleted = true
                 showOnboarding = false
             }

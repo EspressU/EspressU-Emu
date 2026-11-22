@@ -4,140 +4,264 @@ import SwiftUI
 import GameController
 import UIKit
 
+/// First-launch guide: a short welcome and the one setup step that changes how games run (JIT).
+/// Adding games and keys happens in the Library and in Settings, not here.
 struct EspressUOnboardingView: View {
-    @ObservedObject var gameManager: GameManager
     var onFinished: () -> Void
 
     @StateObject private var input = ControllerMenuInput()
     @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var pairing = DevicePairing.shared
 
     @State private var page = 0
     @State private var focus: String?
-    @ObservedObject private var jitCoordinator = StikJITCoordinator.shared
-    @ObservedObject private var pairing = DevicePairing.shared
-    @State private var gamesNote: String?
-    @State private var choosingFolder = false
     @State private var importingPairing = false
     @State private var pairingNote: String?
-    @State private var keyCount = WiiUKeys.keysFileExists() ? WiiUKeys.installedKeyCount() : 0
+    @State private var appeared: Set<Int> = []
 
-    private let pageCount = 4
+    private let pageCount = 3
+    private var isLastPage: Bool { page == pageCount - 1 }
 
     var body: some View {
-        GeometryReader { geo in
-            let wide = geo.size.width >= 760 && geo.size.width > geo.size.height * 1.05
-            ZStack {
-                EspressUBackground()
-                VStack(spacing: 0) {
-                    topBar
-                    TabView(selection: $page) {
-                        welcomePage.tag(0)
-                        gamesPage(wide: wide).tag(1)
-                        jitPage(wide: wide).tag(2)
-                        controllerPage(wide: wide).tag(3)
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    bottomBar
-                }
+        ZStack {
+            EspressUBackground()
+            TabView(selection: $page) {
+                welcomePage.tag(0)
+                controllerPage.tag(1)
+                speedPage.tag(2)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
         .onAppear {
             input.onCommand = handle
             input.isExclusive = true
             input.start()
             focus = defaultFocus(for: page)
+            reveal(page)
         }
         .onDisappear { input.stop() }
-        .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
-            input.resume()
-            switch result {
-            case .success(let url): importGames([url])
-            case .failure(let error): gamesNote = error.localizedDescription
-            }
-        }
         .fileImporter(isPresented: $importingPairing, allowedContentTypes: [.propertyList, .xml, .data, .item]) { result in
             input.resume()
             importPairingFile(result)
         }
-        .onValueChange(of: page) { focus = defaultFocus(for: $0) }
+        .onValueChange(of: page) {
+            focus = defaultFocus(for: $0)
+            reveal($0)
+        }
         .onValueChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             input.resume()
         }
     }
 
-    private var topBar: some View {
-        HStack {
-            HStack(spacing: 8) {
-                ForEach(0..<pageCount, id: \.self) { index in
-                    Capsule()
-                        .fill(index <= page ? EspressUTheme.pixelBlue : EspressUTheme.wrapper)
-                        .frame(width: index == page ? 26 : 8, height: 8)
-                }
+    // MARK: Pages
+
+    private var welcomePage: some View {
+        OnboardingPage(alignment: .center) {
+            EspressULogo(side: 116)
+                .shadow(color: .black.opacity(0.18), radius: 22, y: 12)
+                .scaleEffect(shown(0) ? 1 : 0.8)
+                .opacity(shown(0) ? 1 : 0)
+                .accessibilityHidden(true)
+            VStack(alignment: .center, spacing: 12) {
+                Text("Welcome to EspressU")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .multilineTextAlignment(.center)
+                    .accessibilityAddTraits(.isHeader)
+                Text(locf("Play the Wii U games you own on your %@.", UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"))
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            .animation(.easeOut(duration: 0.2), value: page)
-            .accessibilityHidden(true)
-            Spacer()
-            if page < pageCount - 1 {
-                Button("Skip setup", action: finish)
-                    .font(.system(.body))
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .frame(minHeight: 44)
-                    .padding(.horizontal, 10)
-                    .controllerFocusRing(isFocused("skip"), shape: Capsule())
-                    .accessibilityHint("Closes the guide and opens your library.")
-            }
+            .offset(y: shown(0) ? 0 : 14)
+            .opacity(shown(0) ? 1 : 0)
+            .animation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.12), value: appeared)
+            Text("EspressU doesn't include any games. Add dumps of your own Wii U games from the Library afterwards.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+                .opacity(shown(0) ? 1 : 0)
+                .animation(.easeOut(duration: 0.5).delay(0.25), value: appeared)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 12)
     }
 
-    private var bottomBar: some View {
-        HStack(spacing: 12) {
-            Button(action: goBack) {
-                Text("Back")
-                    .font(.system(.headline).weight(.regular))
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                    .frame(minWidth: 96, minHeight: 50)
+    private var controllerPage: some View {
+        OnboardingPage {
+            heroTile("gamecontroller.fill", page: 1)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(loc("Play with a controller"))
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .accessibilityAddTraits(.isHeader)
+                Text(loc("Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU."))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .controllerFocusRing(isFocused("back"), shape: Capsule())
-            .opacity(page == 0 ? 0 : 1)
-            .disabled(page == 0)
-            .accessibilityHidden(page == 0)
+            .slideIn(shown(1))
 
-            Spacer(minLength: 0)
-            if input.showsFocus {
-                HStack(spacing: 16) {
-                    ControllerButtonHint(symbol: input.confirmSymbol, text: loc("Select"))
-                    if page > 0 { ControllerButtonHint(symbol: input.backSymbol, text: loc("Back")) }
+            controllerCard
+                .slideIn(shown(1), delay: 0.2)
+
+            Text("No controller? The touch controls show up on screen and hide as soon as a controller connects.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .slideIn(shown(1), delay: 0.28)
+        }
+    }
+
+    private var controllerCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if input.controllers.isEmpty {
+                HStack(spacing: 14) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 28))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                    Text("No controller yet. It shows up here as soon as it's paired.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
                 }
             } else {
-                Text(locf("Step %@ of %@", page + 1, pageCount))
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.brownMid)
+                ForEach(Array(input.controllers.enumerated()), id: \.offset) { _, controller in
+                    HStack(spacing: 14) {
+                        Image(systemName: "gamecontroller.fill")
+                            .font(.system(size: 26))
+                            .foregroundColor(EspressUTheme.accentText)
+                            .symbolEffect(.bounce, value: input.controllers.count)
+                            .accessibilityHidden(true)
+                        Text(loc(controller.vendorName ?? "Controller"))
+                            .font(.headline)
+                        Spacer(minLength: 0)
+                        Text("Ready")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundColor(Color(light: "#17663F", dark: "#7FE0AE"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(light: "#DDF3E7", dark: "#173A2A"), in: Capsule())
+                    }
+                }
             }
-            Spacer(minLength: 0)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .espressUSurface(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .animation(.default, value: input.controllers.count)
+    }
 
-            Button(action: advance) {
-                Text(loc(primaryTitle))
-                    .font(.system(.headline))
-                    .foregroundColor(EspressUTheme.onAccent)
-                    .padding(.horizontal, 22)
-                    .frame(minWidth: 112, minHeight: 50)
-                    .background(EspressUTheme.pixelBlue, in: Capsule())
+    /// Hero tile shared by the pages without the app logo.
+    private func heroTile(_ symbol: String, page index: Int) -> some View {
+        RoundedRectangle(cornerRadius: 22, style: .continuous)
+            .fill(EspressUTheme.pixelBlue.opacity(0.14))
+            .frame(width: 84, height: 84)
+            .overlay(
+                Image(systemName: symbol)
+                    .font(.system(size: 40, weight: .semibold))
+                    .foregroundColor(EspressUTheme.accentText)
+            )
+            .scaleEffect(shown(index) ? 1 : 0.8)
+            .opacity(shown(index) ? 1 : 0)
+            .animation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.05), value: appeared)
+            .accessibilityHidden(true)
+    }
+
+    private func shown(_ index: Int) -> Bool { appeared.contains(index) }
+
+    private func reveal(_ index: Int) {
+        withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.1)) { _ = appeared.insert(index) }
+    }
+
+    private var speedPage: some View {
+        OnboardingPage {
+            heroTile("bolt.fill", page: 2)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Turn on full speed")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .accessibilityAddTraits(.isHeader)
+                Text(loc(DevicePairing.isSupported
+                         ? "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once."
+                         : "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once. This iOS version can't make one itself, so you import one."))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+            .slideIn(shown(2))
+
+            jitStatusCard
+                .slideIn(shown(2), delay: 0.18)
+
+            VStack(alignment: .leading, spacing: 14) {
+                if DevicePairing.isSupported {
+                    step(1, loc("Pair this device"), loc("Tap Pair. A pairing file from iLoader works too: Settings › JIT."))
+                } else {
+                    step(1, loc("Import a pairing file"), locf("Built-in pairing needs iOS %@ or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.", DevicePairing.minimumIOSVersion))
+                }
+                step(2, loc("Connect LocalDevVPN"), loc("EspressU reaches the device through it. Wi-Fi works best."))
+                step(3, loc("That's it"), loc("JIT switches on by itself whenever LocalDevVPN is connected."))
+            }
+            .slideIn(shown(2), delay: 0.26)
+
+            Text("No JIT? Games still start, just much slower.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .slideIn(shown(2), delay: 0.32)
+        }
+    }
+
+    private var jitStatusCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            JITStatusCard(compact: true)
+            if pairing.isActive {
+                JITPairingCard()
+            }
+            Button(action: pairOrStop) {
+                Text(loc(pairing.isActive ? "Stop pairing" : pairButtonTitle))
+                    .font(.headline)
+                    .foregroundColor(pairing.isActive ? .primary : EspressUTheme.onAccent)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(pairing.isActive ? AnyShapeStyle(Color(UIColor.tertiarySystemFill)) : AnyShapeStyle(EspressUTheme.pixelBlue), in: Capsule())
             }
             .buttonStyle(.plain)
-            .controllerFocusRing(isFocused(page == pageCount - 1 ? "finish" : "next"), shape: Capsule())
-            .accessibilityHint(page == pageCount - 1 ? loc("Finishes the guide and opens your library.") : loc("Goes to the next page."))
+            .controllerFocusRing(isFocused("pairJit"), shape: Capsule())
+            if case .failed(let reason) = pairing.state { noteText(reason) }
+            if let pairingNote { noteText(pairingNote) }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .espressUSurface(Capsule())
-        .frame(maxWidth: 1100)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 12)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .espressUSurface(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
+
+    private func step(_ number: Int, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text("\(number)")
+                .font(.system(.subheadline, design: .rounded).weight(.bold))
+                .monospacedDigit()
+                .foregroundColor(EspressUTheme.accentText)
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(EspressUTheme.pixelBlue.opacity(0.16)))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.headline).padding(.top, 3)
+                Text(detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(locf("Step %@: %@. %@", number, title, detail))
+    }
+
+    private func noteText(_ text: String) -> some View {
+        Text(loc(text))
+            .font(.subheadline)
+            .foregroundColor(EspressUTheme.alertText)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: Bottom bar
 
     private var primaryTitle: String {
         switch page {
@@ -147,203 +271,54 @@ struct EspressUOnboardingView: View {
         }
     }
 
-    private var welcomePage: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                EspressULogo(side: 140)
-                    .shadow(color: EspressUTheme.shadow.opacity(0.11), radius: 18, y: 10)
-                    .accessibilityHidden(true)
-                Text("Welcome to EspressU")
-                    .font(.system(.largeTitle).weight(.bold))
-                    .foregroundColor(EspressUTheme.onBackground)
-                    .multilineTextAlignment(.center)
-                    .accessibilityAddTraits(.isHeader)
-                Text(locf("Play the Wii U games you own on your %@. Setup takes about two minutes, and every step can be skipped.", UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"))
-                    .font(.system(.title3))
-                    .foregroundColor(EspressUTheme.onBackgroundMuted)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 560)
-                    .fixedSize(horizontal: false, vertical: true)
-                flowChips
-                    .padding(.top, 8)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 32)
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    private var flowChips: some View {
-        let chips = [("arrow.down.to.line", loc("Your own games")),
-                     ("bolt.fill", loc("Full speed with JIT")),
-                     ("gamecontroller.fill", loc("Touch or controller"))]
-        return HStackOrVStack {
-            ForEach(chips.indices, id: \.self) { index in
-                Label(chips[index].1, systemImage: chips[index].0)
-                    .font(.system(.callout).weight(.medium))
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 11)
-                    .espressUSurface(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
-        }
-    }
-
-    private func gamesPage(wide: Bool) -> some View {
-        OnboardingColumns(wide: wide) {
-            VStack(alignment: .leading, spacing: 16) {
-                pageHeading(loc("Add your games"),
-                            loc("Use games dumped from your own Wii U. A single .wua file is easiest: it holds the game, its update and DLC in one."))
-                bigButton(id: "choose", title: loc("Game file"), detail: loc(".wua, .wud, .wux or .rpx"),
-                          systemImage: "doc.fill", primary: true, action: chooseGames)
-                bigButton(id: "folder", title: loc("Game folder"), detail: loc("A dumped game with code, content and meta"),
-                          systemImage: "folder.fill", primary: false, action: chooseGameFolder)
-                bigButton(id: "files", title: loc("Put games in Files"),
-                          detail: loc("Opens Files at EspressU › Roms. New games show up on their own."),
-                          systemImage: "folder.badge.plus", primary: false, action: openRomsInFiles)
-                keysRow
-                if case .copying(let name) = gameManager.importState {
-                    HStack(spacing: 10) {
-                        ProgressView()
-                        Text(locf("Copying %@\u{2026}", name))
-                    }
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.brownMid)
-                }
-                if let gamesNote { noteText(gamesNote) }
-            }
-        } trailing: {
-            libraryPreview
-        }
-    }
-
-    private var keysRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "key.fill")
-                .foregroundColor(EspressUTheme.brownMid)
-                .accessibilityHidden(true)
-            Text(loc(keyCount > 0
-                 ? locn(keyCount, "%@ key loaded for encrypted dumps (.wud, .wux).", "%@ keys loaded for encrypted dumps (.wud, .wux).")
-                 : "Encrypted dumps (.wud, .wux) also need your keys.txt. Not needed for .wua."))
-                .font(.system(.subheadline))
-                .foregroundColor(EspressUTheme.brownMid)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Button(keyCount > 0 ? loc("Replace") : loc("Add keys"), action: importKeys)
-                .font(.system(.subheadline).weight(.semibold))
-                .foregroundColor(EspressUTheme.accentText)
-                .frame(minHeight: 44)
-                .padding(.horizontal, 8)
-                .controllerFocusRing(isFocused("keys"), shape: Capsule())
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .strokeBorder(EspressUTheme.brownMid.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
-    }
-
-    private var libraryPreview: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Your library")
-                    .font(.system(.title3).weight(.semibold))
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                Spacer()
-                Text(locn(gameManager.games.count, "%@ game", "%@ games"))
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.brownMid)
-            }
-            if gameManager.games.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "square.grid.2x2")
-                        .font(.system(size: 34))
-                        .foregroundColor(EspressUTheme.brownMid.opacity(0.6))
-                    Text("Games you add show up here, with their own icon and name.")
-                        .font(.system(.subheadline))
-                        .foregroundColor(EspressUTheme.brownMid)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, minHeight: 180)
-                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            } else {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
-                    ForEach(Array(gameManager.games.prefix(4))) { game in
-                        VStack(alignment: .leading, spacing: 6) {
-                            ZStack {
-                                EspressUTheme.cremaTopGradient
-                                if let path = game.coverPath {
-                                    CoverImage(path: path, fill: true)
-                                } else {
-                                    Image(systemName: "gamecontroller.fill")
-                                        .font(.system(size: 26))
-                                        .foregroundColor(EspressUTheme.onCremaTop)
-                                }
-                            }
-                            .aspectRatio(1, contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            Text(loc(game.cardName.name))
-                                .font(.system(.subheadline).weight(.semibold))
-                                .foregroundColor(EspressUTheme.brownDarkest)
-                                .lineLimit(1)
-                        }
-                    }
+    private var bottomBar: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 7) {
+                ForEach(0..<pageCount, id: \.self) { index in
+                    Capsule()
+                        .fill(index == page ? EspressUTheme.pixelBlue : Color(UIColor.tertiaryLabel))
+                        .frame(width: index == page ? 20 : 7, height: 7)
                 }
             }
-        }
-        .padding(22)
-        .espressUSurface(RoundedRectangle(cornerRadius: 28, style: .continuous))
-    }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: page)
+            .padding(.bottom, 4)
+            .accessibilityHidden(true)
 
-    private func jitPage(wide: Bool) -> some View {
-        OnboardingColumns(wide: wide) {
-            VStack(alignment: .leading, spacing: 16) {
-                pageHeading(loc("Turn on full speed"),
-                            DevicePairing.isSupported
-                                ? loc("Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once.")
-                                : "Built-in JIT switches on by itself when a game starts. For that, EspressU needs a pairing file for this device once. This iOS version can't make one itself, so you import one.")
-                jitStatusCard
-                Text("No JIT? Games still start, just much slower.")
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.onBackgroundMuted)
+            Button(action: advance) {
+                Text(primaryTitle)
+                    .frame(maxWidth: .infinity, minHeight: 28)
             }
-        } trailing: {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("How to set it up")
-                    .font(.system(.title3).weight(.semibold))
-                    .foregroundColor(EspressUTheme.onBackground)
-                    .accessibilityAddTraits(.isHeader)
-                if DevicePairing.isSupported {
-                    stepCard(1, loc("Pair this device"), loc("Tap Pair. A pairing file from iLoader works too: Settings › JIT."))
-                } else {
-                    stepCard(1, loc("Import a pairing file"), locf("Built-in pairing needs iOS %@ or newer. Make a pairing file with iLoader or idevice_pair, then tap Import.", DevicePairing.minimumIOSVersion))
-                }
-                stepCard(2, loc("Connect LocalDevVPN"), loc("EspressU reaches the device through it. Wi-Fi works best."))
-                stepCard(3, loc("That's it"), loc("JIT switches on by itself whenever LocalDevVPN is connected."))
-            }
-        }
-    }
+            .buttonStyle(EspressUPrimaryButtonStyle())
+            .controllerFocusRing(isFocused("next"), shape: Capsule())
+            .accessibilityHint(isLastPage ? loc("Finishes the guide and opens your library.") : loc("Goes to the next page."))
 
-    private var jitStatusCard: some View {
-        return VStack(alignment: .leading, spacing: 16) {
-            JITStatusCard(compact: true)
-            if pairing.isActive {
-                JITPairingCard()
-            }
-            Button(action: pairOrStop) {
-                Text(loc(pairing.isActive ? "Stop pairing" : pairButtonTitle))
-                    .font(.system(.headline))
-                    .foregroundColor(pairing.isActive ? EspressUTheme.brownDarkest : EspressUTheme.onAccent)
-                    .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(pairing.isActive ? AnyShapeStyle(EspressUTheme.wrapper) : AnyShapeStyle(EspressUTheme.pixelBlue), in: Capsule())
+            Button(action: goBack) {
+                Text("Back")
+                    .font(.body)
+                    .foregroundColor(EspressUTheme.accentText)
+                    .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.plain)
-            .controllerFocusRing(isFocused("pairJit"), shape: Capsule())
-            if case .failed(let reason) = pairing.state { noteText(reason) }
-            if let pairingNote { noteText(pairingNote) }
+            .controllerFocusRing(isFocused("back"), shape: Capsule())
+            .opacity(page == 0 ? 0 : 1)
+            .disabled(page == 0)
+            .accessibilityHidden(page == 0)
+
+            if input.showsFocus {
+                HStack(spacing: 16) {
+                    ControllerButtonHint(symbol: input.confirmSymbol, text: loc("Select"))
+                    if page > 0 { ControllerButtonHint(symbol: input.backSymbol, text: loc("Back")) }
+                }
+            }
         }
-        .padding(22)
-        .espressUSurface(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .frame(maxWidth: 520)
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
     }
+
+    // MARK: JIT pairing
 
     private var pairButtonTitle: String {
         if DevicePairing.isSupported { return StikJITSetup.hasPairingFile ? loc("Pair again") : loc("Pair") }
@@ -377,158 +352,7 @@ struct EspressUOnboardingView: View {
         }
     }
 
-    private func controllerPage(wide: Bool) -> some View {
-        OnboardingColumns(wide: wide) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Optional")
-                    .font(.system(.footnote).weight(.semibold))
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.white.opacity(0.08), in: Capsule())
-                pageHeading(loc("Play with a controller"),
-                            loc("Pair it in Settings › Bluetooth. Xbox, PlayStation, Switch Pro and MFi controllers work, in games and in every menu of EspressU."))
-                Text("No controller? The touch controls show up on screen and hide as soon as a controller connects.")
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.onBackgroundMuted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        } trailing: {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Connected")
-                    .font(.system(.title3).weight(.semibold))
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                if input.controllers.isEmpty {
-                    HStack(spacing: 14) {
-                        Image(systemName: "gamecontroller")
-                            .font(.system(size: 28))
-                            .accessibilityHidden(true)
-                        Text("No controller yet. It shows up here as soon as it's paired.")
-                            .font(.system(.callout))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(EspressUTheme.brownMid.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
-                } else {
-                    ForEach(Array(input.controllers.enumerated()), id: \.offset) { _, controller in
-                        HStack(spacing: 14) {
-                            Image(systemName: "gamecontroller.fill")
-                                .font(.system(size: 26))
-                                .foregroundColor(EspressUTheme.accentText)
-                                .accessibilityHidden(true)
-                            Text(loc(controller.vendorName ?? "Controller"))
-                                .font(.system(.headline))
-                                .foregroundColor(EspressUTheme.brownDarkest)
-                            Spacer(minLength: 0)
-                            Text("Ready")
-                                .font(.system(.footnote).weight(.semibold))
-                                .foregroundColor(Color(light: "#17663F", dark: "#7FE0AE"))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color(light: "#DDF3E7", dark: "#173A2A"), in: Capsule())
-                        }
-                        .padding(16)
-                        .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    }
-                    HStack(spacing: 12) {
-                        Text("Press any button to test it:")
-                            .font(.system(.callout))
-                            .foregroundColor(EspressUTheme.brownMid)
-                        Image(systemName: input.lastPressedSymbol ?? "circle.dashed")
-                            .font(.system(size: 30, weight: .semibold))
-                            .foregroundColor(input.lastPressedSymbol == nil ? EspressUTheme.brownMid.opacity(0.5) : EspressUTheme.accentText)
-                            .id(input.lastPressedSymbol)
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                    .animation(.spring(response: 0.25, dampingFraction: 0.6), value: input.lastPressedSymbol)
-                    .accessibilityHidden(true)
-                }
-            }
-            .padding(22)
-            .espressUSurface(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        }
-    }
-
-    private func pageHeading(_ title: String, _ subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(loc(title))
-                .font(.system(.largeTitle).weight(.bold))
-                .foregroundColor(EspressUTheme.onBackground)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            Text(loc(subtitle))
-                .font(.system(.body))
-                .foregroundColor(EspressUTheme.onBackgroundMuted)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func bigButton(id: String, title: String, detail: String, systemImage: String,
-                           primary: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 26, weight: .semibold))
-                    .frame(width: 34)
-                    .foregroundColor(primary ? EspressUTheme.onAccent : EspressUTheme.accentText)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(loc(title))
-                        .font(.system(.headline))
-                    Text(loc(detail))
-                        .font(.system(.subheadline))
-                        .opacity(primary ? 0.88 : 1)
-                        .foregroundColor(primary ? EspressUTheme.onAccent : EspressUTheme.brownMid)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .foregroundColor(primary ? EspressUTheme.onAccent : EspressUTheme.brownDarkest)
-                Spacer(minLength: 0)
-            }
-            .multilineTextAlignment(.leading)
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(primary ? EspressUTheme.pixelBlue : EspressUTheme.cream,
-                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(primary ? Color.clear : EspressUTheme.wrapper, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .controllerFocusRing(isFocused(id), shape: RoundedRectangle(cornerRadius: 26, style: .continuous))
-    }
-
-    private func stepCard(_ number: Int, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text("\(number)")
-                .font(.system(.callout).weight(.bold))
-                .foregroundColor(EspressUTheme.accentText)
-                .frame(width: 32, height: 32)
-                .background(EspressUTheme.wrapper, in: Circle())
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(loc(title))
-                    .font(.system(.headline))
-                    .foregroundColor(EspressUTheme.brownDarkest)
-                Text(loc(detail))
-                    .font(.system(.subheadline))
-                    .foregroundColor(EspressUTheme.brownMid)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(16)
-        .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(locf("Step %@: %@. %@", number, title, detail))
-    }
-
-    private func noteText(_ text: String) -> some View {
-        Text(loc(text))
-            .font(.system(.subheadline))
-            .foregroundColor(EspressUTheme.alertText)
-            .fixedSize(horizontal: false, vertical: true)
-    }
+    // MARK: Navigation and controller
 
     private func isFocused(_ id: String) -> Bool {
         input.showsFocus && focus == id
@@ -536,20 +360,15 @@ struct EspressUOnboardingView: View {
 
     private var focusGrid: ControllerFocusGrid {
         switch page {
-        case 0: return ControllerFocusGrid(rows: [["skip"], ["next"]])
-        case 1: return ControllerFocusGrid(rows: [["skip"], ["choose"], ["folder"], ["files"], ["keys"], ["back", "next"]])
-        case 2: return ControllerFocusGrid(rows: [["skip"], ["pairJit"], ["back", "next"]])
-        default: return ControllerFocusGrid(rows: [["back", "finish"]])
+        case pageCount - 1: return ControllerFocusGrid(rows: [["pairJit"], ["next"], ["back"]])
+        case 0: return ControllerFocusGrid(rows: [["next"]])
+        default: return ControllerFocusGrid(rows: [["next"], ["back"]])
         }
     }
 
     private func defaultFocus(for page: Int) -> String {
-        switch page {
-        case 1: return gameManager.games.isEmpty ? "choose" : "next"
-        case 2: return StikJITSetup.hasPairingFile ? "next" : "pairJit"
-        case pageCount - 1: return "finish"
-        default: return "next"
-        }
+        if page == pageCount - 1 && !StikJITSetup.hasPairingFile { return "pairJit" }
+        return "next"
     }
 
     private func handle(_ command: ControllerMenuCommand) {
@@ -561,7 +380,7 @@ struct EspressUOnboardingView: View {
         case .back, .previousPage:
             if page > 0 { goBack() }
         case .nextPage:
-            if page < pageCount - 1 { advance() }
+            if !isLastPage { advance() }
         case .menu:
             advance()
         case .alternate, .select:
@@ -571,20 +390,15 @@ struct EspressUOnboardingView: View {
 
     private func activate(_ id: String) {
         switch id {
-        case "skip", "finish": finish()
         case "next": advance()
         case "back": goBack()
-        case "choose": chooseGames()
-        case "folder": chooseGameFolder()
-        case "files": openRomsInFiles()
-        case "keys": importKeys()
         case "pairJit": pairOrStop()
         default: break
         }
     }
 
     private func advance() {
-        if page == pageCount - 1 { finish() } else { withAnimation { page += 1 } }
+        if isLastPage { finish() } else { withAnimation { page += 1 } }
     }
 
     private func goBack() {
@@ -596,104 +410,35 @@ struct EspressUOnboardingView: View {
         OnboardingState.markCompleted()
         onFinished()
     }
-
-    private func chooseGames() {
-        input.pause()
-        DocumentImport.present(contentTypes: [.item]) { result in
-            input.resume()
-            Task { @MainActor in
-                switch result {
-                case .success(let urls): importGames(urls)
-                case .failure(let error): gamesNote = error.localizedDescription
-                }
-            }
-        }
-    }
-
-    private func chooseGameFolder() {
-        input.pause()
-        choosingFolder = true
-    }
-
-    private func importGames(_ urls: [URL]) {
-        gamesNote = nil
-        Task { @MainActor in
-            for url in urls {
-                do { try await gameManager.importROM(from: url) } catch { gamesNote = error.localizedDescription }
-            }
-        }
-    }
-
-    private func openRomsInFiles() {
-        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Roms", isDirectory: true)
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        let path = folder.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? folder.path
-        guard let url = URL(string: "shareddocuments://" + path) else { return }
-        input.pause()
-        UIApplication.shared.open(url) { opened in
-            if !opened { input.resume() }
-        }
-    }
-
-    private func importKeys() {
-        input.pause()
-        DocumentImport.present(contentTypes: [.item]) { result in
-            input.resume()
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                do {
-                    keyCount = try WiiUKeys.importKeys(from: url)
-                    gamesNote = nil
-                } catch {
-                    gamesNote = error.localizedDescription
-                }
-            case .failure(let error):
-                gamesNote = error.localizedDescription
-            }
-        }
-    }
 }
 
-private struct OnboardingColumns<Leading: View, Trailing: View>: View {
-    let wide: Bool
-    @ViewBuilder var leading: Leading
-    @ViewBuilder var trailing: Trailing
-
-    var body: some View {
-        ScrollView {
-            Group {
-                if wide {
-                    HStack(alignment: .center, spacing: 40) {
-                        leading.frame(maxWidth: .infinity, alignment: .leading)
-                        trailing.frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.horizontal, 48)
-                } else {
-                    VStack(alignment: .leading, spacing: 24) {
-                        leading
-                        trailing
-                    }
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: 640)
-                }
-            }
-            .padding(.vertical, 24)
-            .frame(maxWidth: .infinity)
-        }
-    }
-}
-
-private struct HStackOrVStack<Content: View>: View {
+/// One page of the guide: left-aligned, readable width, centred vertically when it fits and scrolling when it doesn't.
+private struct OnboardingPage<Content: View>: View {
+    var alignment: HorizontalAlignment = .leading
     @ViewBuilder var content: Content
-    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
-        if sizeClass == .regular {
-            HStack(spacing: 12) { content }
-        } else {
-            VStack(spacing: 10) { content }
+        GeometryReader { geo in
+            ScrollView {
+                VStack(alignment: alignment, spacing: 28) {
+                    content
+                }
+                .frame(maxWidth: 520, alignment: alignment == .center ? .center : .leading)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 32)
+                .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .center)
+            }
+            .scrollBounceBehavior(.basedOnSize)
         }
+    }
+}
+
+private extension View {
+    /// Slides up 14pt and fades in once its page is current.
+    func slideIn(_ shown: Bool, delay: Double = 0.12) -> some View {
+        self
+            .offset(y: shown ? 0 : 14)
+            .opacity(shown ? 1 : 0)
+            .animation(.spring(response: 0.7, dampingFraction: 0.8).delay(delay), value: shown)
     }
 }
