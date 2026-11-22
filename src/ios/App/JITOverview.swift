@@ -201,50 +201,54 @@ struct JITPairingCard: View {
     }
 }
 
+/// The JIT page switch: one row with a large pill switch whose knob carries a bolt, and the live status as caption.
 struct JITModeSwitch: View {
     let isOn: Bool
     let set: (Bool) -> Void
-    @Namespace private var knob
+    @ObservedObject private var coordinator = StikJITCoordinator.shared
+    @ObservedObject private var vpn = LocalDevVPNMonitor.shared
+
+    private let trackWidth: CGFloat = 68
+    private let trackHeight: CGFloat = 40
 
     var body: some View {
-        HStack(spacing: 4) {
-            segment(on: true, title: loc("JIT"), detail: loc("Fast recompiler"), symbol: "bolt.fill")
-            segment(on: false, title: loc("No JIT"), detail: loc("Interpreter"), symbol: "tortoise.fill")
-        }
-        .padding(4)
-        .background(Color.white.opacity(0.08), in: Capsule())
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isOn)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("JIT")
-    }
-
-    private func segment(on: Bool, title: String, detail: String, symbol: String) -> some View {
-        let selected = isOn == on
-        return Button { if !selected { set(on) } } label: {
-            HStack(spacing: 10) {
-                Image(systemName: symbol)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(selected && on ? Color(UIColor.systemGreen) : nil)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(loc(title))
-                        .font(.body.weight(.semibold))
-                    Text(loc(detail))
-                        .font(.caption.weight(.semibold))
-                        .opacity(0.85)
+        let overview = JITOverview.current(enabled: isOn)
+        let warning = overview.enabled && !overview.isReady && !overview.preparing
+        Button { set(!isOn) } label: {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isOn ? "JIT on" : "JIT off")
+                        .font(.title3.weight(.bold))
+                        .foregroundColor(EspressUTheme.brownDarkest)
+                    Text(loc(warning ? overview.title + ". " + overview.subtitle : overview.subtitle))
+                        .font(.footnote.weight(.medium))
+                        .foregroundColor(warning ? EspressUTheme.cautionText : EspressUTheme.brownMid)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                Spacer(minLength: 8)
+                track
             }
-            .foregroundColor(selected ? EspressUTheme.brownDarkest : EspressUTheme.brownMid)
-            .frame(maxWidth: .infinity, minHeight: 48)
-            .background {
-                if selected {
-                    Capsule()
-                        .fill(Color.primary.opacity(0.14))
-                        .matchedGeometryEffect(id: "knob", in: knob)
-                }
-            }
-            .contentShape(Capsule())
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .animation(.spring(response: 0.3, dampingFraction: 0.78), value: isOn)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("JIT")
+        .accessibilityValue(isOn ? loc("On") : loc("Off"))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var track: some View {
+        let knob = trackHeight - 8
+        return ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(isOn ? Color(UIColor.systemGreen) : Color(UIColor.tertiarySystemFill))
+            Circle()
+                .fill(Color.white)
+                .frame(width: knob, height: knob)
+                .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+                .padding(4)
+        }
+        .frame(width: trackWidth, height: trackHeight)
     }
 }

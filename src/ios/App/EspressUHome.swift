@@ -974,7 +974,10 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private func openJITPanel() {
         jitPanel.close = { showingJIT = false }
-        jitPanel.openSettings = actions.openSettings
+        jitPanel.openSettings = {
+            SettingsLaunch.category = .jit
+            actions.openSettings()
+        }
         jitPanel.open()
         showingJIT = true
     }
@@ -1313,9 +1316,9 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+            .padding(.leading, indented ? 40 : 14)
+            .padding(.trailing, 14)
+            .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(EspressUPressStyle())

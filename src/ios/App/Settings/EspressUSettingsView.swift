@@ -5,6 +5,11 @@ import UIKit
 import GameController
 import UniformTypeIdentifiers
 
+/// Set before presenting Settings to open a specific category instead of the overview. Read once, then cleared.
+enum SettingsLaunch {
+    static var category: SettingsCategory?
+}
+
 struct EspressUSettingsView: View {
     @ObservedObject var gameManager: GameManager
     @Environment(\.dismiss) var dismiss
@@ -120,6 +125,11 @@ struct EspressUSettingsView: View {
 
     private func appear() {
         UserDefaults.standard.set(SettingsMode.advanced.rawValue, forKey: SettingsMode.storageKey)
+        if let launch = SettingsLaunch.category {
+            SettingsLaunch.category = nil
+            category = launch
+            showingCategory = true
+        }
         refreshShaderStats()
         jitActive = JITStatus.isActive
         jitCoordinator.refreshTXM()
@@ -548,8 +558,8 @@ struct EspressUSettingsView: View {
                 focus = item.id
                 binding.wrappedValue = on
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 16)
 
         case .banner(let view):
             view
