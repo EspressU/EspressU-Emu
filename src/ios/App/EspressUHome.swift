@@ -131,7 +131,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             }
         }
         // Light mode needs more cover colour than dark mode for the blur to read against the grey ground.
-        .opacity(colorScheme == .dark ? 0.32 : 0.55)
+        .opacity(colorScheme == .dark ? 0.32 : 0.62)
+        // Full-screen frame first: the stack's own layout size is the 160pt cover, and the veil must not be limited to it.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Light mode: a light veil lifts the blurred cover into a clean pastel wash instead of a muddy grey-brown.
+        .overlay { if colorScheme != .dark { Color.white.opacity(0.14).allowsHitTesting(false) } }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .onAppear { showBackdrop(backdropPath) }
@@ -191,7 +195,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         return CoverImage(path: path, fill: true)
             .frame(width: 160, height: 160)
             .blur(radius: 9)
-            .saturation(0.6)
+            .saturation(colorScheme == .dark ? 0.6 : 1.4)
             // Oversized so the blur's feathered edge stays off-screen.
             .scaleEffect(side / 160 * 1.6)
     }
@@ -1248,11 +1252,6 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(addGroups, id: \.0) { group in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(loc(group.0.uppercased()))
-                                .font(.caption.weight(.semibold))
-                                .tracking(0.6)
-                                .foregroundColor(EspressUTheme.brownMid)
-                                .padding(.horizontal, 6)
                             VStack(spacing: 0) {
                                 ForEach(Array(group.1.enumerated()), id: \.element.id) { index, option in
                                     if index > 0 {
@@ -1313,8 +1312,8 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 }
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(EspressUTheme.brownMid.opacity(0.6))
             }
             .padding(.leading, indented ? 40 : 14)
             .padding(.trailing, 14)
@@ -1520,3 +1519,20 @@ extension View {
         }
     }
 }
+private struct EspressUCardModifier<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        if colorScheme == .dark {
+            content.espressUSurface(shape)
+        } else {
+            // Light mode: a flat white card like iOS Settings. Glass here casts a grey haze under the card.
+            content.background(EspressUTheme.cream, in: shape)
+        }
+    }
+}
+
+    /// Grouped settings card: Liquid Glass in dark mode, flat white in light mode.
+    func espressUCard<S: Shape>(_ shape: S) -> some View { modifier(EspressUCardModifier(shape: shape)) }
+

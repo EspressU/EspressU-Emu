@@ -298,7 +298,7 @@ struct EspressUSettingsView: View {
                                              shape: RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
                 }
-                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 Button { openDiscord() } label: {
                     HStack(spacing: 14) {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -324,7 +324,7 @@ struct EspressUSettingsView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 16)
             .padding(.bottom, isWide ? 24 : phoneBottomRoom)
@@ -404,7 +404,7 @@ struct EspressUSettingsView: View {
                                         .id(item.id)
                                 }
                             }
-                            .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         }
                     }
                 }
@@ -692,7 +692,11 @@ struct EspressUSettingsView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 7)
                         .background {
-                            if selected { Color.clear.espressUSurface(Capsule()) }
+                            if selected {
+                                Capsule()
+                                    .fill(EspressUTheme.segmentSelected)
+                                    .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                            }
                         }
                 }
                 .buttonStyle(.plain)
@@ -700,7 +704,7 @@ struct EspressUSettingsView: View {
             }
         }
         .padding(3)
-        .background(Color.white.opacity(0.08), in: Capsule())
+        .background(EspressUTheme.wrapper, in: Capsule())
     }
 
     private func legacyPage(_ page: LegacySettingsPage) -> some View {
