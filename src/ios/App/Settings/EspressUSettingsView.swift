@@ -18,8 +18,6 @@ struct EspressUSettingsView: View {
 
     @State var category: SettingsCategory = .jit
     @State var showingCategory = false
-    /// Set just before dismissing, so the tint is gone at once instead of fading out over the library.
-    @State var leaving = false
     @State var legacy: LegacySettingsPage?
     @State var focus: String?
     @State var sidebarFocused = true
@@ -54,10 +52,6 @@ struct EspressUSettingsView: View {
             ZStack(alignment: .bottom) {
                 EspressUBackground()
                     .ignoresSafeArea()
-                // On phones the category list has no category open yet, so it gets no tint.
-                settingsBackdrop
-                    .opacity(!leaving && (wide || showingCategory || legacy != nil) ? 1 : 0)
-                    .animation(leaving ? nil : .easeInOut(duration: 0.25), value: showingCategory)
 
                 Group {
                     if wide {
@@ -137,9 +131,6 @@ struct EspressUSettingsView: View {
     }
 
     func close() {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) { leaving = true }
         ControllerMappingSession.shared.cancel()
         input.stop()
         dismiss()
@@ -181,21 +172,6 @@ struct EspressUSettingsView: View {
         } else {
             categoryGrid
         }
-    }
-
-    /// A soft wash of the open category's colour, so the glass surfaces have something to refract.
-    private var settingsBackdrop: some View {
-        // An overlay, so the 520 pt circle cannot widen the parent ZStack beyond a phone's screen.
-        Color.clear
-            .overlay {
-                Circle()
-                    .fill(category.tint.opacity(0.12))
-                    .frame(width: 520, height: 520)
-                    .blur(radius: 130)
-                    .offset(x: -160, y: -260)
-            }
-            .allowsHitTesting(false)
-            .animation(.easeInOut(duration: 0.35), value: category)
     }
 
     private var sidebar: some View {
