@@ -141,22 +141,31 @@ enum EspressUTheme {
 
     static var brownDarkest: Color { Color(UIColor.label) }
     static var brownDark: Color { Color(UIColor.label) }
-    static var brownMid: Color { Color(UIColor.secondaryLabel) }
-    static var secondaryText: Color { Color(UIColor.secondaryLabel) }
+    static var brownMid: Color { mutedInk }
+    static var secondaryText: Color { mutedInk }
     static var onBackground: Color { Color(UIColor.label) }
-    static var onBackgroundMuted: Color { Color(UIColor.secondaryLabel) }
+    static var onBackgroundMuted: Color { mutedInk }
+
+    /// Secondary text. Light mode is darker than `secondaryLabel` so captions stay readable on the grey ground and on glass.
+    static var mutedInk: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? .secondaryLabel : UIColor(red: 0.30, green: 0.30, blue: 0.34, alpha: 1) })
+    }
+    /// Selected segment: a solid white pill in light mode so it stands out from the track.
+    static var segmentSelected: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor.white.withAlphaComponent(0.22) : .white })
+    }
 
     // MARK: Surfaces
 
-    /// Light mode uses a softer grey ground with off-white cards instead of the near-white system defaults; dark mode keeps the system values.
+    /// Matches iOS Settings: light grey grouped ground with pure white cards.
     private static func adaptive(light: UIColor, dark: UIColor) -> Color {
         Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? dark : light })
     }
-    static var formGround: Color { adaptive(light: UIColor(red: 0.855, green: 0.855, blue: 0.875, alpha: 1), dark: .systemGroupedBackground) }
+    static var formGround: Color { Color(UIColor.systemGroupedBackground) }
     static var backgroundTop: Color { formGround }
     static var backgroundBottom: Color { formGround }
-    static var cream: Color { adaptive(light: UIColor(red: 0.945, green: 0.945, blue: 0.957, alpha: 1), dark: .secondarySystemGroupedBackground) }
-    static var creamPressed: Color { adaptive(light: UIColor(red: 0.89, green: 0.89, blue: 0.91, alpha: 1), dark: .tertiarySystemGroupedBackground) }
+    static var cream: Color { Color(UIColor.secondarySystemGroupedBackground) }
+    static var creamPressed: Color { Color(UIColor.tertiarySystemGroupedBackground) }
     /// Neutral fills are translucent overlays rather than opaque greys, so they sit on glass and backdrops.
     static var wrapper: Color {
         Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor.white.withAlphaComponent(0.12) : UIColor.black.withAlphaComponent(0.08) })

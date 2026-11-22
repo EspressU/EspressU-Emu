@@ -448,12 +448,16 @@ struct SettingsDropdownOverlay: View {
 struct SettingsActionCapsule: ViewModifier {
     let armed: Bool
     let fill: Color
+    @Environment(\.colorScheme) private var colorScheme
 
     @ViewBuilder func body(content: Content) -> some View {
         if armed {
             content.background(fill, in: Capsule())
-        } else {
+        } else if colorScheme == .dark {
             content.espressUSurface(Capsule())
+        } else {
+            // Light mode: flat fill, no glass shadow on the white card.
+            content.background(EspressUTheme.wrapper, in: Capsule())
         }
     }
 }

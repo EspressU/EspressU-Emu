@@ -985,7 +985,7 @@ struct SearchBarPolished: View {
         .espressUSurface(Capsule())
         .onAppear {
             if autoFocus {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { focused = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { focused = true }
             }
         }
         .onValueChange(of: focused) { isFocused in

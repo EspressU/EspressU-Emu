@@ -71,6 +71,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     @State private var selectedId: String?
     @State private var showingSearch = false
     @State private var showingAdd = false
+    @State private var showingLinkChoice = false
     @State private var optionsGameId: String?
     @State private var optionsFocus = 0
     @State private var optionsArmed: String?
@@ -103,7 +104,10 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     private var backdropFade: Double { isPhone ? 0.3 : 0.8 }
 
     private var backdropPath: String? {
-        games.indices.contains(centerIndex) ? games[centerIndex].coverPath : nil
+        // iPhone: no tint until a game has been tapped. After that the last tint stays
+        // (showBackdrop ignores nil), so deselecting does not flash back to plain.
+        if isPhone { return selectedGame?.coverPath }
+        return games.indices.contains(centerIndex) ? games[centerIndex].coverPath : nil
     }
 
     /// The centred game's cover, blurred behind everything, so glass bars have something to refract.
@@ -120,7 +124,11 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
             }
         }
         // Light mode needs more cover colour than dark mode for the blur to read against the grey ground.
-        .opacity(colorScheme == .dark ? 0.32 : 0.55)
+        .opacity(colorScheme == .dark ? 0.32 : 0.62)
+        // Full-screen frame first: the stack's own layout size is the 160pt cover, and the veil must not be limited to it.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Light mode: a light veil lifts the blurred cover into a clean pastel wash instead of a muddy grey-brown.
+        .overlay { if colorScheme != .dark { Color.white.opacity(0.14).allowsHitTesting(false) } }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .onAppear { showBackdrop(backdropPath) }
@@ -133,7 +141,16 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         guard let path else { return }
         if backdropPaths[backdropTop] == nil {
             backdropPaths[backdropTop] = path
-            backdropOpacity[backdropTop] = 1
+            if isPhone {
+                // First selection on iPhone: fade the tint in instead of popping it in.
+                backdropOpacity[backdropTop] = 0
+                let layer = backdropTop
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: backdropFade)) { backdropOpacity[layer] = 1 }
+                }
+            } else {
+                backdropOpacity[backdropTop] = 1
+            }
             return
         }
         backdropPending = path
@@ -171,7 +188,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         return CoverImage(path: path, fill: true)
             .frame(width: 160, height: 160)
             .blur(radius: 9)
-            .saturation(0.6)
+            .saturation(colorScheme == .dark ? 0.6 : 1.4)
             // Oversized so the blur's feathered edge stays off-screen.
             .scaleEffect(side / 160 * 1.6)
     }
@@ -192,7 +209,8 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .padding(.top, insets.top + (isPhone ? 6 : 14))
                 if showingSearch {
                     HStack(spacing: 10) {
-                        SearchBarPolished(text: $searchText, autoFocus: isPhone)
+                        SearchBarPolished(text: $searchText, autoFocus: isPhone,
+                                          onKeyboardDismiss: isPhone ? { closeSearch() } : nil)
                         if isPhone {
                             Button { closeSearch() } label: {
                                 Text("Cancel")
@@ -211,7 +229,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                         if v.translation.height < -24 { closeSearch() }
                     } : nil)
                     .transition(isPhone
-                        ? .opacity.combined(with: .offset(y: -28))
+                        ? .opacity.combined(with: .offset(y: -22)).combined(with: .scale(scale: 0.96, anchor: .top))
                         : .move(edge: .top).combined(with: .opacity))
                 }
                 lead
@@ -242,7 +260,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     .allowsHitTesting(!(isPhone && keyboardUp))
                     .opacity(isPhone && keyboardUp ? 0.4 : 1)
                     .overlay {
-                        if isPhone && keyboardUp {
+                        if isPhone && searchTapCatcher {
                             Color.clear.contentShape(Rectangle()).onTapGesture { tapAwayFromSearch() }
                         }
                     }
@@ -300,11 +318,13 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 cemu_bridge_log_checkpoint("fileImporter: failed \(error.localizedDescription)")
             }
         }
+        .onValueChange(of: showingAdd) { if !$0 { showingLinkChoice = false } }
         .ignoresSafeArea(.keyboard, edges: isPhone ? .bottom : [])
+        .animation(.easeOut(duration: 0.25), value: keyboardUp)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedId)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingAdd)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: optionsGameId)
-        .animation(isPhone ? .spring(response: 0.5, dampingFraction: 0.9) : .easeInOut(duration: 0.2), value: showingSearch)
+        .animation(isPhone ? .spring(response: 0.38, dampingFraction: 0.84) : .easeInOut(duration: 0.2), value: showingSearch)
         .onValueChange(of: games.map(\.id)) { ids in
             if let selectedId, !ids.contains(selectedId) { self.selectedId = nil }
             pad.onCommand = handlePad
@@ -642,12 +662,12 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                     guard gridAtTop, !showingSearch, value.translation.height > 110,
                           abs(value.translation.width) * 2 < value.translation.height else { return }
                     showingAdd = false
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) { showingSearch = true }
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { showingSearch = true }
                 }
         )
         .frame(width: size.width, height: size.height)
         .overlay {
-            if keyboardUp {
+            if searchTapCatcher {
                 Color.clear
                     .contentShape(Rectangle())
                     .onTapGesture { tapAwayFromSearch() }
@@ -671,9 +691,16 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         }
     }
 
+    /// True while a tap outside the bar should be handled by the search: keyboard up, or (on phones)
+    /// an empty open field whose keyboard is still on its way in.
+    private var searchTapCatcher: Bool {
+        keyboardUp || (isPhone && showingSearch && searchText.isEmpty)
+    }
+
     private func closeSearch() {
+        guard showingSearch else { return }
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) { showingSearch = false }
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { showingSearch = false }
         searchText = ""
     }
 
@@ -927,7 +954,7 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
     private func handleAddPanel(_ command: ControllerMenuCommand) {
         let columns = 1
         var rows: [[String]] = []
-        for group in addGroups {
+        for group in visibleAddGroups {
             let ids = group.1.map(\.id)
             stride(from: 0, to: ids.count, by: columns).forEach { rows.append(Array(ids[$0..<min($0 + columns, ids.count)])) }
         }
@@ -935,16 +962,21 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         case .up, .down, .left, .right:
             addFocus = ControllerFocusGrid(rows: rows).move(addFocus ?? rows.first?.first, command)
         case .confirm:
-            guard let id = addFocus, let option = addGroups.flatMap({ $0.1 }).first(where: { $0.id == id }) else { return }
+            guard let id = addFocus, let option = visibleAddGroups.flatMap({ $0.1 }).first(where: { $0.id == id }) else { return }
             runAddOption(option)
         case .back:
-            showingAdd = false
+            if showingLinkChoice { showingLinkChoice = false } else { showingAdd = false }
         default:
             break
         }
     }
 
     private func runAddOption(_ option: AddOption) {
+        if option.id == "link" {
+            // Opens the link page inside the same panel; the back button returns to the main list.
+            withAnimation(.easeOut(duration: 0.2)) { showingLinkChoice = true }
+            return
+        }
         showingAdd = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { option.action() }
     }
@@ -1125,23 +1157,17 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private var addGroups: [(String, [AddOption])] {
         [
-            ("Add games", [
-                AddOption(id: "file", title: loc("Game file"), detail: loc("A decrypted .wua or a .rpx"),
-                          systemImage: "doc.fill", action: actions.importFile),
-                AddOption(id: "folder", title: loc("Game folder"), detail: loc("A decrypted game folder"),
-                          systemImage: "folder.fill", action: { importerMode = .gameFolder }),
-                AddOption(id: "romsInFiles", title: loc("Roms folder in Files"), detail: loc("Drag games in, then come back"),
-                          systemImage: "folder.badge.plus", action: { Self.openInFiles(Self.documentsFolder("Roms")) })
+            (loc("Add"), [
+                AddOption(id: "file", title: loc("Game file"), detail: ".wua .rpx",
+                          systemImage: "doc", action: actions.importFile),
+                AddOption(id: "folder", title: loc("Game folder"), detail: "",
+                          systemImage: "folder", action: { importerMode = .gameFolder }),
+                AddOption(id: "link", title: loc("Link in place"), detail: "",
+                          systemImage: "link", action: { showingLinkChoice = true })
             ]),
-            ("Updates and DLC", [
-                AddOption(id: "contentFolder", title: loc("Update or DLC folder"), detail: loc("A decrypted folder for a game you have"),
-                          systemImage: "shippingbox.fill", action: actions.importContentFolder)
-            ]),
-            ("Keep games where they are", [
-                AddOption(id: "linkFolder", title: loc("Link a folder"), detail: loc("Drive, SD card or iCloud. Nothing is copied"),
-                          systemImage: "externaldrive.fill.badge.plus", action: actions.linkFolder),
-                AddOption(id: "linkFile", title: loc("Link a game file"), detail: loc("Play it right where it is"),
-                          systemImage: "link", action: actions.linkFile)
+            (loc("Updates and DLC"), [
+                AddOption(id: "update", title: loc("Update or DLC"), detail: "",
+                          systemImage: "arrow.triangle.2.circlepath", action: actions.importContentFolder)
             ])
         ]
     }
@@ -1162,14 +1188,27 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
 
     private var addPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: 10) {
+                if showingLinkChoice {
+                    Button { withAnimation(.easeOut(duration: 0.2)) { showingLinkChoice = false } } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(EspressUTheme.brownMid)
+                            .frame(width: 38, height: 38)
+                            .espressUSurface(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(loc("Back"))
+                }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Add to EspressU")
+                    Text(showingLinkChoice ? "Link in place" : "Add to EspressU")
                         .font(.title3.weight(.semibold))
                         .foregroundColor(EspressUTheme.brownDarkest)
-                    Text("Games, updates, DLC and keys")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(EspressUTheme.brownMid)
+                    if !showingLinkChoice {
+                        Text("Games, updates, DLC and keys")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(EspressUTheme.brownMid)
+                    }
                 }
                 Spacer()
                 Button { showingAdd = false } label: {
@@ -1183,33 +1222,21 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
                 .accessibilityLabel("Close")
             }
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 18) {
-                    ForEach(addGroups, id: \.0) { group in
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(visibleAddGroups, id: \.0) { group in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(loc(group.0.uppercased()))
-                                .font(.caption.weight(.semibold))
-                                .tracking(0.6)
-                                .foregroundColor(EspressUTheme.brownMid)
-                                .padding(.horizontal, 6)
                             VStack(spacing: 0) {
                                 ForEach(Array(group.1.enumerated()), id: \.element.id) { index, option in
                                     if index > 0 {
                                         Rectangle()
                                             .fill(EspressUTheme.hairline)
                                             .frame(height: EspressUTheme.hairlineWidth)
-                                            .padding(.leading, 62)
+                                            .padding(.leading, 52)
                                     }
                                     addRow(option)
                                 }
                             }
-                            .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            if group.0 == loc("Updates, DLC and keys") {
-                                Text("You can also drop updates and DLC into Files \u{203A} EspressU \u{203A} Updates & DLC.")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundColor(EspressUTheme.brownMid)
-                                    .padding(.horizontal, 6)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
+                            .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         }
                     }
                 }
@@ -1229,34 +1256,47 @@ struct EspressUHomeScreen<Lead: View, GameMenu: View>: View {
         .espressUSurface(RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
-    private func addRow(_ option: AddOption) -> some View {
+    /// The main list, or just the two link choices while the link page is open.
+    private var visibleAddGroups: [(String, [AddOption])] {
+        showingLinkChoice ? [(loc("Link in place"), linkChoices)] : addGroups
+    }
+
+    private var linkChoices: [AddOption] {
+        [
+            AddOption(id: "linkFolder", title: loc("Link a folder"), detail: "",
+                      systemImage: "externaldrive", action: actions.linkFolder),
+            AddOption(id: "linkFile", title: loc("Link a game file"), detail: "",
+                      systemImage: "doc.badge.plus", action: actions.linkFile)
+        ]
+    }
+
+    private func addRow(_ option: AddOption, indented: Bool = false) -> some View {
         Button {
             runAddOption(option)
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 Image(systemName: option.systemImage)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(EspressUTheme.onCremaTop)
-                    .frame(width: 38, height: 38)
-                    .background(EspressUTheme.cremaTopGradient, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(loc(option.title))
-                        .font(.body.weight(.semibold))
-                        .foregroundColor(EspressUTheme.brownDarkest)
-                    Text(loc(option.detail))
-                        .font(.footnote.weight(.medium))
-                        .foregroundColor(EspressUTheme.brownMid)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundColor(EspressUTheme.accentText)
+                    .frame(width: 26)
+                Text(loc(option.title))
+                    .font(.body.weight(.medium))
+                    .foregroundColor(EspressUTheme.brownDarkest)
+                    .lineLimit(1)
                 Spacer(minLength: 8)
+                if !option.detail.isEmpty {
+                    Text(loc(option.detail))
+                        .font(.footnote)
+                        .foregroundColor(EspressUTheme.brownMid)
+                        .lineLimit(1)
+                }
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(EspressUTheme.brownMid.opacity(0.7))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(EspressUTheme.brownMid.opacity(0.6))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+            .padding(.leading, indented ? 40 : 14)
+            .padding(.trailing, 14)
+            .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(EspressUPressStyle())
@@ -1448,7 +1488,24 @@ struct EspressUBackground: View {
     }
 }
 
+private struct EspressUCardModifier<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        if colorScheme == .dark {
+            content.espressUSurface(shape)
+        } else {
+            // Light mode: a flat white card like iOS Settings. Glass here casts a grey haze under the card.
+            content.background(EspressUTheme.cream, in: shape)
+        }
+    }
+}
+
 extension View {
+    /// Grouped settings card: Liquid Glass in dark mode, flat white in light mode.
+    func espressUCard<S: Shape>(_ shape: S) -> some View { modifier(EspressUCardModifier(shape: shape)) }
+
     /// Liquid Glass on iOS 26, a system material before that. `clear` is the more see-through variant.
     @ViewBuilder func espressUSurface<S: Shape>(_ shape: S, clear: Bool = false) -> some View {
         if #available(iOS 26.0, *) {

@@ -5,6 +5,11 @@ import UIKit
 import GameController
 import UniformTypeIdentifiers
 
+/// Set before presenting Settings to open a specific category instead of the overview. Read once, then cleared.
+enum SettingsLaunch {
+    static var category: SettingsCategory?
+}
+
 struct EspressUSettingsView: View {
     @ObservedObject var gameManager: GameManager
     @Environment(\.dismiss) var dismiss
@@ -18,8 +23,6 @@ struct EspressUSettingsView: View {
 
     @State var category: SettingsCategory = .performance
     @State var showingCategory = false
-    /// Set just before dismissing, so the tint is gone at once instead of fading out over the library.
-    @State var leaving = false
     @State var legacy: LegacySettingsPage?
     @State var focus: String?
     @State var sidebarFocused = true
@@ -42,10 +45,6 @@ struct EspressUSettingsView: View {
             ZStack(alignment: .bottom) {
                 EspressUBackground()
                     .ignoresSafeArea()
-                // On phones the category list has no category open yet, so it gets no tint.
-                settingsBackdrop
-                    .opacity(!leaving && (wide || showingCategory || legacy != nil) ? 1 : 0)
-                    .animation(leaving ? nil : .easeInOut(duration: 0.25), value: showingCategory)
 
                 Group {
                     if wide {
@@ -64,7 +63,7 @@ struct EspressUSettingsView: View {
             .onAppear { isWide = wide }
             .onValueChange(of: wide) { isWide = $0 }
         }
-        .preferredColorScheme(EspressUAppearance.colorScheme)
+        .espressuAppearance()
         .onAppear(perform: appear)
         .onDisappear {
             ControllerMappingSession.shared.cancel()
@@ -92,6 +91,11 @@ struct EspressUSettingsView: View {
 
     private func appear() {
         UserDefaults.standard.set(SettingsMode.advanced.rawValue, forKey: SettingsMode.storageKey)
+        if let launch = SettingsLaunch.category {
+            SettingsLaunch.category = nil
+            category = launch
+            showingCategory = true
+        }
         refreshShaderStats()
         input.onCommand = handle
         input.isBlocked = { ControllerMappingSession.shared.isListening }
@@ -101,9 +105,6 @@ struct EspressUSettingsView: View {
     }
 
     func close() {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) { leaving = true }
         ControllerMappingSession.shared.cancel()
         input.stop()
         dismiss()
@@ -145,21 +146,6 @@ struct EspressUSettingsView: View {
         } else {
             categoryGrid
         }
-    }
-
-    /// A soft wash of the open category's colour, so the glass surfaces have something to refract.
-    private var settingsBackdrop: some View {
-        // An overlay, so the 520 pt circle cannot widen the parent ZStack beyond a phone's screen.
-        Color.clear
-            .overlay {
-                Circle()
-                    .fill(category.tint.opacity(0.12))
-                    .frame(width: 520, height: 520)
-                    .blur(radius: 130)
-                    .offset(x: -160, y: -260)
-            }
-            .allowsHitTesting(false)
-            .animation(.easeInOut(duration: 0.35), value: category)
     }
 
     private var sidebar: some View {
@@ -276,7 +262,7 @@ struct EspressUSettingsView: View {
                                              shape: RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
                 }
-                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 Button { openDiscord() } label: {
                     HStack(spacing: 14) {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -302,7 +288,7 @@ struct EspressUSettingsView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 16)
             .padding(.bottom, isWide ? 24 : phoneBottomRoom)
@@ -375,7 +361,7 @@ struct EspressUSettingsView: View {
                                         .id(item.id)
                                 }
                             }
-                            .espressUSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .espressUCard(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         }
                     }
                 }
@@ -655,7 +641,11 @@ struct EspressUSettingsView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 7)
                         .background {
-                            if selected { Color.clear.espressUSurface(Capsule()) }
+                            if selected {
+                                Capsule()
+                                    .fill(EspressUTheme.segmentSelected)
+                                    .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                            }
                         }
                 }
                 .buttonStyle(.plain)
@@ -663,7 +653,7 @@ struct EspressUSettingsView: View {
             }
         }
         .padding(3)
-        .background(Color.white.opacity(0.08), in: Capsule())
+        .background(EspressUTheme.wrapper, in: Capsule())
     }
 
     private func legacyPage(_ page: LegacySettingsPage) -> some View {
